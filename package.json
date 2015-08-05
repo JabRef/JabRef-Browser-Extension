@@ -1,8 +1,9 @@
 {
-	"name": "FireJabref",
+	"name": "firejabref",
 	"title": "FireJabref",
 	"id": "jid1-a6QgBTys8YP0PQ",
 	"description": "If a item is added to Zotero automatically export it to Jabref.\n\nInstall notes:\n\nJabref:  activate Preferences  Advanced  Remote operation",
+	"icon" : "",
 	"author": "Tobias Diez",
 	"license": "MIT",
 	"version": "0.1",
@@ -16,5 +17,5 @@
 		"description": "The path to the executable of JabRef.", 
 		"value": "C:\\Program Files (x86)\\JabRef\\JabRef.exe", 
 		"name": "jabrefPath"
-	}],
+	}]
 }
