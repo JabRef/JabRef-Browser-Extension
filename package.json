@@ -1,21 +1,13 @@
 {
-	"name": "firejabref",
-	"title": "FireJabref",
-	"id": "jid1-a6QgBTys8YP0PQ",
-	"description": "If a item is added to Zotero automatically export it to Jabref.\n\nInstall notes:\n\nJabref:  activate Preferences  Advanced  Remote operation",
-	"icon" : "",
-	"author": "Tobias Diez",
-	"license": "MIT",
-	"version": "0.1",
-	"dependencies": ["api-utils", "addon-kit"],
-	"contributors": [],
-	"url": "https://github.com/tobiasdiez/Jabref-FirefoxAddon",
-	"preferences":
-	[{
-		"title": "Path to JabRef", 
-		"type": "file", 
-		"description": "The path to the executable of JabRef.", 
-		"value": "C:\\Program Files (x86)\\JabRef\\JabRef.exe", 
-		"name": "jabrefPath"
-	}]
+  "title": "FireBib",
+  "name": "firebib",
+  "version": "0.0.2",
+  "description": "FireBib collects online research material and sends the bibliographic information directly to your favorite reference manager - all in one click.",
+  "main": "index.js",
+  "author": "Tobias Diez <TobiasDiez@gmx.de>",
+  "engines": {
+    "firefox": ">=38.0a1",
+    "fennec": ">=38.0a1"
+  },
+  "license": "MIT"
 }
