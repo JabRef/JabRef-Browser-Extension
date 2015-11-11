@@ -9,5 +9,12 @@
     "firefox": ">=38.0a1",
     "fennec": ">=38.0a1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "preferences": [{
+        "name": "jabRefPath",
+        "type": "file",
+        "title": "Path of JabRef",
+        "description": "The path of the executable file of JabRef, i.e. the install location of 'JabRef.exe'.",
+        "value": "C:\\Program Files (x86)\\JabRef\\JabRef.exe"
+    }]
 }

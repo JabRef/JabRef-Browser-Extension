@@ -1,61 +1,47 @@
-FireBib Addon
+FireBib Firefox Addon
 =============
 
 FireBib collects online research material and sends the bibliographic information directly to your favorite reference manager - all in one click.
+
 
 save things you see on the web into your Evernote account.
 This Firefox addon allows importing of new items into Jabref directly from the browser.
 
 _Currently, this addon does not work. A new version is on its way and I'll let you know as soon as it's ready._
 
-If you’re viewing an interesting site or document, just click an icon in your browser address bar
+If you're viewing an interesting site or document, just click an icon in your browser address bar
 Zotero automatically senses content
  Zotero also understands the content and structure of many sites, and stores page metadata as well: title, author, abstract, publication, volume, issue, creation date, ISSN/ ISBN numbers.
 
-FireBib collects online research material and sends the bibliographic information directly to your favorite reference manager - all in one click.
 
 
 Supported sites: https://www.zotero.org/support/translators
 
+_Currently, the development of this addon is in a very early stage. Use with care (backup!) and don't expect wonders. Please post any issues/suggestions here on github._
+
 Installation and Settings
 -------------------------
 
-1. Install the addon from the Firefox central repository. The JabRef icon should now appear in the Firefox toolbar. 
-2. Change the path to the Jabref executable in the addon settings.
-3. Install notes:\n\nJabref:  activate Preferences  Advanced  Remote operation
+1. Install Zotero.
+2. Install the addon by clicking [here](https://raw.githubusercontent.com/tobiasdiez/Jabref-FirefoxAddon/master/firebib.xpi). Alternatively, download `firebib.xpi` and then drag-n-drop it into Firefox. The JabRef icon should now appear in the Firefox toolbar. 
+3. Change the path to the Jabref executable in the addon settings (Add-ons > FireBib > Options).
 
-
-You might want to configure JabRef so that new entries are imported in an already opened instance of JabRef. For this, activate the "Remote operation" under the Advanced tab in the JabRef Preferences.
+You might want to configure JabRef so that new entries are imported in an already opened instance of JabRef. For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
 
 How to import a new article into Jabref?
 ----------------------------------------
 
+Navigate to the website which contains the to-imported items. For example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5). Now just click the JabRef symbol in the Firefox toolbar and wait.... until JabRef opens and wants to import your references.
 
-TODO:
-	Add url in package.json and maybe other things: https://developer.mozilla.org/en-US/Add-ons/SDK/Tools/package_json
-
-	package.json
-	"preferences":
-	[{
-		"title": "Path to JabRef", 
-		"type": "file", 
-		"description": "The path to the executable of JabRef.", 
-		"value": "C:\\Program Files (x86)\\JabRef\\JabRef.exe", 
-		"name": "jabrefPath"
-	}]
-
-
-Developing
+Contributing
 ----------
 
 In order to directly use the source code (and help with the development of this project) the following software has to be installed:
 
  - Firefox Addon SDK: https://developer.mozilla.org/en-US/Add-ons/SDK
 
-## Contributing
-
 1. Fork it!
 2. Create your feature branch: `git checkout -b my-new-feature`
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request :D
+5. Submit a pull request.
