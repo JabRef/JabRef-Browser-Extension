@@ -3,18 +3,6 @@ FireBib Firefox Addon
 
 FireBib collects online research material and sends the bibliographic information directly to your favorite reference manager - all in one click.
 
-
-save things you see on the web into your Evernote account.
-This Firefox addon allows importing of new items into Jabref directly from the browser.
-
-_Currently, this addon does not work. A new version is on its way and I'll let you know as soon as it's ready._
-
-If you're viewing an interesting site or document, just click an icon in your browser address bar
-Zotero automatically senses content
- Zotero also understands the content and structure of many sites, and stores page metadata as well: title, author, abstract, publication, volume, issue, creation date, ISSN/ ISBN numbers.
-
-
-
 Supported sites: https://www.zotero.org/support/translators
 
 _Currently, the development of this addon is in a very early stage. Use with care (backup!) and don't expect wonders. Please post any issues/suggestions here on github._
@@ -22,7 +10,7 @@ _Currently, the development of this addon is in a very early stage. Use with car
 Installation and Settings
 -------------------------
 
-1. Install Zotero.
+1. Make sure Zotero is [installed in Firefox](https://www.zotero.org/download/).
 2. Install the addon by clicking [here](https://raw.githubusercontent.com/tobiasdiez/Jabref-FirefoxAddon/master/firebib.xpi). Alternatively, download `firebib.xpi` and then drag-n-drop it into Firefox. The JabRef icon should now appear in the Firefox toolbar. 
 3. Change the path to the Jabref executable in the addon settings (Add-ons > FireBib > Options).
 
