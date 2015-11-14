@@ -1,3 +1,4 @@
+[![Circle CI](https://circleci.com/gh/tobiasdiez/Jabref-FirefoxAddon.svg?style=shield)](https://circleci.com/gh/tobiasdiez/Jabref-FirefoxAddon)
 FireBib Firefox Addon
 =============
 
