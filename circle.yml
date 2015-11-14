@@ -40,8 +40,8 @@ test:
         environment:
           JETPACK_ROOT: /home/ubuntu/addon-sdk
           JPM_FIREFOX_BINARY: /home/ubuntu/firefox-nightly/firefox/firefox
-     # compile
-     - jpm xpi -v > jpm-reports/jpm-compile.txt:
+    # compile
+    - jpm xpi > jpm-reports/jpm-compile.txt:
         environment:
           JETPACK_ROOT: /home/ubuntu/addon-sdk
           JPM_FIREFOX_BINARY: /home/ubuntu/firefox-release/firefox/firefox
