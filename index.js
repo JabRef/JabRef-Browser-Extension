@@ -22,8 +22,19 @@ var importButton = buttons.ActionButton({
     "16": "./JabRef-icon-16.png",
     "48": "./JabRef-icon-48.png"
   },
-  onClick: handleImportClick
+  onClick: handleImportClick,
 });
+
+/*
+ * Get the underlying document of the tab.
+ */
+function getDocumentForTab(tab) {
+  var lowLevelTab = viewFor(tab);
+
+  // Get the ContentDocument of the tab
+  var browser = tab_utils.getBrowserForTab(lowLevelTab);
+  return browser.contentDocument;
+}
 
 /*
  * Import items found on the present website.
@@ -31,11 +42,7 @@ var importButton = buttons.ActionButton({
 function handleImportClick(state) {
   // Get active tab
   var activeTab = tabs.activeTab;
-  var lowLevelActiveTab = viewFor(activeTab);
-
-  // Get the ContentDocument of the active tab
-  var activeBrowser = tab_utils.getBrowserForTab(lowLevelActiveTab);
-  var doc = activeBrowser.contentDocument;
+  var doc = getDocumentForTab(activeTab);
 
   // Detect reference items
   startImport(doc);
@@ -134,3 +141,34 @@ function deleteItemsFromZoteroDatabase(items) {
     Zotero.Items.erase(items[i].id);
   }
 }
+
+/*
+ * Listen for tab content loads.
+ */
+tabs.on('ready', function(tab) {
+  var doc = getDocumentForTab(tab);
+
+  // Search for translators
+  var translate = new Zotero.Translate.Web();
+  translate.setDocument(doc);
+  translate.setHandler("translators", function(obj, translators) {
+    console.log(translators);
+    if (!translators.length) {
+      // No translators found, so disable button
+      importButton.state(tab, {
+        disabled: true,
+        // We have to change the icon to gray since disabled=true does not gray-out the button (this is a bug https://bugzilla.mozilla.org/show_bug.cgi?id=1167559)
+        icon: {
+          "16": "./JabRef-icon-16-gray.png",
+          "48": "./JabRef-icon-48-gray.png"
+        },
+      });
+    } else {
+      // Translators found, so update label
+      importButton.state(tab, {
+        label: "Import references into JabRef using" + translators[0].label
+      });
+    }
+  });
+  translate.getTranslators(false);
+});
