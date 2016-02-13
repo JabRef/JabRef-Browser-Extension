@@ -12,6 +12,7 @@ var utils = require('sdk/window/utils');
 var {
   viewFor
 } = require("sdk/view/core");
+var { setTimeout } = require("sdk/timers");
 var preferences = require("sdk/simple-prefs").prefs;
 
 // Add import button to Firefox toolbar.
@@ -44,14 +45,28 @@ function handleImportClick(state) {
   var activeTab = tabs.activeTab;
   var doc = getDocumentForTab(activeTab);
 
+  var panel = require("sdk/panel").Panel({
+    width: 330,
+    height: 150,
+    contentURL: "./text-entry.html"
+  });
+
+  panel.port.on('winsize', function(data) {
+            panel.resize(330, data.height);
+  });
+
+  panel.show({
+      position: importButton
+    });
+
   // Detect reference items
-  startImport(doc);
+  startImport(doc, panel);
 }
 
 /*
  * Sends all the contained reference items in doc to JabRef.
  */
-function startImport(doc) {
+function startImport(doc, panel) {
   /*if (!(doc instanceof HTMLDocument))
     return;
   if (doc.documentURI.startsWith("about:"))
@@ -61,7 +76,7 @@ function startImport(doc) {
   var translate = new Zotero.Translate.Web();
   translate.setDocument(doc);
   translate.setHandler("translators", function(obj, item) {
-    searchAndExportReferenceItems(obj, item)
+    searchAndExportReferenceItems(obj, item, panel)
   });
   // false = only return one translator
   translate.getTranslators(false);
@@ -70,17 +85,41 @@ function startImport(doc) {
 /*
  * Called when a translator search initiated with Zotero.Translate.getTranslators() is completed. Uses the found translator to search for items and export them.
  */
-function searchAndExportReferenceItems(translate, translators) {
+function searchAndExportReferenceItems(translate, translators, panel) {
   var items = [];
   translate.setTranslator(translators[0]);
+
   translate.clearHandlers("itemDone");
   translate.clearHandlers("done");
+  translate.clearHandlers("attachmentProgress");
+  
   translate.setHandler("itemDone", function(obj, dbItem, item) {
+    var attachments = [];
+    for (var i = item.attachments.length - 1; i >= 0; i--) {
+      attachments.push({
+        attachmentId: JSON.stringify(item.attachments[i]).hashCode(), 
+        title: item.attachments[i].title, 
+        imageSrc: Zotero.Utilities.determineAttachmentIcon(item.attachments[i]),
+      });
+    };
+    var finishedItem = {title:item.title, attachments: attachments, imageSrc: Zotero.ItemTypes.getImageSrc(item.itemType)};
+    panel.port.emit("show", finishedItem);
     items.push(dbItem);
   });
   translate.setHandler("done", function() {
     exportItems(items);
+    
+    // Hide panel in 1 sec
+    setTimeout(function() {
+      panel.hide();
+    }, 1000);
   });
+  translate.setHandler("attachmentProgress", function(obj, attachment, progress, error) {
+        panel.port.emit("updateProgress", {
+          attachmentId: JSON.stringify(attachment).hashCode(), 
+          progress: progress
+        });
+    });
 
   translate.translate();
   //translate.translate(false); // this would not save the items to the database
@@ -172,3 +211,17 @@ tabs.on('ready', function(tab) {
   });
   translate.getTranslators(false);
 });
+
+
+// get hash code of string
+// from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+String.prototype.hashCode = function(){
+  var hash = 0;
+  if (this.length == 0) return hash;
+  for (i = 0; i < this.length; i++) {
+    char = this.charCodeAt(i);
+    hash = ((hash<<5)-hash)+char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+}
