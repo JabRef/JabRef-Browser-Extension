@@ -152,7 +152,6 @@ tabs.on('ready', function(tab) {
   var translate = new Zotero.Translate.Web();
   translate.setDocument(doc);
   translate.setHandler("translators", function(obj, translators) {
-    console.log(translators);
     if (!translators.length) {
       // No translators found, so disable button
       importButton.state(tab, {
@@ -162,11 +161,12 @@ tabs.on('ready', function(tab) {
           "16": "./JabRef-icon-16-gray.png",
           "48": "./JabRef-icon-48-gray.png"
         },
+        label: "Import references into JabRef: no references found on website."
       });
     } else {
       // Translators found, so update label
       importButton.state(tab, {
-        label: "Import references into JabRef using" + translators[0].label
+        label: "Import references into JabRef using " + translators[0].label
       });
     }
   });
