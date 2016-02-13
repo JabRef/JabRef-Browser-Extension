@@ -8,17 +8,17 @@ dependencies:
     # download the latest addon-sdk from github
     - git clone https://github.com/mozilla/addon-sdk.git:
         pwd: ..
-    # get Release (ff42)
+    # get Release (ff44)
     - mkdir ../firefox-release
-    - wget https://archive.mozilla.org/pub/firefox/releases/42.0/linux-x86_64/en-US/firefox-42.0.tar.bz2:
+    - wget https://archive.mozilla.org/pub/firefox/releases/44.0/linux-x86_64/en-US/firefox-44.0.tar.bz2:
         pwd: ../firefox-release
-    - tar xjf firefox-42.0.tar.bz2:
+    - tar xjf firefox-44.0.tar.bz2:
         pwd: ../firefox-release
-    # get Nightly (ff45)
+    # get Nightly (ff47)
     - mkdir ../firefox-nightly
-    - wget https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-45.0a1.en-US.linux-x86_64.tar.bz2:
+    - wget https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-47.0a1.en-US.linux-x86_64.tar.bz2:
         pwd: ../firefox-nightly
-    - tar xjf firefox-45.0a1.en-US.linux-x86_64.tar.bz2:
+    - tar xjf firefox-47.0a1.en-US.linux-x86_64.tar.bz2:
         pwd: ../firefox-nightly
   override:
     - npm install https://github.com/mozilla-jetpack/jpm.git --global
