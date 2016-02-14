@@ -2,7 +2,7 @@
 	"title": "JabFox",
 	"name": "jabfox",
 	"version": "0.9.0",
-	"description": "JabFox collects online research material and sends the bibliographic information in one click to JabRef.",
+	"description": "JabFox imports new bibliographic information directly from the browser into JabRef.",
 	"main": "index.js",
 	"author": "Tobias Diez <TobiasDiez@gmx.de>",
 	"engines": {
