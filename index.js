@@ -53,7 +53,7 @@ function handleImportClick(state) {
 	var panel = require("sdk/panel").Panel({
 		width: 330,
 		height: 150,
-		contentURL: "./text-entry.html"
+		contentURL: "./progressPanel.html"
 	});
 	panel.port.on('winsize', function(data) {
 		panel.resize(330, data.height);
