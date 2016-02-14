@@ -1,7 +1,7 @@
 general:
   artifacts:
     - "jpm-reports"
-    - "@firebib-0.0.2.xpi"
+    - "@jabfox-0.9.0.xpi"
 
 dependencies:
   pre:

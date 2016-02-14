@@ -1,8 +1,8 @@
 {
-	"title": "FireBib",
-	"name": "firebib",
-	"version": "0.0.2",
-	"description": "FireBib collects online research material and sends the bibliographic information directly to your favorite reference manager - all in one click.",
+	"title": "JabFox",
+	"name": "jabfox",
+	"version": "0.9.0",
+	"description": "JabFox collects online research material and sends the bibliographic information in one click to JabRef.",
 	"main": "index.js",
 	"author": "Tobias Diez <TobiasDiez@gmx.de>",
 	"engines": {
@@ -13,7 +13,7 @@
 	"preferences": [{
 		"name": "jabRefPath",
 		"type": "file",
-		"title": "Path of JabRef",
+		"title": "Path to JabRef",
 		"description": "The path of the executable file of JabRef, i.e. the install location of 'JabRef.exe'.",
 		"value": "C:\\Program Files (x86)\\JabRef\\JabRef.exe"
 	}]
