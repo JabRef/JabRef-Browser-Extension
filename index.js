@@ -190,6 +190,15 @@ function importIntoJabRef(file) {
  */
 function deleteItemsFromZoteroDatabase(items) {
 	for (i = 0; i < items.length; i++) {
+		// Zotero also will delete the attachments if we delete the item
+		// so we trick Zotero and mark the attachments as linked so they are not deleted 
+		var attachments = items[i].getAttachments();
+		for (var i in attachments) {
+			var attachment = Zotero.Items.get(attachments[i]);
+			attachment.attachmentLinkMode = Zotero.Attachments.LINK_MODE_LINKED_URL;
+			attachment.save();
+		}
+
 		Zotero.Items.erase(items[i].id);
 	}
 }
