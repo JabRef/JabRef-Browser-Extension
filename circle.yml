@@ -14,11 +14,11 @@ dependencies:
         pwd: ../firefox-release
     - tar xjf firefox-44.0.tar.bz2:
         pwd: ../firefox-release
-    # get Nightly (ff47)
+    # get Nightly (ff48)
     - mkdir ../firefox-nightly
-    - wget https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-47.0a1.en-US.linux-x86_64.tar.bz2:
+    - wget https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-48.0a1.en-US.linux-x86_64.tar.bz2:
         pwd: ../firefox-nightly
-    - tar xjf firefox-47.0a1.en-US.linux-x86_64.tar.bz2:
+    - tar xjf firefox-48.0a1.en-US.linux-x86_64.tar.bz2:
         pwd: ../firefox-nightly
   override:
     - npm install https://github.com/mozilla-jetpack/jpm.git --global
