@@ -20,9 +20,10 @@ addon.port.on("show", function onShow(item) {
 	for (var i = 0; i < item.attachments.length; i++) {
 		var attachmentItem = document.createElement('li');
 		attachmentItem.id = item.attachments[i].attachmentId;
-		attachmentItem.appendChild(document.createTextNode(item.attachments[i].title));
+		attachmentItem.appendChild(document.createTextNode(item.attachments[i].title + "  "));
 		attachmentItem.style.backgroundImage = "url('" + item.attachments[i].imageSrc + "')";
 		attachmentItem.style.opacity = 0.3;
+		attachmentItem.className = "inprogress";
 		attachmentList.appendChild(attachmentItem);
 	}
 	listItem.appendChild(attachmentList);
@@ -46,4 +47,6 @@ addon.port.on("updateProgress", function onUpdateProgress(item) {
 	if (progress < 0.3)
 		progress = 0.3;
 	attachmentListItem.style.opacity = progress;
+	if (progress > 0.9)
+		attachmentListItem.className = ""; // Remove inprogress
 });

@@ -32,18 +32,27 @@
         background-position: .55em .4em;
         background-image: url(JabRef-icon-16-gray.png);
       }
+      li.inprogress:after {
+        background-image: url('spin.gif');
+        background-size: 14px 14px;
+        display: inline-block;
+        width: 14px; 
+        height: 14px;
+        content:"";
+        
+      }
     </style>
   </head>
   <body>
     <h3>Import the following items into JabRef: </h3>
     <div id="initalMessage">Searching for bibliographic data....</div>
     <ul id="itemList">
-      <!--
+     <!--
       <li>test 1</li>
       <li>test 2
         <ul class="attachmentList">
           <li> attachment 1 </li>
-          <li> attachment 2 </li>
+          <li class="inprogress"> attachment 2  </li>
         </ul>
       </li>
       <li>test 3: a very vary veryyyyyyyyyy long title. Really verrryyyyyyyy long. You don't believe me?????</li>
