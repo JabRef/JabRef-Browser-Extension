@@ -1,7 +1,7 @@
 general:
   artifacts:
     - "jpm-reports"
-    - "@jabfox-1.0.0.xpi"
+    - "@jabfox-1.0.1.xpi"
 
 dependencies:
   pre:
