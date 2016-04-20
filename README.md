@@ -10,7 +10,7 @@ Installation and Configuration
 -----------------------------------
 
 1. Make sure [Zotero](https://www.zotero.org/) is [installed in Firefox](https://www.zotero.org/download/).
-2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-blog). The JabRef icon should now appear in the Firefox toolbar. 
+2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github). The JabRef icon should now appear in the Firefox toolbar. 
 3. Adjust the path to the JabRef executable in the add-on settings (under Add-ons > JabFox > Options).
 
 Now you should be able to import bibliographic references into JabRef directly from your browser. Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox toolbar. Once JabFox has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
