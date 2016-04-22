@@ -17,6 +17,13 @@ Now you should be able to import bibliographic references into JabRef directly f
 
 You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef. For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
 
+On Linux, sometimes directly linking `JabRef.jar` does not work. In this case, create and link the following bash script
+````
+#!/bin/bash
+java -jar /my/target/to/JabRef.jar "$@"
+````
+Thanks to [ClemSc](https://github.com/ClemSc) for providing this workaround. 
+
 About this Add-On
 ---------------------
 JabFox is a Firefox add-on for users of the bibliographic reference manager [JabRef](http://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef in one click. [A wide range of publisher sites, library catalogs and databases are supported](https://www.zotero.org/support/translators).
