@@ -17,7 +17,7 @@ Now you should be able to import bibliographic references into JabRef directly f
 
 You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef. For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
 
-On Linux, sometimes directly linking `JabRef.jar` does not work. In this case, create and link the following bash script
+On Linux and Mac OSX, sometimes directly linking `JabRef.jar` does not work. In this case, create and link the following bash script
 ````
 #!/bin/bash
 java -jar /my/target/to/JabRef.jar "$@"
