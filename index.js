@@ -1,6 +1,8 @@
 var self = require('sdk/self');
 const {
-	Cc, Ci, Cu
+	Cc,
+	Ci,
+	Cu
 } = require("chrome");
 
 var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
@@ -162,13 +164,13 @@ function exportItems(items) {
 	exportTranslator.clearHandlers("done");
 	exportTranslator.setHandler("done", function(obj, returnValue) {
 		importIntoJabRef(file);
+
+		// Delete saved items from zotero database, so we don't leave any traces
+		deleteItemsFromZoteroDatabase(copyItems);
 	});
 
 	// Perform export
 	exportTranslator.translate();
-
-	// Delete saved items from zotero database, so we don't leave any traces
-	deleteItemsFromZoteroDatabase(copyItems);
 }
 
 /*
@@ -193,8 +195,8 @@ function deleteItemsFromZoteroDatabase(items) {
 		// Zotero also will delete the attachments if we delete the item
 		// so we trick Zotero and mark the attachments as linked so they are not deleted 
 		var attachments = items[i].getAttachments();
-		for (var i in attachments) {
-			var attachment = Zotero.Items.get(attachments[i]);
+		for (var attachmentId in attachments) {
+			var attachment = Zotero.Items.get(attachments[attachmentId]);
 			attachment.attachmentLinkMode = Zotero.Attachments.LINK_MODE_LINKED_URL;
 			attachment.save();
 		}
