@@ -1,0 +1,7 @@
+.git
+.gitignore
+.jpmignore
+@jabfox-*.xpi
+circle.yml
+JabFox.sublime-project
+JabFox.sublime-workspace
