@@ -28,6 +28,7 @@ var importButton = buttons.ActionButton({
 	label: "Import references into JabRef",
 	icon: {
 		"16": "./JabRef-icon-16.png",
+		"32": "./JabRef-icon-32.png",
 		"48": "./JabRef-icon-48.png"
 	},
 	onClick: handleImportClick,
@@ -222,6 +223,7 @@ tabs.on('ready', function(tab) {
 				// We have to change the icon to gray since disabled=true does not gray-out the button (this is a bug https://bugzilla.mozilla.org/show_bug.cgi?id=1167559)
 				icon: {
 					"16": "./JabRef-icon-16-gray.png",
+					"32": "./JabRef-icon-32-gray.png",
 					"48": "./JabRef-icon-48-gray.png"
 				},
 				label: "Import references into JabRef: no references found on website."
