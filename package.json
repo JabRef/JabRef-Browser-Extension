@@ -16,6 +16,18 @@
 		"title": "Path to JabRef",
 		"description": "The path of the executable file of JabRef, i.e. the install location of 'JabRef.exe'.",
 		"value": "C:\\Program Files\\JabRef\\JabRef.exe"
+	}, {
+		"name": "exportMode",
+		"type": "menulist",
+		"title": "Export format",
+		"value": 0,
+		"options": [{
+			"value": "0",
+			"label": "BibLaTeX"
+		}, {
+			"value": "1",
+			"label": "BibTeX"
+		}]
 	}],
 	"homepage": "http://www.jabref.org/",
 	"icon": "resource://@jabfox/data/JabRef-icon-48.png"
