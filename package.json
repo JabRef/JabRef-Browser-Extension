@@ -28,6 +28,12 @@
 			"value": "1",
 			"label": "BibTeX"
 		}]
+	}, {
+		"name": "takeAutomaticSnapshots",
+		"type": "bool",
+		"title": "Automatically take snapshots",
+		"value": true,
+		"description": "Note: also changes the corresponding option for Zotero."
 	}],
 	"homepage": "http://www.jabref.org/",
 	"icon": "resource://@jabfox/data/JabRef-icon-48.png"

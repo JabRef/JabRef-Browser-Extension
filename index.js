@@ -73,6 +73,9 @@ function handleImportClick(state) {
  * Detects contained bibliographic items and sends them to JabRef.
  */
 function startImport(doc, panel) {
+	// Set preference for taking automatic snapshots of the website when creating an item
+	Zotero.Prefs.set("automaticSnapshots", preferences.takeAutomaticSnapshots);
+
 	// Look for translators which are able to handle the current website
 	var translate = new Zotero.Translate.Web();
 	translate.setDocument(doc);
