@@ -1,7 +1,7 @@
 {
 	"title": "JabFox",
 	"name": "jabfox",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "JabFox imports new bibliographic information directly from the browser into JabRef.",
 	"main": "index.js",
 	"author": "Tobias Diez",
@@ -10,6 +10,10 @@
 		"fennec": ">=38.0a1"
 	},
 	"license": "MIT",
+	"permissions": {
+		"private-browsing": true,
+		"multiprocess": true
+	},
 	"preferences": [{
 		"name": "jabRefPath",
 		"type": "file",
