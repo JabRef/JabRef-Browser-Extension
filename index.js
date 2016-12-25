@@ -65,8 +65,12 @@ function handleImportClick(state) {
 		position: importButton
 	});
 
-	// Detect and import bibliographic items
-	startImport(doc, panel);
+	if (activeTab.contentType == "application/pdf") {
+		startPdfImport(activeTab.url, panel);
+	} else {
+		// Detect and import bibliographic items
+		startImport(doc, panel);
+	}
 }
 
 /*
@@ -185,13 +189,20 @@ function exportItems(items) {
  * Sends the given bib file to JabRef.
  */
 function importIntoJabRef(file) {
+	importPathIntoJabRef(file.path);
+}
+
+/*
+ * Sends the file path or url to JabRef.
+ */
+function importPathIntoJabRef(path) {
 	// Get JabRef executable
 	var jabRef = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
 	jabRef.initWithPath(preferences.jabRefPath);
 	// Start JabRef
 	var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
 	process.init(jabRef);
-	var args = ["--importToOpen", file.path];
+	var args = ["--importToOpen", path];
 	process.run(false, args, args.length);
 }
 
@@ -211,6 +222,13 @@ function deleteItemsFromZoteroDatabase(items) {
 
 		Zotero.Items.erase(items[i].id);
 	}
+}
+
+/*
+ * For PDFs, sends the URL directly to JabRef since Zotero does not have an importer which handles PDFs.
+ */
+function startPdfImport(url, panel) {
+	importPathIntoJabRef(url);
 }
 
 /*
