@@ -38,6 +38,12 @@
 		"title": "Automatically take snapshots",
 		"value": true,
 		"description": "Note: also changes the corresponding option for Zotero."
+	}, {
+		"name": "DeleteZoteroRecord",
+		"type": "bool",
+		"title": "Delete Zotero Record",
+		"value": true,
+		"description": "Note: Zotero entry is created before imported to Jabref. Should the entry be deleted after Jabref import?"
 	}],
 	"homepage": "http://www.jabref.org/",
 	"icon": "resource://@jabfox/data/JabRef-icon-48.png"
