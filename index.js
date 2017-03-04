@@ -178,7 +178,9 @@ function exportItems(items) {
 		importIntoJabRef(file);
 
 		// Delete saved items from zotero database, so we don't leave any traces
-		deleteItemsFromZoteroDatabase(copyItems);
+		if (preferences.DeleteZoteroRecord) {
+			deleteItemsFromZoteroDatabase(copyItems);
+		}
 	});
 
 	// Perform export
