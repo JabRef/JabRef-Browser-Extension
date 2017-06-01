@@ -22,7 +22,7 @@ On Linux and Mac OSX, sometimes directly linking `JabRef.jar` does not work. In 
 #!/bin/bash
 java -jar /my/target/to/JabRef.jar "$@"
 ````
-Thanks to [ClemSc](https://github.com/ClemSc) for providing this workaround. 
+After creating this file, remember to make it executable using `chmod +x scriptname.sh`. Thanks to [ClemSc](https://github.com/ClemSc) for providing this workaround. 
 
 About this Add-On
 ---------------------
