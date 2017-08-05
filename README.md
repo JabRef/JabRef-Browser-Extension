@@ -9,7 +9,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 Installation and Configuration
 -----------------------------------
 
-1. Make sure [Zotero](https://www.zotero.org/) is [installed in Firefox](https://www.zotero.org/download/).
+1. Make sure [Zotero 4](https://www.zotero.org/) is [installed in Firefox](https://download.zotero.org/extension/zotero-4.0.29.21.xpi).
 2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github). The JabRef icon should now appear in the Firefox toolbar. 
 3. Adjust the path to the JabRef executable in the add-on settings (under Add-ons > JabFox > Options).
 
