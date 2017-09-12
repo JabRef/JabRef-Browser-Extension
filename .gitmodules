@@ -1,0 +1,3 @@
+[submodule "zotero-connectors"]
+	path = zotero-connectors
+	url = https://github.com/zotero/zotero-connectors.git

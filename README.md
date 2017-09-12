@@ -14,6 +14,7 @@ Installation and Configuration
 3. Adjust the path to the JabRef executable in the add-on settings (under Add-ons > JabFox > Options).
 
 Now you should be able to import bibliographic references into JabRef directly from your browser. Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox toolbar. Once JabFox has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
+Or use Alt+Shift+J
 
 You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef. For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
 

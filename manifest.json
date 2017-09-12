@@ -1,0 +1,82 @@
+{
+	"applications": {
+		"gecko": {
+			"id": "@jabfox"
+		}
+	},
+
+	"author": "Tobias Diez",
+
+	"background": {
+		"scripts": [
+			"Zotero/init.js",
+			"Zotero/zotero_config.js",
+			"Zotero/zotero.js",
+			"Zotero/promise.js",
+			"Zotero/errors_webkit.js",
+			"Zotero/http.js",
+			"Zotero/proxy.js",
+			"Zotero/connector.js",
+			"Zotero/cachedTypes.js",
+			"Zotero/debug.js",
+			"Zotero/xregexp-all.js",
+			"Zotero/xregexpOld/addons/unicode/unicode-zotero.js",
+			"Zotero/repo.js",
+			"Zotero/translator.js",
+			"Zotero/translators.js",
+			"Zotero/utilities.js",
+			"Zotero/messages.js",
+			"Zotero/messaging.js",
+			"Zotero/background.js",
+			"background.js"
+		]
+	},
+
+	"page_action": {
+		"browser_style": true,
+		"default_icon": "data/JabRef-icon.svg",
+		"default_title": "Import references into JabRef",
+		"default_popup": "data/progressPanel.html"
+	},
+
+	"commands": {
+		"_execute_page_action": {
+			"suggested_key": {
+				"default": "Alt+Shift+J"
+			}
+		}
+	},
+
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+
+	"description": "JabFox imports new bibliographic information directly from the browser into JabRef.",
+
+	"developer": {
+		"name": "Tobias Diez",
+		"url": "http://www.jabref.org/"
+	},
+
+	"homepage_url": "http://www.jabref.org/",
+
+	"icons": {
+		"48": "data/JabRef-icon.svg",
+		"96": "data/JabRef-icon.svg"
+	},
+
+	"manifest_version": 2,
+
+	"name": "JabFox",
+
+	"options_ui": {
+		"page": "data/options.html"
+	},
+
+	"permissions": [
+		"<all_urls>",
+		"activeTab",
+		"tabs",
+		"webNavigation"
+	],
+
+	"version": "2.0"
+}

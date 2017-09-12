@@ -1,9 +1,17 @@
 var mainList = document.getElementById("itemList");
 var initalMessage = document.getElementById("initalMessage");
 
+window.addEventListener("load", function load(event) {
+	window.removeEventListener("load", load, false); // Remove listener, invoke only once
+	browser.runtime.sendMessage({
+		"popupOpened": "opened"
+	});
+}, false);
+
 /*
  * Show the item in the progress window.
  */
+/*
 addon.port.on("show", function onShow(item) {
 
 	// Hide initial message
@@ -36,10 +44,12 @@ addon.port.on("show", function onShow(item) {
 		width: mainList.scrollWidth
 	});
 });
+*/
 
 /*
  * Update progress of attachment download.
  */
+/*
 addon.port.on("updateProgress", function onUpdateProgress(item) {
 
 	var attachmentListItem = document.getElementById(item.attachmentId);
@@ -50,3 +60,4 @@ addon.port.on("updateProgress", function onUpdateProgress(item) {
 	if (progress > 0.9)
 		attachmentListItem.className = ""; // Remove inprogress
 });
+*/

@@ -1,10 +1,5 @@
 {
-	"title": "JabFox",
-	"name": "jabfox",
-	"version": "1.1.2",
-	"description": "JabFox imports new bibliographic information directly from the browser into JabRef.",
 	"main": "index.js",
-	"author": "Tobias Diez",
 	"engines": {
 		"firefox": ">=38.0a1",
 		"fennec": ">=38.0a1"
@@ -39,6 +34,4 @@
 		"value": true,
 		"description": "Note: also changes the corresponding option for Zotero."
 	}],
-	"homepage": "http://www.jabref.org/",
-	"icon": "resource://@jabfox/data/JabRef-icon-48.png"
 }

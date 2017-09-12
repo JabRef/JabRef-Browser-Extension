@@ -25,12 +25,6 @@ var preferences = require("sdk/simple-prefs").prefs;
  */
 var importButton = buttons.ActionButton({
 	id: "import-button",
-	label: "Import references into JabRef",
-	icon: {
-		"16": "./JabRef-icon-16.png",
-		"32": "./JabRef-icon-32.png",
-		"48": "./JabRef-icon-48.png"
-	},
 	onClick: handleImportClick,
 });
 
@@ -230,38 +224,6 @@ function deleteItemsFromZoteroDatabase(items) {
 function startPdfImport(url, panel) {
 	importPathIntoJabRef(url);
 }
-
-/*
- * Listen for tab content loads in order to enable/disable the import button.
- */
-tabs.on('ready', function(tab) {
-	var doc = getDocumentForTab(tab);
-
-	// Search for translators
-	var translate = new Zotero.Translate.Web();
-	translate.setDocument(doc);
-	translate.setHandler("translators", function(obj, translators) {
-		if (!translators.length) {
-			// No translators found, so disable button
-			importButton.state(tab, {
-				disabled: true,
-				// We have to change the icon to gray since disabled=true does not gray-out the button (this is a bug https://bugzilla.mozilla.org/show_bug.cgi?id=1167559)
-				icon: {
-					"16": "./JabRef-icon-16-gray.png",
-					"32": "./JabRef-icon-32-gray.png",
-					"48": "./JabRef-icon-48-gray.png"
-				},
-				label: "Import references into JabRef: no references found on website."
-			});
-		} else {
-			// Translators found, so update label
-			importButton.state(tab, {
-				label: "Import references into JabRef using " + translators[0].label
-			});
-		}
-	});
-	translate.getTranslators(false);
-});
 
 /*
  * Get hashcode of string
