@@ -13,6 +13,7 @@
 			"Zotero/zotero_config.js",
 			"Zotero/zotero.js",
 			"Zotero/promise.js",
+			"Zotero/prefs.js",
 			"Zotero/errors_webkit.js",
 			"Zotero/http.js",
 			"Zotero/proxy.js",

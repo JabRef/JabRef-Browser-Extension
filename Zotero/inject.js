@@ -183,7 +183,6 @@ Zotero.Inject = new function() {
 			_translate.setDocument(document);
 
 			return _translate.getTranslators(true).then(function(translators) {
-				debugger;
 				if (!translators.length && Zotero.isSafari) {
 					if (!isTopWindow && document.contentType == 'application/pdf') {
 						return Zotero.Connector_Browser.onPDFFrame(document.location.href, instanceID);

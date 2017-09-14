@@ -3,7 +3,9 @@ Initialize
 */
 Zotero.Debug.init(1);
 Zotero.Repo.init();
+Zotero.Messaging.init();
 Zotero.Translators.init();
+
 
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
@@ -100,10 +102,10 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			.then((tabs) => {
 				var tab = tabs[0];
 
-				Zotero.Connector_Browser.injectTranslationScripts(tab);
-
-				console.log("Start translation for tab %o", tab);
-				//Zotero.Connector_Browser._saveWithTranslator(tab, 0);
+				Zotero.Connector_Browser.injectTranslationScripts(tab).then(function() {
+					console.log("Start translation for tab %o", tab);
+					Zotero.Connector_Browser._saveWithTranslator(tab, 0);
+				});
 			});
 	}
 });

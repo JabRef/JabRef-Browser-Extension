@@ -153,7 +153,6 @@ Zotero.Translators = new function() {
 	 *     an array of functions for converting URLs from proper to proxied forms
 	 */
 	this.getWebTranslatorsForLocation = Zotero.Promise.method(function(URI, rootURI, callback) {
-		debugger;
 		if (callback) {
 			// If callback is present then this call is coming from an injected frame,
 			// so we may as well treat it as if it's a root-frame
@@ -167,6 +166,7 @@ Zotero.Translators = new function() {
 				}
 			}
 		}
+
 		var isFrame = URI !== rootURI;
 		if (!_initialized) Zotero.Translators.init();
 		var allTranslators = _cache["web"];

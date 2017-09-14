@@ -59,6 +59,7 @@ Zotero.Connector_Browser = new function() {
 	 * Called when translators are available for a given page
 	 */
 	this.onTranslators = function(translators, instanceID, contentType, tab, frameId) {
+		debugger;
 		_enableForTab(tab.id);
 
 		let existingTranslators = _tabInfo[tab.id] && _tabInfo[tab.id].translators;
@@ -237,34 +238,53 @@ Zotero.Connector_Browser = new function() {
 	 */
 	this.injectScripts = function(scripts, callback, tab, frameId = 0) {
 		if (!Array.isArray(scripts)) scripts = [scripts];
+		// Make sure we're not changing the original list
+		scripts = Array.from(scripts);
 		var promises = [];
 		Zotero.debug(`Injecting scripts into ${tab.url} : ${scripts.join(', ')}`);
-		for (let script of scripts) {
-			let deferred = Zotero.Promise.defer();
-			promises.push(deferred.promise);
-			try {
+		let promise = injectRemaining(scripts);
+
+		function awaitReady(readyMsg) {
+			return Zotero.Promise.delay(100).then(function() {
+				return Zotero.Messaging.sendMessage(readyMsg, null, tab, frameId).then(function(response) {
+					if (!response) return awaitReady(tab);
+					return true;
+				});
+			});
+		}
+
+		function injectRemaining(scripts) {
+			if (scripts.length) {
+				let script = scripts.shift();
 				Zotero.debug("Injecting script " + script);
-				chrome.tabs.executeScript(tab.id, {
-					file: script,
-					frameId
-				}, deferred.resolve);
-			} catch (e) {
-				Zotero.debug("Error" + e);
-				deferred.reject(e);
+				return browser.tabs.executeScript(tab.id, {
+						file: script,
+						frameId,
+						runAt: 'document_end'
+					})
+					.catch(() => undefined).then(() => injectRemaining(scripts));
 			}
+			let readyMsg = `ready${Date.now()}`;
+			return browser.tabs.executeScript(tab.id, {
+				code: `Zotero.Messaging.addMessageListener('${readyMsg}', () => true)`,
+				frameId,
+				runAt: 'document_end'
+			}).then(() => awaitReady(readyMsg));
+
 		}
 
 		// Unfortunately firefox sometimes neither rejects nor resolves tabs#executeScript(). Testing proxied
 		// http://www.ams.org/mathscinet/search/publdoc.html?pg1=INDI&s1=916336&sort=Newest&vfpref=html&r=1&mx-pid=3439694
 		// with a fresh browser session consistently reproduces the bug. The injection may be partial, but we need to
 		// resolve this promise somehow, so we reject in the event of timeout.
-		var deferred = Zotero.Promise.defer();
-		let timeout = setTimeout(deferred.reject.bind(deferred, new Error("Script injection timed out")), 3000);
-		Zotero.Promise.all(promises).then(function(result) {
-			clearTimeout(timeout);
-			deferred.resolve(result);
-		});
-		return deferred.promise;
+		// UPDATE 2017-08-29 seems to no longer be the case, but this is a generally nice safeguard that is good to
+		// have. Let's keep an eye out for these failed injections in reports.
+		return Zotero.Promise.all([promise, new Promise(function(resolve, reject) {
+			let timeout = setTimeout(() => reject(new Error(`Script injection timed out ${tab.url}`)), 3000);
+			resolve(promise.then(function() {
+				clearTimeout(timeout);
+			}));
+		})]).then((result) => result[0]);
 	};
 
 	this.openTab = function(url, tab) {
