@@ -283,7 +283,8 @@ Zotero.Debug = new function() {
 		if (!lines) lines = 5;
 		var str = '';
 		while (stack && lines--) {
-			str += '\n  ' + (stack.name || '') + '@' + stack.filename + ':' + stack.lineNumber;
+			str += '\n  ' + (stack.name || '') + '@' + stack.filename +
+				':' + stack.lineNumber;
 			stack = stack.caller;
 		}
 		return str.substr(1);

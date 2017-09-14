@@ -35,7 +35,7 @@ Zotero.Prefs = Object.assign(Zotero.Prefs, {
 			this.syncStorage = prefs;
 		}.bind(this));
 	}),
-	
+
 	migrate: Zotero.Promise.method(function() {
 		try {
 			if (!localStorage.length) return;
@@ -47,8 +47,9 @@ Zotero.Prefs = Object.assign(Zotero.Prefs, {
 				delete prefs[k];
 			}
 			return new Zotero.Promise(resolve => chrome.storage.local.set(prefs, resolve)).then(function() {
-				return new Zotero.Promise(resolve => chrome.storage.local.set(
-					{translatorMetadata: JSON.parse(localStorage['translatorMetadata'])}, resolve));
+				return new Zotero.Promise(resolve => chrome.storage.local.set({
+					translatorMetadata: JSON.parse(localStorage['translatorMetadata'])
+				}, resolve));
 			}).then(function() {
 				localStorage.clear();
 			});
@@ -60,9 +61,9 @@ Zotero.Prefs = Object.assign(Zotero.Prefs, {
 			Zotero.debug(e.message);
 		}
 	}),
-	
+
 	set: function(pref, value) {
-		Zotero.debug("Setting "+pref+" to "+JSON.stringify(value).substr(0, 100));
+		Zotero.debug("Setting " + pref + " to " + JSON.stringify(value).substr(0, 100));
 		let prefs = {};
 		prefs[pref] = value;
 

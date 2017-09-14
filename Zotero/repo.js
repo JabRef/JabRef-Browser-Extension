@@ -39,7 +39,8 @@ Zotero.Repo = new function() {
 		var promise;
 		return function() {
 			// get time of next check
-			_nextCheck = Zotero.Prefs.get("connector.repo.lastCheck.localTime") + ZOTERO_CONFIG.REPOSITORY_CHECK_INTERVAL * 1000;
+			_nextCheck = Zotero.Prefs.get("connector.repo.lastCheck.localTime") +
+				ZOTERO_CONFIG.REPOSITORY_CHECK_INTERVAL * 1000;
 
 			if (promise) return promise;
 			// update from standalone, but only cascade to repo if we are overdue
@@ -185,7 +186,9 @@ Zotero.Repo = new function() {
 
 		if (result || _nextCheck <= now) {
 			// if we failed a scheduled check, then use retry interval
-			_nextCheck = now + (result ? ZOTERO_CONFIG.REPOSITORY_CHECK_INTERVAL : ZOTERO_CONFIG.REPOSITORY_RETRY_INTERVAL) * 1000;
+			_nextCheck = now + (result ?
+				ZOTERO_CONFIG.REPOSITORY_CHECK_INTERVAL :
+				ZOTERO_CONFIG.REPOSITORY_RETRY_INTERVAL) * 1000;
 		} else if (_timeoutID) {
 			// if we didn't fail a scheduled check and another is already scheduled, leave it
 			return;

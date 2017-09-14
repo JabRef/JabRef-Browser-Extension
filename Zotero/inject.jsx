@@ -1,17 +1,3 @@
-"use strict";
-
-var _extends = Object.assign || function(target) {
-	for (var i = 1; i < arguments.length; i++) {
-		var source = arguments[i];
-		for (var key in source) {
-			if (Object.prototype.hasOwnProperty.call(source, key)) {
-				target[key] = source[key];
-			}
-		}
-	}
-	return target;
-};
-
 /*
     ***** BEGIN LICENSE BLOCK *****
     
@@ -46,8 +32,8 @@ if (window.top) {
 		isTopWindow = window.top == window;
 	} catch (e) {};
 }
-var instanceID = isTopWindow ? 0 : new Date().getTime();
-debugger;
+var instanceID = isTopWindow ? 0 : (new Date()).getTime();
+
 if (isTopWindow) {
 	/*
 	 * Register save dialog listeners
@@ -61,7 +47,9 @@ if (isTopWindow) {
 			return Zotero.ProgressWindow.changeHeadline(headline);
 		}
 		return Zotero.Connector.callMethod("getSelectedCollection", {}).then(function(response) {
-			Zotero.ProgressWindow.changeHeadline("Saving to ", response.id ? "treesource-collection.png" : "treesource-library.png", response.name + "\u2026");
+			Zotero.ProgressWindow.changeHeadline("Saving to ",
+				response.id ? "treesource-collection.png" : "treesource-library.png",
+				response.name + "\u2026");
 			if (response.libraryEditable === false) {
 				new Zotero.ProgressWindow.ErrorMessage("collectionNotEditable");
 				Zotero.ProgressWindow.startCloseTimer(8000);
@@ -72,7 +60,8 @@ if (isTopWindow) {
 	});
 	var itemProgress = {};
 	Zotero.Messaging.addMessageListener("progressWindow.itemSaving", function(data) {
-		itemProgress[data[2]] = new Zotero.ProgressWindow.ItemProgress(data[0], data[1], data.length > 3 ? itemProgress[data[3]] : undefined);
+		itemProgress[data[2]] = new Zotero.ProgressWindow.ItemProgress(data[0], data[1],
+			data.length > 3 ? itemProgress[data[3]] : undefined);
 	});
 	Zotero.Messaging.addMessageListener("progressWindow.itemProgress", function(data) {
 		var progress = itemProgress[data[2]];
@@ -101,9 +90,7 @@ if (isTopWindow) {
 		return Zotero.Inject.confirm(props);
 	});
 
-	Zotero.Messaging.addMessageListener("notify", function(args) {
-		return Zotero.Inject.notify.apply(undefined, args);
-	});
+	Zotero.Messaging.addMessageListener("notify", (args) => Zotero.Inject.notify.apply(this, args));
 
 	Zotero.Messaging.addMessageListener("ping", function() {
 		// Respond to indicate that script is injected
@@ -160,7 +147,9 @@ Zotero.Inject = new function() {
 					Zotero.Messaging.sendMessage("progressWindow.itemProgress", [Zotero.ItemTypes.getImageSrc(item.itemType), item.title, item.id, 100]);
 					for (var i = 0; i < item.attachments.length; i++) {
 						var attachment = item.attachments[i];
-						Zotero.Messaging.sendMessage("progressWindow.itemSaving", [determineAttachmentIcon(attachment), attachment.title, attachment.id, item.id]);
+						Zotero.Messaging.sendMessage("progressWindow.itemSaving", [determineAttachmentIcon(attachment), attachment.title, attachment.id,
+							item.id
+						]);
 					}
 				});
 				_translate.setHandler("attachmentProgress", function(obj, attachment, progress, err) {
@@ -181,7 +170,6 @@ Zotero.Inject = new function() {
 				}, false);
 			}
 			_translate.setDocument(document);
-
 			return _translate.getTranslators(true).then(function(translators) {
 				if (!translators.length && Zotero.isSafari) {
 					if (!isTopWindow && document.contentType == 'application/pdf') {
@@ -189,33 +177,12 @@ Zotero.Inject = new function() {
 					}
 				}
 				me.translators = {};
-				var _iteratorNormalCompletion = true;
-				var _didIteratorError = false;
-				var _iteratorError = undefined;
-
-				try {
-					for (var _iterator = translators[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-						var translator = _step.value;
-
-						me.translators[translator.translatorID] = translator;
-					}
-				} catch (err) {
-					_didIteratorError = true;
-					_iteratorError = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion && _iterator.return) {
-							_iterator.return();
-						}
-					} finally {
-						if (_didIteratorError) {
-							throw _iteratorError;
-						}
-					}
+				for (let translator of translators) {
+					me.translators[translator.translatorID] = translator;
 				}
 
 				translators = translators.map(function(translator) {
-					return translator.serialize(TRANSLATOR_PASSING_PROPERTIES);
+					return translator.serialize(TRANSLATOR_PASSING_PROPERTIES)
 				});
 				Zotero.Connector_Browser.onTranslators(translators, instanceID, document.contentType);
 			});
@@ -228,7 +195,8 @@ Zotero.Inject = new function() {
 		if (attachment.linkMode === "linked_url") {
 			return Zotero.ItemTypes.getImageSrc("attachment-web-link");
 		}
-		return Zotero.ItemTypes.getImageSrc(attachment.mimeType === "application/pdf" ? "attachment-pdf" : "attachment-snapshot");
+		return Zotero.ItemTypes.getImageSrc(attachment.mimeType === "application/pdf" ?
+			"attachment-pdf" : "attachment-snapshot");
 	}
 
 	/**
@@ -244,39 +212,17 @@ Zotero.Inject = new function() {
 		if (typeof ReactDOM === "undefined") {
 			toLoad = ['lib/react.js', 'lib/react-dom.js'];
 		}
-		var _iteratorNormalCompletion2 = true;
-		var _didIteratorError2 = false;
-		var _iteratorError2 = undefined;
-
-		try {
-			for (var _iterator2 = components[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-				var component = _step2.value;
-
-				if (!Zotero.ui || !Zotero.ui[component]) {
-					toLoad.push("ui/" + component.replace(/(.)([A-Z])/g, '$1-$2').toLowerCase() + ".js");
-				}
-			}
-		} catch (err) {
-			_didIteratorError2 = true;
-			_iteratorError2 = err;
-		} finally {
-			try {
-				if (!_iteratorNormalCompletion2 && _iterator2.return) {
-					_iterator2.return();
-				}
-			} finally {
-				if (_didIteratorError2) {
-					throw _iteratorError2;
-				}
+		for (let component of components) {
+			if (!Zotero.ui || !Zotero.ui[component]) {
+				toLoad.push(`ui/${component.replace(/(.)([A-Z])/g, '$1-$2').toLowerCase()}.js`)
 			}
 		}
-
 		if (toLoad.length) {
 			return Zotero.Connector_Browser.injectScripts(toLoad);
 		} else {
 			return Zotero.Promise.resolve();
 		}
-	};
+	}
 
 	/**
 	 * 
@@ -287,15 +233,19 @@ Zotero.Inject = new function() {
 	 * 		`inputText` - input field string on close	
 	 */
 	this.confirm = function(props) {
-		var deferred = Zotero.Promise.defer();
+		let deferred = Zotero.Promise.defer();
 
 		Zotero.Inject.loadReactComponents(['ModalPrompt']).then(function() {
-			var div = document.createElement('div');
+			let div = document.createElement('div');
 			div.id = 'zotero-modal-prompt';
 			div.style.cssText = 'z-index: 1000000; position: fixed; top: 0; left: 0; width: 100%; height: 100%';
-			var prompt = React.createElement(Zotero.ui.ModalPrompt, _extends({
-				onClose: onClose
-			}, props));
+			let prompt = ( <
+				Zotero.ui.ModalPrompt onClose = {
+					onClose
+				} { ...props
+				}
+				/>
+			);
 
 			function onClose(state, event) {
 				deferred.resolve({
@@ -332,7 +282,7 @@ Zotero.Inject = new function() {
 			// The navigation will re-trigger this method from the background script.
 			if (tabStatus != 'complete') return;
 
-			var showNotificationPrompt = function() {
+			let showNotificationPrompt = function() {
 				return Zotero.Promise.delay(500).then(function() {
 					return Zotero.Inject.loadReactComponents(['Notification']).then(function() {
 						var notification = new Zotero.ui.Notification(text, buttons);
@@ -345,15 +295,18 @@ Zotero.Inject = new function() {
 			// Sequentialize notification display
 			lastChainedPromise = lastChainedPromise.then(showNotificationPrompt);
 			return lastChainedPromise;
-		};
-	}();
+		}
+	};
 
 	this.firstUsePrompt = function() {
 		return this.confirm({
 			title: "You’ve installed the Zotero Connector!",
 			button1Text: "Got it",
 			button2Text: "",
-			message: "\n\t\t\t\tThe Zotero Connector enables you to save references to Zotero from your web browser in a single click.<br><br>\n\t\t\t\t<strong>Looking for your Zotero data?</strong> We\u2019ve made some <a href=\"https://www.zotero.org/blog/a-unified-zotero-experience/\">important changes</a> to how Zotero works in Firefox. If you were previously using Zotero for Firefox, you\u2019ll need to <a href=\"https://www.zotero.org/download/\">download</a> the standalone Zotero application to access your local Zotero data going forward.\n\t\t\t"
+			message: `
+				The Zotero Connector enables you to save references to Zotero from your web browser in a single click.<br><br>
+				<strong>Looking for your Zotero data?</strong> We’ve made some <a href="https://www.zotero.org/blog/a-unified-zotero-experience/">important changes</a> to how Zotero works in Firefox. If you were previously using Zotero for Firefox, you’ll need to <a href="https://www.zotero.org/download/">download</a> the standalone Zotero application to access your local Zotero data going forward.
+			`
 		});
 	};
 
@@ -363,7 +316,10 @@ Zotero.Inject = new function() {
 			button2Text: "Cancel",
 			button3Text: "Enable Saving to Online Library",
 			title: "Zotero is Offline",
-			message: "\n\t\t\t\tThe Zotero Connector was unable to communicate with the Zotero desktop application. The Connector can save some pages directly to your zotero.org account, but for best results you should make sure Zotero is open before attempting to save.<br/><br/>\n\t\t\t\tYou can <a href=\"https://www.zotero.org/download/\">download Zotero</a> or <a href=\"https://www.zotero.org/support/kb/connector_zotero_unavailable\">troubleshoot the connection</a> if necessary.\n\t\t\t"
+			message: `
+				The Zotero Connector was unable to communicate with the Zotero desktop application. The Connector can save some pages directly to your zotero.org account, but for best results you should make sure Zotero is open before attempting to save.<br/><br/>
+				You can <a href="https://www.zotero.org/download/">download Zotero</a> or <a href="https://www.zotero.org/support/kb/connector_zotero_unavailable">troubleshoot the connection</a> if necessary.
+			`
 		}).then(function(result) {
 			switch (result.button) {
 				case 1:
@@ -387,28 +343,29 @@ Zotero.Inject = new function() {
 	 */
 	this.checkActionToServer = function() {
 		if (Zotero.isBrowserExt) {
-			return Zotero.Promise.all([Zotero.Prefs.getAsync('firstSaveToServer'), Zotero.Connector.checkIsOnline()]).then(function(result) {
-				var firstSaveToServer = result[0];
-				var zoteroIsOnline = result[1];
-				if (zoteroIsOnline || !firstSaveToServer) {
-					return true;
-				}
-				return this.firstSaveToServerPrompt().then(function(result) {
-					var _this = this;
-
-					if (result == 'server') {
-						Zotero.Prefs.set('firstSaveToServer', false);
+			return Zotero.Promise.all([
+					Zotero.Prefs.getAsync('firstSaveToServer'),
+					Zotero.Connector.checkIsOnline()
+				])
+				.then(function(result) {
+					let firstSaveToServer = result[0];
+					let zoteroIsOnline = result[1];
+					if (zoteroIsOnline || !firstSaveToServer) {
 						return true;
-					} else if (result == 'retry') {
-						var deferred = Zotero.Promise.defer();
-						setTimeout(function() {
-							return deferred.resolve(_this.checkActionToServer());
-						}, 500);
-						return deferred.promise;
 					}
-					return false;
+					return this.firstSaveToServerPrompt()
+						.then(function(result) {
+							if (result == 'server') {
+								Zotero.Prefs.set('firstSaveToServer', false);
+								return true;
+							} else if (result == 'retry') {
+								let deferred = Zotero.Promise.defer();
+								setTimeout(() => deferred.resolve(this.checkActionToServer()), 500);
+								return deferred.promise;
+							}
+							return false;
+						}.bind(this));
 				}.bind(this));
-			}.bind(this));
 		} else {
 			return Zotero.Promise.resolve(true);
 		}
@@ -446,7 +403,7 @@ Zotero.Inject = new function() {
 
 			Zotero.Messaging.sendMessage("progressWindow.show", null);
 			Zotero.Messaging.sendMessage("progressWindow.itemSaving", [Zotero.ItemTypes.getImageSrc(image), title, title]);
-			return Zotero.Connector.callMethodWithCookies("saveSnapshot", data);
+			return Zotero.Connector.callMethodWithCookies("saveSnapshot", data)
 		}.bind(this)).then(function(result) {
 			Zotero.Messaging.sendMessage("progressWindow.itemProgress", [Zotero.ItemTypes.getImageSrc(image), title, title, 100]);
 			Zotero.Messaging.sendMessage("progressWindow.done", [true]);
@@ -457,7 +414,7 @@ Zotero.Inject = new function() {
 			if (e.status === 0) {
 				// Attempt saving to server if not pdf
 				if (document.contentType != 'application/pdf') {
-					var itemSaver = new Zotero.Translate.ItemSaver({});
+					let itemSaver = new Zotero.Translate.ItemSaver({});
 					return itemSaver.saveAsWebpage().then(function(items) {
 						if (items.length) progress.setProgress(100);
 					});
@@ -470,7 +427,7 @@ Zotero.Inject = new function() {
 			if (err) throw err;
 		}.bind(this));
 	};
-}();
+};
 
 // check whether this is a hidden browser window being used for scraping
 var isHiddenIFrame = false;
@@ -479,10 +436,10 @@ try {
 } catch (e) {}
 
 // don't try to scrape on hidden frames
-var isWeb = window.location.protocol === "http:" || window.location.protocol === "https:";
-var isTestPage = window.location.protocol.includes('-extension:') && window.location.href.includes('/test/');
+let isWeb = window.location.protocol === "http:" || window.location.protocol === "https:";
+let isTestPage = window.location.protocol.includes('-extension:') && window.location.href.includes('/test/');
 if (!isHiddenIFrame && (isWeb || isTestPage)) {
-	var doInject = function doInject() {
+	var doInject = function() {
 		// add listener for translate message from extension
 		Zotero.Messaging.addMessageListener("translate", function(data) {
 			if (data[0] !== instanceID) return;
@@ -513,7 +470,7 @@ if (!isHiddenIFrame && (isWeb || isTestPage)) {
 
 	// Wait until pages in prerender state become visible before injecting
 	if (document.visibilityState == 'prerender') {
-		var handler = function handler() {
+		var handler = function() {
 			doInject();
 			document.removeEventListener("visibilitychange", handler);
 		};

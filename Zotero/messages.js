@@ -75,48 +75,65 @@ const MESSAGE_SEPARATOR = ".";
 var MESSAGES = {
 	Translators: {
 		get: {
-			preSend: function(translators) {
-				return [Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES)];
+			background: {
+				preSend: function(translators) {
+					return [Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES)];
+				}
 			},
-			postReceive: function(translator) {
-				return [new Zotero.Translator(translator)];
+			inject: {
+				postReceive: function(translator) {
+					return [new Zotero.Translator(translator)];
+				}
 			}
 		},
 		getAllForType: {
-			preSend: function(translators) {
-				return [Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES)];
+			background: {
+				preSend: function(translators) {
+					return [Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES)];
+				},
 			},
-			postReceive: function(translators) {
-				return [translators.map(function(translator) {
-					return new Zotero.Translator(translator)
-				})];
+			inject: {
+				postReceive: function(translators) {
+					return [translators.map(function(translator) {
+						return new Zotero.Translator(translator)
+					})];
+				}
 			}
 		},
 		getWebTranslatorsForLocation: {
-			preSend: function(data) {
-				return [
-					[Zotero.Translators.serialize(data[0], TRANSLATOR_PASSING_PROPERTIES), data[1]]
-				];
+			background: {
+				preSend: function(data) {
+					return [
+						[Zotero.Translators.serialize(data[0], TRANSLATOR_PASSING_PROPERTIES), data[1]]
+					];
+				}
 			},
-			postReceive: function(data) {
-				// Deserialize to class objects
-				data[0] = data[0].map((translator) => new Zotero.Translator(translator));
-				data[1] = data[1].map((proxy) => proxy && new Zotero.Proxy(proxy));
-				return [
-					[data[0], data[1]]
-				];
+			inject: {
+				postReceive: function(data) {
+					// Deserialize to class objects
+					data[0] = data[0].map((translator) => new Zotero.Translator(translator));
+					data[1] = data[1].map((proxy) => proxy && new Zotero.Proxy(proxy));
+					return [
+						[data[0], data[1]]
+					];
+				}
 			}
 		}
 	},
 	Debug: {
 		clear: false,
-		log: false,
+		log: {
+			response: false,
+			background: {
+				minArgs: 4
+			}
+		},
 		setStore: false
 	},
 	Connector: {
 		checkIsOnline: true,
 		callMethod: true,
-		setCookiesThenSaveItems: true
+		callMethodWithCookies: true
 	},
 	Connector_Browser: {
 		onSelect: true,
@@ -124,7 +141,8 @@ var MESSAGES = {
 		onTranslators: false,
 		injectScripts: true,
 		firstSaveToServerPrompt: true,
-		openTab: false
+		openTab: false,
+		openPreferences: false
 	},
 	Connector_Debug: {
 		storing: true,
@@ -138,7 +156,7 @@ var MESSAGES = {
 		sendErrorReport: true
 	},
 	Messaging: {
-		sendMessage: false
+		sendMessage: true
 	},
 	API: {
 		authorize: true,
@@ -148,7 +166,9 @@ var MESSAGES = {
 	},
 	Prefs: {
 		set: false,
-		getAsync: true
+		getAll: true,
+		getAsync: true,
+		clear: false
 	},
 	Proxies: {
 		loadPrefs: false,
@@ -156,37 +176,46 @@ var MESSAGES = {
 		remove: false
 	},
 	Repo: {
-		getTranslatorCode: true,
+		getTranslatorCode: {
+			response: true,
+			background: {
+				minArgs: 2
+			}
+		},
 		update: false
 	}
 };
 
-MESSAGES["COHTTP"] = {
-	doGet: {
-		// avoid trying to post responseXML
-		preSend: function(xhr) {
-			return [{
-				responseText: xhr.responseText,
-				status: xhr.status,
-				statusText: xhr.statusText
-			}];
+MESSAGES.COHTTP = {
+	request: {
+		background: {
+			// avoid trying to post responseXML
+			preSend: function(xhr) {
+				return [{
+					responseText: xhr.responseText,
+					status: xhr.status,
+					statusText: xhr.statusText,
+					responseHeaders: xhr.getAllResponseHeaders()
+				}];
+			},
 		},
-		callbackArg: 1
-	},
-	doPost: {
-		// avoid trying to post responseXML
-		preSend: function(xhr) {
-			return [{
-				responseText: xhr.responseText,
-				status: xhr.status,
-				statusText: xhr.statusText
-			}];
-		},
-		callbackArg: 2
+		inject: {
+			postReceive: function(xhr) {
+				xhr.getAllResponseHeaders = () => xhr.responseHeaders;
+				xhr.getResponseHeader = function(name) {
+					let match = xhr.responseHeaders.match(new RegExp(`^${name}: (.*)$`, 'm'));
+					return match ? match[1] : null;
+				};
+				return [xhr];
+			}
+		}
 	}
 };
 
 if (Zotero.isSafari) {
-	MESSAGES["API"]["createItem"] = true;
-	MESSAGES["API"]["uploadAttachment"] = false;
+	MESSAGES.API.createItem = true;
+	MESSAGES.API.uploadAttachment = false;
+	MESSAGES.Connector_Browser.onPDFFrame = false;
+	// Override, because tests don't work in Safari and this causes errors in normal function
+	MESSAGES.Messaging.sendMessage = false;
 }

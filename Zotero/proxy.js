@@ -39,6 +39,8 @@
 
 	"use strict";
 
+	var url = require('url');
+
 	/**
 	 * A singleton to handle URL rewriting proxies
 	 * @namespace
@@ -178,7 +180,9 @@
 						if (response == 2) {
 							return Zotero.Messaging.sendMessage('confirm', {
 								title: 'Only add proxies linked from your library, school, or corporate website',
-								message: 'Adding other proxies allows malicious sites to masquerade as sites you trust.<br/></br>' + 'Adding this proxy will allow Zotero to recognize items from proxied pages and will automatically ' + `redirect future requests to ${proxy.hosts[proxy.hosts.length-1]} through ${proxiedHost}.`,
+								message: 'Adding other proxies allows malicious sites to masquerade as sites you trust.<br/></br>' +
+									'Adding this proxy will allow Zotero to recognize items from proxied pages and will automatically ' +
+									`redirect future requests to ${proxy.hosts[proxy.hosts.length-1]} through ${proxiedHost}.`,
 								button1Text: 'Add Proxy',
 								button2Text: 'Cancel'
 							}).then(function(result) {
@@ -202,9 +206,13 @@
 				var host = m[proxy.parameters.indexOf("%h") + 1];
 				// add this host if we know a proxy
 				if (proxy.autoAssociate // if autoAssociate is on
-					&& details.statusCode < 400 // and query was successful
-					&& !Zotero.Proxies.hosts[host] // and host is not saved
-					&& proxy.hosts.indexOf(host) === -1 && !_isBlacklisted(host) // and host is not blacklisted
+					&&
+					details.statusCode < 400 // and query was successful
+					&&
+					!Zotero.Proxies.hosts[host] // and host is not saved
+					&&
+					proxy.hosts.indexOf(host) === -1 &&
+					!_isBlacklisted(host) // and host is not blacklisted
 				) {
 					proxy.hosts.push(host);
 					Zotero.Proxies.save(proxy);
@@ -789,7 +797,8 @@
 				} catch (e) {}
 			}
 
-			if (fromProxy && toProxy && fromProxy.hostname == toProxy.hostname && fromProxy.port != toProxy.port && (!toProxy.port || [80, 443].indexOf(toProxy.port) == -1)) {
+			if (fromProxy && toProxy && fromProxy.hostname == toProxy.hostname && fromProxy.port != toProxy.port &&
+				(!toProxy.port || [80, 443].indexOf(toProxy.port) == -1)) {
 				for (var proxy of Zotero.Proxies.proxies) {
 					if (proxy.regexp) {
 						var m = proxy.regexp.exec(fromProxy.href);

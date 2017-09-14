@@ -60,16 +60,16 @@ Zotero.Utilities.Translate.prototype.parseContextObject = Zotero.OpenURL.parseCo
  * pref on a per-translate instance basis (for translator testing only)
  */
 Zotero.Utilities.Translate.prototype.capitalizeTitle = function(string, force) {
-	if(force === undefined) {
+	if (force === undefined) {
 		var translate = this._translate;
 		do {
-			if(translate.capitalizeTitles !== undefined) {
+			if (translate.capitalizeTitles !== undefined) {
 				force = translate.capitalizeTitles;
 				break;
 			}
-		} while(translate = translate._parentTranslator);
+		} while (translate = translate._parentTranslator);
 	}
-	
+
 	return Zotero.Utilities.capitalizeTitle(string, force);
 }
 
@@ -90,7 +90,7 @@ Zotero.Utilities.Translate.prototype.getVersion = function() {
  */
 Zotero.Utilities.Translate.prototype.gatherElementsOnXPath = function(doc, parentNode, xpath, nsResolver) {
 	var elmts = [];
-	
+
 	var iterator = doc.evaluate(xpath, parentNode, nsResolver,
 		(Zotero.isFx ? Components.interfaces.nsIDOMXPathResult.ANY_TYPE : XPathResult.ANY_TYPE),
 		null);
@@ -112,7 +112,7 @@ Zotero.Utilities.Translate.prototype.gatherElementsOnXPath = function(doc, paren
 Zotero.Utilities.Translate.prototype.getNodeString = function(doc, contextNode, xpath, nsResolver) {
 	var elmts = this.gatherElementsOnXPath(doc, contextNode, xpath, nsResolver);
 	var returnVar = "";
-	for(var i=0; i<elmts.length; i++) {
+	for (var i = 0; i < elmts.length; i++) {
 		returnVar += elmts[i].nodeValue;
 	}
 	return returnVar;
@@ -129,11 +129,11 @@ Zotero.Utilities.Translate.prototype.getNodeString = function(doc, contextNode, 
  *	Zotero.selectItems from within a translator
  */
 Zotero.Utilities.Translate.prototype.getItemArray = function(doc, inHere, urlRe, rejectRe) {
-	var availableItems = new Object();	// Technically, associative arrays are objects
-	
+	var availableItems = new Object(); // Technically, associative arrays are objects
+
 	// Require link to match this
-	if(urlRe) {
-		if(urlRe.exec) {
+	if (urlRe) {
+		if (urlRe.exec) {
 			var urlRegexp = urlRe;
 		} else {
 			var urlRegexp = new RegExp();
@@ -141,30 +141,30 @@ Zotero.Utilities.Translate.prototype.getItemArray = function(doc, inHere, urlRe,
 		}
 	}
 	// Do not allow text to match this
-	if(rejectRe) {
-		if(rejectRe.exec) {
+	if (rejectRe) {
+		if (rejectRe.exec) {
 			var rejectRegexp = rejectRe;
 		} else {
 			var rejectRegexp = new RegExp();
 			rejectRegexp.compile(rejectRe, "i");
 		}
 	}
-	
-	if(!inHere.length) {
+
+	if (!inHere.length) {
 		inHere = new Array(inHere);
 	}
-	
-	for(var j=0; j<inHere.length; j++) {
+
+	for (var j = 0; j < inHere.length; j++) {
 		var links = inHere[j].getElementsByTagName("a");
-		for(var i=0; i<links.length; i++) {
-			if(!urlRe || urlRegexp.test(links[i].href)) {
+		for (var i = 0; i < links.length; i++) {
+			if (!urlRe || urlRegexp.test(links[i].href)) {
 				var text = "textContent" in links[i] ? links[i].textContent : links[i].innerText;
-				if(text) {
+				if (text) {
 					text = this.trimInternal(text);
-					if(!rejectRe || !rejectRegexp.test(text)) {
-						if(availableItems[links[i].href]) {
-							if(text != availableItems[links[i].href]) {
-								availableItems[links[i].href] += " "+text;
+					if (!rejectRe || !rejectRegexp.test(text)) {
+						if (availableItems[links[i].href]) {
+							if (text != availableItems[links[i].href]) {
+								availableItems[links[i].href] += " " + text;
 							}
 						} else {
 							availableItems[links[i].href] = text;
@@ -174,7 +174,7 @@ Zotero.Utilities.Translate.prototype.getItemArray = function(doc, inHere, urlRe,
 			}
 		}
 	}
-	
+
 	return availableItems;
 }
 
@@ -197,64 +197,64 @@ Zotero.Utilities.Translate.prototype.loadDocument = function(url, succeeded, fai
 Zotero.Utilities.Translate.prototype.processDocuments = function(urls, processor, done, exception) {
 	var translate = this._translate;
 
-	if(typeof(urls) == "string") {
+	if (typeof(urls) == "string") {
 		urls = [translate.resolveURL(urls)];
 	} else {
-		for(var i in urls) {
+		for (var i in urls) {
 			urls[i] = translate.resolveURL(urls[i]);
 		}
 	}
-	
+
 	// Unless the translator has proposed some way to handle an error, handle it
 	// by throwing a "scraping error" message
-	if(exception) {
+	if (exception) {
 		var myException = function(e) {
 			var browserDeleted;
 			try {
 				exception(e);
-			} catch(e) {
-				if(hiddenBrowser) {
+			} catch (e) {
+				if (hiddenBrowser) {
 					try {
 						Zotero.Browser.deleteHiddenBrowser(hiddenBrowser);
-					} catch(e) {}
+					} catch (e) {}
 				}
 				browserDeleted = true;
 				translate.complete(false, e);
 			}
-			
-			if(!browserDeleted) {
+
+			if (!browserDeleted) {
 				try {
 					Zotero.Browser.deleteHiddenBrowser(hiddenBrowser);
-				} catch(e) {}
+				} catch (e) {}
 			}
 		}
 	} else {
 		var myException = function(e) {
-			if(hiddenBrowser) {
+			if (hiddenBrowser) {
 				try {
 					Zotero.Browser.deleteHiddenBrowser(hiddenBrowser);
-				} catch(e) {}
+				} catch (e) {}
 			}
 			translate.complete(false, e);
 		}
 	}
-	
-	if(Zotero.isFx) {
-		if(typeof translate._sandboxLocation === "object") {
+
+	if (Zotero.isFx) {
+		if (typeof translate._sandboxLocation === "object") {
 			var protocol = translate._sandboxLocation.location.protocol,
 				host = translate._sandboxLocation.location.host;
-        } else {
-			var url = Components.classes["@mozilla.org/network/io-service;1"] 
-					.getService(Components.interfaces.nsIIOService)
-					.newURI(translate._sandboxLocation, null, null),
-				protocol = url.scheme+":",
+		} else {
+			var url = Components.classes["@mozilla.org/network/io-service;1"]
+				.getService(Components.interfaces.nsIIOService)
+				.newURI(translate._sandboxLocation, null, null),
+				protocol = url.scheme + ":",
 				host = url.host;
 		}
 	}
-	
-	for(var i=0; i<urls.length; i++) {
-		if(translate.document && translate.document.location
-				&& translate.document.location.toString() === urls[i]) {
+
+	for (var i = 0; i < urls.length; i++) {
+		if (translate.document && translate.document.location &&
+			translate.document.location.toString() === urls[i]) {
 			// Document is attempting to reload itself
 			Zotero.debug("Translate: Attempted to load the current document using processDocuments; using loaded document instead");
 			// This fixes document permissions issues in translation-server when translators call
@@ -269,87 +269,87 @@ Zotero.Utilities.Translate.prototype.processDocuments = function(urls, processor
 					),
 					urls[i]
 				);
-			}
-			else {
+			} else {
 				processor(this._translate.document, urls[i]);
 			}
 			urls.splice(i, 1);
 			i--;
 		}
 	}
-	
+
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#processDocuments");
 	var hiddenBrowser = Zotero.HTTP.processDocuments(urls, function(doc) {
-		if(!processor) return;
-		
-		var newLoc = doc.location;
-		if((Zotero.isFx && !Zotero.isBookmarklet && (protocol != newLoc.protocol || host != newLoc.host))
+			if (!processor) return;
+
+			var newLoc = doc.location;
+			if ((Zotero.isFx && !Zotero.isBookmarklet && (protocol != newLoc.protocol || host != newLoc.host))
 				// This fixes document permissions issues in translation-server when translators call
 				// processDocuments() on same-domain URLs (e.g., some of the Code4Lib tests).
 				// DEBUG: Is there a better fix for this?
-				|| Zotero.isServer) {
-			// Cross-site; need to wrap
-			processor(translate._sandboxManager.wrap(doc), newLoc.toString());
-		} else {
-			// Not cross-site; no need to wrap
-			processor(doc, newLoc.toString());
-		}
-	},
-	function() {
-		if(done) done();
-		var handler = function() {
-			if(hiddenBrowser) {
-				try {
-					Zotero.Browser.deleteHiddenBrowser(hiddenBrowser);
-				} catch(e) {}
+				||
+				Zotero.isServer) {
+				// Cross-site; need to wrap
+				processor(translate._sandboxManager.wrap(doc), newLoc.toString());
+			} else {
+				// Not cross-site; no need to wrap
+				processor(doc, newLoc.toString());
 			}
-			translate.removeHandler("done", handler);
-		};
-		translate.setHandler("done", handler);
-		translate.decrementAsyncProcesses("Zotero.Utilities.Translate#processDocuments");
-	}, myException, true, translate.cookieSandbox);
+		},
+		function() {
+			if (done) done();
+			var handler = function() {
+				if (hiddenBrowser) {
+					try {
+						Zotero.Browser.deleteHiddenBrowser(hiddenBrowser);
+					} catch (e) {}
+				}
+				translate.removeHandler("done", handler);
+			};
+			translate.setHandler("done", handler);
+			translate.decrementAsyncProcesses("Zotero.Utilities.Translate#processDocuments");
+		}, myException, true, translate.cookieSandbox);
 }
 
 /**
-* Send an HTTP GET request via XMLHTTPRequest
-* 
-* @param {String|String[]} urls URL(s) to request
-* @param {Function} processor Callback to be executed for each document loaded
-* @param {Function} done Callback to be executed after all documents have been loaded
-* @param {String} responseCharset Character set to force on the response
-* @param {Object} requestHeaders HTTP headers to include with request
-* @return {Boolean} True if the request was sent, or false if the browser is offline
-*/
+ * Send an HTTP GET request via XMLHTTPRequest
+ * 
+ * @param {String|String[]} urls URL(s) to request
+ * @param {Function} processor Callback to be executed for each document loaded
+ * @param {Function} done Callback to be executed after all documents have been loaded
+ * @param {String} responseCharset Character set to force on the response
+ * @param {Object} requestHeaders HTTP headers to include with request
+ * @return {Boolean} True if the request was sent, or false if the browser is offline
+ */
 Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, responseCharset, requestHeaders) {
 	var callAgain = false,
 		me = this,
 		translate = this._translate;
-	
-	if(typeof(urls) == "string") {
+
+	if (typeof(urls) == "string") {
 		var url = urls;
 	} else {
-		if(urls.length > 1) callAgain = true;
+		if (urls.length > 1) callAgain = true;
 		var url = urls.shift();
 	}
-	
+
 	url = translate.resolveURL(url);
-	
+
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#doGet");
 	var xmlhttp = Zotero.HTTP.doGet(url, function(xmlhttp) {
 		try {
-			if(processor) {
+			if (processor) {
 				processor(xmlhttp.responseText, xmlhttp, url);
 			}
-			
-			if(callAgain) {
+
+			if (callAgain) {
 				me.doGet(urls, processor, done, responseCharset);
 			} else {
-				if(done) {
+				if (done) {
 					done();
 				}
 			}
 			translate.decrementAsyncProcesses("Zotero.Utilities.Translate#doGet");
-		} catch(e) {
+		} catch (e) {
 			translate.complete(false, e);
 		}
 	}, responseCharset, this._translate.cookieSandbox, requestHeaders);
@@ -362,13 +362,13 @@ Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, res
 Zotero.Utilities.Translate.prototype.doPost = function(url, body, onDone, headers, responseCharset) {
 	var translate = this._translate;
 	url = translate.resolveURL(url);
-	
+
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#doPost");
 	var xmlhttp = Zotero.HTTP.doPost(url, body, function(xmlhttp) {
 		try {
 			onDone(xmlhttp.responseText, xmlhttp);
 			translate.decrementAsyncProcesses("Zotero.Utilities.Translate#doPost");
-		} catch(e) {
+		} catch (e) {
 			translate.complete(false, e);
 		}
 	}, headers, responseCharset, translate.cookieSandbox ? translate.cookieSandbox : undefined);
@@ -386,9 +386,11 @@ Zotero.Utilities.Translate.prototype.urlToProper = function(url) {
 	return url;
 };
 
-Zotero.Utilities.Translate.prototype.__exposedProps__ = {"HTTP":"r"};
-for(var j in Zotero.Utilities.Translate.prototype) {
-	if(typeof Zotero.Utilities.Translate.prototype[j] === "function" && j[0] !== "_" && j != "Translate") {
+Zotero.Utilities.Translate.prototype.__exposedProps__ = {
+	"HTTP": "r"
+};
+for (var j in Zotero.Utilities.Translate.prototype) {
+	if (typeof Zotero.Utilities.Translate.prototype[j] === "function" && j[0] !== "_" && j != "Translate") {
 		Zotero.Utilities.Translate.prototype.__exposedProps__[j] = "r";
 	}
 }

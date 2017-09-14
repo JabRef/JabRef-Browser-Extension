@@ -63,6 +63,12 @@ var Zotero = new function() {
 		this.clientName = window.navigator.appName;
 	}
 
+	if (this.isBrowserExt) {
+		this.version = chrome.runtime.getManifest().version;
+	} else if (this.isSafari) {
+		this.version = safari.extension.bundleVersion;
+	}
+
 	// window.Promise and Promise differ (somehow) in Firefox and when certain
 	// async promise resolution conditions arise upon calling Zotero.Promise.all().then(result => )
 	// somehow the result array doesn't properly have result[1] bound, even though
@@ -96,7 +102,7 @@ var Zotero = new function() {
 		}
 
 		return Zotero.Prefs.init().then(function() {
-			Zotero.Debug.init(1);
+			Zotero.Debug.init();
 			Zotero.Messaging.init();
 			Zotero.Connector_Types.init();
 			Zotero.Repo.init();

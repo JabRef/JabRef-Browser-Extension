@@ -94,7 +94,12 @@ Zotero.Messaging = new function() {
 					// add a response passthrough callback for the message
 					args[callbackArg] = function() {
 						if (arguments[0] && arguments[0][0] == 'error') {
-							let err = JSON.stringify(arguments[0][1], Object.getOwnPropertyNames(arguments[0][1]));
+							let err = arguments[0][1];
+							err = JSON.stringify(Object.assign({
+								name: err.name,
+								message: err.message,
+								stack: err.stack
+							}, err));
 							return sendResponseCallback([arguments[0][0], err]);
 						}
 						var newArgs = new Array(arguments.length);
@@ -110,7 +115,9 @@ Zotero.Messaging = new function() {
 				}
 			}
 			args.push(tab);
-			args.push(frameId);
+			if (messageParts[1] != 'sendMessage') {
+				args.push(frameId);
+			}
 
 			try {
 				var maybePromise = fn.apply(Zotero[messageParts[0]], args);
@@ -140,7 +147,8 @@ Zotero.Messaging = new function() {
 	 */
 	this.sendMessage = function(messageName, args, tab, frameId = 0) {
 		if (Zotero.isBookmarklet) {
-			window.parent.postMessage((_structuredCloneSupported ? [messageName, args] : JSON.stringify([messageName, args])), "*");
+			window.parent.postMessage((_structuredCloneSupported ?
+				[messageName, args] : JSON.stringify([messageName, args])), "*");
 		}
 		// Use the promise or response callback in BrowserExt for advanced functionality
 		else if (Zotero.isBrowserExt) {

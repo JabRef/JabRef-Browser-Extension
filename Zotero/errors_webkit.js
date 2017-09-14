@@ -48,15 +48,15 @@ Zotero.Errors = new function() {
 	/**
 	 * Gets errors as an array of strings
 	 */
-	this.getErrors = function(callback) {
-		callback(_output.slice());
-	}
+	this.getErrors = Zotero.Promise.method(function() {
+		return _output.slice();
+	})
 
 	/**
 	 * Sends an error report to the server
 	 */
-	this.sendErrorReport = function(callback) {
-		Zotero.getSystemInfo(function(info) {
+	this.sendErrorReport = function() {
+		return Zotero.getSystemInfo().then(function(info) {
 			var parts = {
 				error: "true",
 				errorData: _output.join('\n'),
@@ -69,27 +69,18 @@ Zotero.Errors = new function() {
 				body += key + '=' + encodeURIComponent(parts[key]) + '&';
 			}
 			body = body.substr(0, body.length - 1);
-			Zotero.HTTP.doPost("https://www.zotero.org/repo/report", body, function(xmlhttp) {
-				if (!xmlhttp.responseXML) {
-					try {
-						if (xmlhttp.status > 1000) {
-							callback(false, 'No network connection');
-						} else {
-							callback(false, 'Invalid response from repository');
-						}
-					} catch (e) {
-						callback(false, 'Repository cannot be contacted');
-					}
-					return;
+			let options = {
+				body,
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
 				}
-
+			};
+			return Zotero.HTTP.request("POST", "https://www.zotero.org/repo/report", options).then(function(xmlhttp) {
 				var reported = xmlhttp.responseXML.getElementsByTagName('reported');
 				if (reported.length != 1) {
-					callback(false, 'Invalid response from repository');
-					return;
+					throw new Error('Invalid response from repository');
 				}
-
-				callback(true, reported[0].getAttribute('reportID'));
+				return reported[0].getAttribute('reportID');
 			});
 		});
 	}

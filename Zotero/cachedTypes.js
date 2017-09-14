@@ -101,7 +101,8 @@ Zotero.Connector_Types = new function() {
 				var itemCreatorTypes = itemType[3]; // creatorTypes
 				if (!itemCreatorTypes
 					// TEMP: 'note' and 'attachment' have an array containing false
-					|| (itemCreatorTypes.length == 1 && !itemCreatorTypes[0])) {
+					||
+					(itemCreatorTypes.length == 1 && !itemCreatorTypes[0])) {
 					return [];
 				}
 				var n = itemCreatorTypes.length;
