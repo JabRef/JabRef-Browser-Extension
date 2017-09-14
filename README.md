@@ -43,6 +43,6 @@ In order to directly use the source code and help with the development of this a
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request.
 
-npm i -g npm-check-updates
-npm-check-updates -u
-npm install
+To update dependencies:
+	npm [outdated](https://docs.npmjs.com/cli/outdated)
+	npm [update](https://docs.npmjs.com/cli/update)
