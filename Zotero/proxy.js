@@ -156,7 +156,8 @@
 		 * @param {Object} details - webRequest details object
 		 */
 		this.observe = function(details, meta) {
-			if (meta.proxyRedirected || Zotero.Proxies._ignoreURLs.has(details.url) || details.statusCode >= 400) {
+			if (meta.proxyRedirected || Zotero.Proxies._ignoreURLs.has(details.url) || details.statusCode >= 400 ||
+				details.frameId != 0) {
 				return;
 			}
 			// try to detect a proxy
@@ -174,7 +175,8 @@
 			function notifyNewProxy(proxy, proxiedHost) {
 				_showNotification(
 						'New Zotero Proxy',
-						`Zotero detected that you are accessing ${proxy.hosts[proxy.hosts.length-1]} through a proxy. Would you like to automatically redirect future requests to ${proxy.hosts[proxy.hosts.length-1]} through ${proxiedHost}?`, ['✕', 'Proxy Settings', 'Accept']
+						`Zotero detected that you are accessing ${proxy.hosts[proxy.hosts.length-1]} through a proxy. Would you like to automatically redirect future requests to ${proxy.hosts[proxy.hosts.length-1]} through ${proxiedHost}?`, ['✕', 'Proxy Settings', 'Accept'],
+						details.tabId
 					)
 					.then(function(response) {
 						if (response == 2) {
@@ -220,10 +222,18 @@
 					let requestURI = url.parse(requestURL);
 					_showNotification(
 							'New Zotero Proxy Host',
-							`Zotero automatically associated ${host} with a previously defined proxy. Future requests to this site will be redirected to ${requestURI.host}.`, ["✕", "Proxy Settings"]
+							`Zotero automatically associated ${host} with a previously defined proxy. Future requests to this site will be redirected to ${requestURI.host}.`, ["✕", "Proxy Settings", "Don’t Proxy This Site"],
+							details.tabId
 						)
 						.then(function(response) {
 							if (response == 1) Zotero.Connector_Browser.openPreferences("proxies");
+							if (response == 2) {
+								proxy.hosts = proxy.hosts.filter((h) => h != host);
+								Zotero.Proxies.save(proxy);
+								return browser.tabs.update(details.tabId, {
+									url: proxy.toProper(details.url)
+								})
+							}
 						});
 				}
 			} else if (Zotero.Proxies.autoRecognize) {
@@ -303,12 +313,22 @@
 			// Otherwise, redirect.
 			if (Zotero.Proxies.showRedirectNotification && details.type === 'main_frame') {
 				_showNotification(
-						'Zotero Proxy Redirection',
-						`Zotero automatically redirected your request to ${url.parse(details.url).host} through the proxy at ${proxiedURI.host}.`, ['✕', 'Proxy Settings']
-					)
-					.then(function(response) {
-						if (response == 1) Zotero.Connector_Browser.openPreferences("proxies");
-					});
+					'Zotero Proxy Redirection',
+					`Zotero automatically redirected your request to ${url.parse(details.url).host} through the proxy at ${proxiedURI.host}.`, ['✕', 'Proxy Settings', "Don’t Proxy This Site"],
+					details.tabId
+				).then(function(response) {
+					if (response == 1) Zotero.Connector_Browser.openPreferences("proxies");
+					if (response == 2) {
+						let uri = url.parse(details.url);
+						let proxy = Zotero.Proxies.hosts[uri.host]
+						proxy.hosts = proxy.hosts.filter((h) => h != uri.host);
+						Zotero.Proxies.save(proxy);
+						// Don't redirect for hosts associated with frames
+						return browser.tabs.update(details.tabId, {
+							url: details.url
+						})
+					}
+				});
 			}
 
 			meta.proxyRedirected = true;
@@ -322,6 +342,9 @@
 		 * Update proxy and host maps and store proxy settings in storage
 		 */
 		this.save = function(proxy) {
+			proxy.scheme = proxy.scheme.trim()
+			proxy.hosts = proxy.hosts.map(host => host.trim());
+
 			// If empty or default scheme
 			var invalid = Zotero.Proxies.validate(proxy);
 			if (invalid) {
@@ -364,7 +387,6 @@
 		 *	no error.
 		 */
 		this.validate = function(proxy) {
-			proxy.scheme.trim();
 			if (proxy.scheme.length < 8 || (proxy.scheme.substr(0, 7) != "http://" && proxy.scheme.substr(0, 8) != "https://")) {
 				return ["scheme.noHTTP"];
 			}
@@ -551,7 +573,8 @@
 			 */
 			const hostWhitelist = [
 				/^scholar\.google\.com$/,
-				/^muse\.jhu\.edu$/
+				/^muse\.jhu\.edu$/,
+				/^(www\.)?journals\.uchicago\.edu$/
 			]
 
 			for (var blackPattern of hostBlacklist) {
@@ -572,10 +595,11 @@
 		 * @param {String} title - notification title (currently unused)
 		 * @param {String} message - notification text
 		 * @param {String[]} actions
+		 * @param {Number} tabId
 		 * @param {Number} timeout
 		 */
-		function _showNotification(title, message, actions, timeout) {
-			// chrome.notifications.create({
+		function _showNotification(title, message, actions, tabId, timeout) {
+			// browser.notifications.create({
 			// 	type: 'basic',
 			// 	title,
 			// 	message,
@@ -588,7 +612,7 @@
 					dismiss: true
 				}
 			});
-			return Zotero.Connector_Browser.notify(message, actions, timeout);
+			return Zotero.Connector_Browser.notify(message, actions, timeout, tabId);
 		}
 
 	};

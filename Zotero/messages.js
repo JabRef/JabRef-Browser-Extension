@@ -25,30 +25,22 @@
 
 /**
  * The MESSAGES array contains two levels. The first level is the NAMESPACE. The second level is the
- * METHOD. This sets up messaging so that a call to Zotero.NAMESPACE.METHOD(..., callback) in the 
- * injected script calls the same function on the global script, and when the global script calls
- * callback(data), the injected script calls callback(data).
+ * METHOD. This sets up messaging so that a call to Zotero.NAMESPACE.METHOD(...) in the 
+ * injected script calls the same function on the global script.
  * 
- * UPDATE Zotero 5.0:
- * Some shared translation code between connectors and Zotero client has been promisified. 
- * Thus all Zotero.NAMESPACE.METHOD calls also return a promise, which resolves with
- * the same value as the callback on the last argument of Zotero.NAMESPACE.METHOD(..., callback)
- *
- * If the value in the JSON below is not false, then the function accepts a callback.
- *
  * In Chrome, the message passing takes place according to the following sequence:
- *  1. Injected script calls Zotero.NAMESPACE.METHOD(ARGS, CALLBACK)
- *  2. Injected script sends [NAMESPACE+MESSAGE_SEPARATOR+METHOD, [ARGS]]
+ *  1. Injected script calls Zotero.NAMESPACE.METHOD(...ARGS)
+ *  2. Injected script sends [NAMESPACE+MESSAGE_SEPARATOR+METHOD, [...ARGS]]
  *  3. Global script receives message
- *  4. Global script executes Zotero.NAMESPACE.METHOD(ARGS, NEWCALLBACK, TABID)
- *  5. Zotero.NAMESPACE.METHOD calls its callback on the global side, with some CALLBACKDATA
- *  6. If MESSAGES[NAMESPACE][METHOD] has a preSend function, this gets passed CALLBACKDATA
- *     and returns some result, which is used as the CALLBACKDATA below
- *  7. Global script sends CALLBACKDATA to injected script as message response
+ *  4. Global script executes Zotero.NAMESPACE.METHOD(...ARGS, TAB, FRAME)
+ *  5. Zotero.NAMESPACE.METHOD returns a value or promise RESPONSE
+ *  6. If MESSAGES[NAMESPACE][METHOD] has a preSend function, the RESPONSE is processed
+ *  	with the preSend function before sending the response off to injected page
+ *  7. Global script responds with the RESPONSE
  *  8. Injected script receives message
- *  9. If MESSAGES[NAMESPACE][METHOD] has a postReceive function, this gets passed CALLBACKDATA
- *     and returns some result, which is used as the CALLBACKDATA below
- *  10. Injected script calls CALLBACK(CALLBACKDATA)
+ *  9. If MESSAGES[NAMESPACE][METHOD] has a postReceive function, this gets passed RESPONSE
+ *     and returns some result, which is used as the RESPONSE below
+ *  10. Injected script call Zotero.NAMESPACE.METHOD(...ARGS) resolves with RESPONSE
  *
  * In Safari, the following takes place:
  *  1. Injected script calls Zotero.NAMESPACE.METHOD(ARGS, CALLBACK)
@@ -58,16 +50,16 @@
  *     [TABID, REQUESTID, [ARGS]]
  *  4. Global script receives message
  *  5. Global script executes Zotero.NAMESPACE.METHOD(ARGS, NEWCALLBACK, TABID)
- *  6. Zotero.NAMESPACE.METHOD calls its callback on the global side, with some CALLBACKDATA
- *  7. If MESSAGES[NAMESPACE][METHOD] has a preSend function, this gets passed CALLBACKDATA
- *     and returns some result, which is used as the CALLBACKDATA below
+ *  6. Zotero.NAMESPACE.METHOD returns a value or promise RESPONSE
+ *  7. If MESSAGES[NAMESPACE][METHOD] has a preSend function, the RESPONSE is processed
+ *  	with the preSend function before sending the response off to injected page
  *  8. Global script sends a message with name
  *     NAMESPACE+MESSAGE_SEPARATOR+METHOD+MESSAGE_SEPARATOR+"Response" and message
- *     [REQUESTID, CALLBACKDATA]
+ *     [REQUESTID, RESPONSE]
  *  9. Injected script receives message
- *  10. If MESSAGES[NAMESPACE][METHOD] has a postReceive function, this gets passed CALLBACKDATA
- *     and returns some result, which is used as the CALLBACKDATA below
- *  11. Injected script calls _safariCallbacks[REQUESTID](CALLBACKDATA)
+ *  10. If MESSAGES[NAMESPACE][METHOD] has a postReceive function, this gets passed RESPONSE
+ *     and returns some result, which is used as the RESPONSE below
+ *  11. Injected script call Zotero.NAMESPACE.METHOD(...ARGS) resolves with RESPONSE
  *
  * See other messaging scripts for more details.
  */
@@ -77,35 +69,33 @@ var MESSAGES = {
 		get: {
 			background: {
 				preSend: function(translators) {
-					return [Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES)];
+					return Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES);
 				}
 			},
 			inject: {
 				postReceive: function(translator) {
-					return [new Zotero.Translator(translator)];
+					return new Zotero.Translator(translator);
 				}
 			}
 		},
 		getAllForType: {
 			background: {
 				preSend: function(translators) {
-					return [Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES)];
+					return Zotero.Translators.serialize(translators, TRANSLATOR_PASSING_PROPERTIES);
 				},
 			},
 			inject: {
 				postReceive: function(translators) {
-					return [translators.map(function(translator) {
+					return translators.map(function(translator) {
 						return new Zotero.Translator(translator)
-					})];
+					});
 				}
 			}
 		},
 		getWebTranslatorsForLocation: {
 			background: {
 				preSend: function(data) {
-					return [
-						[Zotero.Translators.serialize(data[0], TRANSLATOR_PASSING_PROPERTIES), data[1]]
-					];
+					return [Zotero.Translators.serialize(data[0], TRANSLATOR_PASSING_PROPERTIES), data[1]];
 				}
 			},
 			inject: {
@@ -113,14 +103,13 @@ var MESSAGES = {
 					// Deserialize to class objects
 					data[0] = data[0].map((translator) => new Zotero.Translator(translator));
 					data[1] = data[1].map((proxy) => proxy && new Zotero.Proxy(proxy));
-					return [
-						[data[0], data[1]]
-					];
+					return [data[0], data[1]];
 				}
 			}
 		}
 	},
 	Debug: {
+		init: false,
 		clear: false,
 		log: {
 			response: false,
@@ -142,6 +131,7 @@ var MESSAGES = {
 		injectScripts: true,
 		firstSaveToServerPrompt: true,
 		openTab: false,
+		openConfigEditor: false,
 		openPreferences: false
 	},
 	Connector_Debug: {
@@ -191,12 +181,12 @@ MESSAGES.COHTTP = {
 		background: {
 			// avoid trying to post responseXML
 			preSend: function(xhr) {
-				return [{
+				return {
 					responseText: xhr.responseText,
 					status: xhr.status,
 					statusText: xhr.statusText,
 					responseHeaders: xhr.getAllResponseHeaders()
-				}];
+				};
 			},
 		},
 		inject: {
@@ -206,7 +196,7 @@ MESSAGES.COHTTP = {
 					let match = xhr.responseHeaders.match(new RegExp(`^${name}: (.*)$`, 'm'));
 					return match ? match[1] : null;
 				};
-				return [xhr];
+				return xhr;
 			}
 		}
 	}

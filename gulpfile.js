@@ -49,14 +49,15 @@ function processJSX(file) {
 function postProcessContents(basename, file) {
 	switch (basename) {
 		case 'background.js':
+			// Specify correct injection scripts
+			// Uncomment message listener, because we take care of them ourself
 			file.contents = Buffer.from(file.contents.toString()
 				.replace("/*INJECT SCRIPTS*/",
 					injectInclude.map((s) => `"${s}"`).join(',\n\t\t'))
-				// Uncomment message listener, because we take care of them ourself
-				.replace("Zotero.Messaging.addMessageListener(",
-					'/*\n\tZotero.Messaging.addMessageListener(')
+				.replace("browser.tabs.onRemoved.addListener",
+					'/*\n\tbrowser.tabs.onRemoved.addListener')
 				.replace("}\r\n\r\nZotero.initGlobal();",
-					'\t*/}\r\n\r\n//Zotero.initGlobal();')
+					'\t*/\n}\r\n\r\n//Zotero.initGlobal();')
 			);
 			break;
 	}

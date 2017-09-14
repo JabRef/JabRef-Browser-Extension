@@ -28,6 +28,12 @@ var Zotero = new function() {
 	this.isConnector = true;
 	this.isFx = false;
 
+	this.initDeferred = {};
+	this.initDeferred.promise = new Promise(function(resolve, reject) {
+		this.initDeferred.resolve = resolve;
+		this.initDeferred.reject = reject;
+	}.bind(this));
+
 	// Browser check adopted from:
 	// http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
 	// Firefox 1.0+
@@ -64,7 +70,7 @@ var Zotero = new function() {
 	}
 
 	if (this.isBrowserExt) {
-		this.version = chrome.runtime.getManifest().version;
+		this.version = browser.runtime.getManifest().version;
 	} else if (this.isSafari) {
 		this.version = safari.extension.bundleVersion;
 	}
@@ -83,7 +89,7 @@ var Zotero = new function() {
 		Zotero.isBackground = true;
 
 		if (Zotero.isBrowserExt) {
-			chrome.runtime.getPlatformInfo(function(info) {
+			browser.runtime.getPlatformInfo().then(function(info) {
 				switch (info.os) {
 					case 'mac':
 					case 'win':
@@ -109,6 +115,7 @@ var Zotero = new function() {
 			if (Zotero.isBrowserExt) {
 				Zotero.WebRequestIntercept.init();
 				Zotero.Proxies.init();
+				Zotero.initDeferred.resolve();
 			}
 		});
 	};
@@ -125,6 +132,7 @@ var Zotero = new function() {
 		]);
 		return Zotero.Prefs.loadNamespace('debug').then(function() {
 			Zotero.Debug.init();
+			Zotero.initDeferred.resolve();
 		});
 	};
 
