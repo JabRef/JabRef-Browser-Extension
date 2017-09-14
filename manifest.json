@@ -25,6 +25,7 @@
 			"Zotero/repo.js",
 			"Zotero/translator.js",
 			"Zotero/translators.js",
+			"Zotero/connectorTypeSchemaData.js",
 			"Zotero/utilities.js",
 			"Zotero/messages.js",
 			"Zotero/messaging.js",
@@ -76,7 +77,8 @@
 		"<all_urls>",
 		"activeTab",
 		"tabs",
-		"webNavigation"
+		"webNavigation",
+		"storage"
 	],
 
 	"version": "2.0"

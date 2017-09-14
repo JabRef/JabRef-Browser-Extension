@@ -278,7 +278,7 @@ Zotero.Utilities.Translate.prototype.processDocuments = function(urls, processor
 	}
 
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#processDocuments");
-	var hiddenBrowser = Zotero.HTTP.processDocuments(urls, function(doc, url) {
+	var hiddenBrowser = Zotero.HTTP.processDocuments(urls, function(doc) {
 			if (!processor) return;
 
 			var newLoc = doc.location;
@@ -289,10 +289,10 @@ Zotero.Utilities.Translate.prototype.processDocuments = function(urls, processor
 				||
 				Zotero.isServer) {
 				// Cross-site; need to wrap
-				processor(translate._sandboxManager.wrap(doc), url);
+				processor(translate._sandboxManager.wrap(doc), newLoc.toString());
 			} else {
 				// Not cross-site; no need to wrap
-				processor(doc, url);
+				processor(doc, newLoc.toString());
 			}
 		},
 		function() {

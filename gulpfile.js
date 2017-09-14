@@ -6,6 +6,7 @@ const plumber = require('gulp-plumber');
 const path = require('path');
 var rename = require("gulp-rename");
 var beautify = require('gulp-jsbeautify');
+const babel = require('babel-core');
 
 var injectInclude = [
 	'Zotero/zotero_config.js',
@@ -23,7 +24,7 @@ var injectInclude = [
 	'Zotero/translate.js',
 	'Zotero/translator.js',
 	// translate_item
-	'Zotero/typeSchemaData.js',
+	'Zotero/connectorTypeSchemaData.js',
 	'Zotero/utilities.js',
 	'Zotero/utilities_translate.js',
 	'Zotero/utilities_common.js',
@@ -54,12 +55,25 @@ function postProcessContents(basename, file) {
 			file.contents = Buffer.from(file.contents.toString()
 				.replace("/*INJECT SCRIPTS*/",
 					injectInclude.map((s) => `"${s}"`).join(',\n\t\t'))
+				.replace("_updateExtensionUI(tab);", "//_updateExtensionUI(tab);")
+				.replace("_enableForTab(tab.id);", "//_enableForTab(tab.id);")
 				.replace("browser.tabs.onRemoved.addListener",
 					'/*\n\tbrowser.tabs.onRemoved.addListener')
 				.replace("}\r\n\r\nZotero.initGlobal();",
 					'\t*/\n}\r\n\r\n//Zotero.initGlobal();')
 			);
 			break;
+		case 'zotero.js':
+			// Use correct zotero version
+			file.contents = Buffer.from(file.contents.toString()
+				.replace("browser.runtime.getManifest().version", `"5.0.0"`)
+			);
+			break;
+		case 'proxy.js':
+			// Remove require statement
+			file.contents = Buffer.from(file.contents.toString()
+				.replace("var url = require('url');", '')
+			);
 	}
 }
 
@@ -69,7 +83,7 @@ function processFile() {
 		var basename = path.basename(file.path);
 		var ext = path.extname(file.path);
 
-		if (ext == 'jsx') {
+		if (ext == '.jsx') {
 			processJSX(file);
 		}
 
@@ -139,6 +153,12 @@ gulp.task('process-zotero-scripts', function() {
 		.pipe(beautify({
 			indent_with_tabs: true,
 			brace_style: "collapse"
+		}))
+		.pipe(rename(function(path) {
+			// Rename jsx to js
+			if (path.extname == ".jsx") {
+				path.extname = ".js";
+			}
 		}))
 		.pipe(gulp.dest((data) => data.base));
 });

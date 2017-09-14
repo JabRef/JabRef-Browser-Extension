@@ -70,7 +70,7 @@ var Zotero = new function() {
 	}
 
 	if (this.isBrowserExt) {
-		this.version = browser.runtime.getManifest().version;
+		this.version = "5.0.0";
 	} else if (this.isSafari) {
 		this.version = safari.extension.bundleVersion;
 	}

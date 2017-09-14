@@ -40,7 +40,7 @@ Zotero.Connector_Browser = new function() {
 		"Zotero/xregexpOld/addons/unicode/unicode-zotero.js",
 		"Zotero/translate.js",
 		"Zotero/translator.js",
-		"Zotero/typeSchemaData.js",
+		"Zotero/connectorTypeSchemaData.js",
 		"Zotero/utilities.js",
 		"Zotero/utilities_translate.js",
 		"Zotero/utilities_common.js",
@@ -56,7 +56,7 @@ Zotero.Connector_Browser = new function() {
 	 * Called when translators are available for a given page
 	 */
 	this.onTranslators = function(translators, instanceID, contentType, tab, frameId) {
-		_enableForTab(tab.id);
+		//_enableForTab(tab.id);
 
 		let existingTranslators = _tabInfo[tab.id] && _tabInfo[tab.id].translators;
 		// If translators already exist for tab we need to figure out if the new translators
@@ -81,7 +81,7 @@ Zotero.Connector_Browser = new function() {
 			isPDF
 		});
 
-		_updateExtensionUI(tab);
+		//_updateExtensionUI(tab);
 	}
 
 	/**
