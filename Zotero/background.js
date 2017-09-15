@@ -40,11 +40,14 @@ Zotero.Connector_Browser = new function() {
 		"Zotero/xregexpOld/addons/unicode/unicode-zotero.js",
 		"Zotero/translate.js",
 		"Zotero/translator.js",
+		"Zotero/translate_item.js",
 		"Zotero/connectorTypeSchemaData.js",
 		"Zotero/utilities.js",
 		"Zotero/utilities_translate.js",
 		"Zotero/utilities_common.js",
+		"Zotero/http_inject.js",
 		"progressWindow.js",
+		"Zotero/translate_inject.js",
 		"Zotero/messages.js",
 		"Zotero/messaging_inject.js",
 		"Zotero/inject.js"
@@ -287,7 +290,7 @@ Zotero.Connector_Browser = new function() {
 						frameId,
 						runAt: 'document_end'
 					})
-					.catch(() => undefined).then(() => injectRemaining(scripts));
+					.catch((e) => console.log("Error while loading % s: % o ", script, e)).then(() => injectRemaining(scripts));
 			}
 			let readyMsg = `ready${Date.now()}`;
 			return browser.tabs.executeScript(tab.id, {

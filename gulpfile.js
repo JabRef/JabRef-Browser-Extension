@@ -23,14 +23,14 @@ var injectInclude = [
 	// rdf
 	'Zotero/translate.js',
 	'Zotero/translator.js',
-	// translate_item
+	'Zotero/translate_item.js',
 	'Zotero/connectorTypeSchemaData.js',
 	'Zotero/utilities.js',
 	'Zotero/utilities_translate.js',
 	'Zotero/utilities_common.js',
-	// inject/http
+	'Zotero/http_inject.js',
 	'progressWindow.js',
-	// inject/translate_inject
+	'Zotero/translate_inject.js',
 	'Zotero/messages.js',
 	'Zotero/messaging_inject.js',
 	'Zotero/inject.js'
@@ -57,6 +57,7 @@ function postProcessContents(basename, file) {
 					injectInclude.map((s) => `"${s}"`).join(',\n\t\t'))
 				.replace("_updateExtensionUI(tab);", "//_updateExtensionUI(tab);")
 				.replace("_enableForTab(tab.id);", "//_enableForTab(tab.id);")
+				.replace("catch(() => undefined)", `catch((e) => console.log("Error while loading % s: % o ", script, e))`)
 				.replace("browser.tabs.onRemoved.addListener",
 					'/*\n\tbrowser.tabs.onRemoved.addListener')
 				.replace("}\r\n\r\nZotero.initGlobal();",
@@ -103,6 +104,7 @@ gulp.task('update-zotero-scripts', function() {
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/debug.js',
 		'./zotero-connectors/src/common/errors_webkit.js',
 		'./zotero-connectors/src/common/http.js',
+		'./zotero-connectors/src/common/inject/http.js',
 		'./zotero-connectors/src/common/inject/inject.jsx',
 		'./zotero-connectors/src/common/messages.js',
 		'./zotero-connectors/src/common/messaging.js',
@@ -113,6 +115,7 @@ gulp.task('update-zotero-scripts', function() {
 		'./zotero-connectors/src/common/proxy.js',
 		'./zotero-connectors/src/common/repo.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/translation/translate.js',
+		'./zotero-connectors/src/common/inject/translate_inject.js',
 		'./zotero-connectors/src/common/translate_item.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/translation/translator.js',
 		'./zotero-connectors/src/common/translators.js',
@@ -133,6 +136,11 @@ gulp.task('update-zotero-scripts', function() {
 			// Rename common/utilities.js -> utilities-common.js
 			if (path.basename == 'utilities' && path.dirname.endsWith('common')) {
 				path.basename = 'utilities-common';
+			}
+
+			// Rename inject/http.js -> http_inject.js
+			if (path.basename == 'http' && path.dirname.endsWith('inject')) {
+				path.basename = 'http_inject';
 			}
 
 			// Flatten directory structure
