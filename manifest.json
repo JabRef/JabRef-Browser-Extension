@@ -1,7 +1,7 @@
 {
 	"applications": {
 		"gecko": {
-			"id": "@jabfox"
+			"id": "jabfox@jabref.org"
 		}
 	},
 
@@ -83,7 +83,8 @@
 		"activeTab",
 		"tabs",
 		"webNavigation",
-		"storage"
+		"storage",
+		"nativeMessaging"
 	],
 
 	"version": "2.0"

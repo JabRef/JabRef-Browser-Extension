@@ -36,7 +36,11 @@ Contributing to the Development
 
 In order to directly use the source code and help with the development of this add-on the [Firefox Add-on SDK](https://developer.mozilla.org/en-US/Add-ons/SDK) has to be installed. Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
+Preparation:
 1. Fork it!
+2. Install [Node.js](https://nodejs.org)
+3. Install [gulp](https://gulpjs.com/): `npm install --global gulp-cli`
+
 2. Create your feature branch: `git checkout -b my-new-feature`
 3. Build the add-on by running `jpm xpi` and test it.
 3. Commit your changes: `git commit -am 'Add some feature'`
@@ -46,3 +50,6 @@ In order to directly use the source code and help with the development of this a
 To update dependencies:
 	npm [outdated](https://docs.npmjs.com/cli/outdated)
 	npm [update](https://docs.npmjs.com/cli/update)
+
+
+ToDo: RDF http://www.ams.org/journals/proc/1957-008-02/S0002-9939-1957-0087040-4/home.html

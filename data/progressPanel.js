@@ -6,6 +6,8 @@ window.addEventListener("load", function load(event) {
 	browser.runtime.sendMessage({
 		"popupOpened": "opened"
 	});
+
+	console.log("popupOpened")
 }, false);
 
 /*

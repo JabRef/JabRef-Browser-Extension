@@ -1,11 +1,11 @@
 /*
 Initialize
 */
-Zotero.Debug.init(1);
-Zotero.Repo.init();
-Zotero.Messaging.init();
-Zotero.Connector_Types.init();
-Zotero.Translators.init();
+//Zotero.Debug.init(1);
+//Zotero.Repo.init();
+//Zotero.Messaging.init();
+//Zotero.Connector_Types.init();
+//Zotero.Translators.init();
 
 
 /*
@@ -26,6 +26,8 @@ browser.tabs.query({})
 	Show/hide import button for the currently active tab, whenever the user navigates.
 */
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+	browser.pageAction.show(tab.id);
+
 	if (!changeInfo.url) {
 		return;
 	}
@@ -38,9 +40,9 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 				var tab = tabs[0];
 
 				// Clear old translator information
-				Zotero.Connector_Browser.onPageLoad(tab);
+				//Zotero.Connector_Browser.onPageLoad(tab);
 
-				lookForTranslators(tab);
+				//lookForTranslators(tab);
 			}
 		});
 });
@@ -97,6 +99,17 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (message.popupOpened) {
 		// The popup opened, i.e. the user clicked on the page action button
 		console.log("Popup opened");
+
+		var port = browser.runtime.connectNative("org.jabref.jabref");
+		port.onMessage.addListener(function(payload) {
+			console.log(payload);
+		});
+		port.onDisconnect.addListener(function(m) {
+			console.log("Disconnected:", m);
+		});
+		port.postMessage("ping");
+		port.postMessage("END");
+
 		browser.tabs.query({
 				active: true,
 				currentWindow: true
