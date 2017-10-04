@@ -37,12 +37,14 @@ Contributing to the Development
 In order to directly use the source code and help with the development of this add-on the [Firefox Add-on SDK](https://developer.mozilla.org/en-US/Add-ons/SDK) has to be installed. Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
 Preparation:
-1. Fork it!
-2. Install [Node.js](https://nodejs.org)
-3. Install [gulp](https://gulpjs.com/): `npm install --global gulp-cli`
+1. Install [Node.js](https://nodejs.org) (e.g.`choco install nodejs`)
+2. Install [gulp](https://gulpjs.com/) and [web-ext](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext): `npm install --global gulp-cli web-ext`
+3. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
+4. Try to run the add-on by invoking `web-ext run`.
 
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Build the add-on by running `jpm xpi` and test it.
+Now you are ready to contribute:
+1. Create your feature branch: `git checkout -b my-new-feature`
+3. Build the add-on by running `web-ext run` and test it.
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request.
