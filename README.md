@@ -9,7 +9,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 Installation and Configuration
 -----------------------------------
 
-1. Make sure [Zotero](https://www.zotero.org/) is [installed in Firefox](https://www.zotero.org/download/).
+1. Make sure [Zotero 4](https://www.zotero.org/) is [installed in Firefox](https://download.zotero.org/extension/zotero-4.0.29.21.xpi).
 2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github). The JabRef icon should now appear in the Firefox toolbar. 
 3. Adjust the path to the JabRef executable in the add-on settings (under Add-ons > JabFox > Options).
 
@@ -23,7 +23,7 @@ On Linux and Mac OSX, sometimes directly linking `JabRef.jar` does not work. In 
 #!/bin/bash
 java -jar /my/target/to/JabRef.jar "$@"
 ````
-Thanks to [ClemSc](https://github.com/ClemSc) for providing this workaround. 
+After creating this file, remember to make it executable using `chmod +x scriptname.sh`. Thanks to [ClemSc](https://github.com/ClemSc) for providing this workaround. 
 
 About this Add-On
 ---------------------
