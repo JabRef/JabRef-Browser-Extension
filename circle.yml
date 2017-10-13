@@ -3,11 +3,9 @@ machine:
     version: 7.10.0
 dependencies:
   override:
-    - sudo apt-get update; sudo apt-get install jq
     - npm install -g web-ext
 compile:
   override:
-    - jq --arg tag "${CIRCLE_TAG:1}" '.version = $tag' manifest.json > tmp.json && mv tmp.json manifest.json
     - web-ext build
     - mv web-ext-artifacts $CIRCLE_ARTIFACTS
 test:
