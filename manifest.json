@@ -23,7 +23,7 @@
 			"Zotero/cachedTypes.js",
 			"Zotero/debug.js",
 			"Zotero/xregexp-all.js",
-			"Zotero/xregexpOld/addons/unicode/unicode-zotero.js",
+			"Zotero/unicode-zotero.js",
 			"Zotero/repo.js",
 			"Zotero/translate.js",
 			"Zotero/translate_inject.js",
