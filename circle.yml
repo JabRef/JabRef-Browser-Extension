@@ -1,50 +1,13 @@
-general:
-  artifacts:
-    - "jpm-reports"
-    - "@jabfox-1.0.1.xpi"
-
+machine:
+  node:
+    version: 7.10.0
 dependencies:
-  pre:
-    # download the latest addon-sdk from github
-    - git clone https://github.com/mozilla/addon-sdk.git:
-        pwd: ..
-    # get Release (ff44)
-    - mkdir ../firefox-release
-    - wget https://archive.mozilla.org/pub/firefox/releases/44.0/linux-x86_64/en-US/firefox-44.0.tar.bz2:
-        pwd: ../firefox-release
-    - tar xjf firefox-44.0.tar.bz2:
-        pwd: ../firefox-release
-    # get Nightly (ff48)
-    - mkdir ../firefox-nightly
-    - wget https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-48.0a1.en-US.linux-x86_64.tar.bz2:
-        pwd: ../firefox-nightly
-    - tar xjf firefox-48.0a1.en-US.linux-x86_64.tar.bz2:
-        pwd: ../firefox-nightly
   override:
-    - npm install https://github.com/mozilla-jetpack/jpm.git --global
-    - npm install https://github.com/drazisil/jpm-report.git --global
-    - npm install
-
+    - npm install -g web-ext
+compile:
+  override:
+    - web-ext build
+    - mv web-ext-artifacts $CIRCLE_ARTIFACTS
 test:
-  pre:
-    # make test results dir
-    - mkdir jpm-reports
   override:
-    # test against release
-    - jpm test > jpm-reports/jpm-release.txt:
-        environment:
-          JETPACK_ROOT: /home/ubuntu/addon-sdk
-          JPM_FIREFOX_BINARY: /home/ubuntu/firefox-release/firefox/firefox
-    # test against nightly
-    - jpm test > jpm-reports/jpm-nightly.txt:
-        environment:
-          JETPACK_ROOT: /home/ubuntu/addon-sdk
-          JPM_FIREFOX_BINARY: /home/ubuntu/firefox-nightly/firefox/firefox
-    # compile
-    - jpm xpi > jpm-reports/jpm-compile.txt:
-        environment:
-          JETPACK_ROOT: /home/ubuntu/addon-sdk
-          JPM_FIREFOX_BINARY: /home/ubuntu/firefox-release/firefox/firefox
-  post:
-    - jpm-report jpm-reports/jpm-release.txt
-    - jpm-report jpm-reports/jpm-nightly.txt
+    - web-ext lint --self-hosted
