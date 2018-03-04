@@ -107,6 +107,9 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		port.onDisconnect.addListener(function(m) {
 			console.log("Disconnected:", m);
 		});
+
+		console.log("Send test message");
+
 		port.postMessage("ping");
 		port.postMessage("END");
 

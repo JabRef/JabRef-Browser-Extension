@@ -1,0 +1,61 @@
+body {
+    font: message-box;
+    font-size: 15px;
+    font-weight: normal;
+    color: #333;
+}
+
+label {
+    cursor: default;
+    margin-top: 1px;
+    margin-bottom: 2px;
+    margin-inline-start: 6px;
+    margin-inline-end: 5px;
+    font-weight: 400;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns:  minmax(15em, 1fr) 2fr;
+}
+
+.grid-item {
+    border-top: 1px solid #d7d7db;
+    -moz-box-align: center;
+    min-height: 35px;
+    line-height: 20px;
+    text-shadow: 0 1px 1px #fefffe;
+    padding-top: 6px;
+    padding-bottom: 7px;
+}
+
+input[type="radio"] {
+  vertical-align: middle;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #d7d7db;
+    border-radius: 50%;
+    margin: 0;
+    margin-top: -1px;
+    margin-right: 5px;
+    background-color: #f1f1f1;
+    background-image: linear-gradient(#fff, rgba(255, 255, 255, 0.80));
+    box-shadow: 0 1px 1px 0 #fff, inset 0 2px 0 0 rgba(0, 0, 0, 0.03);
+}
+
+input[type="radio"]:checked {
+    background: #2292d0;
+    border: 5px solid white;
+    box-shadow: 0 0 0 1px #d7d7db;
+}
+
+input[type="radio"]:hover {
+    border: 1px solid #2292d0;
+}
+
+input[type="radio"]:checked:hover {
+    background: #2292d0;
+    border: 5px solid white;
+    box-shadow: 0 0 0 1px #2292d0;
+}
