@@ -1,11 +1,11 @@
 /*
 Initialize
 */
-//Zotero.Debug.init(1);
-//Zotero.Repo.init();
-//Zotero.Messaging.init();
-//Zotero.Connector_Types.init();
-//Zotero.Translators.init();
+Zotero.Debug.init(1);
+Zotero.Repo.init();
+Zotero.Messaging.init();
+Zotero.Connector_Types.init();
+Zotero.Translators.init();
 
 
 /*
@@ -40,9 +40,9 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 				var tab = tabs[0];
 
 				// Clear old translator information
-				//Zotero.Connector_Browser.onPageLoad(tab);
+				Zotero.Connector_Browser.onPageLoad(tab);
 
-				//lookForTranslators(tab);
+				lookForTranslators(tab);
 			}
 		});
 });
