@@ -1,5 +1,5 @@
 var mainList = document.getElementById("itemList");
-var initalMessage = document.getElementById("initalMessage");
+var status = document.getElementById("status");
 
 window.addEventListener("load", function load(event) {
 	window.removeEventListener("load", load, false); // Remove listener, invoke only once
@@ -7,8 +7,21 @@ window.addEventListener("load", function load(event) {
 		"popupOpened": "opened"
 	});
 
-	console.log("popupOpened")
+	console.log("JabFox: Popup opened")
 }, false);
+
+browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	if (message.popupClose) {
+		// The popup should be closed
+		window.close();
+		console.log("JabFox: Popup closed");
+	} else if (message.onConvertToBibtex) {
+		document.getElementById("status").innerHTML = 'Convert to BibTeX...';
+		// = "";
+	} else if (message.onSendToJabRef) {
+		document.getElementById("status").innerHTML = 'Send to JabRef...';
+	}
+});
 
 /*
  * Show the item in the progress window.

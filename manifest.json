@@ -19,7 +19,7 @@
 			"Zotero/errors_webkit.js",
 			"Zotero/http.js",
 			"Zotero/proxy.js",
-			"Zotero/connector.js",
+			"connector.js",
 			"Zotero/cachedTypes.js",
 			"Zotero/debug.js",
 			"Zotero/xregexp-all.js",

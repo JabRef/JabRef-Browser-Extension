@@ -1,5 +1,5 @@
 /*
-Initialize
+	Initialize
 */
 Zotero.Debug.init(1);
 Zotero.Repo.init();
@@ -14,8 +14,8 @@ Zotero.Translators.init();
 browser.tabs.query({})
 	.then((tabs) => {
 		// We wait a bit before injection to give Zotero time to load the translators
-		setTimeout(function() {
-			console.log("Inject into open tabs %o", tabs);
+		setTimeout(() => {
+			console.log("JabFox: Inject into open tabs %o", tabs);
 			for (let tab of tabs) {
 				lookForTranslators(tab);
 			}
@@ -53,16 +53,6 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 browser.tabs.onRemoved.addListener(Zotero.Connector_Browser.onPageLoad);
 
 /*
-	DOM content change (e.g. new inner frame location), so inject scripts
-*/
-browser.webNavigation.onDOMContentLoaded.addListener((details) => {
-	browser.tabs.get(details.tabId).then(tab => {
-		Zotero.debug("Connector_Browser: onDOMContentLoaded for " + tab.url + "; " + details.url);
-		//Zotero.Connector_Browser.onFrameLoaded(tab, details.frameId, details.url);
-	});
-});
-
-/*
 	Disable add-on for special browser pages
 */
 function isDisabledForURL(url) {
@@ -77,9 +67,9 @@ function lookForTranslators(tab) {
 		return;
 	}
 
-	console.log("Searching for translators for %o", tab);
+	console.log("JabFox: Searching for translators for %o", tab);
 	Zotero.Translators.getWebTranslatorsForLocation(tab.url, tab.url).then((translators) => {
-		console.log("Found translators %o", translators[0]);
+		console.log("JabFox: Found translators %o", translators[0]);
 		if (translators[0].length == 0) {
 			// No translators found, so hide button
 			browser.pageAction.hide(tab.id);
@@ -98,20 +88,7 @@ function lookForTranslators(tab) {
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (message.popupOpened) {
 		// The popup opened, i.e. the user clicked on the page action button
-		console.log("Popup opened");
-
-		var port = browser.runtime.connectNative("org.jabref.jabref");
-		port.onMessage.addListener(function(payload) {
-			console.log(payload);
-		});
-		port.onDisconnect.addListener(function(m) {
-			console.log("Disconnected:", m);
-		});
-
-		console.log("Send test message");
-
-		port.postMessage("ping");
-		port.postMessage("END");
+		console.log("JabFox: Popup opened confirmed");
 
 		browser.tabs.query({
 				active: true,
@@ -120,10 +97,11 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			.then((tabs) => {
 				var tab = tabs[0];
 
-				Zotero.Connector_Browser.injectTranslationScripts(tab).then(function() {
-					console.log("Start translation for tab %o", tab);
-					Zotero.Connector_Browser._saveWithTranslator(tab, 0);
-				});
+				Zotero.Connector_Browser.injectTranslationScripts(tab)
+					.then(() => {
+						console.log("JabFox: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
+						Zotero.Connector_Browser._saveWithTranslator(tab, 0);
+					});
 			});
 	}
 });
