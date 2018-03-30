@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  padding: 10px;
+  min-width: 260px;
+}
+
+ul {
+  padding:0;
+  display: inline-block;
+}
+li {
+  padding:0.15em 0 0.5em 1.5em;
+  margin-bottom:0.2em;
+  font-weight:bold;
+  list-style:none;
+  background-repeat:no-repeat;
+  background-position: .0em .3em;
+  background-image: url(JabRef-icon-16.png);
+  list-style-position: inside;
+}
+ul.attachmentList {
+  display: initial;
+  padding: 0px;
+}
+ul.attachmentList li {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  text-indent:0em;
+  font-weight:normal;
+  background-size: 8px 8px;
+  background-position: .55em .4em;
+  background-image: url(JabRef-icon-16-gray.png);
+}
+li.inprogress:after {
+  background-image: url('spin.gif');
+  background-size: 14px 14px;
+  display: inline-block;
+  width: 14px; 
+  height: 14px;
+  content:"";
+  
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>JabFox</title>
+    <link rel="stylesheet" href="options.css" />
+</head>
+
+<body>
+    <div class="grid-container">
+        <div class="grid-item">
+            <label>Connection Status</label>
+        </div>
+        <div class="grid-item">
+            <span id="connectionStatus">Testing connection...</span>
+        </div>
+        <div class="grid-item">
+            <label>Export Format</label>
+        </div>
+        <div class="grid-item">
+            <input type="radio" id="exportBiblatex" name="exportFormat" value="biblatex" checked="checked">
+            <label for="exportBiblatex">BibLaTeX</label>
+            <input type="radio" id="exportBibtex" name="exportFormat" value="bibtex" checked="checked">
+            <label for="exportBibtex">BibTeX</label>
+        </div>
+        <div class="grid-item">
+            <label>Automatically take snapshots</label>
+        </div>
+        <div class="grid-item">
+            <input type="radio" id="snapshotsOn" name="takeSnapshots" value="on" checked="checked">
+            <label for="snapshotsOn">On</label>
+            <input type="radio" id="snapshotsOff" name="takeSnapshots" value="off" checked="checked">
+            <label for="snapshotsOff">Off</label>
+        </div>
+    </div>
+    <script src="options.js"></script>
+</body>
+
+</html>
