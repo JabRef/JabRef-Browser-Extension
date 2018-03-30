@@ -52,6 +52,7 @@ Now just follow the typical steps to [contribute code](https://guides.github.com
 5. Submit a pull request.
 
 To update dependencies:
-	- `npm outdated` gives an overview of outdated packages ([doc](https://docs.npmjs.com/cli/outdated))
-	- `npm update` updates all packages ([doc](https://docs.npmjs.com/cli/update))
-	- `git submodule update --recursive` updates `zotero-connectors` submodule
+
+ - `npm outdated` gives an overview of outdated packages ([doc](https://docs.npmjs.com/cli/outdated))
+ - `npm update` updates all packages ([doc](https://docs.npmjs.com/cli/update))
+ - `git submodule update --recursive` updates `zotero-connectors` submodule
