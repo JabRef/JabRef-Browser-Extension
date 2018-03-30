@@ -35,8 +35,7 @@
 			"Zotero/messages.js",
 			"Zotero/messaging.js",
 			"Zotero/background.js",
-			"background.js",
-			"options-init.js"
+			"background.js"
 		]
 	},
 

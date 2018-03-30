@@ -5,4 +5,9 @@ module.exports = {
 		'JabFox.sublime-project',
 		'package-lock.json'
 	],
+	run: {
+		startUrl: [
+			'https://arxiv.org/a/diez_t_1.html',
+		],
+	},
 };
