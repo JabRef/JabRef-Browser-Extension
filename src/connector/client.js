@@ -37,7 +37,7 @@ Zotero.GoogleDocs = {
 	
 	init: async function() {
 		await Zotero.Inject.loadReactComponents();
-		await Zotero.Connector_Browser.injectScripts(['googleDocsIntegration/ui.js']);
+		await Zotero.Connector_Browser.injectScripts(['zotero-google-docs-integration/ui.js']);
 		Zotero.GoogleDocs.UI.init();
 		window.addEventListener(`${Zotero.GoogleDocs.name}.call`, function(e) {
 			var client = Zotero.GoogleDocs.clients[e.data.client.id];
