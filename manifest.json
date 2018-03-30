@@ -36,7 +36,6 @@
 			"Zotero/messaging.js",
 			"Zotero/background.js",
 			"background.js",
-			"node_modules/webext-options-sync/webext-options-sync.js",
 			"options-init.js"
 		]
 	},

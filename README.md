@@ -55,3 +55,4 @@ To update dependencies:
 
  - `npm outdated` gives an overview of outdated packages ([doc](https://docs.npmjs.com/cli/outdated))
  - `npm update` updates all packages ([doc](https://docs.npmjs.com/cli/update))
+ - `git submodule update --recursive` updates `zotero-connectors` submodule
