@@ -23,7 +23,7 @@
 			"Zotero/cachedTypes.js",
 			"Zotero/debug.js",
 			"Zotero/xregexp-all.js",
-			"Zotero/xregexpOld/addons/unicode/unicode-zotero.js",
+			"Zotero/unicode-zotero.js",
 			"Zotero/repo.js",
 			"Zotero/translate.js",
 			"Zotero/translate_inject.js",
@@ -35,7 +35,9 @@
 			"Zotero/messages.js",
 			"Zotero/messaging.js",
 			"Zotero/background.js",
-			"background.js"
+			"background.js",
+			"node_modules/webext-options-sync/webext-options-sync.js",
+			"options-init.js"
 		]
 	},
 
@@ -75,7 +77,8 @@
 	"name": "JabFox",
 
 	"options_ui": {
-		"page": "data/options.html"
+		"page": "options.html",
+		"browser_style": true
 	},
 
 	"permissions": [
