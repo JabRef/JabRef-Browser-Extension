@@ -1,8 +1,10 @@
 module.exports = {
 	ignoreFiles: [
+		'zotero-connectors',
 		'circle.yml',
 		'gulpfile.js',
 		'JabFox.sublime-project',
+		'JabFox.sublime-workspace',
 		'package-lock.json'
 	],
 	run: {
@@ -12,4 +14,7 @@ module.exports = {
 		],
 		browserConsole: true,
 	},
+	build: {
+		overwriteDest: true
+	}
 };
