@@ -18,7 +18,8 @@ The JabRef icon should now appear in the Firefox toolbar when you visit a websit
 On Windows:
 
 3. Download [jabref.json](https://github.com/JabRef/jabref/blob/nativeMessaging/buildres/jabref.json), [JabRef.bat](https://raw.githubusercontent.com/JabRef/jabref/nativeMessaging/buildres/JabRef.bat) and [JabRef.ps1](https://github.com/JabRef/jabref/blob/nativeMessaging/buildres/JabRef.ps1), and copy them to the same directory as `JabRef.exe`
-4. Run `REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f` from the console (with the correct path to the `jabref.json` file).
+4. Make sure that the correct file name of the JabRef `.jar` file is specified in `JabRef.ps1` under `$jabRefJarFileName`.
+5. Run `REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f` from the console (with the correct path to the `jabref.json` file).
 
 Now you should be able to import bibliographic references into JabRef directly from your browser.
 Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox search bar (or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>).
