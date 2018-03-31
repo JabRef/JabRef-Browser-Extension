@@ -21,14 +21,31 @@ Zotero.Connector = new function() {
 		return deferred.promise;
 	})
 
+	this.prepareForExport = function(items) {
+		for (var i = 0; i < items.length; i++) {
+			var item = items[i];
+			for (var j = 0; j < item.attachments.length; j++) {
+				var attachment = item.attachments[j];
+
+				// Pretend we downloaded the file since otherwise it is not exported
+				if (attachment.url) {
+					attachment.localPath = attachment.url;
+				}
+			}
+		}
+	}
+
 	this.convertToBibTex = function(items) {
+		this.prepareForExport(items);
+
+		console.log("JabFox: Convert items to BibTeX: %o", items);
 		var deferred = Zotero.Promise.defer();
 
 		browser.runtime.sendMessage({
 			"onConvertToBibtex": "convertStarted"
 		});
 
-		translation = new Zotero.Translate.Export();
+		var translation = new Zotero.Translate.Export();
 		translation.setItems(items);
 		translation.setTranslator("9cb70025-a888-4a29-a210-93ec52da40d4"); // BibTeX
 		translation.setHandler("done", function(obj, worked) {
