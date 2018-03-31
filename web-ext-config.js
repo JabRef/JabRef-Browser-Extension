@@ -9,5 +9,6 @@ module.exports = {
 		startUrl: [
 			'https://arxiv.org/a/diez_t_1.html',
 		],
+		browserConsole: true,
 	},
 };

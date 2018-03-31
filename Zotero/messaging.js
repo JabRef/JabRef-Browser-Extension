@@ -50,7 +50,7 @@ Zotero.Messaging = new function() {
 	 * @param {Number} frameId not available in safari
 	 */
 	this.receiveMessage = Zotero.Promise.method(function(messageName, args, tab, frameId) {
-		//Zotero.debug("Messaging: Received message: "+messageName);
+		console.log("Messaging: Received message: %s, %s", messageName, args);
 		if (!Array.isArray(args)) {
 			args = [args];
 		}
@@ -61,14 +61,17 @@ Zotero.Messaging = new function() {
 		}
 
 		var messageParts = messageName.split(MESSAGE_SEPARATOR);
-		var fn = Zotero[messageParts[0]][messageParts[1]];
-		if (!fn) {
-			var e = new Error("Zotero." + messageParts[0] + "." + messageParts[1] + " is not defined");
-			throw e;
+		try {
+			var fn = Zotero[messageParts[0]][messageParts[1]];
+			if (!fn) {
+				throw new Error();
+			}
+		} catch (e) {
+			throw new Error("Zotero." + messageParts[0] + "." + messageParts[1] + " is not defined");
 		}
 		var messageConfig = MESSAGES[messageParts[0]][messageParts[1]];
 
-		if (messageConfig && messageConfig.background) {
+		if (messageConfig && messageConfig.background && messageConfig.background.minArgs) {
 			while (messageConfig.background.minArgs > args.length) {
 				args.push(undefined);
 			}
@@ -95,7 +98,8 @@ Zotero.Messaging = new function() {
 	/**
 	 * Sends a message to a tab
 	 */
-	this.sendMessage = function(messageName, args, tab, frameId = 0) {
+	this.sendMessage = async function(messageName, args, tab, frameId = 0) {
+		var response;
 		if (Zotero.isBookmarklet) {
 			window.parent.postMessage((_structuredCloneSupported ?
 				[messageName, args] : JSON.stringify([messageName, args])), "*");
@@ -104,31 +108,65 @@ Zotero.Messaging = new function() {
 		else if (Zotero.isBrowserExt) {
 			// Get current tab if not provided
 			if (!tab) {
-				return browser.tabs.query({
-						active: true,
-						lastFocusedWindow: true
-					})
-					.then((tabs) => this.sendMessage(messageName, args, tabs[0], frameId));
+				tab = (await browser.tabs.query({
+					active: true,
+					lastFocusedWindow: true
+				}))[0]
 			}
 			let options = {};
-			if (typeof(frameId) == 'number') options = {
+			if (typeof frameId == 'number') options = {
 				frameId
 			};
 
-			return browser.tabs.sendMessage(tab.id, [messageName, args], options).catch(() => undefined)
-				.then(function(response) {
-					if (response && response[0] == 'error') {
-						response[1] = JSON.parse(response[1]);
-						let e = new Error(response[1].message);
-						for (let key in response[1]) e[key] = response[1][key];
-						throw e;
-					}
-					return response;
-				});
+			try {
+				response = await browser.tabs.sendMessage(tab.id, [messageName, args], options).catch(() => undefined)
+			} catch (e) {}
+			if (response && response[0] == 'error') {
+				response[1] = JSON.parse(response[1]);
+				let e = new Error(response[1].message);
+				for (let key in response[1]) e[key] = response[1][key];
+				throw e;
+			}
+			return response;
 		} else if (Zotero.isSafari) {
-			// Use current tab if not provided
-			tab = tab || safari.application.activeBrowserWindow.activeTab;
-			tab.page.dispatchMessage(messageName, args);
+			try {
+				var deferred = Zotero.Promise.defer();
+				// Use current tab if not provided
+				tab = tab || safari.application.activeBrowserWindow.activeTab;
+				var messageId = Date.now();
+				var resolved = false;
+				// This is like a tiny microcosm of (hopefully properly) self-garbage-collecting response handling
+				function respond(event) {
+					if (event.message[0] === messageId) {
+						resolved = true;
+						let payload = event.message[1];
+						if (payload && payload[0] == 'error') {
+							var errJSON = JSON.parse(payload[1]);
+							let e = new Error(errJSON.message);
+							for (let key in errJSON) e[key] = errJSON[key];
+							deferred.reject(e);
+						}
+						deferred.resolve(payload);
+					} else if (event.name === 'Connector_Browser.onPageLoad') {
+						// URL changed, so we resolve all of these
+						deferred.resolve();
+					}
+				}
+
+				safari.application.addEventListener('message', respond, false);
+
+				tab.page.dispatchMessage('sendMessage', [messageName, messageId, args]);
+				var timeout = setTimeout(function() {
+					if (!resolved) {
+						deferred.reject(new Error(`Message ${messageName} response timed out`))
+					}
+				}, 120000);
+				response = await deferred.promise;
+			} finally {
+				safari.application.removeEventListener('message', respond, false);
+				clearTimeout(timeout);
+			}
+			return response;
 		}
 	}
 
@@ -186,6 +224,8 @@ Zotero.Messaging = new function() {
 			});
 		} else if (Zotero.isSafari) {
 			safari.application.addEventListener("message", function(event) {
+				// Handled by individual sendMessage handlers
+				if (event.name == 'response') return;
 				var tab = event.target;
 				_ensureSafariTabID(tab);
 

@@ -71,8 +71,10 @@ var Zotero = new function() {
 
 	if (this.isBrowserExt) {
 		this.version = "5.0.0";
+		this.appName = browser.runtime.getManifest().name;
 	} else if (this.isSafari) {
 		this.version = safari.extension.bundleVersion;
+		this.appName = 'Zotero Connector';
 	}
 
 	// window.Promise and Promise differ (somehow) in Firefox and when certain
@@ -82,10 +84,69 @@ var Zotero = new function() {
 	// this.Promise = window.Promise;
 	this.Promise = Promise;
 
+	this.migrate = async function() {
+		let lastVersion = Zotero.Prefs.get('lastVersion') || Zotero.version;
+		var [major, minor, patch] = lastVersion.split('.');
+		Zotero.Prefs.set('lastVersion', Zotero.version);
+		// If coming from a version before 5.0.24, reset the
+		// auto-associate setting for all existing proxies, since it wasn't being set properly for
+		// proxies imported from the client
+		if (major == 5 && minor == 0 && patch < 24 && Zotero.Prefs.get('proxies.clientChecked')) {
+			for (let proxy of Zotero.Proxies.proxies) {
+				proxy.autoAssociate = true;
+			}
+			Zotero.Proxies.storeProxies();
+		}
+		if (major == 5 && minor == 0 && patch < 32 && Zotero.Proxies.proxies.length > 1) {
+			let pairs = [];
+			// merge pairs of proxies with http and https protocols
+			for (let i = 0; i < Zotero.Proxies.proxies.length; i++) {
+				if (Zotero.Proxies.length == i + 1) break;
+				let proxy1 = Zotero.Proxies.proxies[i];
+				let scheme = proxy1.scheme.replace('https', '').replace('http', '');
+				for (let j = i + 1; j < Zotero.Proxies.proxies.length; j++) {
+					let proxy2 = Zotero.Proxies.proxies[j];
+					if (scheme == proxy2.scheme.replace('https', '').replace('http', '')) {
+						pairs.push([proxy1, proxy2]);
+						break;
+					}
+				}
+			}
+			for (let [proxy1, proxy2] of pairs) {
+				let json = proxy1.toJSON();
+				delete json.id;
+				let proxy = new Zotero.Proxy(json);
+				proxy.dotsToHyphens = true;
+				proxy.hosts = proxy1.hosts.concat(proxy2.hosts);
+				proxy.scheme = proxy.scheme.replace('http://', '').replace('https://', '');
+				Zotero.Proxies.remove(proxy1);
+				Zotero.Proxies.remove(proxy2);
+				Zotero.Proxies.save(proxy);
+			}
+			// remove protocols of single protocolless
+			for (let proxy of Zotero.Proxies.proxies) {
+				if (proxy.scheme.includes('://')) {
+					proxy.scheme = proxy.scheme.substr(proxy.scheme.indexOf('://') + 3);
+					proxy.compileRegexp();
+					Zotero.Proxies.save(proxy);
+				}
+			}
+		}
+		// Botched dotsToHyphen pref migration to protocolless schemes in 5.0.32
+		if (major == 5 && minor == 0 && patch < 35) {
+			for (let proxy of Zotero.Proxies.proxies) {
+				if (proxy.scheme.indexOf('%h') == 0) {
+					proxy.dotsToHyphens = true;
+				}
+			}
+			Zotero.Proxies.storeProxies();
+		}
+	};
+
 	/**
 	 * Initializes Zotero services for the global page in Chrome or Safari
 	 */
-	this.initGlobal = function() {
+	this.initGlobal = async function() {
 		Zotero.isBackground = true;
 
 		if (Zotero.isBrowserExt) {
@@ -107,17 +168,19 @@ var Zotero = new function() {
 			this.platform = 'win';
 		}
 
-		return Zotero.Prefs.init().then(function() {
-			Zotero.Debug.init();
-			Zotero.Messaging.init();
-			Zotero.Connector_Types.init();
-			Zotero.Repo.init();
-			if (Zotero.isBrowserExt) {
-				Zotero.WebRequestIntercept.init();
-				Zotero.Proxies.init();
-				Zotero.initDeferred.resolve();
-			}
-		});
+		await Zotero.Prefs.init();
+
+		Zotero.Debug.init();
+		Zotero.Messaging.init();
+		Zotero.Connector_Types.init();
+		Zotero.Repo.init();
+		if (Zotero.isBrowserExt) {
+			Zotero.WebRequestIntercept.init();
+		}
+		Zotero.Proxies.init();
+		Zotero.initDeferred.resolve();
+
+		await Zotero.migrate();
 	};
 
 	/**
@@ -140,7 +203,7 @@ var Zotero = new function() {
 	/**
 	 * Get versions, platform, etc.
 	 */
-	this.getSystemInfo = function() {
+	this.getSystemInfo = async function() {
 		var info = {
 			connector: "true",
 			version: this.version,
@@ -150,14 +213,27 @@ var Zotero = new function() {
 		};
 
 		info.appName = Zotero.clientName;
-		info.zoteroAvailable = Zotero.Connector.isOnline;
+		info.zoteroAvailable = !!(await Zotero.Connector.checkIsOnline());
 
 		var str = '';
 		for (var key in info) {
 			str += key + ' => ' + info[key] + ', ';
 		}
+		if (Zotero.isBackground && Zotero.isChrome) {
+			let granted = await browser.permissions.contains({
+				permissions: ['management']
+			});
+			if (granted) {
+				str += 'extensions => ';
+				let extensions = await browser.management.getAll();
+				for (let extension of extensions) {
+					if (!extension.enabled || extension.name == Zotero.appName) continue;
+					str += `${extension.name} (${extension.version}, ${extension.type}), `;
+				}
+			}
+		}
 		str = str.substr(0, str.length - 2);
-		return Promise.resolve(str);
+		return str;
 	};
 
 	/**
@@ -210,7 +286,15 @@ var Zotero = new function() {
 			console.error(err);
 		}
 
-		Zotero.Errors.log(err.message ? err.message : err.toString(), fileName, lineNumber);
+		if (err.stack) {
+			if (!Zotero.isChrome) {
+				Zotero.Errors.log(err.message + '\n' + err.stack);
+			} else {
+				Zotero.Errors.log(err.stack);
+			}
+		} else {
+			Zotero.Errors.log(err.message ? err.message : err.toString(), fileName, lineNumber);
+		}
 	};
 }
 
@@ -222,6 +306,7 @@ Zotero.Prefs = new function() {
 		"debug.store.limit": 750000,
 		"debug.level": 5,
 		"debug.time": false,
+		"lastVersion": "",
 		"downloadAssociatedFiles": true,
 		"automaticSnapshots": true, // only affects saves to zotero.org. saves to client governed by pref in the client
 		"connector.repo.lastCheck.localTime": 0,

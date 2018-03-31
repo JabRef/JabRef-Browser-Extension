@@ -50,31 +50,38 @@ function processJSX(file) {
 function postProcessContents(basename, file) {
 	switch (basename) {
 		case 'background.js':
-			// Specify correct injection scripts
-			// Uncomment message listener, because we take care of them ourself
 			file.contents = Buffer.from(file.contents.toString()
+				// Specify correct injection scripts
 				.replace("/*INJECT SCRIPTS*/",
 					injectInclude.map((s) => `"${s}"`).join(',\n\t\t'))
 				.replace("_updateExtensionUI(tab);", "//_updateExtensionUI(tab);")
 				.replace("_enableForTab(tab.id);", "//_enableForTab(tab.id);")
 				.replace("catch(() => undefined)", `catch((e) => console.log("Error while loading % s: % o ", script, e))`)
-				.replace("browser.tabs.onRemoved.addListener",
-					'/*\n\tbrowser.tabs.onRemoved.addListener')
+				// Uncomment message listener, because we take care of them ourself
+				.replace("browser.browserAction.onClicked.addListener(logListenerErrors",
+					'/*\n\tbrowser.browserAction.onClicked.addListener(logListenerErrors')
 				.replace("}\r\n\r\nZotero.initGlobal();",
 					'\t*/\n}\r\n\r\n//Zotero.initGlobal();')
 			);
 			break;
 		case 'zotero.js':
-			// Use correct zotero version
 			file.contents = Buffer.from(file.contents.toString()
+				// Use correct zotero version
 				.replace("browser.runtime.getManifest().version", `"5.0.0"`)
 			);
 			break;
 		case 'proxy.js':
-			// Remove require statement
 			file.contents = Buffer.from(file.contents.toString()
+				// Remove require statement
 				.replace("var url = require('url');", '')
 			);
+			break;
+		case 'errors_webkit.js':
+			file.contents = Buffer.from(file.contents.toString()
+				// Remove access to Zotero.Debug
+				.replace("Zotero.Debug.bgInit = Zotero.Debug.init;", '')
+			);
+			break;
 	}
 }
 

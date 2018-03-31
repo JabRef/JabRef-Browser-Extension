@@ -78,7 +78,9 @@ Zotero.Connector_Browser = new function() {
 		}
 
 		var isPDF = contentType == 'application/pdf';
-		_tabInfo[tab.id] = Object.assign(_tabInfo[tab.id] || {}, {
+		_tabInfo[tab.id] = Object.assign(_tabInfo[tab.id] || {
+			injections: {}
+		}, {
 			translators,
 			instanceID,
 			isPDF
@@ -93,15 +95,17 @@ Zotero.Connector_Browser = new function() {
 	 * @param tabId
 	 */
 	this.onPDFFrame = function(frameURL, frameId, tabId) {
-		if (_tabInfo[tabId] && _tabInfo[tabId].translators.length) {
+		if (_tabInfo[tabId] && _tabInfo[tabId].translators) {
 			return;
 		}
 		browser.tabs.get(tabId).then(function(tab) {
-			_tabInfo[tab.id] = {
+			_tabInfo[tab.id] = Object.assign(_tabInfo[tab.id] || {
+				injections: {}
+			}, {
 				translators: [],
 				isPDF: true,
 				frameId
-			};
+			});
 			Zotero.Connector_Browser.injectTranslationScripts(tab, frameId);
 			_updateExtensionUI(tab);
 		});
@@ -129,12 +133,21 @@ Zotero.Connector_Browser = new function() {
 				left: left,
 				type: 'popup'
 			})
-		}).then(function(win) {
+		}).then(async function(win) {
 			// Fix positioning in Chrome when window is on second monitor
 			// https://bugs.chromium.org/p/chromium/issues/detail?id=137681
-			if (Zotero.isChrome && win.left < left) {
+			if (Zotero.isBrowserExt && win.left < left) {
 				browser.windows.update(win.id, {
-					left: left
+					left
+				});
+			}
+			// Fix a Firefox bug where content does not appear before resize on linux
+			// https://bugzilla.mozilla.org/show_bug.cgi?id=1402110
+			// this one might actually get fixed, unlike the one above
+			if (Zotero.isFirefox) {
+				await Zotero.Promise.delay(1000);
+				browser.windows.update(win.id, {
+					width: win.width + 1
 				});
 			}
 			return new Promise(function(resolve) {
@@ -160,13 +173,6 @@ Zotero.Connector_Browser = new function() {
 			// TODO: Enable once 5.0 is out, so that ContentTypeHandlers show an upgradeClient message instead
 			parseInt(version[0]) >= 5 && Zotero.ContentTypeHandler.enable();
 		} else {
-			for (var i in _tabInfo) {
-				if (_tabInfo[i].translators && _tabInfo[i].translators.length) {
-					_tabInfo[i].translators = _tabInfo[i].translators.filter(
-						(t) => t.runMode !== Zotero.Translator.RUN_MODE_ZOTERO_STANDALONE);
-				}
-			}
-
 			Zotero.ContentTypeHandler.disable();
 		}
 	}
@@ -201,9 +207,10 @@ Zotero.Connector_Browser = new function() {
 		if (_isDisabledForURL(tab.url) && frameId == 0 || _isDisabledForURL(url)) {
 			return;
 		}
+		Zotero.debug("Connector_Browser: onFrameLoaded for " + tab.url + "; " + url);
 		if (frameId == 0) {
-			// Always inject in the top-frame
-			return Zotero.Connector_Browser.injectTranslationScripts(tab, frameId);
+			// Injected via the manifest file
+			return;
 		} else {
 			if (!(tab.id in _tabInfo)) {
 				_tabInfo[tab.id] = {};
@@ -215,6 +222,12 @@ Zotero.Connector_Browser = new function() {
 				return Zotero.Connector_Browser.injectTranslationScripts(tab, frameId);
 			}
 		}
+		// Frame url shouldn't ever match the tab url but sometimes it does and causes weird
+		// injections. We explicitly ignore it here.
+		if (url == tab.url) {
+			Zotero.debug(`Ignoring frame ${frameId} with a tab matching url ${tab.url}`);
+			return;
+		}
 		return Zotero.Translators.getWebTranslatorsForLocation(url, tab.url).then(function(translators) {
 			if (translators[0].length == 0) {
 				Zotero.debug("Not injecting. No translators found for [tab.url, url]: " + tab.url + " , " + url);
@@ -224,6 +237,10 @@ Zotero.Connector_Browser = new function() {
 			return Zotero.Connector_Browser.injectTranslationScripts(tab, frameId);
 		});
 	});
+
+	this.isIncognito = function(tab) {
+		return tab.incognito;
+	}
 
 	/**
 	 * Checks whether translation scripts are already injected into a frame and if not - injects
@@ -236,14 +253,14 @@ Zotero.Connector_Browser = new function() {
 		let key = tab.id + '-' + frameId;
 		let deferred = this.injectTranslationScripts[key];
 		if (deferred) {
-			Zotero.debug(`Connector_Browser.injectTranslationScripts: Script injection already in progress for ${key} : ${tab.url}`);
+			Zotero.debug(`Translation Inject: Script injection already in progress for ${key}`);
 			return deferred.promise;
 		}
 		deferred = Zotero.Promise.defer();
 		this.injectTranslationScripts[key] = deferred;
 		deferred.promise.catch(function(e) {
-			Zotero.debug(`Connector_Browser.injectTranslationScripts: Script injection rejected ${key}`);
-			Zotero.logError(e);
+			Zotero.debug(`Translation Inject: Script injection rejected ${key}`);
+			Zotero.debug(e.message);
 		}).then(function() {
 			delete Zotero.Connector_Browser.injectTranslationScripts[key];
 		});
@@ -257,6 +274,8 @@ Zotero.Connector_Browser = new function() {
 		return deferred.promise;
 	};
 
+	this.INJECTION_TIMEOUT = 10000;
+
 	/**
 	 * Injects custom scripts
 	 * 
@@ -265,55 +284,98 @@ Zotero.Connector_Browser = new function() {
 	 * @param [frameId=0] {Number] Defaults to top frame
 	 * @returns {Promise} A promise that resolves when all scripts have been injected
 	 */
-	this.injectScripts = function(scripts, tab, frameId = 0) {
-		if (!Array.isArray(scripts)) scripts = [scripts];
-		// Make sure we're not changing the original list
-		scripts = Array.from(scripts);
-		var promises = [];
-		Zotero.debug(`Injecting scripts into ${tab.url} : ${scripts.join(', ')}`);
-		let promise = injectRemaining(scripts);
+	this.injectScripts = async function(scripts, tab, frameId = 0) {
+		function* injectScripts() {
+			if (!Array.isArray(scripts)) scripts = [scripts];
+			// Make sure we're not changing the original list
+			scripts = Array.from(scripts);
+			Zotero.debug(`Inject: Injecting scripts into ${frameId} - ${tab.url} : ${scripts.join(', ')}`);
 
-		function awaitReady(readyMsg) {
-			return Zotero.Promise.delay(100).then(function() {
-				return Zotero.Messaging.sendMessage(readyMsg, null, tab, frameId).then(function(response) {
-					if (!response) return awaitReady(tab);
-					return true;
-				});
-			});
-		}
-
-		function injectRemaining(scripts) {
-			if (scripts.length) {
-				let script = scripts.shift();
-				return browser.tabs.executeScript(tab.id, {
+			for (let script of scripts) {
+				// Firefox returns an error for unstructured data being returned from scripts
+				// We are forced to catch these, even though when sometimes they may be legit errors
+				yield browser.tabs.executeScript(tab.id, {
 						file: script,
 						frameId,
 						runAt: 'document_end'
 					})
-					.catch((e) => console.log("Error while loading % s: % o ", script, e)).then(() => injectRemaining(scripts));
+					.catch((e) => console.log("Error while loading % s: % o ", script, e));
 			}
+
+			// Send a ready message to confirm successful injection
 			let readyMsg = `ready${Date.now()}`;
-			return browser.tabs.executeScript(tab.id, {
-				code: `Zotero.Messaging.addMessageListener('${readyMsg}', () => true)`,
+			yield browser.tabs.executeScript(tab.id, {
+				code: `browser.runtime.onMessage.addListener(function awaitReady(request) {
+					if (request == '${readyMsg}') {
+						browser.runtime.onMessage.removeListener(awaitReady);
+						return Promise.resolve(true);
+					}
+				})`,
 				frameId,
 				runAt: 'document_end'
-			}).then(() => awaitReady(readyMsg));
+			});
 
+			while (true) {
+				try {
+					var response = yield browser.tabs.sendMessage(tab.id, readyMsg, {
+						frameId: frameId
+					});
+				} catch (e) {}
+				if (!response) {
+					yield Zotero.Promise.delay(100);
+				} else {
+					Zotero.debug(`Inject: Complete ${frameId} - ${tab.url}`);
+					return true;
+				}
+			}
 		}
+		var timedOut = Zotero.Promise.defer();
+		let timeout = setTimeout(function() {
+			timedOut.reject(new Error(`Inject: Timed out ${frameId} - ${tab.url} after ${this.INJECTION_TIMEOUT}ms`))
+		}.bind(this), this.INJECTION_TIMEOUT);
 
-		// Unfortunately firefox sometimes neither rejects nor resolves tabs#executeScript(). Testing proxied
-		// http://www.ams.org/mathscinet/search/publdoc.html?pg1=INDI&s1=916336&sort=Newest&vfpref=html&r=1&mx-pid=3439694
-		// with a fresh browser session consistently reproduces the bug. The injection may be partial, but we need to
-		// resolve this promise somehow, so we reject in the event of timeout.
-		// UPDATE 2017-08-29 seems to no longer be the case, but this is a generally nice safeguard that is good to
-		// have. Let's keep an eye out for these failed injections in reports.
-		return Zotero.Promise.all([promise, new Promise(function(resolve, reject) {
-			let timeout = setTimeout(() => reject(new Error(`Script injection timed out ${tab.url}`)), 3000);
-			resolve(promise.then(function() {
-				clearTimeout(timeout);
-			}));
-		})]).then((result) => result[0]);
+		// Prevent triggering multiple times
+		let deferred = _tabInfo[tab.id].injections[frameId];
+		if (deferred) {
+			Zotero.debug(`Inject: Script injection already in progress for ${frameId} - ${tab.url}`);
+			await deferred.promise;
+		}
+		deferred = Zotero.Promise.defer();
+		_tabInfo[tab.id].injections[frameId] = deferred;
 
+		function tabRemovedListener(tabID) {
+			if (tabID != tab.id) return;
+			deferred.reject(new Error(`Inject: Tab removed mid-injection into ${frameId} - ${tab.url}`))
+		}
+		browser.tabs.onRemoved.addListener(tabRemovedListener);
+
+		// This is a bit complex, but we need to cut off script injection as soon as we notice an
+		// interruption condition, such as a timeout or url change, otherwise we get partial injections
+		try {
+			var iter = injectScripts();
+			var val = iter.next();
+			while (true) {
+				if (val.done) {
+					return val.value;
+				}
+				if (val.value.then) {
+					// Will either throw from the first two, or return from the third one
+					let nextVal = await Promise.race([
+						timedOut.promise,
+						deferred.promise,
+						val.value
+					]);
+					val = iter.next(nextVal);
+				} else {
+					val = iter.next(val.value);
+				}
+			}
+		} finally {
+			browser.tabs.onRemoved.removeListener(tabRemovedListener);
+			deferred.resolve();
+			delete _tabInfo[tab.id].injections[frameId];
+			clearTimeout(timeout);
+		}
 	};
 
 	this.openTab = function(url, tab) {
@@ -359,7 +421,7 @@ Zotero.Connector_Browser = new function() {
 	 * @param {Tab} [tab=currentTab]
 	 * @returns {Promise{Number}} button pressed idx or undefined if timed-out and navigated away from
 	 */
-	this.notify = function(text, buttons, seenTimeout = 5000, tab = null) {
+	this.notify = async function(text, buttons, seenTimeout = 5000, tab = null) {
 		// Get current tab if not provided
 		if (!tab) {
 			return browser.tabs.query({
@@ -372,24 +434,16 @@ Zotero.Connector_Browser = new function() {
 		}
 		let timedOut = false;
 		seenTimeout && setTimeout(() => timedOut = true, seenTimeout);
-		return Zotero.Messaging.sendMessage('notify', [text, buttons, null, tab.status], tab).then(function(response) {
-			if (response != undefined || timedOut) return response;
+		var response = await Zotero.Messaging.sendMessage('notify', [text, buttons, null, tab.status], tab)
+		if (response != undefined || timedOut) return response;
 
-			// Tab url changed or tab got removed, hence the undefined response
-			// Wait half a sec to not run a busy-waiting loop
-			return Zotero.Promise.delay(500)
-				.then(function() {
-					return new Zotero.Promise(function(resolve) {
-						browser.tabs.get(tab.id).then(function(tab) {
-							if (!tab) return;
-							// If it still exists try again
-							// But make sure translation scripts are injected first
-							return this.injectTranslationScripts(tab)
-								.then(() => resolve(this.notify(text, buttons, seenTimeout, tab)));
-						}.bind(this));
-					}.bind(this))
-				}.bind(this));
-		}.bind(this));
+		// Tab url changed or tab got removed, hence the undefined response
+		// Wait half a sec to not run a busy-waiting loop
+		await Zotero.Promise.delay(500)
+		var tab = await browser.tabs.get(tab.id)
+		if (!tab) return;
+		// If it still exists try again
+		return this.notify(text, buttons, seenTimeout, tab);
 	};
 
 	/**
@@ -477,6 +531,27 @@ Zotero.Connector_Browser = new function() {
 		delete _tabInfo[tabID];
 	}
 
+	function _updateInfoForTab(tab) {
+		if (!(tab.id in _tabInfo)) {
+			_tabInfo[tab.id] = {
+				url: tab.url,
+				injections: {}
+			}
+		}
+		if (_tabInfo[tab.id].url != tab.url) {
+			Zotero.debug(`Connector_Browser: URL changed from ${_tabInfo[tab.id].url} to ${tab.url}`);
+			if (_tabInfo[tab.id].injections) {
+				for (let frameId in _tabInfo[tab.id].injections) {
+					_tabInfo[tab.id].injections[frameId].reject(new Error(`URL changed for tab ${tab.url}`));
+				}
+			}
+			_tabInfo[tab.id] = {
+				url: tab.url,
+				injections: {}
+			};
+		}
+	}
+
 	function _isDisabledForURL(url, excludeTests = false) {
 		return url.includes('chrome://') || url.includes('about:') || (url.includes('-extension://') && (!excludeTests || !url.includes('/test/data/')));
 	}
@@ -557,7 +632,7 @@ Zotero.Connector_Browser = new function() {
 				title: _getTranslatorLabel(translators[i]),
 				onclick: (function(i) {
 					return function(info, tab) {
-						Zotero.Connector_Browser._saveWithTranslator(tab, i);
+						Zotero.Connector_Browser.saveWithTranslator(tab, i);
 					};
 				})(i),
 				parentId: parentID,
@@ -572,7 +647,7 @@ Zotero.Connector_Browser = new function() {
 			id: "zotero-context-menu-webpage-withSnapshot-save",
 			title: "Save to Zotero (Web Page with Snapshot)",
 			onclick: function(info, tab) {
-				Zotero.Connector_Browser._saveAsWebpage(tab, 0, true);
+				Zotero.Connector_Browser.saveAsWebpage(tab, 0, true);
 			},
 			parentId: parentID,
 			contexts: ['page', 'browser_action']
@@ -581,7 +656,7 @@ Zotero.Connector_Browser = new function() {
 			id: "zotero-context-menu-webpage-withoutSnapshot-save",
 			title: "Save to Zotero (Web Page without Snapshot)",
 			onclick: function(info, tab) {
-				Zotero.Connector_Browser._saveAsWebpage(tab, 0, false);
+				Zotero.Connector_Browser.saveAsWebpage(tab, 0, false);
 			},
 			parentId: parentID,
 			contexts: ['page', 'browser_action']
@@ -600,7 +675,7 @@ Zotero.Connector_Browser = new function() {
 			id: "zotero-context-menu-pdf-save",
 			title: "Save to Zotero (PDF)",
 			onclick: function(info, tab) {
-				Zotero.Connector_Browser._saveAsWebpage(tab);
+				Zotero.Connector_Browser.saveAsWebpage(tab);
 			},
 			parentId: parentID,
 			contexts: ['all']
@@ -617,10 +692,11 @@ Zotero.Connector_Browser = new function() {
 
 		var i = 0;
 		for (let proxy of Zotero.Proxies.proxies) {
+			let name = proxy.toDisplayName();
 			let proxied = proxy.toProxy(url);
 			browser.contextMenus.create({
 				id: `zotero-context-menu-proxy-reload-${i++}`,
-				title: `Reload as ${proxied}`,
+				title: `Reload via ${name}`,
 				onclick: function() {
 					browser.tabs.update({
 						url: proxied
@@ -658,28 +734,29 @@ Zotero.Connector_Browser = new function() {
 					_updateExtensionUI(tab);
 				});
 		} else if (_tabInfo[tab.id] && _tabInfo[tab.id].translators && _tabInfo[tab.id].translators.length) {
-			Zotero.Connector_Browser._saveWithTranslator(tab, 0);
+			Zotero.Connector_Browser.saveWithTranslator(tab, 0, true);
 		} else {
 			if (_tabInfo[tab.id] && _tabInfo[tab.id].isPDF) {
-				Zotero.Connector_Browser._saveAsWebpage(tab, _tabInfo[tab.id].frameId, true);
+				Zotero.Connector_Browser.saveAsWebpage(tab, _tabInfo[tab.id].frameId, true);
 			} else {
 				let withSnapshot = Zotero.Connector.isOnline ? Zotero.Connector.automaticSnapshots :
 					Zotero.Prefs.get('automaticSnapshots');
-				Zotero.Connector_Browser._saveAsWebpage(tab, 0, withSnapshot);
+				Zotero.Connector_Browser.saveAsWebpage(tab, 0, withSnapshot);
 			}
 		}
 	}
 
-	this._saveWithTranslator = function(tab, i) {
+	this.saveWithTranslator = function(tab, i, fallbackOnFailure = false) {
 		// Set frameId to null - send message to all frames
 		// There is code to figure out which frame should translate with instanceID.
 		return Zotero.Messaging.sendMessage("translate", [
 			_tabInfo[tab.id].instanceID,
-			_tabInfo[tab.id].translators[i].translatorID
+			_tabInfo[tab.id].translators[i].translatorID,
+			fallbackOnFailure
 		], tab, null);
 	}
 
-	this._saveAsWebpage = function(tab, frameId, withSnapshot) {
+	this.saveAsWebpage = function(tab, frameId, withSnapshot) {
 		if (tab.id != -1) {
 			return Zotero.Messaging.sendMessage("saveAsWebpage", [tab.title, withSnapshot], tab, frameId);
 		}
@@ -703,39 +780,54 @@ Zotero.Connector_Browser = new function() {
 		_tabInfo[data[0]].selectCallback(data[1]);
 	});
 
+	function logListenerErrors(listener) {
+		return function() {
+			try {
+				var returnValue = listener.apply(this, arguments);
+				if (returnValue && returnValue.then) {
+					returnValue.catch(function(e) {
+						Zotero.logError(e);
+						throw (e);
+					});
+				}
+			} catch (e) {
+				Zotero.logError(e);
+				throw e;
+			}
+		}
+	}
+
 	/*
-	browser.tabs.onRemoved.addListener(_clearInfoForTab);
-
-	browser.tabs.onUpdated.addListener(function(tabID, changeInfo, tab) {
+	browser.browserAction.onClicked.addListener(logListenerErrors(_browserAction));
+	
+	browser.tabs.onRemoved.addListener(logListenerErrors(_clearInfoForTab));
+	
+	browser.tabs.onActivated.addListener(logListenerErrors(async function(details) {
+		var tab = await browser.tabs.get(details.tabId);
 		// Ignore item selector
-		if (tab.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html") === 0)) return;
-		_clearInfoForTab(tabID, changeInfo);
-		_updateExtensionUI(tab);
-		if(!changeInfo.url) return;
-		Zotero.debug("Connector_Browser: URL changed for tab " + tab.url);
-		// Rerun translation
-		Zotero.Messaging.sendMessage("pageModified", null, tab);
-		tab.active && Zotero.Connector.reportActiveURL(tab.url);
-	});
+		if (tab.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html")) === 0) return;
+		Zotero.debug("Connector_Browser: onActivated for " + tab.url);
+		Zotero.Connector_Browser.onTabActivated(tab);
+		Zotero.Connector.reportActiveURL(tab.url);
+	}));
 	
-	browser.tabs.onActivated.addListener(function(activeInfo) {
-		return browser.tabs.get(activeInfo.tabId).then(function(tab) {
-			// Ignore item selector
-			if (tab.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html") === 0)) return;
-			Zotero.debug("Connector_Browser: onActivated for " + tab.url);
-			Zotero.Connector_Browser.onTabActivated(tab);
-			Zotero.Connector.reportActiveURL(tab.url);
-		}).catch((e) => {Zotero.logError(e); throw(e)});
-	});
+	browser.webNavigation.onCommitted.addListener(logListenerErrors(async function(details) {
+		var tab = await browser.tabs.get(details.tabId);
+		// Ignore developer tools
+		if (tab.id < 0 || _isDisabledForURL(tab.url, true)) return;
 
-	browser.browserAction.onClicked.addListener(_browserAction);
-	
-	browser.webNavigation.onDOMContentLoaded.addListener(function(details) {
-		return browser.tabs.get(details.tabId).then(function(tab) {
-			Zotero.debug("Connector_Browser: onDOMContentLoaded for " + tab.url + "; " + details.url);
-			Zotero.Connector_Browser.onFrameLoaded(tab, details.frameId, details.url);
-		}).catch((e) => {Zotero.logError(e); throw(e)});
-	});
+		if (details.frameId == 0) {
+			// Ignore item selector
+			if (tab.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html")) === 0) return;
+			_updateInfoForTab(tab);
+			_updateExtensionUI(tab);
+			Zotero.Connector.reportActiveURL(tab.url);
+		}
+		// _updateInfoForTab will reject pending injections, but we need to make sure this
+		// executes in the next event loop such that the rejections can be processed
+		await Zotero.Promise.delay(1);
+		await Zotero.Connector_Browser.onFrameLoaded(tab, details.frameId, details.url);
+	}));
 	*/
 }
 

@@ -26,8 +26,6 @@ browser.tabs.query({})
 	Show/hide import button for the currently active tab, whenever the user navigates.
 */
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-	browser.pageAction.show(tab.id);
-
 	if (!changeInfo.url) {
 		return;
 	}
@@ -69,20 +67,44 @@ function lookForTranslators(tab) {
 
 	console.log("JabFox: Searching for translators for %o", tab);
 	Zotero.Translators.getWebTranslatorsForLocation(tab.url, tab.url).then((translators) => {
-		console.log("JabFox: Found translators %o", translators[0]);
 		if (translators[0].length == 0) {
 			// No translators found, so hide button
+			console.log("JabFox: No translators found");
 			browser.pageAction.hide(tab.id);
 		} else {
-			// Translators found, so show button and update label
-			browser.pageAction.show(tab.id);
-			browser.pageAction.setTitle({
-				tabId: tab.id,
-				title: "Import references into JabRef using " + translators[0][0].label
-			});
-			//Zotero.Connector_Browser.onTranslators(translators[0], 0, "something/test", tab, 0);
+			// Potential translators found, Zotero will check if these can detect something on the website.
+			// We will be notified about the result of this check using the `onTranslators` method below, so nothing to do here. 
+			console.log("JabFox: Found potential translators %o", translators[0]);
 		}
 	});
+}
+
+/*
+	Is called after Zotero injected all scripts and checked if the potential translators can find something on the page.
+	We need to hide or show the page action accordingly.
+*/
+onTranslators = function(translators, instanceID, contentType) {
+	browser.tabs.query({
+			active: true,
+			currentWindow: true
+		})
+
+		.then((tabs) => {
+			var tab = tabs[0];
+
+			if (translators.length == 0) {
+				console.log("JabFox: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tab)));
+				browser.pageAction.hide(tab.id);
+			} else {
+				console.log("JabFox: Found translators %o for tab %o", translators, JSON.parse(JSON.stringify(tab)));
+
+				browser.pageAction.show(tab.id);
+				browser.pageAction.setTitle({
+					tabId: tab.id,
+					title: "Import references into JabRef using " + translators[0].label
+				});
+			}
+		});
 }
 
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -97,12 +119,12 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			.then((tabs) => {
 				var tab = tabs[0];
 
-				Zotero.Connector_Browser.injectTranslationScripts(tab)
-					.then(() => {
-						console.log("JabFox: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
-						Zotero.Connector_Browser._saveWithTranslator(tab, 0);
-					});
+				console.log("JabFox: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
+				Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 			});
+	} else if (message[0] == 'Connector_Browser.onTranslators') {
+		// Intercept message to Zotero background script
+		onTranslators.apply(null, message[1]);
 	}
 });
 

@@ -101,6 +101,7 @@ var MESSAGES = {
 			inject: {
 				postReceive: function(data) {
 					// Deserialize to class objects
+					console.log("Data %o", data);
 					data[0] = data[0].map((translator) => new Zotero.Translator(translator));
 					data[1] = data[1].map((proxy) => proxy && new Zotero.Proxy(proxy));
 					return [data[0], data[1]];
@@ -109,7 +110,7 @@ var MESSAGES = {
 		}
 	},
 	Debug: {
-		init: false,
+		bgInit: false,
 		clear: false,
 		log: {
 			response: false,
@@ -129,6 +130,7 @@ var MESSAGES = {
 		onPageLoad: false,
 		onTranslators: false,
 		injectScripts: true,
+		isIncognito: true,
 		firstSaveToServerPrompt: true,
 		openTab: false,
 		openConfigEditor: false,
@@ -156,7 +158,6 @@ var MESSAGES = {
 	},
 	Prefs: {
 		set: false,
-		getAll: true,
 		getAsync: true,
 		clear: false
 	},

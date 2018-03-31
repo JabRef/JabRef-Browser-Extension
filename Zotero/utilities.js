@@ -306,6 +306,7 @@ Zotero.Utilities = {
 		}
 
 		x = x.replace(/<br[^>]*>/gi, "\n");
+		x = x.replace(/<\/p>/gi, "\n\n");
 		return x.replace(/<[^>]+>/g, "");
 	},
 
@@ -318,7 +319,7 @@ Zotero.Utilities = {
 			throw "cleanDOI: argument must be a string";
 		}
 
-		var doi = x.match(/10\.[0-9]{4,}\/[^\s]*[^\s\.,]/);
+		var doi = x.match(/10(?:\.[0-9]{4,})?\/[^\s]*[^\s\.,]/);
 		return doi ? doi[0] : null;
 	},
 
@@ -1841,6 +1842,8 @@ Zotero.Utilities = {
 						// Only use the first ISBN in CSL JSON
 						var isbn = value.match(/^(?:97[89]-?)?(?:\d-?){9}[\dx](?!-)\b/i);
 						if (isbn) value = isbn[0];
+					} else if (field == 'extra') {
+						value = Zotero.Cite.extraToCSL(value);
 					}
 
 					// Strip enclosing quotes
@@ -1920,6 +1923,7 @@ Zotero.Utilities = {
 					// add year, month, and day, if they exist
 					dateParts.push(dateObj.year);
 					if (dateObj.month !== undefined) {
+						// strToDate() returns a JS-style 0-indexed month, so we add 1 to it
 						dateParts.push(dateObj.month + 1);
 						if (dateObj.day) {
 							dateParts.push(dateObj.day);
@@ -2019,6 +2023,9 @@ Zotero.Utilities = {
 					}
 
 					if (Zotero.ItemFields.isValidForType(fieldID, itemTypeID)) {
+						// TODO: Convert restrictive Extra cheater syntax ('original-date: 2018')
+						// to nicer format we allow ('Original Date: 2018'), unless we've added
+						// those fields before we get to that
 						if (isZoteroItem) {
 							item.setField(fieldID, cslItem[variable]);
 						} else {

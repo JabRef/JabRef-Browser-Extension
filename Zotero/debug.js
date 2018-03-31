@@ -139,7 +139,7 @@ Zotero.Debug = new function() {
 		}
 
 		if (stack) {
-			message += '\n' + Zotero.Debug.stackToString(stack);
+			message += '\n' + this.stackToString(stack);
 		}
 
 		if (_console || _consoleViewer) {
@@ -287,7 +287,7 @@ Zotero.Debug = new function() {
 				':' + stack.lineNumber;
 			stack = stack.caller;
 		}
-		return str.substr(1);
+		return this.filterStack(str).substr(1);
 	};
 
 

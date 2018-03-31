@@ -88,5 +88,37 @@
 		"nativeMessaging"
 	],
 
+	"content_scripts": [{
+		"matches": ["http://*/*", "https://*/*"],
+		"run_at": "document_start",
+		"js": [
+			"Zotero/zotero_config.js",
+			"Zotero/zotero.js",
+			"Zotero/promise.js",
+			"Zotero/http.js",
+			"Zotero/proxy.js",
+			"Zotero/cachedTypes.js",
+			"Zotero/date.js",
+			"Zotero/debug.js",
+			"Zotero/openurl.js",
+			"Zotero/xregexp-all.js",
+			"Zotero/unicode-zotero.js",
+			// rdf
+			"Zotero/translate.js",
+			"Zotero/translator.js",
+			"Zotero/translate_item.js",
+			"Zotero/connectorTypeSchemaData.js",
+			"Zotero/utilities.js",
+			"Zotero/utilities_translate.js",
+			"Zotero/utilities-common.js",
+			"Zotero/http_inject.js",
+			"Zotero/progressWindow.js",
+			"Zotero/translate_inject.js",
+			"Zotero/messages.js",
+			"Zotero/messaging_inject.js",
+			"Zotero/inject.js"
+		]
+	}],
+
 	"version": "2.0"
 }
