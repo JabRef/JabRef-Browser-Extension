@@ -75,7 +75,7 @@
 	"name": "JabFox",
 
 	"options_ui": {
-		"page": "options.html",
+		"page": "data/options.html",
 		"browser_style": true
 	},
 
