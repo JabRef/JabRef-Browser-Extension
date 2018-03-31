@@ -7,6 +7,7 @@ module.exports = {
 	],
 	run: {
 		startUrl: [
+			'about:debugging',
 			'https://arxiv.org/a/diez_t_1.html',
 		],
 		browserConsole: true,

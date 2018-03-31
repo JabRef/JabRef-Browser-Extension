@@ -88,7 +88,6 @@ onTranslators = function(translators, instanceID, contentType) {
 			active: true,
 			currentWindow: true
 		})
-
 		.then((tabs) => {
 			var tab = tabs[0];
 

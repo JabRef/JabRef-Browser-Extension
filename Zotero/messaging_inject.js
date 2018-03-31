@@ -93,8 +93,6 @@ Zotero.Messaging = new function() {
 							// calls that didn't expect a resposne either.
 							// Either way, if we should be at least expecting a response and get an error we 
 							// throw
-
-							console.log("Messaging: Error %o while receiving message %o for %o", e, messageConfig, messageName);
 							if (messageConfig && messageConfig.response !== false) {
 								Zotero.logError(e);
 								throw e;

@@ -1800,17 +1800,19 @@ Zotero.Translate.Base.prototype = {
 		var parse = function(code) {
 			Zotero.debug("Translate: Parsing code for " + translator.label + " " +
 				"(" + translator.translatorID + ", " + translator.lastUpdated + ")", 4);
-
-			this._sandboxManager.eval(
-				"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
-					"detect" + this._entryFunctionSuffix,
-					"do" + this._entryFunctionSuffix,
-					"exports",
-					"ZOTERO_TRANSLATOR_INFO"
-				],
-				(translator.file ? translator.file.path : translator.label)
-			);
-
+			if (this._entryFunctionSuffix == "Web") {
+				this._sandboxManager.eval(
+					"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
+						"detect" + this._entryFunctionSuffix,
+						"do" + this._entryFunctionSuffix,
+						"exports",
+						"ZOTERO_TRANSLATOR_INFO"
+					],
+					(translator.file ? translator.file.path : translator.label)
+				);
+			} else {
+				this._sandboxManager.eval("var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, ["do" + this._entryFunctionSuffix, "exports", "ZOTERO_TRANSLATOR_INFO"], (translator.file ? translator.file.path : translator.label));
+			}
 			this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;
 		}.bind(this);
 
@@ -2259,9 +2261,13 @@ Zotero.Translate.Web.prototype.complete = async function(returnValue, error) {
 	var oldState = this._currentState;
 	var errorString = Zotero.Translate.Base.prototype.complete.apply(this, [returnValue, error]);
 
-	console.log("Translate: %s, %s ", returnValue, errorString);
-
-	var reportTranslationFailure = true;
+	var promise;
+	if (Zotero.Prefs.getAsync) {
+		promise = Zotero.Prefs.getAsync('reportTranslationFailure');
+	} else {
+		promise = Zotero.Promise.resolve(Zotero.Prefs.get("reportTranslationFailure"));
+	}
+	var reportTranslationFailure = false;
 	// Report translation failure if we failed
 	if (oldState == "translate" && errorString && !this._parentTranslator && this.translator.length &&
 		this.translator[0].inRepository && reportTranslationFailure) {
@@ -2526,7 +2532,7 @@ Zotero.Translate.Export.prototype._prepareTranslation = Zotero.Promise.method(fu
 	this._itemGetter = new Zotero.Translate.ItemGetter();
 
 	// Toggle legacy mode for translators pre-4.0.27
-	this._itemGetter.legacy = Services.vc.compare('4.0.27', this._translatorInfo.minVersion) > 0;
+	this._itemGetter.legacy = false;
 
 	var configOptions = this._translatorInfo.configOptions || {},
 		getCollections = configOptions.getCollections || false;

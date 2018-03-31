@@ -76,6 +76,37 @@ function postProcessContents(basename, file) {
 				.replace("var url = require('url');", '')
 			);
 			break;
+		case 'messaging.js':
+			file.contents = Buffer.from(file.contents.toString()
+				// Fix 'undefined' error
+				.replace("if (messageConfig && messageConfig.background)", 'if (messageConfig && messageConfig.background && messageConfig.background.minArgs)')
+				// Add log statement
+				.replace('//Zotero.debug("Messaging: Received message: "+messageName);', 'console.log("Messaging: Received message: %s, %s", messageName, args);')
+			);
+			break;
+		case 'translate.js':
+			file.contents = Buffer.from(file.contents.toString()
+				// Never report translation errors to Zotero
+				.replace("var reportTranslationFailure = await promise;", 'var reportTranslationFailure = false;')
+				// 
+				.replace("this._sandboxManager.eval(\r\n", 'if (this._entryFunctionSuffix == "Web") { \r\n this._sandboxManager.eval(\r\n')
+				.replace('this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;',
+					'} else {\
+						this._sandboxManager.eval(\
+						"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [\
+							"do" + this._entryFunctionSuffix,\
+							"exports",\
+							"ZOTERO_TRANSLATOR_INFO"\
+						],\
+						(translator.file ? translator.file.path : translator.label)\
+						);\
+					}\
+					this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;')
+				// BibTeX exporter is no legacy exporter, so we don't need this check
+				.replace("this._itemGetter.legacy = Services.vc.compare('4.0.27', this._translatorInfo.minVersion) > 0;", "this._itemGetter.legacy = false;")
+
+			);
+			break;
 		case 'errors_webkit.js':
 			file.contents = Buffer.from(file.contents.toString()
 				// Remove access to Zotero.Debug
