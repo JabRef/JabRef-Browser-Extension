@@ -88,7 +88,7 @@ function postProcessContents(basename, file) {
 			file.contents = Buffer.from(file.contents.toString()
 				// Never report translation errors to Zotero
 				.replace("var reportTranslationFailure = await promise;", 'var reportTranslationFailure = false;')
-				// 
+				// Make it possible to call exporter
 				.replace("this._sandboxManager.eval(\r\n", 'if (this._entryFunctionSuffix == "Web") { \r\n this._sandboxManager.eval(\r\n')
 				.replace('this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;',
 					'} else {\
@@ -104,7 +104,39 @@ function postProcessContents(basename, file) {
 					this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;')
 				// BibTeX exporter is no legacy exporter, so we don't need this check
 				.replace("this._itemGetter.legacy = Services.vc.compare('4.0.27', this._translatorInfo.minVersion) > 0;", "this._itemGetter.legacy = false;")
-
+				// Make parsing of translator wait for injected code
+				.replace("var parse = function", "var parse = async function")
+				.replace("this._sandboxManager.eval", "await this._sandboxManager.eval")
+			);
+			break;
+		case 'translate_inject.js':
+			file.contents = Buffer.from(file.contents.toString()
+				// Use a global sandbox (because the translator code will be injected as a content script and thus 'this' does not work)
+				.replace(
+					'***** END LICENSE BLOCK *****\
+					*/',
+					'***** END LICENSE BLOCK *****\
+					*/\
+					\
+					GlobalSandbox = {\
+						"Zotero": {} \
+					}\
+					')
+				.replace(
+					'this.sandbox = {\
+						"Zotero ": {}\
+					};',
+					"this.sandbox = GlobalSandbox;")
+				.replace('this.sandbox.', 'GlobalSandbox.')
+				// Eval script using tabs.contentScript instead of eval()
+				.replace(
+					'(function() {\
+						eval(code);\
+						}).call(this);',
+					'var codeClosure = "(function() {" + code + "})();";\
+					return browser.runtime.sendMessage({\
+						"eval": codeClosure\
+					});')
 			);
 			break;
 		case 'errors_webkit.js':

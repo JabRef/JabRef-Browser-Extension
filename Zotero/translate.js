@@ -1797,11 +1797,11 @@ Zotero.Translate.Base.prototype = {
 		this._aborted = false;
 		this.saveQueue = [];
 
-		var parse = function(code) {
+		var parse = async function(code) {
 			Zotero.debug("Translate: Parsing code for " + translator.label + " " +
 				"(" + translator.translatorID + ", " + translator.lastUpdated + ")", 4);
 			if (this._entryFunctionSuffix == "Web") {
-				this._sandboxManager.eval(
+				await this._sandboxManager.eval(
 					"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
 						"detect" + this._entryFunctionSuffix,
 						"do" + this._entryFunctionSuffix,
@@ -1811,7 +1811,7 @@ Zotero.Translate.Base.prototype = {
 					(translator.file ? translator.file.path : translator.label)
 				);
 			} else {
-				this._sandboxManager.eval("var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, ["do" + this._entryFunctionSuffix, "exports", "ZOTERO_TRANSLATOR_INFO"], (translator.file ? translator.file.path : translator.label));
+				await this._sandboxManager.eval("var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, ["do" + this._entryFunctionSuffix, "exports", "ZOTERO_TRANSLATOR_INFO"], (translator.file ? translator.file.path : translator.label));
 			}
 			this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;
 		}.bind(this);

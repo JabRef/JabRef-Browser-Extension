@@ -54,7 +54,7 @@
 		}
 	},
 
-	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+	"content_security_policy": "script-src 'self'; object-src 'self'",
 
 	"description": "JabFox imports new bibliographic information directly from the browser into JabRef.",
 
@@ -116,7 +116,8 @@
 			"Zotero/translate_inject.js",
 			"Zotero/messages.js",
 			"Zotero/messaging_inject.js",
-			"Zotero/inject.js"
+			"Zotero/inject.js",
+			"bibtexConverter.js"
 		]
 	}],
 

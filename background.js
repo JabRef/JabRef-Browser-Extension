@@ -79,6 +79,15 @@ function lookForTranslators(tab) {
 	});
 }
 
+async function evalInTab(code) {
+	await browser.tabs.executeScript({
+			code: code
+		})
+		.then(
+			result => console.log(`JabFox: code executed`),
+			error => console.log(`Error: ${error}`));
+}
+
 /*
 	Is called after Zotero injected all scripts and checked if the potential translators can find something on the page.
 	We need to hide or show the page action accordingly.
@@ -121,6 +130,8 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 				console.log("JabFox: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
 				Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 			});
+	} else if (message.eval) {
+		evalInTab(message.eval);
 	} else if (message[0] == 'Connector_Browser.onTranslators') {
 		// Intercept message to Zotero background script
 		onTranslators.apply(null, message[1]);

@@ -38,26 +38,22 @@ Zotero.Connector = new function() {
 	this.convertToBibTex = function(items) {
 		this.prepareForExport(items);
 
-		console.log("JabFox: Convert items to BibTeX: %o", items);
-		var deferred = Zotero.Promise.defer();
-
 		browser.runtime.sendMessage({
 			"onConvertToBibtex": "convertStarted"
 		});
 
-		var translation = new Zotero.Translate.Export();
-		translation.setItems(items);
-		translation.setTranslator("9cb70025-a888-4a29-a210-93ec52da40d4"); // BibTeX
-		translation.setHandler("done", function(obj, worked) {
-			if (worked) {
-				deferred.resolve(obj.string);
-			} else {
-				deferred.reject("Problem translating the item to BibTeX.")
+		return browser.tabs.query({
+			currentWindow: true,
+			active: true
+		}).then(tabs => {
+			for (let tab of tabs) {
+				return browser.tabs.sendMessage(
+					tab.id, {
+						convertToBibTex: items
+					}
+				);
 			}
-		});
-		translation.translate();
-
-		return deferred.promise;
+		})
 	}
 
 	this.sendBibTexToJabRef = function(bibtex) {

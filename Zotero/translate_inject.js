@@ -23,15 +23,17 @@
     ***** END LICENSE BLOCK *****
 */
 
+GlobalSandbox = {
+	"Zotero": {}
+}
+
 /**
  * @class Manages the translator sandbox
  * @param {Zotero.Translate} translate
  * @param {String|window} sandboxLocation
  */
 Zotero.Translate.SandboxManager = function(sandboxLocation) {
-	this.sandbox = {
-		"Zotero": {}
-	};
+	this.sandbox = GlobalSandbox;
 }
 
 Zotero.Translate.SandboxManager.prototype = {
@@ -49,20 +51,22 @@ Zotero.Translate.SandboxManager.prototype = {
 
 		// Prepend sandbox properties within eval environment (what a mess (1))
 		for (var prop in this.sandbox) {
-			code = 'var ' + prop + ' = this.sandbox.' + prop + ';' + code;
+			code = 'var ' + prop + ' = GlobalSandbox.' + prop + ';' + code;
 		}
 
 		// Import inner functions back into the sandbox
 		for (var i in functions) {
 			try {
-				code += 'this.sandbox.' + functions[i] + ' = ' + functions[i] + ';';
+				code += 'GlobalSandbox.' + functions[i] + ' = ' + functions[i] + ';';
 			} catch (e) {}
 		}
 
 		// Eval in a closure
-		(function() {
-			eval(code);
-		}).call(this);
+		var codeClosure = "(function() {" + code + "})();";
+		return browser.runtime.sendMessage({
+			"eval": codeClosure
+		});
+
 	},
 
 	/**
