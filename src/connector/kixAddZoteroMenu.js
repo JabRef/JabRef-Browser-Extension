@@ -23,12 +23,14 @@
 	***** END LICENSE BLOCK *****
 */
 
-(function() {
+(async function() {
 /**
  * Inject the Zotero menubutton ASAP so that kix attaches handlers for
  * hovering and clicking events when it initializes
  */
 if (document.location.host == 'docs.google.com') {
+	if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
+	
 	var menuAdded = false;
 	var buttonAdded = false;
 	var templateElem;

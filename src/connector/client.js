@@ -36,6 +36,7 @@ Zotero.GoogleDocs = {
 	name: "Zotero Google Docs Plugin",
 	
 	init: async function() {
+		if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
 		await Zotero.Inject.loadReactComponents();
 		await Zotero.Connector_Browser.injectScripts(['zotero-google-docs-integration/ui.js']);
 		Zotero.GoogleDocs.UI.init();
