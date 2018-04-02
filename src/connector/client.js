@@ -33,7 +33,7 @@ Zotero.GoogleDocs = {
 	},
 	clients: {},
 
-	name: "Zotero Google Docs Integration",
+	name: "Zotero Google Docs Plugin",
 	
 	init: async function() {
 		await Zotero.Inject.loadReactComponents();
