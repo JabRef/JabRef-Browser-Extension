@@ -103,7 +103,12 @@
 			"Zotero/openurl.js",
 			"Zotero/xregexp-all.js",
 			"Zotero/unicode-zotero.js",
-			// rdf
+			"Zotero/rdf/init.js",
+			"Zotero/rdf/uri.js",
+			"Zotero/rdf/term.js",
+			"Zotero/rdf/identity.js",
+			"Zotero/rdf/match.js",
+			"Zotero/rdf/rdfparser.js",
 			"Zotero/translate.js",
 			"Zotero/translator.js",
 			"Zotero/translate_item.js",

@@ -195,7 +195,13 @@ gulp.task('update-zotero-scripts', function() {
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/utilities_translate.js',
 		'./zotero-connectors/src/common/utilities.js',
 		'./zotero-connectors/src/common/zotero.js',
-		'./zotero-connectors/src/common/zotero_config.js'
+		'./zotero-connectors/src/common/zotero_config.js',
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/init.js',
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/uri.js',
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/term.js',
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/identity.js',
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/match.js',
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/rdfparser.js'
 	];
 
 	gulp.src(sources, {
@@ -214,7 +220,11 @@ gulp.task('update-zotero-scripts', function() {
 			}
 
 			// Flatten directory structure
-			path.dirname = "";
+			if (path.dirname.endsWith("rdf")) {
+				path.dirname = "rdf"
+			} else {
+				path.dirname = "";
+			}
 		}))
 		.pipe(gulp.dest("./zotero"));
 });
