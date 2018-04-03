@@ -4,7 +4,10 @@ JabFox: Firefox Add-on for JabRef
 =======================
 
 JabFox is a Firefox add-on for users of the bibliographic reference manager [JabRef](http://www.jabref.org/).
-It automatically identifies and extracts bibliographic information on websites and sends them to JabRef in one click.
+It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.
+
+When you find an intersting article through Google Scholar, the arXiv or journal websites, JabFox allows you to add those references to JabRef.
+Even links to accompanying PDFs are send to JabRef, where those documents can easily be downloaded, renamed and placed in the correct folder. 
 [A wide range of publisher sites, library catalogs and databases are supported](https://www.zotero.org/support/translators).
 
 _Please post any issues or suggestions [here on GitHub](https://github.com/JabRef/JabFox/issues)._
