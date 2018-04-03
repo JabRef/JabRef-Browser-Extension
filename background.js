@@ -137,31 +137,3 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		onTranslators.apply(null, message[1]);
 	}
 });
-
-Zotero.Translate.ItemGetter = function() {
-	this._itemsLeft = [];
-	this._collectionsLeft = null;
-	this._exportFileDirectory = null;
-	this.legacy = false;
-};
-
-Zotero.Translate.ItemGetter.prototype = {
-	"setItems": function(items) {
-		this._itemsLeft = items;
-		this._itemsLeft.sort(function(a, b) {
-			return a.id - b.id;
-		});
-		this.numItems = this._itemsLeft.length;
-	},
-
-	/**
-	 * Retrieves the next available item
-	 */
-	"nextItem": function() {
-		if (this._itemsLeft.length != 0) {
-			return this._itemsLeft.shift();
-		} else {
-			return false;
-		}
-	}
-}
