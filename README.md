@@ -1,4 +1,5 @@
 [![Circle CI](https://circleci.com/gh/JabRef/JabFox.svg?style=svg)](https://circleci.com/gh/JabRef/JabFox)
+
 JabFox: Firefox Add-on for JabRef
 =======================
 
