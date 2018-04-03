@@ -23,9 +23,7 @@
     ***** END LICENSE BLOCK *****
 */
 
-GlobalSandbox = {
-	"Zotero": {}
-}
+var GlobalSandbox;
 
 /**
  * @class Manages the translator sandbox
@@ -33,7 +31,9 @@ GlobalSandbox = {
  * @param {String|window} sandboxLocation
  */
 Zotero.Translate.SandboxManager = function(sandboxLocation) {
-	this.sandbox = GlobalSandbox;
+	this.sandbox = {
+		"Zotero": {}
+	};
 }
 
 Zotero.Translate.SandboxManager.prototype = {
@@ -48,6 +48,9 @@ Zotero.Translate.SandboxManager.prototype = {
 		for (var i in functions) {
 			delete this.sandbox[functions[i]];
 		}
+
+		// Send global sandbox temporarily to this sandbox
+		GlobalSandbox = this.sandbox;
 
 		// Prepend sandbox properties within eval environment (what a mess (1))
 		for (var prop in this.sandbox) {

@@ -118,15 +118,18 @@ function postProcessContents(basename, file) {
 					'***** END LICENSE BLOCK *****\
 					*/\
 					\
-					GlobalSandbox = {\
-						"Zotero": {} \
-					}\
+					var GlobalSandbox;\
 					')
 				.replace(
-					'this.sandbox = {\
-						"Zotero ": {}\
-					};',
-					"this.sandbox = GlobalSandbox;")
+					'delete this.sandbox[functions[i]];\
+					}\
+					',
+					'delete this.sandbox[functions[i]];\
+					}\
+					\
+					// Send global sandbox temporarily to this sandbox\
+					GlobalSandbox = this.sandbox;\
+					')
 				.replace('this.sandbox.', 'GlobalSandbox.')
 				// Eval script using tabs.contentScript instead of eval()
 				.replace(
