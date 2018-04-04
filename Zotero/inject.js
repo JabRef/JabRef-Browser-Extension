@@ -162,13 +162,7 @@ Zotero.Inject = new function() {
 								Zotero.logError(e);
 							}
 						}
-						Zotero.Connector_Browser.onSelect(items).then(function(returnItems) {
-							// if no items selected, close save dialog immediately
-							if (!returnItems || Zotero.Utilities.isEmpty(returnItems)) {
-								Zotero.Messaging.sendMessage("progressWindow.close", null);
-							}
-							callback(returnItems);
-						});
+						callback(items);
 					})();
 				});
 				_translate.setHandler("itemSaving", function(obj, item) {

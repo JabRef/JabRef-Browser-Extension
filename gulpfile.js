@@ -148,6 +148,18 @@ function postProcessContents(basename, file) {
 				.replace("Zotero.Debug.bgInit = Zotero.Debug.init;", '')
 			);
 			break;
+		case 'inject.js':
+			file.contents = Buffer.from(file.contents.toString()
+				// We don't want to show a select dialog -> always choose all items
+				.replace('Zotero.Connector_Browser.onSelect(items).then(function(returnItems) {\
+							// if no items selected, close save dialog immediately\
+							if (!returnItems || Zotero.Utilities.isEmpty(returnItems)) {\
+								Zotero.Messaging.sendMessage("progressWindow.close", null);\
+							}\
+							callback(returnItems);\
+						});', 'callback(items);')
+			);
+			break;
 	}
 }
 
