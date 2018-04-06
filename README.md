@@ -21,5 +21,5 @@ also:
 - Inserts initial citation placeholders because we have no access to the user
 cursor from the back-end when the Apps Script code is deployed as an API
 executable
-- Performs citation conversions to footnotes because there Apps Script has no
+- Performs citation conversions to footnotes because the Apps Script has no
 API to insert footnotes into the document, only edit or remove them.
