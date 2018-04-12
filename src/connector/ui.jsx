@@ -110,30 +110,7 @@ Zotero.GoogleDocs.UI = {
 		options.title = "Zotero";
 		options.message = text;
 		
-		var deferred = Zotero.Promise.defer();
-		var target = document.querySelector('.kix-appview-editor');
-		
-		Zotero.Inject.loadReactComponents(['ModalPrompt']).then(function() {
-			let div = document.createElement('div');
-			div.id = 'zotero-modal-prompt';
-			div.style.cssText = 'z-index: 1000000; position: fixed; top: 0; left: 0; width: 100%; height: 100%';
-			let prompt = (
-				<Zotero.UI.ModalPrompt onClose={onClose} {...options}/>
-			);
-			function onClose(state, event) {
-				deferred.resolve({
-					button: event ? parseInt(event.target.name || 0) : 0,
-					checkboxChecked: state.checkboxChecked,
-					inputText: state.inputText
-				});
-				ReactDOM.unmountComponentAtNode(div);
-				target.removeChild(div);
-			}
-			ReactDOM.render(prompt, div);
-			target.appendChild(div);	
-		}.bind(this));
-		
-		let result = await deferred.promise;
+		let result = await Zotero.Inject.confirm(options);
 		return result.button;
 	},
 
