@@ -22,6 +22,15 @@
 	
 	***** END LICENSE BLOCK *****
 */
+(function() {
+	
+var isTopWindow = false;
+if(window.top) {
+	try {
+		isTopWindow = window.top == window;
+	} catch(e) {};
+}	
+if (!isTopWindow) return;
 
 /**
  * A class that hacks into the Google Docs editor UI to allow performing various actions that should
@@ -63,7 +72,7 @@ Zotero.GoogleDocs.UI = {
 	addKeyboardShortcuts: async function() {
 		var modifiers = {ctrlKey: true, altKey: true};
 		if (Zotero.isMac) {
-			modifiers = {metaKey: true, altKey: true};
+			modifiers = {metaKey: true, ctrlKey: true};
 		}
 		var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
 		Zotero.Inject.addKeyboardShortcut(Object.assign({key: 'c'}, modifiers), Zotero.GoogleDocs.editField, textEventTarget);
@@ -116,6 +125,8 @@ Zotero.GoogleDocs.UI = {
 
 	/**
 	 * Write text to the document via a paste event.
+	 * 
+	 * NOTE: Unsupported in Safari!
 	 * 
 	 * @param text
 	 * @returns {Promise<void>}
@@ -220,8 +231,10 @@ Zotero.GoogleDocs.UI = {
 			insertFootnoteKbEvent = {metaKey: true, altKey: true, key: 'f', keyCode: 70};
 		}
 		await Zotero.GoogleDocs.UI.sendKeyboardEvent(insertFootnoteKbEvent);
-		// Somehow the simulated footnote shortcut also inserts an "F" in the footnote. Why though?
+		// Somehow the simulated footnote shortcut also inserts an "F" at the start of the footnote
+		// instead of a space. Why though?
 		await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
+		await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: " ", keyCode: 32});
 	},
 	
 	insertLink: async function(text, url) {
@@ -270,7 +283,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		
 		var modifiers = 'Ctrl+Alt';
 		if (Zotero.isMac) {
-			modifiers = '⌘+Option';
+			modifiers = '⌘+Ctrl';
 		}
 
 		return (
@@ -408,7 +421,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		var style = {left: this.linkbubble.style.left, top};
 		var shortcut = 'Ctrl+Alt+C';
 		if (Zotero.isMac) {
-			shortcut = '⌘+Option+C';
+			shortcut = '⌘+Ctrl+C';
 		}
 		return (
 			<div
@@ -421,3 +434,5 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		);
 	}
 };
+
+})();

@@ -22,6 +22,15 @@
 	
 	***** END LICENSE BLOCK *****
 */
+(function() {
+	
+var isTopWindow = false;
+if(window.top) {
+	try {
+		isTopWindow = window.top == window;
+	} catch(e) {};
+}	
+if (!isTopWindow) return;
 
 Zotero.GoogleDocs = {
 	config: {
@@ -38,7 +47,9 @@ Zotero.GoogleDocs = {
 	init: async function() {
 		if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
 		await Zotero.Inject.loadReactComponents();
-		await Zotero.Connector_Browser.injectScripts(['zotero-google-docs-integration/ui.js']);
+		if (Zotero.isBrowserExt) {
+			await Zotero.Connector_Browser.injectScripts(['zotero-google-docs-integration/ui.js']);
+		}
 		Zotero.GoogleDocs.UI.init();
 		window.addEventListener(`${Zotero.GoogleDocs.name}.call`, function(e) {
 			var client = Zotero.GoogleDocs.clients[e.data.client.id];
@@ -244,7 +255,7 @@ Zotero.GoogleDocs.Client.prototype = {
 						let fieldID = fieldIDs[i];
 						// Select and remove the existing field text, which places the cursor in the correct position
 						await this.select(fieldID);
-						await Zotero.GoogleDocs.UI.writeText('');
+						await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 						await this._insertField({id: fieldID, text: fieldMap[fieldID].text, noteType}, false);
 					}
 				}
@@ -325,3 +336,5 @@ if (document.readyState !== "complete") {
 } else {	
 	Zotero.GoogleDocs.init();
 }
+
+})();
