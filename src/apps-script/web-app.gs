@@ -131,6 +131,9 @@ function decodeRanges(namedRanges, prefix) {
   for (var i = 0; i < codes.length; i++) {
     var c = codes[i];
     if (c.substr(prefix.length, 3) != i) {
+      namedRanges.forEach(function(range) {
+        range.remove();
+      });
       throw new Error("Ranges corrupt on " + c.substr(0, prefix.length+3) + ".\n" + JSON.stringify(codes));
     }
     code += c.substr(prefix.length+3);
@@ -184,7 +187,6 @@ exposed.footnotesToInline = function(fieldIDs) {
     }
   });
   var footnotes = doc.getFootnotes();
-  var footnotesToDelete = [];
   footnotes.forEach(function(footnote) {
     var footnoteSection = footnote.getFootnoteContents();
     var textEl = footnoteSection.editAsText();
@@ -351,7 +353,7 @@ Field.prototype = {
       this.links = null;
     }
     
-    if (field.code) {
+    if (field.code && this.code != field.code) {
       this.namedRanges.forEach(function(namedRange) {
         namedRange.remove();
       });

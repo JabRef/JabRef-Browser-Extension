@@ -136,10 +136,8 @@ Zotero.GoogleDocs.API = {
 			err.stack = responseJSON.error.details[0].scriptStackTraceElements;
 			err.type = `Google Docs ${responseJSON.error.message}`;
 			throw err;
-		} else {
-			var response = responseJSON.response.result;
 		}
-		return response;
+		return responseJSON.response.result;
 	}
 };
 

@@ -142,10 +142,23 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (this.queued.insert) {
 			await this._insertField(this.queued.insert);
 		}
+		var keys = Object.keys(this.queued.fields); 
+		while (keys.length > 3) {
+			let batch = keys.splice(keys.length-6, 5);
+			await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
+				this.queued.insert,
+				this.queued.documentData,
+				batch.map(key => this.queued.fields[key]),
+				this.queued.bibliographyStyle
+			]);
+			this.queued.insert = null;
+			this.queued.documentData = null;
+			this.queued.bibliographyStyle = null;
+		}
 		return Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
 			this.queued.insert,
 			this.queued.documentData,
-			Object.values(this.queued.fields),
+			keys.map(key => this.queued.fields[key]),
 			this.queued.bibliographyStyle
 		]);
 	},
