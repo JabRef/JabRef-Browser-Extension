@@ -67,6 +67,7 @@ Zotero.GoogleDocs = {
 		window.dispatchEvent(new MessageEvent('Zotero.Integration.execCommand', {
 			data: {client: {documentID: client.documentID, name: Zotero.GoogleDocs.name, id: client.id}, command}
 		}));
+		this.lastClient = client;
 	},
 	
 	respond: function(client, response) {
@@ -76,12 +77,15 @@ Zotero.GoogleDocs = {
 	},
 	
 	editField: async function() {
-		var client = new Zotero.GoogleDocs.Client();
+		// Use the last client with a cached field list to speed up the cursorInField() lookup
+		var client = this.lastClient || new Zotero.GoogleDocs.Client();
 		try {
 			var field = await client.cursorInField();
 		} catch (e) {
 			return client.displayAlert(e.message, 0, 0);
 		}
+		// Remove lastClient fields to ensure execCommand calls receive fresh fields
+		this.lastClient && delete this.lastClient.fields;
 		if (field && field.code.indexOf("BIBL") == 0) {
 			return Zotero.GoogleDocs.execCommand("addEditBibliography", client);
 		} else {
