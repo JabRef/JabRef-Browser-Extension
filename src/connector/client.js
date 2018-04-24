@@ -235,9 +235,12 @@ Zotero.GoogleDocs.Client.prototype = {
 	
 	cursorInField: async function() {
 		if (!Zotero.GoogleDocs.UI.getSelectedFieldID()) return false;
+		var selectedFieldID = Zotero.GoogleDocs.UI.getSelectedFieldID();
+		if (!selectedFieldID) return false;
+		
 		var fields = await this.getFields();
 		// The call to getFields() might change the selectedFieldID if there are duplicates
-		var selectedFieldID = Zotero.GoogleDocs.UI.getSelectedFieldID();
+		selectedFieldID = Zotero.GoogleDocs.UI.getSelectedFieldID();
 		for (let field of fields) {
 			if (field.id == selectedFieldID) {
 				return field;
