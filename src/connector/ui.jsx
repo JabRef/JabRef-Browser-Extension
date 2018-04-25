@@ -282,7 +282,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		
 		var modifiers = 'Ctrl+Alt';
 		if (Zotero.isMac) {
-			modifiers = '⌘+Ctrl';
+			modifiers = 'Ctrl+⌘';
 		}
 
 		return (
@@ -420,7 +420,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		var style = {left: this.linkbubble.style.left, top};
 		var shortcut = 'Ctrl+Alt+C';
 		if (Zotero.isMac) {
-			shortcut = '⌘+Ctrl+C';
+			shortcut = 'Ctrl+⌘C';
 		}
 		return (
 			<div
