@@ -35,6 +35,10 @@ Zotero.GoogleDocs.API = {
 			return Zotero.GoogleDocs.API.authHeaders;
 		}
 		
+		// For macOS, since popping up an auth window or calling Connector_Browser.bringToFront()
+		// doesn't move the progress window to the back
+		Zotero.Connector.callMethod('sendToBack');
+		
 		// Request OAuth2 access token
 		let params = {
 			client_id: ZOTERO_CONFIG.OAUTH.GOOGLE_DOCS.CLIENT_KEY,
