@@ -713,7 +713,7 @@ var HTMLConverter = {
     }
 
     if (cls === 'csl-block') {
-      textElem.insertText(this.insertAt, "\n"); this.insertAt += 1;
+      this.insertElem.insertText(this.insertAt, "\n"); this.insertAt += 1;
     }
   },
 
