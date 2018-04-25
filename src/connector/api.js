@@ -141,7 +141,35 @@ Zotero.GoogleDocs.API = {
 			err.type = `Google Docs ${responseJSON.error.message}`;
 			throw err;
 		}
-		return responseJSON.response.result;
+		var response = responseJSON.response.result.response;
+		// Old API
+		if (!response) return responseJSON.response.result;
+		var error = responseJSON.response.result.error;
+		if (error) {
+			await this.displayErrorReportPrompt(error);
+		}
+		return response;
+	},
+	
+	displayErrorReportPrompt: async function(error) {
+		Zotero.logError(new Error(error));
+		var linkToPrefs;
+		if (Zotero.isBrowserExt) {
+			linkToPrefs = browser.extension.getURL('preferences/preferences.html#advanced');
+		} else {
+			linkToPrefs = safari.extension.baseURI + 'preferences/preferences.html#advanced';
+		}
+		var message = `Zotero experienced an error while communicating with Google Docs:
+			
+			${error}
+			
+			You can report this error in the <a href="${linkToPrefs}">Zotero Connector Preferences</a>.`;
+		message = message.replace(/\n/g, "<br/>");
+		await Zotero.Messaging.sendMessage('confirm', {
+			title: "Zotero",
+			button2Text: "",
+			message
+		});
 	}
 };
 

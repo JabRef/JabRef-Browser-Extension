@@ -117,7 +117,7 @@ Zotero.GoogleDocs.UI = {
 				break;
 		}
 		options.title = "Zotero";
-		options.message = text;
+		options.message = text.replace(/\n/g, '<br/>');
 		
 		let result = await Zotero.Inject.confirm(options);
 		return result.button;

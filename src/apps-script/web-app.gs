@@ -36,6 +36,7 @@ var NOTE_FOOTNOTE = 1;
 var NOTE_ENDNOTE = 2;
 
 var doc, bodyRange;
+var extraReturnData = {};
 
 function callMethod(documentUrl, method, args) {
   doc = DocumentApp.openById(documentUrl);
@@ -46,7 +47,8 @@ function callMethod(documentUrl, method, args) {
     throw new Error('Function `' + method + '` is not exposed');
   }
   
-  return fn.apply(this, args);
+  var response = fn.apply(this, args);
+  return Object.assign({response: response}, extraReturnData);
 }
 
 function getFields(prefix) {
@@ -291,16 +293,31 @@ exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle) {
     fieldMap[field.id] = field;
   });
   // Perform in reverse order to keep field link position indices intact during update
-  fieldChanges.reverse().forEach(function(field) {
-    if (field['delete']) {
-      fieldMap[field.id]['delete']();
+  var missingFields = [];
+  fieldChanges.reverse().forEach(function(fieldChange) {
+    var field = fieldMap[fieldChange.id];
+    if (!field) {
+      missingFields.push(fieldChange.id);
+      console.error({
+        message: "Attempting to edit a non-existent field",
+        fieldChange: fieldChange,
+        existingFields: fields.map(function(field) {return field.id})
+      });
+      return;
+    }
+    if (fieldChange['delete']) {
+      fieldMap[fieldChange.id]['delete']();
     } else {
-      fieldMap[field.id].write(field);
-      if (field.removeCode) {
-        fieldMap[field.id].unlink();
+      fieldMap[fieldChange.id].write(fieldChange);
+      if (fieldChange.removeCode) {
+        fieldMap[fieldChange.id].unlink();
       }
     }
   });
+  
+  if (missingFields.length > 0) {
+    extraReturnData.error = "An error occurred while updating fields. " + JSON.stringify(missingFields);
+  }
 };
 
 exposed.insertField = function(field) {
