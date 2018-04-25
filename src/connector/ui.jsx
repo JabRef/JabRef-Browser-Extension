@@ -231,10 +231,9 @@ Zotero.GoogleDocs.UI = {
 			insertFootnoteKbEvent = {metaKey: true, altKey: true, key: 'f', keyCode: 70};
 		}
 		await Zotero.GoogleDocs.UI.sendKeyboardEvent(insertFootnoteKbEvent);
-		// Somehow the simulated footnote shortcut also inserts an "F" at the start of the footnote
-		// instead of a space. Why though?
+		// Somehow the simulated footnote shortcut inserts an "F" at the start of the footnote.
+		// Why though?
 		await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
-		await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: " ", keyCode: 32});
 	},
 	
 	insertLink: async function(text, url) {
