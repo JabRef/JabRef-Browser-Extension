@@ -82,6 +82,13 @@ Zotero.GoogleDocs = {
 		try {
 			var field = await client.cursorInField();
 		} catch (e) {
+			Zotero.debug(`Exception in editField()`);
+			Zotero.logError(e);
+			result = {
+				error: e.type || `Connector Error`,
+				message: e.message,
+				stack: e.stack
+			}
 			return client.displayAlert(e.message, 0, 0);
 		}
 		// Remove lastClient fields to ensure execCommand calls receive fresh fields
