@@ -237,6 +237,10 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	insertLink: async function(text, url) {
+		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.textContent;
+		if (selection.length) {
+			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
+		}
 		await this.clickElement(document.getElementById('insertLinkButton'));
 		document.getElementsByClassName('docs-link-insertlinkbubble-text')[0].value = text;
 		var urlInput = document.getElementsByClassName('docs-link-urlinput-url')[0];
