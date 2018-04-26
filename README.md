@@ -15,7 +15,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 Installation and Configuration
 -----------------------------------
 
-1. Download and install a [new special version of JabRef](https://builds.jabref.org/nativeMessaging/) (which will be released as 4.2 soon).
+1. Make sure you have at least [JabRef 4.2](https://www.jabref.org/#downloads) installed.
 2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 
 Now you should be able to import bibliographic references into JabRef directly from your browser.
