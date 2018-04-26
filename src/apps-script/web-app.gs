@@ -160,6 +160,12 @@ function decodeRanges(namedRanges, prefix) {
       namedRanges.forEach(function(range) {
         range.remove();
       });
+      console.error({
+        message: "Ranges corrupt",
+        error: new Error("Ranges corrupt on " + c.substr(0, prefix.length+3) + ".\n" + JSON.stringify(codes)),
+        idx: i,
+        codes: codes
+      });
       throw new Error("Ranges corrupt on " + c.substr(0, prefix.length+3) + ".\n" + JSON.stringify(codes));
     }
     code += c.substr(prefix.length+3);
@@ -292,8 +298,8 @@ exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle) {
   fields.forEach(function(field) {
     fieldMap[field.id] = field;
   });
+	var missingFields = [];
   // Perform in reverse order to keep field link position indices intact during update
-  var missingFields = [];
   fieldChanges.reverse().forEach(function(fieldChange) {
     var field = fieldMap[fieldChange.id];
     if (!field) {
@@ -331,7 +337,12 @@ exposed.insertField = function(field) {
     }
   }
   if (!link) {
-    throw new Error("Failed to insert field. Could not find the placeholder link.\n" + JSON.stringify(field));
+    console.error({
+      message: "Failed to insert field. Could not find the placeholder link.",
+	  error: new Error("Failed to insert field. Could not find the placeholder link.\n" + JSON.stringify(field)),
+	  field: field
+    });
+    return false;
   }
 
   var namedRanges = encodeRange(bodyRange, field.code, config.fieldPrefix+field.id);
