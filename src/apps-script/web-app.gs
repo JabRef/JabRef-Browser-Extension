@@ -35,10 +35,16 @@ var config = {
 var NOTE_FOOTNOTE = 1;
 var NOTE_ENDNOTE = 2;
 
+var LOCK_TIMEOUT = 1000;
+
 var doc, bodyRange;
 var extraReturnData = {};
 
 function callMethod(documentUrl, method, args) {
+	var lock = LockService.getDocumentLock();
+	if (!lock.tryLock(LOCK_TIMEOUT)) {
+		throw new Error('The document citations are being edited by another Zotero user. Please try again later.');
+	}
 	doc = DocumentApp.openById(documentUrl);
 	bodyRange = doc.newRange().addElement(doc.getBody()).build();
 
@@ -48,6 +54,7 @@ function callMethod(documentUrl, method, args) {
 	}
 	
 	var response = fn.apply(this, args);
+	lock.releaseLock();
 	return Object.assign({response: response}, extraReturnData);
 }
 
