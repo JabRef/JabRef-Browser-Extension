@@ -141,7 +141,7 @@ Zotero.GoogleDocs.API = {
 			err.type = `Google Docs ${responseJSON.error.message}`;
 			throw err;
 		}
-		var response = responseJSON.response.result.response;
+		var response = responseJSON.response.result && responseJSON.response.result.response;
 		// Old API
 		if (!response) return responseJSON.response.result;
 		var error = responseJSON.response.result.error;
