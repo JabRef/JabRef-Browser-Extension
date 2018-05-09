@@ -35,17 +35,18 @@ var config = {
 var NOTE_FOOTNOTE = 1;
 var NOTE_ENDNOTE = 2;
 
-var LOCK_TIMEOUT = 1000;
+var LOCK_NAME = "Z_LOCK";
 
 var doc, bodyRange;
+var docUrl;
 var extraReturnData = {};
 
 function callMethod(documentUrl, method, args) {
-	var lock = LockService.getDocumentLock();
-	if (!lock.tryLock(LOCK_TIMEOUT)) {
-		throw new Error('The document citations are being edited by another Zotero user. Please try again later.');
-	}
+	docUrl = documentUrl;
 	doc = DocumentApp.openById(documentUrl);
+	if (checkIfLocked() && method != 'unlockTheDoc') {
+		return {response: false, lockError: (new LockError).message};
+	}
 	bodyRange = doc.newRange().addElement(doc.getBody()).build();
 
 	var fn = exposed[method];
@@ -53,8 +54,13 @@ function callMethod(documentUrl, method, args) {
 		throw new Error('Function `' + method + '` is not exposed');
 	}
 	
-	var response = fn.apply(this, args);
-	lock.releaseLock();
+	try {
+		var response = fn.apply(this, args);
+	} catch (e) {
+		if (e instanceof LockError) {
+			return {response: false, lockError: e.message};
+		}
+	}
 	return Object.assign({response: response}, extraReturnData);
 }
 
@@ -281,6 +287,28 @@ function getBibliographyStyle() {
 	return modifiers;
 }
 
+function lockTheDoc() {
+	if (checkIfLocked()) {
+		throw new LockError('The document citations are being edited by another Zotero user. Please try again later.');
+	}
+	doc.addNamedRange(LOCK_NAME, bodyRange);
+	// Saves the doc so that the newly added lock range is visible to other script invocations.
+	// Unfortunately no API to just save the doc without closing it.
+	// The locking process here is quite obviously not an atomic operation, which is
+	// far from ideal, but that's the best we have and better than naught
+	doc.saveAndClose();
+	doc = DocumentApp.openById(docUrl);
+	bodyRange = doc.newRange().addElement(doc.getBody()).build();
+	return doc;
+}
+
+function checkIfLocked() {
+	return doc.getNamedRanges(LOCK_NAME).length;
+}
+
+exposed.unlockTheDoc = function() {
+	doc.getNamedRanges(LOCK_NAME).forEach(function(r) {r.remove()});
+}
 
 exposed.getFields = function () {
 	var fields = getFields();
@@ -290,46 +318,51 @@ exposed.getFields = function () {
 };
 
 exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle) {
-	if (insert) {
-		exposed.insertField(insert);
-	}
-	if (docPrefs) {
-		exposed.setDocumentData(docPrefs);
-	}
-	if (bibliographyStyle) {
-		exposed.setBibliographyStyle(JSON.stringify(bibliographyStyle));
-	}
+	lockTheDoc();
+	try {
+		if (insert) {
+			exposed.insertField(insert);
+		}
+		if (docPrefs) {
+			exposed.setDocumentData(docPrefs);
+		}
+		if (bibliographyStyle) {
+			exposed.setBibliographyStyle(JSON.stringify(bibliographyStyle));
+		}
 
-	var fields = getFields();
-	var fieldMap = {};
-	fields.forEach(function(field) {
-		fieldMap[field.id] = field;
-	});
-	var missingFields = [];
-	// Perform in reverse order to keep field link position indices intact during update
-	fieldChanges.reverse().forEach(function(fieldChange) {
-		var field = fieldMap[fieldChange.id];
-		if (!field) {
-			missingFields.push(fieldChange.id);
-			console.error({
-				message: "Attempting to edit a non-existent field",
-				fieldChange: fieldChange,
-				existingFields: fields.map(function(field) {return field.id})
-			});
-			return;
-		}
-		if (fieldChange['delete']) {
-			fieldMap[fieldChange.id]['delete']();
-		} else {
-			fieldMap[fieldChange.id].write(fieldChange);
-			if (fieldChange.removeCode) {
-				fieldMap[fieldChange.id].unlink();
+		var fields = getFields();
+		var fieldMap = {};
+		fields.forEach(function(field) {
+			fieldMap[field.id] = field;
+		});
+		var missingFields = [];
+		// Perform in reverse order to keep field link position indices intact during update
+		fieldChanges.reverse().forEach(function(fieldChange) {
+			var field = fieldMap[fieldChange.id];
+			if (!field) {
+				missingFields.push(fieldChange.id);
+				console.error({
+					message: "Attempting to edit a non-existent field",
+					fieldChange: fieldChange,
+					existingFields: fields.map(function(field) {return field.id})
+				});
+				return;
 			}
+			if (fieldChange['delete']) {
+				fieldMap[fieldChange.id]['delete']();
+			} else {
+				fieldMap[fieldChange.id].write(fieldChange);
+				if (fieldChange.removeCode) {
+					fieldMap[fieldChange.id].unlink();
+				}
+			}
+		});
+		
+		if (missingFields.length > 0) {
+			extraReturnData.error = "An error occurred while updating fields. " + JSON.stringify(missingFields);
 		}
-	});
-	
-	if (missingFields.length > 0) {
-		extraReturnData.error = "An error occurred while updating fields. " + JSON.stringify(missingFields);
+	} finally {
+		exposed.unlockTheDoc();
 	}
 };
 
@@ -801,3 +834,10 @@ Object.assign = function(target) {
 	}
 	return target;
 };
+
+function LockError(message) {
+	this.name = "LockError";
+	this.message = message ||
+		'The document citations are being edited by another Zotero user. Please try again later.';
+}
+LockError.prototype = new Error;

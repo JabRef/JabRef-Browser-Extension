@@ -141,13 +141,20 @@ Zotero.GoogleDocs.API = {
 			err.type = `Google Docs ${responseJSON.error.message}`;
 			throw err;
 		}
+		var error = responseJSON.response.result.error;
+		error && await this.displayErrorReportPrompt(error);
+		var lockError = responseJSON.response.result.lockError;
+		if (lockError) {
+			if (await this.displayLockErrorPrompt(lockError)) {
+				await this.run(docID, "unlockTheDoc", [], email);
+				return this.run.apply(this, arguments);
+			} else {
+				throw new Error('Handled Lock Error');
+			}
+		}
 		var response = responseJSON.response.result && responseJSON.response.result.response;
 		// Old API
-		if (!response) return responseJSON.response.result;
-		var error = responseJSON.response.result.error;
-		if (error) {
-			await this.displayErrorReportPrompt(error);
-		}
+		if (!response && !error && !lockError) return responseJSON.response.result;
 		return response;
 	},
 	
@@ -170,6 +177,31 @@ Zotero.GoogleDocs.API = {
 			button2Text: "",
 			message
 		});
+	},
+
+	displayLockErrorPrompt: async function(error) {
+		var message = 'The document citations are being edited by another Zotero user. Please try again later.';
+		var result = await Zotero.Messaging.sendMessage('confirm', {
+			title: "Zotero",
+			button2Text: "",
+			button3Text: "Need help?",
+			message
+		});
+		if (result.button != 3) return;
+		
+		message = 'Zotero locks your document to prevent multiple users from editing citations at the same time. ' +
+			'Concurrent citation editing in the document may lead to citation or document corruption. ' +
+			'Certain unforseeable circumstances, such as google docs service interruptions, may lead to your document ' +
+			'becoming permanently locked. If you believe this has happened, you may override the lock.<br\><br\>' +
+			
+			'Would you like to override the document lock?';
+		var result = await Zotero.Messaging.sendMessage('confirm', {
+			title: "Zotero",
+			button1Text: "Yes",
+			button2Text: "No",
+			message
+		});
+		return result.button == 1;
 	}
 };
 
