@@ -191,8 +191,8 @@ Zotero.GoogleDocs.API = {
 		
 		message = 'Zotero locks your document to prevent multiple users from editing citations at the same time. ' +
 			'Concurrent citation editing in the document may lead to citation or document corruption. ' +
-			'Certain unforseeable circumstances, such as google docs service interruptions, may lead to your document ' +
-			'becoming permanently locked. If you believe this has happened, you may override the lock.<br\><br\>' +
+			'Certain unforeseeable circumstances, such as network failures, may lead to your document ' +
+			'becoming permanently locked. If you believe this has happened, you can override the lock.<br\><br\>' +
 			
 			'Would you like to override the document lock?';
 		var result = await Zotero.Messaging.sendMessage('confirm', {
