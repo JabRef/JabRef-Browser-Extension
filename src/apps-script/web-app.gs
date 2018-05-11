@@ -60,6 +60,7 @@ function callMethod(documentUrl, method, args) {
 		if (e instanceof LockError) {
 			return {response: false, lockError: e.message};
 		}
+		throw e;
 	}
 	return Object.assign({response: response}, extraReturnData);
 }
