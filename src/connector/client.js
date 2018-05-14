@@ -82,7 +82,7 @@ Zotero.GoogleDocs = {
 		try {
 			var field = await client.cursorInField();
 		} catch (e) {
-			if (e.message = "Handled Lock Error") {
+			if (e.message == "Handled Lock Error") {
 				Zotero.debug('Handled Lock Error in editField()');
 				return;
 			}
