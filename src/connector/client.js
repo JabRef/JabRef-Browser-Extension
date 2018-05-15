@@ -143,16 +143,15 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	getDocument: async function() {
-		return {
-			documentID: this.documentID,
-			supportedNotes: ['footnotes']
-		}
+		return this.getActiveDocument();
 	},
 	
 	getActiveDocument: async function() {
 		return {
 			documentID: this.documentID,
-			supportedNotes: ['footnotes']
+			outputFormat: 'html',
+			supportedNotes: ['footnotes'],
+			supportsImportExport: true
 		}
 	},
 	
@@ -166,7 +165,7 @@ Zotero.GoogleDocs.Client.prototype = {
 			await this._insertField(this.queued.insert);
 		}
 		var keys = Object.keys(this.queued.fields); 
-		while (keys.length > 3) {
+		while (keys.length > 5) {
 			let batch = keys.splice(keys.length-6, 5);
 			await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
 				this.queued.insert,
@@ -197,7 +196,12 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	displayAlert: async function(text, icons, buttons) {
-		return Zotero.GoogleDocs.UI.displayAlert(text, icons, buttons);
+		var result = await Zotero.GoogleDocs.UI.displayAlert(text, icons, buttons);
+		if (buttons < 3) {
+			return result % 2;
+		} else {
+			return 3 - result;
+		}
 	},
 	
 	getFields: async function() {
@@ -365,6 +369,19 @@ Zotero.GoogleDocs.Client.prototype = {
 		}
 		await Zotero.GoogleDocs.UI.selectText(field.text, Zotero.GoogleDocs.config.fieldURL+field.id);
 	},
+	
+	importDocument: async function() {
+		return Zotero.GoogleDocs_API.run(this.documentID, 'importDocument');
+	},
+
+	exportDocument: async function() {
+		await Zotero.GoogleDocs_API.run(this.documentID, 'exportDocument');
+		var i = 0;
+		Zotero.debug(`GDocs: Clearing fields ${i++}`);
+		while (!(await Zotero.GoogleDocs_API.run(this.documentID, 'clearAllFields'))) {
+			Zotero.debug(`GDocs: Clearing fields ${i++}`)
+		}
+	}
 };
 		
 if (document.readyState !== "complete") {

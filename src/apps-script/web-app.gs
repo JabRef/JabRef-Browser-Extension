@@ -29,11 +29,13 @@ var config = {
 	fieldPrefix: "Z_F",
 	dataPrefix: "Z_D",
 	biblStylePrefix: "Z_B",
-	twipsToPoints: 0.05
+	twipsToPoints: 0.05,
+	importLinkURL: 'https://www.zotero.org/',
 };
 
 var NOTE_FOOTNOTE = 1;
 var NOTE_ENDNOTE = 2;
+var CLEAR_FIELDS_TIMEOUT = 60; //s
 
 var LOCK_NAME = "Z_LOCK";
 
@@ -60,6 +62,7 @@ function callMethod(documentUrl, method, args) {
 		if (e instanceof LockError) {
 			return {response: false, lockError: e.message};
 		}
+		e.message = e.message + "\n" + e.stack;
 		throw e;
 	}
 	return Object.assign({response: response}, extraReturnData);
@@ -383,12 +386,88 @@ exposed.insertField = function(field) {
 		error: new Error("Failed to insert field. Could not find the placeholder link.\n" + JSON.stringify(field)),
 		field: field
 		});
-		return false;
-	}
+		return false; }
 
 	var namedRanges = encodeRange(bodyRange, field.code, config.fieldPrefix+field.id);
 	return new Field(link, field.id, namedRanges, config.fieldPrefix).serialize();
 };
+
+
+exposed.exportDocument = function() {
+	// Convert fields
+	var fields = getFields();
+	fields.forEach(function(field) {
+		field.write({text: field.code});
+	});
+	var para;
+	var body = doc.getBody();
+	// Append document data
+	var docData = exposed.getDocumentData();
+	if (docData) {
+		para = body.appendParagraph("DOCUMENT_PREFERENCES " + docData);
+		para.setLinkUrl(config.fieldURL);
+	}
+	// Append bibliographical style
+
+	var biblStyle = getFields(config.biblStylePrefix)[0];
+	if (biblStyle) {
+		para = body.appendParagraph("BIBLIOGRAPHY_STYLE " + biblStyle.code);
+		para.setLinkUrl(config.fieldURL);
+	}
+}
+
+exposed.importDocument = function() {
+	// Need to insert extra paragraph in case gdocs complains that it cannot
+	// remove the last one
+	var extraPara = doc.getBody().appendParagraph('');
+	function importField(link, text) {
+		var key = randomString(config.fieldKeyLength);
+		var field = new Field(link, key, [], config.fieldPrefix);
+		field.write({code: text});
+	}
+	var importTypes = {
+		"ITEM CSL_CITATION ": importField,
+		"BIBL ": importField,
+		"BIBLIOGRAPHY_STYLE ": function(link, text) {
+			link.paragraph.removeFromParent();
+			exposed.setBibliographyStyle(text.substr("BIBLIOGRAPHY_STYLE ".length));
+		},
+		"DOCUMENT_PREFERENCES ": function(link, text) {
+			link.paragraph.removeFromParent();
+			exposed.setDocumentData(text.substr("DOCUMENT_PREFERENCES ".length));
+		},
+	}
+	var links = getAllLinks(true);
+	links.forEach(function(link) {
+		var text = link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1);
+		for (var key in importTypes) {
+			if (text.indexOf(key) == 0) {
+				return importTypes[key](link, text);
+			}
+		}
+	});
+	try {
+		extraPara.removeFromParent();
+	} catch (e) {}
+}
+
+// Specifically for exportDocument, since removing fields is slow and we need
+// to be able to batch these operations
+exposed.clearAllFields = function() {
+	var start = Date.now();
+	var fields = getFields();
+	for (var i = 0; i < fields.lenght; i++) {
+		var field = fields[i];
+		// Not calling field.unlink(), since that removes the link
+		field.namedRanges.forEach(function(namedRange) {
+			namedRange.remove();
+		});
+		// If running for over a minute, return false - there are more fields to go
+		// but we don't want the script to timeout. Current script time limit is at ~5min
+		if (Date.now - start > CLEAR_FIELDS_TIMEOUT*1000) return false;
+	}
+	return true;
+}
 
 var Field = function(link, key, namedRanges, prefix) {
 	prefix = prefix || config.fieldPrefix;
@@ -411,7 +490,6 @@ Field.prototype = {
 	 * @param field
 	 */
 	write: function(field) {
-		var range = this.namedRanges[0].getRange();
 		if (field.text) {
 			var link = this.links[this.links.length-1];
 			var startOffset = link.startOffset;
@@ -450,7 +528,7 @@ Field.prototype = {
 			this.namedRanges.forEach(function(namedRange) {
 				namedRange.remove();
 			});
-			this.namedRanges = encodeRange(range, field.code, config.fieldPrefix+this.id);
+			this.namedRanges = encodeRange(bodyRange, field.code, config.fieldPrefix+this.id);
 		}
 	},
 	
@@ -650,11 +728,7 @@ function filterFieldLinks(links) {
 }
 
 function changeFieldLinkKey(link) {
-	var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-	var newKey = '';
-	for (var i = 0; i < config.fieldKeyLength; i++) {
-		newKey += chars[Math.round(Math.random() * chars.length)];
-	}
+	var newKey = randomString(config.fieldKeyLength);
 	var attr = {};
 	attr[DocumentApp.Attribute.FOREGROUND_COLOR] = link.text.getForegroundColor(link.startOffset);
 	attr[DocumentApp.Attribute.UNDERLINE] = link.text.isUnderline(link.startOffset);
@@ -666,6 +740,15 @@ function changeFieldLinkKey(link) {
 function copyNamedRanges(ranges, oldKey, newKey) {
 	var code = decodeRanges(ranges, config.fieldPrefix + oldKey);
 	return encodeRange(bodyRange, code, config.fieldPrefix + newKey);
+}
+
+function randomString(length) {
+	var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	var str = '';
+	for (var i = 0; i < length; i++) {
+		str += chars[Math.round(Math.random() * chars.length)];
+	}
+	return str;
 }
 
 var HTMLConverter = {
@@ -692,9 +775,10 @@ var HTMLConverter = {
 		delete this.defaultAttributes[DocumentApp.Attribute.LINK_URL];
 		try {
 			if (html[0] != '<') {
-				html = "<div>" + html + "</div>";
+				var xmlDoc = XmlService.parse("<div>" + html + "</div>");
+			} else {
+				var xmlDoc = XmlService.parse(html);
 			}
-			var xmlDoc = XmlService.parse(html);
 		} catch (e) {
 			// Something's wrong. Just append.
 			this.insertElem.insertText(this.insertAt, html);
