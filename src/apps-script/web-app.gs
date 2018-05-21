@@ -407,13 +407,6 @@ exposed.exportDocument = function() {
 		para = body.appendParagraph("DOCUMENT_PREFERENCES " + docData);
 		para.setLinkUrl(config.fieldURL);
 	}
-	// Append bibliographical style
-
-	var biblStyle = getFields(config.biblStylePrefix)[0];
-	if (biblStyle) {
-		para = body.appendParagraph("BIBLIOGRAPHY_STYLE " + biblStyle.code);
-		para.setLinkUrl(config.fieldURL);
-	}
 }
 
 exposed.importDocument = function() {
@@ -421,25 +414,23 @@ exposed.importDocument = function() {
 	// remove the last one
 	var extraPara = doc.getBody().appendParagraph('');
 	function importField(link, text) {
-		var key = randomString(config.fieldKeyLength);
+		var key = changeFieldLinkKey(link);
 		var field = new Field(link, key, [], config.fieldPrefix);
 		field.write({code: text});
 	}
+	var dataImported = false;
 	var importTypes = {
 		"ITEM CSL_CITATION ": importField,
 		"BIBL ": importField,
-		"BIBLIOGRAPHY_STYLE ": function(link, text) {
-			link.paragraph.removeFromParent();
-			exposed.setBibliographyStyle(text.substr("BIBLIOGRAPHY_STYLE ".length));
-		},
 		"DOCUMENT_PREFERENCES ": function(link, text) {
+			dataImported = true;
 			link.paragraph.removeFromParent();
 			exposed.setDocumentData(text.substr("DOCUMENT_PREFERENCES ".length));
 		},
 	}
 	var links = getAllLinks(true);
 	links.forEach(function(link) {
-		var text = link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1);
+		var text = link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1).trim();
 		for (var key in importTypes) {
 			if (text.indexOf(key) == 0) {
 				return importTypes[key](link, text);
@@ -449,6 +440,7 @@ exposed.importDocument = function() {
 	try {
 		extraPara.removeFromParent();
 	} catch (e) {}
+	return true;
 }
 
 // Specifically for exportDocument, since removing fields is slow and we need
@@ -727,14 +719,14 @@ function filterFieldLinks(links) {
 	})
 }
 
-function changeFieldLinkKey(link) {
-	var newKey = randomString(config.fieldKeyLength);
+function changeFieldLinkKey(link, key) {
+	key = key || randomString(config.fieldKeyLength);
 	var attr = {};
 	attr[DocumentApp.Attribute.FOREGROUND_COLOR] = link.text.getForegroundColor(link.startOffset);
 	attr[DocumentApp.Attribute.UNDERLINE] = link.text.isUnderline(link.startOffset);
-	link.text.setLinkUrl(link.startOffset, link.endOffsetInclusive, config.fieldURL + newKey);
+	link.text.setLinkUrl(link.startOffset, link.endOffsetInclusive, config.fieldURL + key);
 	link.text.setAttributes(link.startOffset, link.endOffsetInclusive, attr);
-	return newKey;
+	return key;
 }
 
 function copyNamedRanges(ranges, oldKey, newKey) {
@@ -746,7 +738,7 @@ function randomString(length) {
 	var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	var str = '';
 	for (var i = 0; i < length; i++) {
-		str += chars[Math.round(Math.random() * chars.length)];
+		str += chars[Math.floor(Math.random() * chars.length)];
 	}
 	return str;
 }

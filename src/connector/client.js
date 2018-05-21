@@ -371,6 +371,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	importDocument: async function() {
+		delete this.fields;
 		return Zotero.GoogleDocs_API.run(this.documentID, 'importDocument');
 	},
 
