@@ -342,6 +342,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	delete: async function(fieldID) {
 		if (this.queued.insert && this.queued.insert.id == fieldID) {
 			this.queued.insert = null;
+			delete this.queued.fields[fieldID];
 			return;
 		}
 		if (!(fieldID in this.queued.fields)) {
