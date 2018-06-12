@@ -17,6 +17,7 @@ Installation and Configuration
 
 1. Make sure you have at least [JabRef 4.2](https://www.jabref.org/#downloads) installed.
 2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
+3. On Windows 7 or 8, please [Powershell update to version 5](https://www.microsoft.com/en-us/download/details.aspx?id=54616).
 
 Now you should be able to import bibliographic references into JabRef directly from your browser.
 Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox search bar (or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>).
