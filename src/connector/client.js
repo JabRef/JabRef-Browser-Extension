@@ -165,8 +165,8 @@ Zotero.GoogleDocs.Client.prototype = {
 			await this._insertField(this.queued.insert);
 		}
 		var keys = Object.keys(this.queued.fields); 
-		while (keys.length > 5) {
-			let batch = keys.splice(keys.length-6, 5);
+		while (keys.length > 2) {
+			let batch = keys.splice(keys.length-3, 2);
 			await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
 				this.queued.insert,
 				this.queued.documentData,
