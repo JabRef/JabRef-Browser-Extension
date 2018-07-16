@@ -869,9 +869,9 @@ var HTMLConverter = {
 		this.insertAt += text.length;
 		this.insertedLength += text.length;
 		
-		var setSup = modifiers['sup'];
+		var setSub = modifiers['sub'];
 		var setSuper = modifiers['super'];
-		delete modifiers['sup'];
+		delete modifiers['sub'];
 		delete modifiers['super'];
 		
 		// Applying LINK_URL changes text color and underline.
@@ -881,7 +881,7 @@ var HTMLConverter = {
 		}
 		// Need to explicitly set text alignment since there is no attribute
 		// Why, Google? Why?
-		if (setSup) {
+		if (setSub) {
 			this.insertElem.setTextAlignment(start, end, DocumentApp.TextAlignment.SUBSCRIPT);
 		} else if (setSuper) {
 			this.insertElem.setTextAlignment(start, end, DocumentApp.TextAlignment.SUPERSCRIPT);
