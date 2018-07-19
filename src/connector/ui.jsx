@@ -256,7 +256,8 @@ Zotero.GoogleDocs.UI = {
 	
 	getSelectedFieldID: function() {
 		var linkbubble = document.querySelector('.docs-bubble.docs-linkbubble-bubble');
-		if (!linkbubble || linkbubble.style.display == 'none') return null;
+		var isZoteroLink = linkbubble.children[0].innerText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
+		if (!linkbubble || linkbubble.style.display == 'none' || !isZoteroLink) return null;
 		return linkbubble.children[0].innerText.substr(Zotero.GoogleDocs.config.fieldURL.length);
 	}
 }
@@ -402,6 +403,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 					for (let node of mutation.addedNodes) {
 						if (node.classList.contains('docs-linkbubble-bubble')) {
 							observer.disconnect();
+							Zotero.GoogleDocs.UI.inLink = true;
 							return resolve(node);
 						}
 					}
