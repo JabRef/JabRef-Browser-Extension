@@ -45,6 +45,7 @@ Zotero.GoogleDocs.UI = {
 		await Zotero.Inject.loadReactComponents();
 		this.injectIntoDOM();
 		this.addKeyboardShortcuts();
+		this.interceptDownloads();
 	},
 
 	injectIntoDOM: async function () {
@@ -68,8 +69,58 @@ Zotero.GoogleDocs.UI = {
 			<Zotero.GoogleDocs.UI.LinkbubbleOverride edit={() => Zotero.GoogleDocs.editField()}/>;
 		ReactDOM.render(Zotero.GoogleDocs.UI.citationEditor, Zotero.GoogleDocs.UI.citationEditorDiv);
 	},
+	
+	interceptDownloads: async function() {
+		// Wait for the menu to be loaded (not present in the DOM until user actually tries to access it)
+		var downloadMenuItems = await new Promise(function(resolve) {
+			var xpathResult = document.evaluate(
+				'//span[@class="goog-menuitem-label" and contains(., "Microsoft Word (.docx)")]', 
+				document
+			);
+			var menuItem = xpathResult.iterateNext();
+			if (menuItem) return resolve(menuItem.parentElement.parentElement.parentElement.childNodes);
+			var observer = new MutationObserver(function(mutations) {
+				for (let mutation of mutations) {
+					for (let node of mutation.addedNodes) {
+						if (node.textContent.includes("Microsoft Word (.docx)")) {
+							observer.disconnect();
+							return resolve(node.childNodes);
+						}
+					}
+				}
+			});
+			observer.observe(document.body, {childList: true});
+		});
+		let i = 0;
+		for (let elem of downloadMenuItems) {
+			// Does not apply to .txt format
+			if (i == 4) continue;
+			elem.addEventListener('mouseup', async function(event) {
+				if (!Zotero.GoogleDocs.hasZoteroLinks || Zotero.GoogleDocs.downloadIntercepted) return;
+				Zotero.GoogleDocs.downloadIntercepted = true;
+				event.stopImmediatePropagation();
+				event.preventDefault();
+				let result = await Zotero.GoogleDocs.UI.displayAlert([
+					"This document contains Zotero citations, which will appear as text with links to ",
+					`<a href="#">${Zotero.GoogleDocs.config.fieldURL}xxxxxx</a>`,
+					" if you download the document in this format. ",
+					"To download the document without citation links:\n",
+					"1. Make a copy\n",
+					"2. Select Zotero -> Unlink Citations\n",
+					"3. Download the document\n\n",
+					
+					
+					"Would you like to download the file anyway?"
+				].join(''), 0, 2);
+				if (result == 1) {
+					Zotero.GoogleDocs.UI.clickElement(elem);
+				}
+			});
+			i++;
+		}
+	},
 
-	addKeyboardShortcuts: async function() {
+	addKeyboardShortcuts: function() {
 		var modifiers = {ctrlKey: true, altKey: true};
 		if (Zotero.isMac) {
 			modifiers = {metaKey: true, ctrlKey: true};
@@ -417,6 +468,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		if (!this.state.open) {
 			return <div></div>
 		}
+		Zotero.GoogleDocs.hasZoteroLinks = true;
 		
 		var top;
 		// If we click away from the link and then on it again, google docs don't update the linkbubble

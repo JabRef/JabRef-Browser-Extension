@@ -42,6 +42,9 @@ Zotero.GoogleDocs = {
 	},
 	clients: {},
 
+	hasZoteroLinks: false,
+	downloadIntercepted: false,
+
 	name: "Zotero Google Docs Plugin",
 	
 	init: async function() {
@@ -359,6 +362,9 @@ Zotero.GoogleDocs.Client.prototype = {
 			this.queued.fields[fieldID] = {id: fieldID};
 		}
 		this.queued.fields[fieldID].removeCode = true;
+		// This call is a part of Unlink Citations, which means that
+		// after this there will be no more Zotero links in the file
+		Zotero.GoogleDocs.hasZoteroLinks = false;
 	},
 	
 	select: async function(fieldID) {
