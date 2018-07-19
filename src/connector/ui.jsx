@@ -362,11 +362,21 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		this.lastTop = "";
 		let style = this.linkbubble.style;
 		let open = style.display != 'none';
-		this.setState({open});
+		let url = this.linkbubble.children[0].innerText;
+		// Check if on zotero field link
+		if (url.includes(Zotero.GoogleDocs.config.fieldURL)) {
+			this.setState({open});
+		}
 		
 		this.observer = new MutationObserver(function(mutations) {
 			for (let mutation of mutations) {
 				if (mutation.attributeName != 'style') continue;
+
+				let url = this.linkbubble.children[0].innerText;
+				// Check if on zotero field link
+				if (!url.includes(Zotero.GoogleDocs.config.fieldURL)) {
+					return this.setState({open: false});
+				}
 				
 				let style = this.linkbubble.style;
 				let open = style.display != 'none';
@@ -376,12 +386,6 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 				// This is us moving the linkbubble away from view
 				if (this.state.open == open &&
 					style.top == '-100000px') return;
-				
-				let url = this.linkbubble.children[0].innerText;
-				// Check if on zotero field link
-				if (!url.includes(Zotero.GoogleDocs.config.fieldURL)) {
-					return this.setState({open: false});
-				}
 				
 				return this.setState({open});
 			}
