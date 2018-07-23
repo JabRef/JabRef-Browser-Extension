@@ -339,6 +339,19 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (!(fieldID in this.queued.fields)) {
 			this.queued.fields[fieldID] = {id: fieldID};
 		}
+		// The speed of updates is highly dependend on the size of
+		// field codes. There are a few citation styles that require
+		// the abstract field, but they are not many and the speed
+		// improvement is worth the sacrifice. The users who need to
+		// use the styles that require the abstract field will have to
+		// cite items from a common group library.
+		var startJSON = code.indexOf('{');
+		var endJSON = code.lastIndexOf('}');
+		var json = JSON.parse(code.substring(startJSON, endJSON+1));
+		for (let i = 0; i < json.citationItems.length; i++) {
+			delete json.citationItems[i].itemData.abstract;
+		}
+		code = code.substring(0, startJSON) + JSON.stringify(json) + code.substring(endJSON+1);
 		this.queued.fields[fieldID].code = code;
 	},
 	
