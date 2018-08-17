@@ -307,8 +307,10 @@ Zotero.GoogleDocs.UI = {
 	
 	getSelectedFieldID: function() {
 		var linkbubble = document.querySelector('.docs-bubble.docs-linkbubble-bubble');
+		if (!linkbubble) return null;
 		var isZoteroLink = linkbubble.children[0].innerText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
-		if (!linkbubble || linkbubble.style.display == 'none' || !isZoteroLink) return null;
+		var isLinkbubbleVisible = linkbubble.style.display == 'none';
+		if (isLinkbubbleVisible || !isZoteroLink) return null;
 		return linkbubble.children[0].innerText.substr(Zotero.GoogleDocs.config.fieldURL.length);
 	}
 }
