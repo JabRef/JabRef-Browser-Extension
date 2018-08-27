@@ -93,8 +93,7 @@ Zotero.GoogleDocs.UI = {
 		});
 		let i = 0;
 		for (let elem of downloadMenuItems) {
-			// Does not apply to .txt format
-			if (i == 4) continue;
+			if (elem.textContent.includes('.txt')) continue;
 			elem.addEventListener('mouseup', async function(event) {
 				if (!Zotero.GoogleDocs.hasZoteroLinks || Zotero.GoogleDocs.downloadIntercepted) return;
 				Zotero.GoogleDocs.downloadIntercepted = true;
