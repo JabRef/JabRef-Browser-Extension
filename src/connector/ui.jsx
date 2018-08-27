@@ -99,18 +99,19 @@ Zotero.GoogleDocs.UI = {
 				Zotero.GoogleDocs.downloadIntercepted = true;
 				event.stopImmediatePropagation();
 				event.preventDefault();
-				let result = await Zotero.GoogleDocs.UI.displayAlert([
-					"This document contains Zotero citations, which will appear as text with links to ",
-					`<a href="#">${Zotero.GoogleDocs.config.fieldURL}xxxxxx</a>`,
-					" if you download the document in this format. ",
-					"To download the document without citation links:\n",
-					"1. Make a copy\n",
-					"2. Select Zotero -> Unlink Citations\n",
-					"3. Download the document\n\n",
-					
-					
-					"Would you like to download the file anyway?"
-				].join(''), 0, 2);
+				
+				let options = {
+					title: Zotero.getString('general_warning'),
+					button1Text: Zotero.getString('integration_googleDocs_unlinkBeforeSaving_downloadAnyway'),
+					button2Text: Zotero.getString('general_cancel')
+				};
+				let msg = [
+					Zotero.getString('integration_googleDocs_unlinkBeforeSaving_warning'),
+					'\n\n',
+					Zotero.getString('integration_googleDocs_unlinkBeforeSaving_instructions')
+				].join('');
+				
+				let result = await Zotero.GoogleDocs.UI.displayAlert(msg, 0, options);
 				if (result == 1) {
 					Zotero.GoogleDocs.UI.clickElement(elem);
 				}
@@ -137,9 +138,9 @@ Zotero.GoogleDocs.UI = {
 		}
 	},
 	
-	displayAlert: async function(text, icons, buttons) {
-		var options;
-		switch(buttons) {
+	displayAlert: async function (text, icons, options = 0) {
+		if (typeof options == 'number') {
+			switch (options) {
 			case 0:
 				options = {
 					button1Text: 'OK',
@@ -165,8 +166,11 @@ Zotero.GoogleDocs.UI = {
 					button3Text: 'Cancel'
 				};
 				break;
+			}
 		}
-		options.title = "Zotero";
+		if (!options.title) {
+			options.title = "Zotero";
+		}
 		options.message = text.replace(/\n/g, '<br/>');
 		
 		let result = await Zotero.Inject.confirm(options);
