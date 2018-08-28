@@ -95,8 +95,7 @@ Zotero.GoogleDocs.UI = {
 		for (let elem of downloadMenuItems) {
 			if (elem.textContent.includes('.txt')) continue;
 			elem.addEventListener('mouseup', async function(event) {
-				if (!Zotero.GoogleDocs.hasZoteroLinks || Zotero.GoogleDocs.downloadIntercepted) return;
-				Zotero.GoogleDocs.downloadIntercepted = true;
+				if (!Zotero.GoogleDocs.hasZoteroLinks) return;
 				event.stopImmediatePropagation();
 				event.preventDefault();
 				
