@@ -99,19 +99,20 @@ Zotero.GoogleDocs.UI = {
 				event.stopImmediatePropagation();
 				event.preventDefault();
 				
-				let options = {
-					title: Zotero.getString('general_warning'),
-					button1Text: Zotero.getString('integration_googleDocs_unlinkBeforeSaving_downloadAnyway'),
-					button2Text: Zotero.getString('general_cancel')
-				};
 				let msg = [
 					Zotero.getString('integration_googleDocs_unlinkBeforeSaving_warning'),
 					'\n\n',
 					Zotero.getString('integration_googleDocs_unlinkBeforeSaving_instructions')
 				].join('');
-				
-				let result = await Zotero.GoogleDocs.UI.displayAlert(msg, 0, options);
-				if (result == 1) {
+				let options = {
+					title: Zotero.getString('general_warning'),
+					button1Text: Zotero.getString('integration_googleDocs_unlinkBeforeSaving_downloadAnyway'),
+					button2Text: Zotero.getString('general_cancel'),
+					message: msg.replace(/\n/g, '<br/>')
+				};
+
+				let result = await Zotero.Inject.confirm(options);
+				if (result.button == 1) {
 					Zotero.GoogleDocs.UI.clickElement(elem);
 				}
 			});
