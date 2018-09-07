@@ -347,12 +347,14 @@ Zotero.GoogleDocs.Client.prototype = {
 		// cite items from a common group library.
 		var startJSON = code.indexOf('{');
 		var endJSON = code.lastIndexOf('}');
-		var json = JSON.parse(code.substring(startJSON, endJSON+1));
-		if (json.citationItems) {
-			for (let i = 0; i < json.citationItems.length; i++) {
-				delete json.citationItems[i].itemData.abstract;
+		if (startJSON != -1 && endJSON != -1) {
+			var json = JSON.parse(code.substring(startJSON, endJSON+1));
+			if (json.citationItems) {
+				for (let i = 0; i < json.citationItems.length; i++) {
+					delete json.citationItems[i].itemData.abstract;
+				}
+				code = code.substring(0, startJSON) + JSON.stringify(json) + code.substring(endJSON+1);
 			}
-			code = code.substring(0, startJSON) + JSON.stringify(json) + code.substring(endJSON+1);
 		}
 		this.queued.fields[fieldID].code = code;
 	},
