@@ -766,7 +766,7 @@ var HTMLConverter = {
 		// Preserve link
 		delete this.defaultAttributes[DocumentApp.Attribute.LINK_URL];
 		try {
-			if (html[0] != '<') {
+			if (html[0] != '<' || html[html.length-1] != '>') {
 				var xmlDoc = XmlService.parse("<div>" + html + "</div>");
 			} else {
 				var xmlDoc = XmlService.parse(html);
