@@ -29,6 +29,7 @@ Zotero.GoogleDocs.API = {
 	authDeferred: null,
 	authHeaders: null,
 	lastAuthEmail: null,
+	apiVersion: 1,
 
 	getAuthHeaders: async function() {
 		if (Zotero.GoogleDocs.API.authHeaders) {
@@ -115,7 +116,7 @@ Zotero.GoogleDocs.API = {
 		headers["Content-Type"] = "application/json";
 		var body = {
 			function: 'callMethod',
-			parameters: [docID, method, args],
+			parameters: [docID, method, args, Zotero.GoogleDocs.API.apiVersion],
 			devMode: ZOTERO_CONFIG.GOOGLE_DOCS_DEV_MODE
 		};
 		try {

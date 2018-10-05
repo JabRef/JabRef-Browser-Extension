@@ -26,6 +26,7 @@ var config = {
 	fieldURL: 'https://www.zotero.org/google-docs/?',
 	fieldKeyLength: 6,
 	citationPlaceholder: "{Updating}",
+	fieldIndexPlaceholder: "{Processing}",
 	fieldPrefix: "Z_F",
 	dataPrefix: "Z_D",
 	biblStylePrefix: "Z_B",
@@ -39,11 +40,11 @@ var CLEAR_FIELDS_TIMEOUT = 60; //s
 
 var LOCK_NAME = "Z_LOCK";
 
-var doc, bodyRange;
-var docUrl;
+var doc, bodyRange, docUrl, insertIdx, apiVersion = 0;
 var extraReturnData = {};
 
-function callMethod(documentUrl, method, args) {
+function callMethod(documentUrl, method, args, apiVers) {
+	apiVersion = apiVers;
 	docUrl = documentUrl;
 	doc = DocumentApp.openById(documentUrl);
 	if (checkIfLocked() && method != 'unlockTheDoc') {
@@ -89,7 +90,7 @@ function getFields(prefix) {
 	});
 	var fields = [];
 	if (isField) {
-		filterFieldLinks(getAllLinks()).forEach(function(link) {
+		filterFieldLinks(getAllLinks()).forEach(function(link, idx) {
 			var key = link.url.substr(config.fieldURL.length, config.fieldKeyLength);
 			if (rangeFields[key]) {
 				var field;
@@ -112,6 +113,9 @@ function getFields(prefix) {
 					rangeFields[key].exists = field;
 				}
 				fields.push(field);
+			} else if (link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1) == config.fieldIndexPlaceholder) {
+				link.text.deleteText(link.startOffset, link.endOffsetInclusive);
+				insertIdx = idx;
 			} else if (key) {
 				// Unlink orphaned links
 				link.text.setLinkUrl(link.startOffset, link.endOffsetInclusive, null);
@@ -316,9 +320,13 @@ exposed.unlockTheDoc = function() {
 
 exposed.getFields = function () {
 	var fields = getFields();
-	return fields.map(function(field) {
+	fields = fields.map(function(field) {
 		return field.serialize();
 	});
+	if (apiVersion > 0 && typeof insertIdx == 'number') {
+		fields = fields.slice(0, insertIdx).concat([-1], fields.slice(insertIdx));
+	}
+	return fields;
 };
 
 exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle) {
