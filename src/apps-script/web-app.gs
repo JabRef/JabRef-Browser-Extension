@@ -26,7 +26,6 @@ var config = {
 	fieldURL: 'https://www.zotero.org/google-docs/?',
 	fieldKeyLength: 6,
 	citationPlaceholder: "{Updating}",
-	fieldIndexPlaceholder: "{Processing}",
 	fieldPrefix: "Z_F",
 	dataPrefix: "Z_D",
 	biblStylePrefix: "Z_B",
@@ -69,7 +68,7 @@ function callMethod(documentUrl, method, args, apiVers) {
 	return Object.assign({response: response}, extraReturnData);
 }
 
-function getFields(prefix) {
+function getFields(prefix, removePlaceholder) {
 	var rangeFields = {};
 	prefix = prefix || config.fieldPrefix;
 	var isField = config.fieldPrefix == prefix;
@@ -113,8 +112,10 @@ function getFields(prefix) {
 					rangeFields[key].exists = field;
 				}
 				fields.push(field);
-			} else if (link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1) == config.fieldIndexPlaceholder) {
-				link.text.deleteText(link.startOffset, link.endOffsetInclusive);
+			} else if (link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1) == config.citationPlaceholder) {
+				if (removePlaceholder) {
+					link.text.deleteText(link.startOffset, link.endOffsetInclusive);
+				}
 				insertIdx = idx;
 			} else if (key) {
 				// Unlink orphaned links
@@ -329,7 +330,7 @@ exposed.getFields = function () {
 	return fields;
 };
 
-exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle) {
+exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle, deletePlaceholder) {
 	lockTheDoc();
 	try {
 		if (insert) {
@@ -342,7 +343,7 @@ exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle) {
 			exposed.setBibliographyStyle(JSON.stringify(bibliographyStyle));
 		}
 
-		var fields = getFields();
+		var fields = getFields(config.fieldPrefix, deletePlaceholder);
 		var fieldMap = {};
 		fields.forEach(function(field) {
 			fieldMap[field.id] = field;

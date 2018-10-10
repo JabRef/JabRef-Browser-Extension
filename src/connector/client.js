@@ -37,7 +37,6 @@ Zotero.GoogleDocs = {
 		fieldURL: 'https://www.zotero.org/google-docs/?',
 		fieldKeyLength: 6,
 		citationPlaceholder: "{Updating}",
-		fieldIndexPlaceholder: "{Processing}",
 		fieldPrefix: "Z_F",
 		dataPrefix: "Z_D"
 	},
@@ -165,9 +164,6 @@ Zotero.GoogleDocs.Client.prototype = {
 	
 	setDocumentData: async function(data) {
 		this.queued.documentData = data;
-		if (this.queued.insert) {
-			await this._insertField(this.queued.insert);
-		}
 		var keys = Object.keys(this.queued.fields); 
 		while (keys.length > 2) {
 			let batch = keys.splice(keys.length-3, 2);
@@ -185,7 +181,8 @@ Zotero.GoogleDocs.Client.prototype = {
 			this.queued.insert,
 			this.queued.documentData,
 			keys.map(key => this.queued.fields[key]),
-			this.queued.bibliographyStyle
+			this.queued.bibliographyStyle,
+			this.queued.deletePlaceholder
 		]);
 	},
 	
@@ -252,6 +249,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		var id = Zotero.Utilities.randomString(Zotero.GoogleDocs.config.fieldKeyLength);
 		var field = {text: Zotero.GoogleDocs.config.citationPlaceholder, code: '{}', id, noteType};
 		this.queued.insert = field;
+		await this._insertField(field);
 		return field;
 	},
 
@@ -388,6 +386,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (this.queued.insert && this.queued.insert.id == fieldID) {
 			this.queued.insert = null;
 			delete this.queued.fields[fieldID];
+			this.queued.deletePlaceholder = true;
 			return;
 		}
 		if (!(fieldID in this.queued.fields)) {
