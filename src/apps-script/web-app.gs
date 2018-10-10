@@ -26,6 +26,7 @@ var config = {
 	fieldURL: 'https://www.zotero.org/google-docs/?',
 	fieldKeyLength: 6,
 	citationPlaceholder: "{Updating}",
+	fieldIndexPlaceholder: "{Processing}",
 	fieldPrefix: "Z_F",
 	dataPrefix: "Z_D",
 	biblStylePrefix: "Z_B",
@@ -116,6 +117,10 @@ function getFields(prefix, removePlaceholder) {
 				if (removePlaceholder) {
 					link.text.deleteText(link.startOffset, link.endOffsetInclusive);
 				}
+				insertIdx = idx;
+			// NOTE: Remove once connectors upgraded to api version 2
+			} else if (link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1) == config.fieldIndexPlaceholder) {
+				link.text.deleteText(link.startOffset, link.endOffsetInclusive);
 				insertIdx = idx;
 			} else if (key) {
 				// Unlink orphaned links

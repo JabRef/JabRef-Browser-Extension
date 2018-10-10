@@ -29,7 +29,7 @@ Zotero.GoogleDocs.API = {
 	authDeferred: null,
 	authHeaders: null,
 	lastAuthEmail: null,
-	apiVersion: 1,
+	apiVersion: 2,
 
 	getAuthHeaders: async function() {
 		if (Zotero.GoogleDocs.API.authHeaders) {
