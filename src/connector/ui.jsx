@@ -300,6 +300,7 @@ Zotero.GoogleDocs.UI = {
 		var urlInput = document.getElementsByClassName('docs-link-urlinput-url')[0];
 		urlInput.value = url;
 		urlInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
+		await Zotero.Promise.delay();
 		await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
 	},
 	
