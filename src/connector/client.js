@@ -208,19 +208,13 @@ Zotero.GoogleDocs.Client.prototype = {
 	getFields: async function() {
 		if (this.fields) {
 			let fields = this.fields;
-			if (this.insertIdx && this.queued.insert) {
+			if (typeof this.insertIdx == 'number' && this.queued.insert) {
 				fields = fields.slice(0, this.insertIdx).concat([this.queued.insert],
 					fields.slice(this.insertIdx));
 			}
 			return fields;
 		}
 
-		if (await this.canInsertField()) {
-			await this._insertField({
-				id: 'processing'.substr(0, Zotero.GoogleDocs.config.fieldKeyLength),
-				text: Zotero.GoogleDocs.config.fieldIndexPlaceholder
-			});
-		}
 		this.fields = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', Array.from(arguments));
 		let i = 0;
 		for (let field of this.fields) {
@@ -230,7 +224,7 @@ Zotero.GoogleDocs.Client.prototype = {
 			}
 			i++;
 		}
-		if (this.insertIdx) {
+		if (typeof this.insertIdx == 'number') {
 			this.fields.splice(this.insertIdx, 1);
 		}
 		return this.getFields();
