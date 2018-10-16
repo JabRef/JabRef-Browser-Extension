@@ -46,6 +46,7 @@ Zotero.GoogleDocs.UI = {
 		this.injectIntoDOM();
 		this.addKeyboardShortcuts();
 		this.interceptDownloads();
+		this.initModeMonitor();
 	},
 
 	injectIntoDOM: async function () {
@@ -59,7 +60,10 @@ Zotero.GoogleDocs.UI = {
 		ReactDOM.render(Zotero.GoogleDocs.UI.menu, Zotero.GoogleDocs.UI.menuDiv);
 		
 		// The Zotero button
-		document.querySelector('#zoteroAddEditCitation').addEventListener('click', () => Zotero.GoogleDocs.execCommand('addEditCitation'));
+		Zotero.GoogleDocs.UI.button = document.querySelector('#zoteroAddEditCitation');
+		Zotero.GoogleDocs.UI.button.addEventListener('click', () => {
+			Zotero.GoogleDocs.UI.enabled && Zotero.GoogleDocs.execCommand('addEditCitation')
+		});
 		
 		// CitationEditor - link bubble observer
 		Zotero.GoogleDocs.UI.citationEditorDiv = document.createElement('div');
@@ -117,6 +121,62 @@ Zotero.GoogleDocs.UI = {
 				}
 			});
 			i++;
+		}
+	},
+	
+	initModeMonitor: async function() {
+		await new Promise(function(resolve) {
+			if (!!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img')) return resolve();
+			var observer = new MutationObserver(function(mutations) {
+				if (!!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img')) {
+					observer.disconnect();
+					return resolve();
+				}
+			});
+			observer.observe(document.querySelector('#docs-toolbar-mode-switcher'), {attributes: true});
+		});
+	
+		this.modeObserver = new MutationObserver(function(mutations) {
+			let inWritingMode = !!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img');
+			if (this.enabled != inWritingMode) {
+				this.toggleEnabled(inWritingMode);
+			}
+		}.bind(this));
+		this.modeObserver.observe(document.querySelector('#docs-toolbar-mode-switcher'), {attributes: true});
+		this.toggleEnabled(!!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img'));
+	},
+	
+	toggleEnabled: function(state) {
+		if (!state) state = !this.enabled;
+		this.enabled = state;
+		
+		if (!state) {
+			this.menubutton.classList.add('goog-control-disabled');
+			this._menubuttonHoverRemoveObserver = new MutationObserver(function() {
+				if (this.menubutton.classList.contains('goog-control-hover')) {
+					this.menubutton.classList.remove('goog-control-hover');
+				}
+				if (this.menubutton.classList.contains('goog-control-open')) {
+					this.menubutton.classList.remove('goog-control-open');
+				}
+			}.bind(this));
+			this._menubuttonHoverRemoveObserver.observe(this.menubutton, {attributes: true});
+			
+			this.button.classList.add('goog-toolbar-button-disabled');
+			this._buttonHoverRemoveObserver = new MutationObserver(function() {
+				if (this.button.classList.contains('goog-toolbar-button-hover')) {
+					this.button.classList.remove('goog-toolbar-button-hover');
+				}
+			}.bind(this));
+			this._buttonHoverRemoveObserver.observe(this.button, {attributes: true});
+		} else {
+			this.menubutton.classList.remove('goog-control-disabled');
+			this.button.classList.remove('goog-toolbar-button-disabled');
+			if (this._menubuttonHoverRemoveObserver) {
+				this._menubuttonHoverRemoveObserver.disconnect();
+				this._buttonHoverRemoveObserver.disconnect();
+				delete this._menubuttonHoverRemoveObserver;
+			}
 		}
 	},
 
@@ -331,6 +391,9 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			display: this.state.open ? 'block' : 'none',
 			top: `${rect.top+rect.height}px`, left: `${rect.left}px`,
 		};
+		if (!Zotero.GoogleDocs.UI.enabled) {
+			style.display = 'none';
+		}
 		
 		// Hide the menu that gdocs governs - we display our own.
 		if (this.state.open) {
@@ -366,7 +429,6 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 					mutation.target.classList.contains('goog-control-open') == this.state.open) continue;
 				let open = mutation.target.classList.contains('goog-control-open');
 				this.setState({open});
-				break;
 			}
 		}.bind(this));
 		this.observer.observe(Zotero.GoogleDocs.UI.menubutton, {attributes: true});
@@ -477,8 +539,8 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		Zotero.GoogleDocs.hasZoteroLinks = true;
 		
 		var top;
-		// If we click away from the link and then on it again, google docs don't update the linkbubble
-		// top position so we need to store it manually
+		// If we click away from the link and then on it again, google docs doesn't update
+		// the linkbubble top position so we need to store it manually
 		if (this.linkbubble.style.top == '-100000px') {
 			top = this.lastTop;
 		} else {
@@ -486,6 +548,11 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 			this.linkbubble.style.top = "-100000px";
 		}
 		var style = {left: this.linkbubble.style.left, top};
+		// If plugin disabled we still don't want to show the linkbubble for Zotero citations,
+		// but we don't want to show the Edit with Zotero linkbubble either.
+		if (!Zotero.GoogleDocs.UI.enabled) {
+			style.display = 'none';
+		}
 		var shortcut = 'Ctrl+Alt+C';
 		if (Zotero.isMac) {
 			shortcut = 'Ctrl+⌘C';
