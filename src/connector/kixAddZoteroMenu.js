@@ -59,7 +59,7 @@ function addToolbarButton(toolbar) {
 	}
 	var shortcut = 'Ctrl+Alt+C';
 	if (Zotero.isMac) {
-		shortcut = '⌘+Option+C';
+		shortcut = 'Ctrl+⌘C';
 	}
 	var docsMoreButton = document.querySelector('#docs-primary-toolbars #docs-toolbar #moreButton');
 	templateElem = document.createElement('template');
