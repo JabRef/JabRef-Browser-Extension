@@ -38,7 +38,8 @@ Zotero.GoogleDocs = {
 		fieldKeyLength: 6,
 		citationPlaceholder: "{Updating}",
 		fieldPrefix: "Z_F",
-		dataPrefix: "Z_D"
+		dataPrefix: "Z_D",
+		updateBatchSize: 5,
 	},
 	clients: {},
 
@@ -165,8 +166,9 @@ Zotero.GoogleDocs.Client.prototype = {
 	setDocumentData: async function(data) {
 		this.queued.documentData = data;
 		var keys = Object.keys(this.queued.fields); 
-		while (keys.length > 2) {
-			let batch = keys.splice(keys.length-3, 2);
+		let batchSize = Zotero.GoogleDocs.config.updateBatchSize;
+		while (keys.length > batchSize) {
+			let batch = keys.splice(keys.length-batchSize-1, batchSize);
 			await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
 				this.queued.insert,
 				this.queued.documentData,
