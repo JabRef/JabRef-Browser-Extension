@@ -405,7 +405,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			}
 		}
 		
-		var modifiers = 'Ctrl+Alt';
+		var modifiers = 'Ctrl+Alt+';
 		if (Zotero.isMac) {
 			modifiers = 'Ctrl+⌘';
 		}
@@ -413,7 +413,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
 				style={style}>
-				<Zotero.GoogleDocs.UI.Menu.Item label="Add/Edit Citation" handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={`${modifiers}+C`} />
+				<Zotero.GoogleDocs.UI.Menu.Item label="Add/Edit Citation" handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={`${modifiers}C`} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Add/Edit Bibliography" handleClick={this.props.execCommand.bind(this, 'addEditBibliography', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Preferences" handleClick={this.props.execCommand.bind(this, 'setDocPrefs', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" handleClick={this.props.execCommand.bind(this, 'refresh', null)} />
