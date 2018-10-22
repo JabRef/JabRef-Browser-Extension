@@ -100,6 +100,10 @@ Zotero.GoogleDocs.UI = {
 			if (elem.textContent.includes('.txt')) continue;
 			elem.addEventListener('mouseup', async function(event) {
 				if (!Zotero.GoogleDocs.hasZoteroLinks) return;
+				if (Zotero.GoogleDocs.UI.dontInterceptDownload) {
+					Zotero.GoogleDocs.UI.dontInterceptDownload = false;
+					return;
+				}
 				event.stopImmediatePropagation();
 				event.preventDefault();
 				
@@ -117,6 +121,7 @@ Zotero.GoogleDocs.UI = {
 
 				let result = await Zotero.Inject.confirm(options);
 				if (result.button == 1) {
+					Zotero.GoogleDocs.UI.dontInterceptDownload = true;
 					Zotero.GoogleDocs.UI.clickElement(elem);
 				}
 			});
