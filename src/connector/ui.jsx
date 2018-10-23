@@ -352,8 +352,10 @@ Zotero.GoogleDocs.UI = {
 		}
 		await Zotero.GoogleDocs.UI.sendKeyboardEvent(insertFootnoteKbEvent);
 		// Somehow the simulated footnote shortcut inserts an "F" at the start of the footnote.
-		// Why though?
-		await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
+		// But not on a mac. Why? Why not on a Mac?
+		if (!Zotero.isMac) {
+			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
+		}
 	},
 	
 	insertLink: async function(text, url) {
