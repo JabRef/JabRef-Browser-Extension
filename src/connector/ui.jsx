@@ -197,8 +197,8 @@ Zotero.GoogleDocs.UI = {
 	activate: async function(force) {
 		await Zotero.Connector_Browser.bringToFront(true);
 		if (force && ! document.hasFocus()) {
-			await this.displayAlert("Zotero plugin cannot work without the Google Docs tab and browser window active. " +
-			 	"Please do not switch away from the window until the operation is complete.", 0, 0);
+			await this.displayAlert("Zotero needs the Google Docs tab to stay active for the current operation. " +
+				"Please do not switch away from the window until the operation is complete.", 0, 0);
 			return this.activate(force);
 		}
 	},
