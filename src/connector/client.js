@@ -331,6 +331,10 @@ Zotero.GoogleDocs.Client.prototype = {
 				// Might have to think about shading the screen with a note like "Zotero is working"
 				// or something. On the other hand conversions should be relatively rare, so this is not a priority.
 				
+				Zotero.GoogleDocs.UI.activate(true, "Zotero will now update your document and " +
+					"needs the Google Docs tab to stay active. " +
+					"Please do not switch away from the browser until the operation is complete.");
+				
 				for (let i = 0; i < fieldIDs.length; i++) {
 					let noteType = fieldNoteTypes[i];
 					if (noteType > 0) {

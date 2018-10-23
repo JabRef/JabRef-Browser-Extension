@@ -195,11 +195,12 @@ Zotero.GoogleDocs.UI = {
 		Zotero.Inject.addKeyboardShortcut(Object.assign({key: 'c'}, modifiers), Zotero.GoogleDocs.editField, textEventTarget);
 	},
 	
-	activate: async function(force) {
+	activate: async function(force, message) {
+		message = message || "Zotero needs the Google Docs tab to stay active for the current operation. " +
+				"Please do not switch away from the browser until the operation is complete.";
 		await Zotero.Connector_Browser.bringToFront(true);
 		if (force && ! document.hasFocus()) {
-			await this.displayAlert("Zotero needs the Google Docs tab to stay active for the current operation. " +
-				"Please do not switch away from the window until the operation is complete.", 0, 0);
+			await this.displayAlert(message, 0, 0);
 			return this.activate(force);
 		}
 	},
