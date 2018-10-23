@@ -211,7 +211,16 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (this.fields) {
 			let fields = this.fields;
 			if (typeof this.insertIdx == 'number' && this.queued.insert) {
-				fields = fields.slice(0, this.insertIdx).concat([this.queued.insert],
+				let prevField = this.fields[this.insertIdx-1];
+				let nextField = this.fields[this.insertIdx];
+				let noteIndex = 1;
+				if (prevField) {
+					noteIndex = prevField.noteIndex+1;
+				} else if (nextField) {
+					noteIndex = nextField.noteIndex-1;
+				}
+				let insert = Object.assign({noteIndex}, this.queued.insert);
+				fields = fields.slice(0, this.insertIdx).concat([insert],
 					fields.slice(this.insertIdx));
 			}
 			return fields;

@@ -608,8 +608,9 @@ function getAllLinks(mergeAdjacent) {
 	if (links.length) return links;
 	
 	if (mergeAdjacent == undefined) mergeAdjacent = true;
+	var footnoteIndex = 0;
 
-	iterateSections(doc, function(section, sectionIndex, isFirstPageSection, footnoteIndex) {
+	iterateSections(doc, function iterateSection(section, sectionIndex, isFirstPageSection, footnote) {
 		if (!("getParagraphs" in section)) {
 			// as we're using some undocumented API, adding this to avoid cryptic
 			// messages upon possible API changes.
@@ -628,7 +629,12 @@ function getAllLinks(mergeAdjacent) {
 
 			// go over all text elements in paragraph / list-item
 			for (var el=par.getChild(0); el!=null; el=el.getNextSibling()) {
-				if (el.getType() != DocumentApp.ElementType.TEXT) {
+				if (el.getType() == DocumentApp.ElementType.FOOTNOTE) {
+					var sect = el.asFootnote().getFootnoteContents();
+					footnoteIndex++;
+					iterateSection(sect, -1, false, true);
+					continue;
+				} else if (el.getType() != DocumentApp.ElementType.TEXT) {
 					continue;
 				}
 
@@ -659,7 +665,7 @@ function getAllLinks(mergeAdjacent) {
 							startOffset: startOffset,
 							endOffsetInclusive: endOffsetInclusive,
 							url: url,
-							footnoteIndex: footnoteIndex
+							footnoteIndex: footnote ? footnoteIndex : 0
 						};
 
 						links.push(lastLink);
@@ -698,7 +704,6 @@ function iterateSections(doc, func) {
 	var regularFooterSectionIndex = (doc.getFooter() == null? -1 : 
 																	 docEl.getChildIndex(doc.getFooter()));
 
-	var footnoteIndex = 1;
 	for (var i=0; i<docEl.getNumChildren(); ++i) {
 		var section = docEl.getChild(i);
 
@@ -710,11 +715,9 @@ function iterateSections(doc, func) {
 			(sectionType == DocumentApp.ElementType.HEADER_SECTION ||
 			 sectionType == DocumentApp.ElementType.FOOTER_SECTION));
 
-		if (section.getType() == DocumentApp.ElementType.FOOTNOTE_SECTION) {
-			func(section, i, isFirstPageSection, footnoteIndex);
-			footnoteIndex++;
-		} else {
-			func(section, i, isFirstPageSection, 0);
+		// Footnotes are checked when going over the body of the doc
+		if (section.getType() != DocumentApp.ElementType.FOOTNOTE_SECTION) {
+			func(section, i, isFirstPageSection);
 		}
 	}
 }
