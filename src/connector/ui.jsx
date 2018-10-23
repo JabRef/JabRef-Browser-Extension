@@ -40,6 +40,7 @@ if (!isTopWindow) return;
  */
 Zotero.GoogleDocs.UI = {
 	inLink: false,
+	enabled: true,
 
 	init: async function () {
 		await Zotero.Inject.loadReactComponents();
