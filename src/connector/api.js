@@ -29,7 +29,12 @@ Zotero.GoogleDocs.API = {
 	authDeferred: null,
 	authHeaders: null,
 	lastAuthEmail: null,
-	apiVersion: 2,
+	apiVersion: 3,
+	
+	resetAuth: function() {
+		delete this.authHeaders;
+		delete this.lastAuthEmail;
+	},
 
 	getAuthHeaders: async function() {
 		if (Zotero.GoogleDocs.API.authHeaders) {
@@ -124,6 +129,7 @@ Zotero.GoogleDocs.API = {
 				{headers, body, timeout: null});
 		} catch (e) {
 			if (e.status >= 400 && e.status < 500) {
+				this.resetAuth();
 				throw new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
 			} else {
 				throw e;
@@ -134,7 +140,7 @@ Zotero.GoogleDocs.API = {
 		if (responseJSON.error) {
 			// For some reason, sometimes the still valid auth token starts being rejected
 			if (responseJSON.error.details[0].errorMessage == "Authorization is required to perform that action.") {
-				delete Zotero.GoogleDocs.API.authHeaders;
+				this.resetAuth();
 				return this.run(docID, method, args);
 			}
 			var err = new Error(responseJSON.error.details[0].errorMessage);
@@ -142,42 +148,30 @@ Zotero.GoogleDocs.API = {
 			err.type = `Google Docs ${responseJSON.error.message}`;
 			throw err;
 		}
-		var error = responseJSON.response.result.error;
-		error && await this.displayErrorReportPrompt(error);
+		
+		let resp = await this.handleResponseErrors(responseJSON);
+		if (resp) {
+			return resp;
+		}
+		var response = responseJSON.response.result && responseJSON.response.result.response;
+		return response;
+	},
+	
+	handleResponseErrors: async function(responseJSON) {
 		var lockError = responseJSON.response.result.lockError;
 		if (lockError) {
 			if (await this.displayLockErrorPrompt(lockError)) {
 				await this.run(docID, "unlockTheDoc", [], email);
 				return this.run.apply(this, arguments);
 			} else {
-				throw new Error('Handled Lock Error');
+				throw new Error('Handled Error');
 			}
 		}
-		var response = responseJSON.response.result && responseJSON.response.result.response;
-		// Old API
-		if (!response && !error && !lockError) return responseJSON.response.result;
-		return response;
-	},
-	
-	displayErrorReportPrompt: async function(error) {
-		Zotero.logError(new Error(error));
-		var linkToPrefs;
-		if (Zotero.isBrowserExt) {
-			linkToPrefs = browser.extension.getURL('preferences/preferences.html#advanced');
-		} else {
-			linkToPrefs = safari.extension.baseURI + 'preferences/preferences.html#advanced';
+		var docAccessError = responseJSON.response.result.docAccessError;
+		if (docAccessError) {
+			this.resetAuth();
+			throw new Error(docAccessError);
 		}
-		var message = `Zotero experienced an error while communicating with Google Docs:
-			
-			${error}
-			
-			You can report this error in the <a href="${linkToPrefs}">Zotero Connector Preferences</a>.`;
-		message = message.replace(/\n/g, "<br/>");
-		await Zotero.Messaging.sendMessage('confirm', {
-			title: "Zotero",
-			button2Text: "",
-			message
-		});
 	},
 
 	displayLockErrorPrompt: async function(error) {

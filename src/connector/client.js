@@ -86,8 +86,8 @@ Zotero.GoogleDocs = {
 		try {
 			var field = await client.cursorInField();
 		} catch (e) {
-			if (e.message == "Handled Lock Error") {
-				Zotero.debug('Handled Lock Error in editField()');
+			if (e.message == "Handled Error") {
+				Zotero.debug('Handled Error in editField()');
 				return;
 			}
 			Zotero.debug(`Exception in editField()`);
@@ -128,8 +128,8 @@ Zotero.GoogleDocs.Client.prototype = {
 			// We will throw an error up to the client, which will end the integration transaction and
 			// attempt to display a prompt, but since we handle locked client prompting
 			// within api.js, we ignore client prompts here.
-			if (e.message == "Handled Lock Error") {
-				Zotero.debug(`Handled Lock Error in ${request.command}`);
+			if (e.message == "Handled Error") {
+				Zotero.debug(`Handled Error in ${request.command}`);
 				this.displayAlert = async function() {return 0};
 			} else {
 				Zotero.debug(`Exception in ${request.command}`);

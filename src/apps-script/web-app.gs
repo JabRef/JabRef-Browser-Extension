@@ -44,9 +44,20 @@ var doc, bodyRange, docUrl, insertIdx, apiVersion = 0;
 var extraReturnData = {};
 
 function callMethod(documentUrl, method, args, apiVers) {
-	apiVersion = apiVers;
+	apiVersion = apiVers || apiVersion;
 	docUrl = documentUrl;
-	doc = DocumentApp.openById(documentUrl);
+	try {
+		doc = DocumentApp.openById(documentUrl);
+	} catch (e) {
+		if (e.message == "Action not allowed" && apiVersion >= 3) {
+			console.error({
+				message: e.message,
+				error: e,
+			});
+			return {response: false, docAccessError: "Zotero cannot access this document."};
+		}
+		throw e;
+	}
 	if (checkIfLocked() && method != 'unlockTheDoc') {
 		return {response: false, lockError: (new LockError).message};
 	}
