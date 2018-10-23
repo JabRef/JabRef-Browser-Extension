@@ -317,6 +317,11 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (fieldMap[fieldIDs[0]].noteIndex != fieldNoteTypes[0]) {
 			// Note/intext conversions
 			if (fieldNoteTypes[0] > 0) {
+				// Fails to convert the citation that has a cursor in it.
+				if (Zotero.GoogleDocs.UI.isInLink()) {
+					throw new Error("Please place the text cursor outside of any citations or links before switching to " +
+						"a footnote citation style.");
+				}
 				// To footnote/endnote conversions are done client-side, because Apps Script has no
 				// API to insert footnotes (!)
 				// This will cause a properly big doc to go all jumpy and might scare users.

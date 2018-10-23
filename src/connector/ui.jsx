@@ -369,7 +369,7 @@ Zotero.GoogleDocs.UI = {
 		await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
 	},
 	
-	isInLink: function(linkPopupOpen) {
+	isInLink: function() {
 		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
 		return selection.querySelector('a') || this.inLink
 	},
