@@ -372,6 +372,14 @@ Zotero.GoogleDocs.UI = {
 		await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
 	},
 	
+	moveCursorToEndOfCitation: async function() {
+		if (this.isInLink()) {
+			await this.clickElement(document.getElementById('insertLinkButton'));
+			await Zotero.Promise.delay();
+			await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
+		}
+	},
+	
 	isInLink: function() {
 		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
 		return selection.querySelector('a') || this.inLink

@@ -179,13 +179,16 @@ Zotero.GoogleDocs.Client.prototype = {
 			this.queued.documentData = null;
 			this.queued.bibliographyStyle = null;
 		}
-		return Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
+		await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
 			this.queued.insert,
 			this.queued.documentData,
 			keys.map(key => this.queued.fields[key]),
 			this.queued.bibliographyStyle,
 			this.queued.deletePlaceholder
 		]);
+		if (this.queued.insert) {
+			await Zotero.GoogleDocs.UI.moveCursorToEndOfCitation();
+		}
 	},
 	
 	activate: async function(force) {
