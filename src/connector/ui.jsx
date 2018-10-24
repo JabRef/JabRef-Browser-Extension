@@ -295,7 +295,7 @@ Zotero.GoogleDocs.UI = {
 	 * @param {String} [url=null] - optional expected link of the text 
 	 * @returns {Promise<void>}
 	 */
-	selectText: async function(text, url=null, stopOn=null) {
+	selectText: async function(text, url=null) {
 		// Selection doesn't update unless the tab is active
 		await this.activate(true);
 		var openFindDialogKbEvent = {ctrlKey: true, key: 'f', keyCode: '70'};
@@ -317,33 +317,27 @@ Zotero.GoogleDocs.UI = {
 			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-down'));
 			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-close'));
 		}
-		
-		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
-		// We're looping through the same selection now
-		if (selection.innerHTML == stopOn) {
+		let match = /[0-9]+[^0-9]+([0-9]+)/.exec(document.querySelector('.docs-findinput-count').textContent);
+		let numMatches = 0;
+		if (match) {
+			numMatches = parseInt(match[1]);
+		}
+		if (!numMatches) {
 			return false;
 		}
-		// The text content matches
-		if (selection.textContent == text) {
-			if (url) {
-				// But url is provided
-				// So we make sure that the url matches too or continue the search
-				if (selection.children.length && selection.children[0].href == url) {
-					return true;
-				}
-			} else {
-			// Otherwise we've selected the text
+		if (!url || (Zotero.GoogleDocs.UI.inLink && Zotero.GoogleDocs.UI.lastLinkURL == url)) {
+			return true;
+		}
+		
+		for (numMatches--; numMatches > 0; numMatches--) {
+			await this.activate(true);
+			await Zotero.GoogleDocs.UI.sendKeyboardEvent(openFindDialogKbEvent);
+			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-down'));
+			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-close'));
+			if (Zotero.GoogleDocs.UI.inLink && Zotero.GoogleDocs.UI.lastLinkURL == url) {
 				return true;
 			}
 		}
-		
-		// If stopOn is null, it means this is the first attempt at selecting the text we're looking for.
-		// If this is triggered, it means the text does not exist in the document and we will return false
-		// on next iteration or there are multiple instances of the text and we are looking to match an url
-		if (stopOn == null) {
-			stopOn = selection.innerHTML;
-		}
-		return this.selectText(text, url, stopOn);
 	},
 	
 	insertFootnote: async function() {
@@ -374,8 +368,7 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	isInLink: function() {
-		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
-		return selection.querySelector('a') || this.inLink
+		return this.inLink
 	},
 	
 	getSelectedFieldID: function() {
@@ -496,6 +489,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		if (url.includes(Zotero.GoogleDocs.config.fieldURL)) {
 			this.setState({open});
 		}
+		Zotero.GoogleDocs.UI.lastLinkURL = url;
 		
 		this.observer = new MutationObserver(function(mutations) {
 			for (let mutation of mutations) {
@@ -511,6 +505,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 				let open = style.display != 'none';
 				
 				Zotero.GoogleDocs.UI.inLink = open;
+				Zotero.GoogleDocs.UI.lastLinkURL = url;
 
 				// This is us moving the linkbubble away from view
 				if (this.state.open == open &&

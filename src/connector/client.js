@@ -317,18 +317,13 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (fieldMap[fieldIDs[0]].noteIndex != fieldNoteTypes[0]) {
 			// Note/intext conversions
 			if (fieldNoteTypes[0] > 0) {
-				// Fails to convert the citation that has a cursor in it.
-				if (Zotero.GoogleDocs.UI.isInLink()) {
-					throw new Error("Please place the text cursor outside of any citations or links before switching to " +
-						"a footnote citation style.");
-				}
 				// To footnote/endnote conversions are done client-side, because Apps Script has no
 				// API to insert footnotes (!)
 				// This will cause a properly big doc to go all jumpy and might scare users.
 				// Might have to think about shading the screen with a note like "Zotero is working"
 				// or something. On the other hand conversions should be relatively rare, so this is not a priority.
 				
-				Zotero.GoogleDocs.UI.activate(true, "Zotero will now update your document and " +
+				await Zotero.GoogleDocs.UI.activate(true, "Zotero will now update your document and " +
 					"needs the Google Docs tab to stay active. " +
 					"Please do not switch away from the browser until the operation is complete.");
 				
@@ -429,7 +424,10 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (!field) {
 			throw new Error(`Attempting to select field ${fieldID} that does not exist in the document`);
 		}
-		await Zotero.GoogleDocs.UI.selectText(field.text, Zotero.GoogleDocs.config.fieldURL+field.id);
+		let url = Zotero.GoogleDocs.config.fieldURL+field.id;
+		if (!await Zotero.GoogleDocs.UI.selectText(field.text, url)) {
+			throw new Error(`Failed to select ${field.text} with url ${url}`);
+		}
 	},
 	
 	importDocument: async function() {
