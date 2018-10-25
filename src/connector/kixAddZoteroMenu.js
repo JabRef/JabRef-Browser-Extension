@@ -63,7 +63,7 @@ function addToolbarButton(toolbar) {
 	}
 	var docsMoreButton = document.querySelector('#docs-primary-toolbars #docs-toolbar #moreButton');
 	templateElem = document.createElement('template');
-	templateElem.innerHTML = `<div id="zoteroAddEditCitation" class="goog-inline-block goog-toolbar-button" style="background-image: url(${imageURL}); background-repeat:no-repeat; background-position: center;" role="button" data-tooltip="Add/edit zotero citation (${shortcut})"></div>`;
+	templateElem.innerHTML = `<div id="zoteroAddEditCitation" class="goog-inline-block goog-toolbar-button" style="background-image: url(${imageURL}); background-repeat:no-repeat; background-position: center;" role="button" data-tooltip="Add/edit Zotero citation (${shortcut})"></div>`;
 	toolbar.insertBefore(templateElem.content.firstChild, docsMoreButton);
 	buttonAdded = true;
 }
