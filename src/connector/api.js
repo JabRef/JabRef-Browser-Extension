@@ -149,7 +149,7 @@ Zotero.GoogleDocs.API = {
 			throw err;
 		}
 		
-		let resp = await this.handleResponseErrors(responseJSON);
+		let resp = await this.handleResponseErrors(responseJSON, arguments);
 		if (resp) {
 			return resp;
 		}
@@ -157,12 +157,12 @@ Zotero.GoogleDocs.API = {
 		return response;
 	},
 	
-	handleResponseErrors: async function(responseJSON) {
+	handleResponseErrors: async function(responseJSON, args) {
 		var lockError = responseJSON.response.result.lockError;
 		if (lockError) {
 			if (await this.displayLockErrorPrompt(lockError)) {
-				await this.run(docID, "unlockTheDoc", [], email);
-				return this.run.apply(this, arguments);
+				await this.run(args[0], "unlockTheDoc", [], args[3]);
+				return this.run.apply(this, args);
 			} else {
 				throw new Error('Handled Error');
 			}
