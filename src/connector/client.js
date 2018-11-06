@@ -39,7 +39,6 @@ Zotero.GoogleDocs = {
 		citationPlaceholder: "{Updating}",
 		fieldPrefix: "Z_F",
 		dataPrefix: "Z_D",
-		updateBatchSize: 5,
 	},
 	clients: {},
 
@@ -47,6 +46,7 @@ Zotero.GoogleDocs = {
 	downloadIntercepted: false,
 
 	name: "Zotero Google Docs Plugin",
+	updateBatchSize: 8,
 	
 	init: async function() {
 		if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
@@ -166,26 +166,37 @@ Zotero.GoogleDocs.Client.prototype = {
 	setDocumentData: async function(data) {
 		this.queued.documentData = data;
 		var keys = Object.keys(this.queued.fields); 
-		let batchSize = Zotero.GoogleDocs.config.updateBatchSize;
-		while (keys.length > batchSize) {
-			let batch = keys.splice(keys.length-batchSize-1, batchSize);
-			await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
-				this.queued.insert,
-				this.queued.documentData,
-				batch.map(key => this.queued.fields[key]),
-				this.queued.bibliographyStyle
-			]);
+		let batchSize = Zotero.GoogleDocs.updateBatchSize;
+		let count = 0;
+		while (count < keys.length) {
+			let batch = keys.slice(count, count+batchSize);
+			try {
+				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
+					this.queued.insert,
+					this.queued.documentData,
+					batch.map(key => this.queued.fields[key]),
+					this.queued.bibliographyStyle,
+					count+batch < keys.length ? null : this.queued.deletePlaceholder
+				]);
+			} catch(e) {
+				if (e.status == 429) {
+					// Apps script execution timed out
+					if (batchSize == 1) {
+						throw new Error('Document update for batch size 1 timed out. Not going to retry');
+					}
+					// Cut the batch size for the session in half
+					batchSize = Zotero.GoogleDocs.updateBatchSize = batchSize/2;
+					Zotero.debug(`HTTP 429 from Google Docs. Reducing batch size to ${batchSize}`);
+					Zotero.logError(e);
+					continue;
+				}
+				throw e;
+			}
 			this.queued.insert = null;
 			this.queued.documentData = null;
 			this.queued.bibliographyStyle = null;
+			count += batchSize;
 		}
-		return Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
-			this.queued.insert,
-			this.queued.documentData,
-			keys.map(key => this.queued.fields[key]),
-			this.queued.bibliographyStyle,
-			this.queued.deletePlaceholder
-		]);
 	},
 	
 	activate: async function(force) {

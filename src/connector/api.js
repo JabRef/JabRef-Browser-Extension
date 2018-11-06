@@ -128,7 +128,7 @@ Zotero.GoogleDocs.API = {
 			var xhr = await Zotero.HTTP.request('POST', ZOTERO_CONFIG.GOOGLE_DOCS_API_URL,
 				{headers, body, timeout: null});
 		} catch (e) {
-			if (e.status >= 400 && e.status < 500) {
+			if (e.status >= 400 && e.status < 404) {
 				this.resetAuth();
 				throw new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
 			} else {
