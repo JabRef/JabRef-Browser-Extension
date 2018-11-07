@@ -374,7 +374,10 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (!(fieldID in this.queued.fields)) {
 			this.queued.fields[fieldID] = {id: fieldID};
 		}
-		this.queued.fields[fieldID].text = text;
+		// Fixing Google bugs. Google Docs XML parser ignores spaces between tags
+		// e.g. <i>Journal</i> <b>2016</b>.
+		// The space above is ignored, so we move it into the previous tag
+		this.queued.fields[fieldID].text = text.replace(/(<\s*\/[^>]+>) +</g, ' $1<');
 		this.queued.fields[fieldID].isRich = isRich;
 	},
 
