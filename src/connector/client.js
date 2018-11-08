@@ -179,15 +179,20 @@ Zotero.GoogleDocs.Client.prototype = {
 					count+batch < keys.length ? null : this.queued.deletePlaceholder
 				]);
 			} catch(e) {
-				if (e.status == 429) {
+				if (e.status == 429 || e.message.startsWith('Too many changes applied before saving document.')) {
 					// Apps script execution timed out
 					if (batchSize == 1) {
-						throw new Error('Document update for batch size 1 timed out. Not going to retry');
+						throw new Error(
+							`Document update for batch size 1 failed with error ${e.message}. Not going to retry`);
 					}
 					// Cut the batch size for the session in half
 					batchSize = Zotero.GoogleDocs.updateBatchSize = batchSize/2;
-					Zotero.debug(`HTTP 429 from Google Docs. Reducing batch size to ${batchSize}`);
+					Zotero.debug(`HTTP 429/"Too many changes" from Google Docs. Reducing batch size to ${batchSize}`);
 					Zotero.logError(e);
+					if (!e.status) {
+						// The document will be locked if it was a Too many changes error, so unlock first
+						await Zotero.GoogleDocs_API.run(this.documentID, "unlockTheDoc", []);
+					}
 					continue;
 				}
 				throw e;

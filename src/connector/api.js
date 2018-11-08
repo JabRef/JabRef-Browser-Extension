@@ -112,7 +112,7 @@ Zotero.GoogleDocs.API = {
 			Zotero.GoogleDocs.API.authDeferred.reject(new Error('Google Docs authentication cancelled'));
 	},
 	
-	run: async function(docID, method, args, email) {
+	run: async function(docID, method, args, email, tab) {
 		// If not an array, discard or the docs script spews errors.
 		if (! Array.isArray(args)) {
 			args = [];
@@ -149,7 +149,7 @@ Zotero.GoogleDocs.API = {
 			throw err;
 		}
 		
-		let resp = await this.handleResponseErrors(responseJSON, arguments);
+		let resp = await this.handleResponseErrors(responseJSON, arguments, tab);
 		if (resp) {
 			return resp;
 		}
@@ -157,10 +157,10 @@ Zotero.GoogleDocs.API = {
 		return response;
 	},
 	
-	handleResponseErrors: async function(responseJSON, args) {
+	handleResponseErrors: async function(responseJSON, args, tab) {
 		var lockError = responseJSON.response.result.lockError;
 		if (lockError) {
-			if (await this.displayLockErrorPrompt(lockError)) {
+			if (await this.displayLockErrorPrompt(lockError, tab)) {
 				await this.run(args[0], "unlockTheDoc", [], args[3]);
 				return this.run.apply(this, args);
 			} else {
@@ -174,14 +174,14 @@ Zotero.GoogleDocs.API = {
 		}
 	},
 
-	displayLockErrorPrompt: async function(error) {
+	displayLockErrorPrompt: async function(error, tab) {
 		var message = 'The document citations are being edited by another Zotero user. Please try again later.';
 		var result = await Zotero.Messaging.sendMessage('confirm', {
 			title: "Zotero",
 			button2Text: "",
 			button3Text: "Need help?",
 			message
-		});
+		}, tab);
 		if (result.button != 3) return;
 		
 		message = 'Zotero locks your document to prevent multiple users from editing citations at the same time. ' +
@@ -195,7 +195,7 @@ Zotero.GoogleDocs.API = {
 			button1Text: "Yes",
 			button2Text: "No",
 			message
-		});
+		}, tab);
 		return result.button == 1;
 	}
 };
