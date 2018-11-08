@@ -46,7 +46,7 @@ Zotero.GoogleDocs = {
 	downloadIntercepted: false,
 
 	name: "Zotero Google Docs Plugin",
-	updateBatchSize: 8,
+	updateBatchSize: 32,
 	
 	init: async function() {
 		if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
@@ -168,7 +168,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		var keys = Object.keys(this.queued.fields); 
 		let batchSize = Zotero.GoogleDocs.updateBatchSize;
 		let count = 0;
-		while (count < keys.length) {
+		while (count < keys.length || this.queued.documentData) {
 			let batch = keys.slice(count, count+batchSize);
 			try {
 				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
@@ -395,6 +395,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		var endJSON = code.lastIndexOf('}');
 		if (startJSON != -1 && endJSON != -1) {
 			var json = JSON.parse(code.substring(startJSON, endJSON+1));
+			delete json.schema;
 			if (json.citationItems) {
 				for (let i = 0; i < json.citationItems.length; i++) {
 					delete json.citationItems[i].itemData.abstract;

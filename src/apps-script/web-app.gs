@@ -413,7 +413,7 @@ exposed.insertField = function(field) {
 		});
 		return false; }
 
-	var namedRanges = encodeRange(bodyRange, field.code, config.fieldPrefix+field.id);
+	var namedRanges = encodeRange(getRangeFromLinks([link]), field.code, config.fieldPrefix+field.id);
 	return new Field(link, field.id, namedRanges, config.fieldPrefix).serialize();
 };
 
@@ -507,6 +507,8 @@ Field.prototype = {
 	 * @param field
 	 */
 	write: function(field) {
+		var newTextRange = null;
+		var newCode = (field.code && field.code != this.code) ? field.code : undefined;
 		if (field.text) {
 			var link = this.links[this.links.length-1];
 			var startOffset = link.startOffset;
@@ -520,7 +522,7 @@ Field.prototype = {
 			if (isBibl) {
 				paragraphModifiers = getBibliographyStyle();
 			}
-			HTMLConverter.insert(link.text, field.text, modifiers, startOffset, paragraphModifiers);
+			newTextRange = HTMLConverter.insert(link.text, field.text, modifiers, startOffset, paragraphModifiers);
 			
 			
 			// Remove old text
@@ -538,14 +540,21 @@ Field.prototype = {
 			// so we apply it one more time here
 			paragraphModifiers && this.links[this.links.length-1].text.getParent().setAttributes(paragraphModifiers);
 			
+			// Links no longer valid after inserting text
 			this.links = null;
+			// Inserting text removes the named ranges
+			// So if we were not planning to change the code we need to reinsert it
+			if (!newCode) {
+				newCode = this.code;
+			}
 		}
 		
-		if (field.code && this.code != field.code) {
+		if (newCode) {
 			this.namedRanges.forEach(function(namedRange) {
 				namedRange.remove();
 			});
-			this.namedRanges = encodeRange(bodyRange, field.code, config.fieldPrefix+this.id);
+			this.namedRanges = encodeRange(newTextRange || getRangeFromLinks(this.links), 
+				newCode, config.fieldPrefix+this.id);
 		}
 	},
 	
@@ -576,7 +585,7 @@ Field.prototype = {
 	"delete": function() {
 		this.link.text.deleteText(this.link.startOffset, this.link.endOffsetInclusive);
 		this.unlink();
-	}
+	},
 };
 
 // ----- UTILITIES ----- //
@@ -722,6 +731,15 @@ function iterateSections(doc, func) {
 	}
 }
 
+function getRangeFromLinks(links) {
+	var builder = doc.newRange();
+	for (var i = 0; i < links.length; i++) {
+		var link = links[i];
+		builder.addElement(link.text, link.startOffset, link.endOffsetInclusive);
+	}
+	return builder.build();
+}
+
 function getRangeLink(rangeElement) {
 	var elem = rangeElement.getElement();
 	if (elem.getType() != 'TEXT') {
@@ -772,6 +790,7 @@ function randomString(length) {
 }
 
 var HTMLConverter = {
+	startAt: 0,
 	insertAt: 0,
 	insertElem: null,
 	insertedLength: 0,
@@ -788,7 +807,7 @@ var HTMLConverter = {
 		this.parentElem = this.insertElem.getParent().getParent();
 		this.paragraphIndex = this.parentElem.getChildIndex(this.insertElem.getParent());
 		
-		this.insertAt = insertAt || 0;
+		this.insertAt = this.startAt = insertAt || 0;
 		// Might cause styling issues
 		this.defaultAttributes = this.insertElem.getAttributes();
 		// Preserve link
@@ -804,17 +823,16 @@ var HTMLConverter = {
 			this.insertElem.insertText(this.insertAt, html);
 			return html.length;
 		}
+		
+		this.rangeBuilder = doc.newRange();
 
 		// Insert formatted text
 		HTMLConverter.addElem(xmlDoc.getRootElement(), modifiers);
-
-		// Set params
-		// var fontSize = this.insertElem.getFontSize() || 11;
-		// params.linespacing && docsElem.setLineSpacing(params.linespacing);
-		// params.entryspacing && docsElem.setSpacingAfter(params.entryspacing * fontSize);
 		
-		// Return inserted text length
-		return this.insertedLength;
+		if (this.startAt != this.insertAt) {
+			this.rangeBuilder.addElement(this.insertElem, this.startAt, this.insertAt-1);
+		}
+		return this.rangeBuilder.build();
 	},
 
 	addElem: function(elem, modifiers) {
@@ -868,8 +886,11 @@ var HTMLConverter = {
 		else if (cls === 'csl-entry') {
 			// Don't insert the first paragraph, except when we're not in a new paragraph already
 			if (!this.firstParagraph || this.insertAt != 0) {
+				if (this.insertAt != this.startAt) {
+					this.rangeBuilder.addElement(this.insertElem, this.startAt, this.insertAt-1);
+				}
 				this.insertElem = this.parentElem.insertParagraph(this.paragraphIndex+1, "").editAsText();
-				this.insertAt = 0;
+				this.insertAt = this.startAt = 0;
 				this.paragraphIndex++;
 			}
 			if (this.paragraphModifiers) {
