@@ -172,11 +172,10 @@ Zotero.GoogleDocs.Client.prototype = {
 			let batch = keys.slice(count, count+batchSize);
 			try {
 				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
-					this.queued.insert,
-					this.queued.documentData,
-					batch.map(key => this.queued.fields[key]),
-					this.queued.bibliographyStyle,
-					count+batch < keys.length ? null : this.queued.deletePlaceholder
+					Object.assign({}, this.queued, {
+						fields: batch.map(key => this.queued.fields[key]),
+						deletePlaceholder: count+batch < keys.length ? null : this.queued.deletePlaceholder
+					})
 				]);
 			} catch(e) {
 				if (e.status == 429 || e.message.startsWith('Too many changes applied before saving document.')) {
@@ -242,7 +241,7 @@ Zotero.GoogleDocs.Client.prototype = {
 			return fields;
 		}
 
-		this.fields = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', Array.from(arguments));
+		this.fields = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', [this.queued.conversion]);
 		let i = 0;
 		for (let field of this.fields) {
 			if (field == -1) {
@@ -329,7 +328,8 @@ Zotero.GoogleDocs.Client.prototype = {
 		for (let field of fields) {
 			fieldMap[field.id] = field;
 		}
-		
+
+		this.queued.conversion = true;
 		if (fieldMap[fieldIDs[0]].noteIndex != fieldNoteTypes[0]) {
 			// Note/intext conversions
 			if (fieldNoteTypes[0] > 0) {
@@ -371,7 +371,6 @@ Zotero.GoogleDocs.Client.prototype = {
 					fieldIDs,
 				]);
 			}
-			delete this.fields;
 		}
 	},
 	

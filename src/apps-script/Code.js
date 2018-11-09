@@ -155,6 +155,18 @@ function getFields(prefix, removePlaceholder) {
 }
 
 /**
+ * To be used when converting and field codes are lost in the move between notes/body
+ */
+function getFieldPlaceholders() {
+	var fields = [];
+	filterFieldLinks(getAllLinks()).forEach(function(link) {
+		var key = link.url.substr(config.fieldURL.length, config.fieldKeyLength);
+		fields.push(new Field(link, key, [], config.fieldPrefix));
+	});
+	return fields;
+}
+
+/**
  * The idea here is to encode a field using the names of NamedRanges
  * https://developers.google.com/apps-script/reference/document/named-range
  * 
@@ -335,8 +347,13 @@ exposed.unlockTheDoc = function() {
 	doc.getNamedRanges(LOCK_NAME).forEach(function(r) {r.remove()});
 }
 
-exposed.getFields = function () {
-	var fields = getFields();
+exposed.getFields = function (placeholders) {
+	var fields;
+	if (placeholders) {
+		var fields = getFieldPlaceholders();
+	} else {
+		var fields = getFields();
+	}
 	fields = fields.map(function(field) {
 		return field.serialize();
 	});
@@ -346,27 +363,52 @@ exposed.getFields = function () {
 	return fields;
 };
 
-exposed.complete = function(insert, docPrefs, fieldChanges, bibliographyStyle, deletePlaceholder) {
+/**
+ * Function used to write changes to the document. Due to the slow nature of google docs
+ * we try to minimize calls to apps script and combine all doc updates in this function. 
+ * To prevent timeouts field changes may be batched in multiple calls, resulting in multiple
+ * calls of this function for a "single" integration operation
+ * 
+ * @param insert {Field}
+ * @param documentData {String}
+ * @param fields {Field[]}
+ * @param bibliographyStyle {Object}
+ * @param deletePlaceholder {Boolean}
+ * @param conversion {Boolean}
+ */
+exposed.complete = function(options) {
+	if (arguments.length > 1) {
+		options.insert = arguments[0];
+		options.documentData = arguments[1];
+		options.fields = arguments[2];
+		options.bibliographyStyle = arguments[3];
+		options.deletePlaceholder = arguments[4];
+	}
 	lockTheDoc();
 	try {
-		if (insert) {
-			exposed.insertField(insert);
+		if (options.insert) {
+			exposed.insertField(options.insert);
 		}
-		if (docPrefs) {
-			exposed.setDocumentData(docPrefs);
+		if (options.documentData) {
+			exposed.setDocumentData(options.documentData);
 		}
-		if (bibliographyStyle) {
-			exposed.setBibliographyStyle(JSON.stringify(bibliographyStyle));
+		if (options.bibliographyStyle) {
+			exposed.setBibliographyStyle(JSON.stringify(options.bibliographyStyle));
 		}
-
-		var fields = getFields(config.fieldPrefix, deletePlaceholder);
+		
+		var fields;
+		if (options.conversion) {
+			fields = getFieldPlaceholders();
+		} else {
+			fields = getFields(config.fieldPrefix, options.deletePlaceholder);
+		}
 		var fieldMap = {};
 		fields.forEach(function(field) {
 			fieldMap[field.id] = field;
 		});
 		var missingFields = [];
 		// Perform in reverse order to keep field link position indices intact during update
-		fieldChanges.reverse().forEach(function(fieldChange) {
+		options.fields.reverse().forEach(function(fieldChange) {
 			var field = fieldMap[fieldChange.id];
 			if (!field) {
 				missingFields.push(fieldChange.id);
@@ -411,9 +453,14 @@ exposed.insertField = function(field) {
 		error: new Error("Failed to insert field. Could not find the placeholder link.\n" + JSON.stringify(field)),
 		field: field
 		});
-		return false; }
+		return false;
+	}
 
-	var namedRanges = encodeRange(getRangeFromLinks([link]), field.code, config.fieldPrefix+field.id);
+	if (apiVersion >= 4) {
+		var namedRanges = encodeRange(getRangeFromLinks([link]), field.code, config.fieldPrefix+field.id);
+	} else {
+		var namedRanges = encodeRange(bodyRange, field.code, config.fieldPrefix+field.id);
+	}
 	return new Field(link, field.id, namedRanges, config.fieldPrefix).serialize();
 };
 
@@ -553,8 +600,13 @@ Field.prototype = {
 			this.namedRanges.forEach(function(namedRange) {
 				namedRange.remove();
 			});
-			this.namedRanges = encodeRange(newTextRange || getRangeFromLinks(this.links), 
-				newCode, config.fieldPrefix+this.id);
+			if (apiVersion >= 4) {
+				this.namedRanges = encodeRange(newTextRange || getRangeFromLinks(this.links),
+					newCode, config.fieldPrefix+this.id);
+			} else {
+				this.namedRanges = encodeRange(bodyRange,
+					newCode, config.fieldPrefix+this.id);
+			}
 		}
 	},
 	
