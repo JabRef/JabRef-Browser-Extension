@@ -23,3 +23,21 @@ cursor from the back-end when the Apps Script code is deployed as an API
 executable
 - Performs citation conversions to footnotes because the Apps Script has no
 API to insert footnotes into the document, only edit or remove them.
+
+## Apps Script Development and Deployment
+
+You can develop and deploy Apps Script code using [clasp](https://developers.google.com/apps-script/guides/clasp)
+
+```bash
+cd src/apps-script
+clasp login
+# Authenticate in the browser
+
+clasp clone <scriptId>
+# If you had unpushed changes, they are overwritten, so
+git checkout -- .
+
+# Make some changes in Code.js
+clasp push
+# Changes available in dev version
+```
