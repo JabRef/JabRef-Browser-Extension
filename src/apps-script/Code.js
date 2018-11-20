@@ -693,6 +693,9 @@ function getAllLinks(mergeAdjacent) {
 				if (el.getType() == DocumentApp.ElementType.FOOTNOTE) {
 					var sect = el.asFootnote().getFootnoteContents();
 					footnoteIndex++;
+					if (typeof sect != "object") {
+						continue;
+					}
 					iterateSection(sect, -1, false, true);
 					continue;
 				} else if (el.getType() != DocumentApp.ElementType.TEXT) {
