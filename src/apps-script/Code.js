@@ -349,7 +349,7 @@ exposed.unlockTheDoc = function() {
 
 exposed.getFields = function (placeholders) {
 	var fields;
-	if (placeholders) {
+	if (apiVersion >= 4 && placeholders) {
 		var fields = getFieldPlaceholders();
 	} else {
 		var fields = getFields();
@@ -378,11 +378,13 @@ exposed.getFields = function (placeholders) {
  */
 exposed.complete = function(options) {
 	if (arguments.length > 1) {
-		options.insert = arguments[0];
-		options.documentData = arguments[1];
-		options.fields = arguments[2];
-		options.bibliographyStyle = arguments[3];
-		options.deletePlaceholder = arguments[4];
+		options = {
+			insert: arguments[0],
+			documentData: arguments[1],
+			fields: arguments[2],
+			bibliographyStyle: arguments[3],
+			deletePlaceholder: arguments[4]
+		};
 	}
 	lockTheDoc();
 	try {
