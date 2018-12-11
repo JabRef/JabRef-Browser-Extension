@@ -962,9 +962,11 @@ var HTMLConverter = {
 		for (var i = 0; i < children.length; i++) {
 			HTMLConverter.addElem(children[i], Object.assign({}, modifiers));
 		}
-
-		if (cls === 'csl-block') {
-			this.insertElem.insertText(this.insertAt, "\n"); this.insertAt += 1;
+		
+		if (cls === 'csl-left-margin') {
+			this.insertElem.insertText(this.insertAt, "\t"); this.insertAt += 1; this.insertedLength += 1;
+		} else if (cls === 'csl-block') {
+			this.insertElem.insertText(this.insertAt, "\n"); this.insertAt += 1; this.insertedLength += 1;
 		}
 	},
 
