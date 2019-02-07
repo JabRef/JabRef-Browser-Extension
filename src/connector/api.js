@@ -132,7 +132,7 @@ Zotero.GoogleDocs.API = {
 				this.resetAuth();
 				throw new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
 			} else {
-				throw e;
+				throw new Error(`${e.status}: Google Docs request failed.\n\n${e.responseText}`);
 			}
 		}
 		var responseJSON = JSON.parse(xhr.responseText);
