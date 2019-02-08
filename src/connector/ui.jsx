@@ -187,12 +187,12 @@ Zotero.GoogleDocs.UI = {
 	},
 
 	addKeyboardShortcuts: async function() {
-		this.shortcut = 'Ctrl+Shift+C';
+		this.shortcut = 'Ctrl+Alt+C';
 		if (Zotero.isMac) {
 			this.shortcut = 'Ctrl+⌘C';
 		}
 		// BrowserExt uses native shortcut APIs
-		if (Zotero.isBrowserExt) {
+		if (Zotero.isChrome) {
 			Zotero.Messaging.addMessageListener('command', function(command) {
 				if (command != 'cite') return;
 				Zotero.GoogleDocs.editField();
@@ -200,11 +200,15 @@ Zotero.GoogleDocs.UI = {
 			let commands = await Zotero.Connector_Browser.getShortcuts();
 			let citeCommand = commands.find((c) => c.name == 'cite');
 			this.shortcut = citeCommand.shortcut.replace('Command', '⌘');
-			document.querySelector('#zoteroAddEditCitation').dataset.tooltip = `Add/edit Zotero citation (${this.shortcut})`
+			document.querySelector('#zoteroAddEditCitation').dataset.tooltip = `Add/edit Zotero citation (${this.shortcut})`;
+			return;
 		}
 	
 		// Hardcoded shortcut on other platforms
-		let modifiers = {metaKey: true, ctrlKey: true};
+		var modifiers = {ctrlKey: true, altKey: true};
+		if (Zotero.isMac) {
+			modifiers = {metaKey: true, ctrlKey: true};
+		}
 		var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
 		Zotero.Inject.addKeyboardShortcut(Object.assign({key: 'c'}, modifiers), Zotero.GoogleDocs.editField, textEventTarget);
 	},
