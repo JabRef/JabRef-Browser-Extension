@@ -192,19 +192,25 @@ Zotero.GoogleDocs.UI = {
 			this.shortcut = 'Ctrl+⌘C';
 		}
 		// BrowserExt uses native shortcut APIs
-		if (Zotero.isChrome) {
+		if (Zotero.isBrowserExt) {
 			Zotero.Messaging.addMessageListener('command', function(command) {
 				if (command != 'cite') return;
 				Zotero.GoogleDocs.editField();
 			});
-			let commands = await Zotero.Connector_Browser.getShortcuts();
-			let citeCommand = commands.find((c) => c.name == 'cite');
-			this.shortcut = citeCommand.shortcut.replace('Command', '⌘');
-			document.querySelector('#zoteroAddEditCitation').dataset.tooltip = `Add/edit Zotero citation (${this.shortcut})`;
-			return;
+			try {
+				let commands = await Zotero.Connector_Browser.getShortcuts();
+				let citeCommand = commands.find((c) => c.name == 'cite');
+				// If set
+				if (citeCommand.shortcut.length) {
+					this.shortcut = citeCommand.shortcut.replace('Command', '⌘');
+					document.querySelector('#zoteroAddEditCitation').dataset.tooltip =
+						`Add/edit Zotero citation (${this.shortcut})`;
+					return;
+				}
+			} catch (e) {}
 		}
 	
-		// Hardcoded shortcut on other platforms
+		// Hardcoded shortcut on other platforms or if browserExt shortcut unset
 		var modifiers = {ctrlKey: true, altKey: true};
 		if (Zotero.isMac) {
 			modifiers = {metaKey: true, ctrlKey: true};
