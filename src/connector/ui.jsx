@@ -44,8 +44,8 @@ Zotero.GoogleDocs.UI = {
 
 	init: async function () {
 		await Zotero.Inject.loadReactComponents();
-		this.injectIntoDOM();
 		this.addKeyboardShortcuts();
+		this.injectIntoDOM();
 		this.interceptDownloads();
 		this.initModeMonitor();
 	},
@@ -186,11 +186,25 @@ Zotero.GoogleDocs.UI = {
 		}
 	},
 
-	addKeyboardShortcuts: function() {
-		var modifiers = {ctrlKey: true, altKey: true};
+	addKeyboardShortcuts: async function() {
+		this.shortcut = 'Ctrl+Shift+C';
 		if (Zotero.isMac) {
-			modifiers = {metaKey: true, ctrlKey: true};
+			this.shortcut = 'Ctrl+⌘C';
 		}
+		// BrowserExt uses native shortcut APIs
+		if (Zotero.isBrowserExt) {
+			Zotero.Messaging.addMessageListener('command', function(command) {
+				if (command != 'cite') return;
+				Zotero.GoogleDocs.editField();
+			});
+			let commands = await Zotero.Connector_Browser.getShortcuts();
+			let citeCommand = commands.find((c) => c.name == 'cite');
+			this.shortcut = citeCommand.shortcut.replace('Command', '⌘');
+			document.querySelector('#zoteroAddEditCitation').dataset.tooltip = `Add/edit Zotero citation (${this.shortcut})`
+		}
+	
+		// Hardcoded shortcut on other platforms
+		let modifiers = {metaKey: true, ctrlKey: true};
 		var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
 		Zotero.Inject.addKeyboardShortcut(Object.assign({key: 'c'}, modifiers), Zotero.GoogleDocs.editField, textEventTarget);
 	},
@@ -407,15 +421,10 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			}
 		}
 		
-		var modifiers = 'Ctrl+Alt+';
-		if (Zotero.isMac) {
-			modifiers = 'Ctrl+⌘';
-		}
-
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
 				style={style}>
-				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit citation" handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={`${modifiers}C`} />
+				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit citation" handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={Zotero.GoogleDocs.UI.shortcut} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit bibliography" handleClick={this.props.execCommand.bind(this, 'addEditBibliography', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences" handleClick={this.props.execCommand.bind(this, 'setDocPrefs', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" handleClick={this.props.execCommand.bind(this, 'refresh', null)} />
@@ -557,16 +566,12 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		if (!Zotero.GoogleDocs.UI.enabled) {
 			style.display = 'none';
 		}
-		var shortcut = 'Ctrl+Alt+C';
-		if (Zotero.isMac) {
-			shortcut = 'Ctrl+⌘C';
-		}
 		return (
 			<div
 				className="docs-bubble" role="dialog" style={style}>
 				<a href="javascript:void(0);">Edit with Zotero</a>
 				<span style={{color: '#777', textDecoration: 'none', marginLeft: '1em'}}>
-					 ({shortcut})
+					 ({Zotero.GoogleDocs.UI.shortcut})
 				 </span>
 			</div>
 		);
