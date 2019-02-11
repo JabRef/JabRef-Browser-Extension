@@ -395,6 +395,29 @@ Zotero.GoogleDocs.UI = {
 		return this.inLink
 	},
 	
+	moveCursorToEndOfCitation: async function() {
+		let selectedFieldID = this.getSelectedFieldID();
+		if (selectedFieldID) {
+			let observer;
+			await new Promise(resolve => {
+				observer = new MutationObserver(() => {
+					resolve();
+				});
+				// The robustness of this is somewhat questionable but it's better than keeping the
+				// cursor at the beginning of a citation
+				observer.observe(document.querySelector('#docs-editor'), {
+					subtree: true,
+					characterData: true,
+					attributes: true
+				});
+			});
+			observer.disconnect();
+			await this.clickElement(document.getElementById('insertLinkButton'));
+			await Zotero.Promise.delay();
+			await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
+		}
+	},
+	
 	getSelectedFieldID: function() {
 		var linkbubble = document.querySelector('.docs-bubble.docs-linkbubble-bubble');
 		if (!linkbubble) return null;

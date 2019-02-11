@@ -202,6 +202,7 @@ Zotero.GoogleDocs.Client.prototype = {
 			this.queued.bibliographyStyle = null;
 			count += batchSize;
 		}
+		await Zotero.GoogleDocs.UI.moveCursorToEndOfCitation();
 	},
 	
 	activate: async function(force) {
