@@ -71,6 +71,7 @@ Zotero.GoogleDocs = {
 		window.dispatchEvent(new MessageEvent('Zotero.Integration.execCommand', {
 			data: {client: {documentID: client.documentID, name: Zotero.GoogleDocs.name, id: client.id}, command}
 		}));
+		Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
 		this.lastClient = client;
 	},
 	
@@ -92,11 +93,6 @@ Zotero.GoogleDocs = {
 			}
 			Zotero.debug(`Exception in editField()`);
 			Zotero.logError(e);
-			result = {
-				error: e.type || `Connector Error`,
-				message: e.message,
-				stack: e.stack
-			}
 			return client.displayAlert(e.message, 0, 0);
 		}
 		// Remove lastClient fields to ensure execCommand calls receive fresh fields
@@ -213,6 +209,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	
 	complete: async function() {
 		delete Zotero.GoogleDocs.clients[this.id];
+		Zotero.GoogleDocs.UI.toggleUpdatingScreen(false);
 	},
 	
 	displayAlert: async function(text, icons, buttons) {
@@ -292,16 +289,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (!waitForSave) {
 			return;
 		}
-		// Wait for google docs to save the text insertion
-		await Zotero.Promise.delay(5);
-		var deferred = Zotero.Promise.defer();
-		// We cannot check for specific text because of localization, so we just wait for the text
-		// to change. Best bet.
-		var observer = new MutationObserver(() => deferred.resolve());
-		var saveLabel = document.getElementsByClassName('docs-title-save-label-text')[0];
-		observer.observe(saveLabel, {childList: true});
-		await deferred.promise;
-		observer.disconnect();
+		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 	},
 	
 	cursorInField: async function() {
@@ -355,16 +343,7 @@ Zotero.GoogleDocs.Client.prototype = {
 						await this._insertField({id: fieldID, text: fieldMap[fieldID].text, noteType}, false);
 					}
 				}
-				// Wait for google docs to save the text changes
-				await Zotero.Promise.delay(5);
-				var deferred = Zotero.Promise.defer();
-				// We cannot check for specific text because of localization, so we just wait for the text
-				// to change. Best bet.
-				var observer = new MutationObserver(() => deferred.resolve());
-				var saveLabel = document.getElementsByClassName('docs-title-save-label-text')[0];
-				observer.observe(saveLabel, {childList: true});
-				await deferred.promise;
-				observer.disconnect();
+				await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 			} else {
 				// To in-text conversions client-side are impossible, because there is no obvious way
 				// to make the cursor jump from the footnote section to its corresponding footnote.
