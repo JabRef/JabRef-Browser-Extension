@@ -112,7 +112,7 @@ function getFields(prefix, removePlaceholder) {
 						// so we need to assign them a new key and manually copy the named ranges associated with
 						// the citation field code
 						var newKey = changeFieldLinkKey(link);
-						var ranges = copyNamedRanges(rangeFields[key], key, newKey);
+						var ranges = copyNamedRanges(rangeFields[key], key, newKey, getRangeFromLinks([link]));
 						key = newKey;
 						field = new Field(link, key, ranges, prefix);
 					} else {
@@ -535,6 +535,32 @@ exposed.clearAllFields = function() {
 	return true;
 }
 
+exposed.addPastedRanges = function(linksToCodes) {
+	var rangeFields = {};
+	var prefix = config.fieldPrefix;
+	doc.getNamedRanges().forEach(function(namedRange) {
+		var name = namedRange.getName();
+		if (name.indexOf(prefix) != 0) return;
+		
+		var key = name.substr(prefix.length, config.fieldKeyLength);
+		
+		if (rangeFields[key]) {
+			rangeFields[key].push(namedRange);
+		} else {
+			rangeFields[key] = [namedRange];
+		}
+	});
+	filterFieldLinks(getAllLinks()).forEach(function(link) {
+		var key = link.url.substr(config.fieldURL.length, config.fieldKeyLength);
+		if (key && !rangeFields[key] && linksToCodes[link.url]) {
+            var range = getRangeFromLinks([link]);
+            linksToCodes[link.url].forEach(function(code) {
+            	doc.addNamedRange(code, range);
+            });
+		}
+	});
+}
+
 var Field = function(link, key, namedRanges, prefix) {
 	prefix = prefix || config.fieldPrefix;
 	
@@ -832,9 +858,9 @@ function changeFieldLinkKey(link, key) {
 	return key;
 }
 
-function copyNamedRanges(ranges, oldKey, newKey) {
+function copyNamedRanges(ranges, oldKey, newKey, range) {
 	var code = decodeRanges(ranges, config.fieldPrefix + oldKey);
-	return encodeRange(bodyRange, code, config.fieldPrefix + newKey);
+	return encodeRange(range || bodyRange, code, config.fieldPrefix + newKey);
 }
 
 function randomString(length) {

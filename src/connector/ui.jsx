@@ -41,12 +41,14 @@ if (!isTopWindow) return;
 Zotero.GoogleDocs.UI = {
 	inLink: false,
 	enabled: true,
+	isUpdating: false,
 
 	init: async function () {
 		await Zotero.Inject.loadReactComponents();
 		await this.addKeyboardShortcuts();
 		this.injectIntoDOM();
 		this.interceptDownloads();
+		this.interceptPaste();
 		this.initModeMonitor();
 	},
 
@@ -73,6 +75,15 @@ Zotero.GoogleDocs.UI = {
 		Zotero.GoogleDocs.UI.citationEditor = 
 			<Zotero.GoogleDocs.UI.LinkbubbleOverride edit={() => Zotero.GoogleDocs.editField()}/>;
 		ReactDOM.render(Zotero.GoogleDocs.UI.citationEditor, Zotero.GoogleDocs.UI.citationEditorDiv);
+		
+		// Please wait screen
+		Zotero.GoogleDocs.UI.pleaseWaitContainer = document.createElement('div');
+		Zotero.GoogleDocs.UI.pleaseWaitContainer.id = 'docs-zotero-pleaseWait-container';
+		document.querySelector('.kix-appview-editor-container').insertBefore(
+			Zotero.GoogleDocs.UI.pleaseWaitContainer,
+			document.querySelector('.kix-appview-editor'));
+		ReactDOM.render(<Zotero.GoogleDocs.UI.PleaseWait ref={ref => Zotero.GoogleDocs.UI.pleaseWaitScreen = ref}/>,
+			Zotero.GoogleDocs.UI.pleaseWaitContainer);
 	},
 	
 	interceptDownloads: async function() {
@@ -128,6 +139,82 @@ Zotero.GoogleDocs.UI = {
 			});
 			i++;
 		}
+	},
+	
+	interceptPaste: function() {
+		let pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.children[0];
+		pasteTarget.addEventListener('paste', async (e) => {
+			let insertPromise = this.waitToSaveInsertion();
+			let data = (e.clipboardData || window.clipboardData)
+				.getData('application/x-vnd.google-docs-document-slice-clip+wrapped');
+			if (!data) return true;
+			data = JSON.parse(JSON.parse(data).data).resolved;
+			let keysToCodes = {};
+			let ignoreKeys = new Set();
+			for (let k in data.dsl_entitymap) {
+				let rangeName = data.dsl_entitymap[k].nre_n;
+				// Ignore document data and bibliography style
+				if (rangeName.indexOf("Z_D") === 0 || rangeName.indexOf("Z_B") === 0) {
+					ignoreKeys.add(k);
+				} else {
+					keysToCodes[k] = rangeName;
+				}
+			}
+			if (!Object.keys(keysToCodes).length) {
+				return true;
+			}
+			// We could show a dialog here asking whether the user wishes to link pasted citations
+			// but who is going to say no?
+			// else {
+			// 	let msg = [
+			// 		Zotero.getString('integration_googleDocs_onCitationPaste_notice', ZOTERO_CONFIG.CLIENT_NAME),
+			// 		'\n\n',
+			// 		Zotero.getString('integration_googleDocs_onCitationPaste_warning'),
+			// 	].join('');
+			// 	let result = await this.displayAlert(msg, 0, 2);
+			// 	if (!result) return true;
+			// }
+			try {
+				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
+				let links, ranges;
+				for (let obj of data.dsl_styleslices) {
+					if (obj.stsl_type == 'named_range') ranges = obj.stsl_styles;
+					else if (obj.stsl_type == 'link') links = obj.stsl_styles;
+				}
+				let linksToRanges = {};
+				for (let i = 0; i < links.length; i++) {
+					if (links[i] && links[i].lnks_link
+							&& links[i].lnks_link.ulnk_url.startsWith(Zotero.GoogleDocs.config.fieldURL)) {
+						let link = links[i].lnks_link.ulnk_url;
+						let linkRanges = ranges[i].nrs_ei.cv.opValue
+							.filter(key => !ignoreKeys.has(key))
+							.map(key => keysToCodes[key]);
+						if (linkRanges.some(code => code.includes('CSL_BIBLIOGRAPHY'))) continue;
+						linksToRanges[link] = linkRanges;
+					}
+				}
+				let documentID = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
+				await insertPromise;
+				await Zotero.GoogleDocs_API.run(documentID, 'addPastedRanges', [linksToRanges]);
+			} catch (e) {
+				if (e.message == "Handled Error") {
+					Zotero.debug('Handled Error in interceptPaste()');
+					return;
+				}
+				Zotero.debug(`Exception in interceptPaste()`);
+				Zotero.logError(e);
+				client.displayAlert(e.message, 0, 0);
+			} finally {
+				Zotero.GoogleDocs.UI.toggleUpdatingScreen(false);
+				Zotero.GoogleDocs.lastClient = null;
+			}
+		});
+	},
+	
+	toggleUpdatingScreen: function(display) {
+		this.isUpdating = display || !this.isUpdating;
+		Zotero.GoogleDocs.UI.pleaseWaitScreen.toggle(this.isUpdating);
+		Zotero.GoogleDocs.UI.toggleEnabled(!this.isUpdating);
 	},
 	
 	initModeMonitor: async function() {
@@ -379,6 +466,7 @@ Zotero.GoogleDocs.UI = {
 		let selectedFieldID = this.getSelectedFieldID();
 		if (selectedFieldID) {
 			let observer;
+			// Wait until doc changes are received from the GDocs backend
 			await new Promise(resolve => {
 				observer = new MutationObserver(() => {
 					resolve();
@@ -405,6 +493,19 @@ Zotero.GoogleDocs.UI = {
 		var isLinkbubbleVisible = linkbubble.style.display == 'none';
 		if (isLinkbubbleVisible || !isZoteroLink) return null;
 		return linkbubble.children[0].innerText.substr(Zotero.GoogleDocs.config.fieldURL.length);
+	},
+
+	// Wait for google docs to save the text insertion
+	waitToSaveInsertion: async function() {
+		await Zotero.Promise.delay(5);
+		var deferred = Zotero.Promise.defer();
+		// We cannot check for specific text because of localization, so we just wait for the text
+		// to change. Best bet.
+		var observer = new MutationObserver(() => deferred.resolve());
+		var saveLabel = document.getElementsByClassName('docs-title-save-label-text')[0];
+		observer.observe(saveLabel, {childList: true});
+		await deferred.promise;
+		observer.disconnect();
 	}
 }
 
@@ -590,5 +691,39 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		);
 	}
 };
+
+Zotero.GoogleDocs.UI.PleaseWait = class extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {isHidden: true};
+	}
+	
+	toggle(display) {
+		this.setState({isHidden: !display});
+	}
+	
+	render() {
+		return (
+			<div style={{
+				position: "absolute",
+				width: "100%",
+				height: "100%",
+				background: "#ffffffd4",
+				zIndex: "100000",
+				textAlign: "center",
+				display: "flex",
+				justifyContent: "center",
+				visibility: this.state.isHidden ? "hidden" : 'visible',
+				paddingTop: "31px"
+			}}>
+				<div className="docs-bubble">
+					{Zotero.getString('integration_googleDocs_updating', ZOTERO_CONFIG.CLIENT_NAME)}
+					<br/>
+					{Zotero.getString('general_pleaseWait')}
+				</div>
+			</div>
+		)
+	}
+}
 
 })();
