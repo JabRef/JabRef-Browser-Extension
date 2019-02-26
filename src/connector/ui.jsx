@@ -44,7 +44,7 @@ Zotero.GoogleDocs.UI = {
 
 	init: async function () {
 		await Zotero.Inject.loadReactComponents();
-		this.addKeyboardShortcuts();
+		await this.addKeyboardShortcuts();
 		this.injectIntoDOM();
 		this.interceptDownloads();
 		this.initModeMonitor();
@@ -187,36 +187,16 @@ Zotero.GoogleDocs.UI = {
 	},
 
 	addKeyboardShortcuts: async function() {
-		this.shortcut = 'Ctrl+Alt+C';
-		if (Zotero.isMac) {
-			this.shortcut = 'Ctrl+⌘C';
-		}
-		// BrowserExt uses native shortcut APIs
-		if (Zotero.isBrowserExt) {
-			Zotero.Messaging.addMessageListener('command', function(command) {
-				if (command != 'cite') return;
-				Zotero.GoogleDocs.editField();
-			});
-			try {
-				let commands = await Zotero.Connector_Browser.getShortcuts();
-				let citeCommand = commands.find((c) => c.name == 'cite');
-				// If set
-				if (citeCommand.shortcut.length) {
-					this.shortcut = citeCommand.shortcut.replace('Command', '⌘');
-					document.querySelector('#zoteroAddEditCitation').dataset.tooltip =
-						`Add/edit Zotero citation (${this.shortcut})`;
-					return;
-				}
-			} catch (e) {}
-		}
-	
-		// Hardcoded shortcut on other platforms or if browserExt shortcut unset
-		var modifiers = {ctrlKey: true, altKey: true};
-		if (Zotero.isMac) {
-			modifiers = {metaKey: true, ctrlKey: true};
-		}
+		let modifiers = await Zotero.Prefs.getAsync('hotkeys.cite');
+
+		// Store for access by Menu and Linkbubble widgets
+		this.shortcut = Zotero.Utilities.kbEventToHotkeyString(modifiers);
+		// The toolbar button is managed by GDocs
+		document.querySelector('#zoteroAddEditCitation').dataset.tooltip =
+			`Add/edit Zotero citation (${this.shortcut})`;
+
 		var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
-		Zotero.Inject.addKeyboardShortcut(Object.assign({key: 'c'}, modifiers), Zotero.GoogleDocs.editField, textEventTarget);
+		Zotero.Inject.addKeyboardShortcut(Object.assign(modifiers), Zotero.GoogleDocs.editField, textEventTarget);
 	},
 	
 	activate: async function(force, message) {
