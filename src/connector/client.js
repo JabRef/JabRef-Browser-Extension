@@ -71,7 +71,6 @@ Zotero.GoogleDocs = {
 		window.dispatchEvent(new MessageEvent('Zotero.Integration.execCommand', {
 			data: {client: {documentID: client.documentID, name: Zotero.GoogleDocs.name, id: client.id}, command}
 		}));
-		Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
 		this.lastClient = client;
 	},
 	
@@ -147,6 +146,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	getActiveDocument: async function() {
+		Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
 		return {
 			documentID: this.documentID,
 			outputFormat: 'html',
