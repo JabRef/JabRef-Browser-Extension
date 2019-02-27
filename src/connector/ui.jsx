@@ -274,10 +274,10 @@ Zotero.GoogleDocs.UI = {
 	},
 
 	addKeyboardShortcuts: async function() {
-		let modifiers = await Zotero.Prefs.getAsync('hotkeys.cite');
+		let modifiers = await Zotero.Prefs.getAsync('shortcuts.cite');
 
 		// Store for access by Menu and Linkbubble widgets
-		this.shortcut = Zotero.Utilities.kbEventToHotkeyString(modifiers);
+		this.shortcut = Zotero.Utilities.kbEventToShortcutString(modifiers);
 		// The toolbar button is managed by GDocs
 		document.querySelector('#zoteroAddEditCitation').dataset.tooltip =
 			`Add/edit Zotero citation (${this.shortcut})`;
