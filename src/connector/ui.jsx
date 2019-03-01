@@ -186,11 +186,11 @@ Zotero.GoogleDocs.UI = {
 			// }
 			try {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
-				let links, ranges;
+				let links = [], ranges = [];
 				for (let data of docSlices) {
 					for (let obj of data.dsl_styleslices) {
-						if (obj.stsl_type == 'named_range') ranges = obj.stsl_styles;
-						else if (obj.stsl_type == 'link') links = obj.stsl_styles;
+						if (obj.stsl_type == 'named_range') ranges.concat(obj.stsl_styles);
+						else if (obj.stsl_type == 'link') links.concat(obj.stsl_styles);
 					}
 				}
 				let linksToRanges = {};
