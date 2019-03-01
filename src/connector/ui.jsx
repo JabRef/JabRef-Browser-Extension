@@ -148,16 +148,26 @@ Zotero.GoogleDocs.UI = {
 			let data = (e.clipboardData || window.clipboardData)
 				.getData('application/x-vnd.google-docs-document-slice-clip+wrapped');
 			if (!data) return true;
-			data = JSON.parse(JSON.parse(data).data).resolved;
+			let docSlices = [JSON.parse(JSON.parse(data).data).resolved];
+			if ('dsl_relateddocslices' in docSlices[0]) {
+				// This is footnotes which are structured in the same way as the
+				// main data object
+				for (let key in docSlices[0].dsl_relateddocslices) {
+					docSlices.push(docSlices[0].dsl_relateddocslices[key]);
+				}
+			}
 			let keysToCodes = {};
 			let ignoreKeys = new Set();
-			for (let k in data.dsl_entitymap) {
-				let rangeName = data.dsl_entitymap[k].nre_n;
-				// Ignore document data and bibliography style
-				if (rangeName.indexOf("Z_D") === 0 || rangeName.indexOf("Z_B") === 0) {
-					ignoreKeys.add(k);
-				} else {
-					keysToCodes[k] = rangeName;
+			for (let data of docSlices) {
+				for (let k in data.dsl_entitymap) {
+					let rangeName = data.dsl_entitymap[k].nre_n;
+					if (!rangeName) continue;
+					// Ignore document data and bibliography style
+					if (rangeName.indexOf("Z_D") === 0 || rangeName.indexOf("Z_B") === 0) {
+						ignoreKeys.add(k);
+					} else {
+						keysToCodes[k] = rangeName;
+					}
 				}
 			}
 			if (!Object.keys(keysToCodes).length) {
@@ -177,9 +187,11 @@ Zotero.GoogleDocs.UI = {
 			try {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
 				let links, ranges;
-				for (let obj of data.dsl_styleslices) {
-					if (obj.stsl_type == 'named_range') ranges = obj.stsl_styles;
-					else if (obj.stsl_type == 'link') links = obj.stsl_styles;
+				for (let data of docSlices) {
+					for (let obj of data.dsl_styleslices) {
+						if (obj.stsl_type == 'named_range') ranges = obj.stsl_styles;
+						else if (obj.stsl_type == 'link') links = obj.stsl_styles;
+					}
 				}
 				let linksToRanges = {};
 				for (let i = 0; i < links.length; i++) {
