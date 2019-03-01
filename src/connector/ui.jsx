@@ -215,7 +215,7 @@ Zotero.GoogleDocs.UI = {
 				}
 				Zotero.debug(`Exception in interceptPaste()`);
 				Zotero.logError(e);
-				client.displayAlert(e.message, 0, 0);
+				Zotero.GoogleDocs.Client.prototype.displayAlert(e.message, 0, 0);
 			} finally {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(false);
 				Zotero.GoogleDocs.lastClient = null;
