@@ -154,6 +154,9 @@ Zotero.GoogleDocs.API = {
 			return resp;
 		}
 		var response = responseJSON.response.result && responseJSON.response.result.response;
+		if (responseJSON.response.result.debug) {
+			Zotero.debug(`Google Docs debug:\n\n${responseJSON.response.result.debug.join('\n\n')}`);
+		}
 		return response;
 	},
 	

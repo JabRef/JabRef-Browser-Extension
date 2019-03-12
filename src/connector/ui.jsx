@@ -189,8 +189,8 @@ Zotero.GoogleDocs.UI = {
 				let links = [], ranges = [];
 				for (let data of docSlices) {
 					for (let obj of data.dsl_styleslices) {
-						if (obj.stsl_type == 'named_range') ranges.concat(obj.stsl_styles);
-						else if (obj.stsl_type == 'link') links.concat(obj.stsl_styles);
+						if (obj.stsl_type == 'named_range') ranges = ranges.concat(obj.stsl_styles);
+						else if (obj.stsl_type == 'link') links = links.concat(obj.stsl_styles);
 					}
 				}
 				let linksToRanges = {};

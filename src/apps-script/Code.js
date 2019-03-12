@@ -550,15 +550,24 @@ exposed.addPastedRanges = function(linksToCodes) {
 			rangeFields[key] = [namedRange];
 		}
 	});
+	var linkedCitations = 0;
 	filterFieldLinks(getAllLinks()).forEach(function(link) {
 		var key = link.url.substr(config.fieldURL.length, config.fieldKeyLength);
-		if (key && !rangeFields[key] && linksToCodes[link.url]) {
-            var range = getRangeFromLinks([link]);
-            linksToCodes[link.url].forEach(function(code) {
-            	doc.addNamedRange(code, range);
-            });
+		if (!key) return;
+		
+		if (linksToCodes[link.url]) {
+			if (rangeFields[key]) {
+				debug('Link "' + link.url + '" has named ranges')
+			} else {
+				var range = getRangeFromLinks([link]);
+				linksToCodes[link.url].forEach(function(code) {
+					doc.addNamedRange(code, range);
+				});
+				linkedCitations++;
+			}
 		}
 	});
+	debug('Total linked citations: ' + linkedCitations);
 }
 
 var Field = function(link, key, namedRanges, prefix) {
@@ -669,6 +678,14 @@ Field.prototype = {
 };
 
 // ----- UTILITIES ----- //
+
+function debug(text) {
+	if (extraReturnData.debug) {
+		extraReturnData.debug.push(text);
+	} else {
+		extraReturnData.debug = [text];
+	}
+}
 
 var links = [];
 /** (Modified from https://stackoverflow.com/a/40730088/3199106)
