@@ -184,27 +184,30 @@ Zotero.GoogleDocs.UI = {
 			// 	let result = await this.displayAlert(msg, 0, 2);
 			// 	if (!result) return true;
 			// }
+			let links = [], ranges = [];
+			for (let data of docSlices) {
+				for (let obj of data.dsl_styleslices) {
+					if (obj.stsl_type == 'named_range') ranges = ranges.concat(obj.stsl_styles);
+					else if (obj.stsl_type == 'link') links = links.concat(obj.stsl_styles);
+				}
+			}
+			let linksToRanges = {};
+			for (let i = 0; i < links.length; i++) {
+				if (links[i] && links[i].lnks_link
+						&& links[i].lnks_link.ulnk_url.startsWith(Zotero.GoogleDocs.config.fieldURL)) {
+					let link = links[i].lnks_link.ulnk_url;
+					let linkRanges = ranges[i].nrs_ei.cv.opValue
+						.filter(key => !ignoreKeys.has(key))
+						.map(key => keysToCodes[key]);
+					if (linkRanges.some(code => code.includes('CSL_BIBLIOGRAPHY'))) continue;
+					linksToRanges[link] = linkRanges;
+				}
+			}
+			if (!Object.keys(linksToRanges).length) {
+				return true;
+			}
 			try {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
-				let links = [], ranges = [];
-				for (let data of docSlices) {
-					for (let obj of data.dsl_styleslices) {
-						if (obj.stsl_type == 'named_range') ranges = ranges.concat(obj.stsl_styles);
-						else if (obj.stsl_type == 'link') links = links.concat(obj.stsl_styles);
-					}
-				}
-				let linksToRanges = {};
-				for (let i = 0; i < links.length; i++) {
-					if (links[i] && links[i].lnks_link
-							&& links[i].lnks_link.ulnk_url.startsWith(Zotero.GoogleDocs.config.fieldURL)) {
-						let link = links[i].lnks_link.ulnk_url;
-						let linkRanges = ranges[i].nrs_ei.cv.opValue
-							.filter(key => !ignoreKeys.has(key))
-							.map(key => keysToCodes[key]);
-						if (linkRanges.some(code => code.includes('CSL_BIBLIOGRAPHY'))) continue;
-						linksToRanges[link] = linkRanges;
-					}
-				}
 				let documentID = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
 				await insertPromise;
 				await Zotero.GoogleDocs_API.run(documentID, 'addPastedRanges', [linksToRanges]);
