@@ -726,10 +726,9 @@ Zotero.GoogleDocs.UI.PleaseWait = class extends React.Component {
 				background: "#ffffffd4",
 				zIndex: "100000",
 				textAlign: "center",
-				display: "flex",
 				justifyContent: "center",
-				visibility: this.state.isHidden ? "hidden" : 'visible',
-				paddingTop: "31px"
+				paddingTop: "31px",
+				display: this.state.isHidden ? "none" : 'flex',
 			}}>
 				<div className="docs-bubble">
 					{Zotero.getString('integration_googleDocs_updating', ZOTERO_CONFIG.CLIENT_NAME)}
