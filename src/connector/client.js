@@ -426,7 +426,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		}
 		let url = Zotero.GoogleDocs.config.fieldURL+field.id;
 		if (!await Zotero.GoogleDocs.UI.selectText(field.text, url)) {
-			throw new Error(`Failed to select ${field.text} with url ${url}`);
+			Zotero.debug(`Failed to select ${field.text} with url ${url}`);
 		}
 	},
 	
