@@ -111,7 +111,8 @@ Zotero.GoogleDocs.UI = {
 		for (let elem of downloadMenuItems) {
 			if (elem.textContent.includes('.txt')) continue;
 			elem.addEventListener('mouseup', async function(event) {
-				if (!Zotero.GoogleDocs.hasZoteroLinks) return;
+				if (!Zotero.GoogleDocs.shouldInterceptDownload ||
+					Zotero.GoogleDocs.downloadInterceptBlocked) return;
 				if (Zotero.GoogleDocs.UI.dontInterceptDownload) {
 					Zotero.GoogleDocs.UI.dontInterceptDownload = false;
 					return;
@@ -678,7 +679,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		if (!this.state.open) {
 			return <div></div>
 		}
-		Zotero.GoogleDocs.hasZoteroLinks = true;
+		Zotero.GoogleDocs.shouldInterceptDownload = true;
 		
 		var top;
 		// If we click away from the link and then on it again, google docs doesn't update

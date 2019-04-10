@@ -42,7 +42,8 @@ Zotero.GoogleDocs = {
 	},
 	clients: {},
 
-	hasZoteroLinks: false,
+	shouldInterceptDownload: false,
+	downloadInterceptBlocked: false,
 	downloadIntercepted: false,
 
 	name: "Zotero Google Docs Plugin",
@@ -151,7 +152,8 @@ Zotero.GoogleDocs.Client.prototype = {
 			documentID: this.documentID,
 			outputFormat: 'html',
 			supportedNotes: ['footnotes'],
-			supportsImportExport: true
+			supportsImportExport: true,
+			processorName: "Google Docs"
 		}
 	},
 	
@@ -414,7 +416,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		this.queued.fields[fieldID].removeCode = true;
 		// This call is a part of Unlink Citations, which means that
 		// after this there will be no more Zotero links in the file
-		Zotero.GoogleDocs.hasZoteroLinks = false;
+		Zotero.GoogleDocs.shouldInterceptDownload = false;
 	},
 	
 	select: async function(fieldID) {
@@ -433,15 +435,17 @@ Zotero.GoogleDocs.Client.prototype = {
 	importDocument: async function() {
 		delete this.fields;
 		return Zotero.GoogleDocs_API.run(this.documentID, 'importDocument');
+		Zotero.GoogleDocs.downloadInterceptBlocked = false;
 	},
 
 	exportDocument: async function() {
-		await Zotero.GoogleDocs_API.run(this.documentID, 'exportDocument');
+		await Zotero.GoogleDocs_API.run(this.documentID, 'exportDocument', Array.from(arguments));
 		var i = 0;
 		Zotero.debug(`GDocs: Clearing fields ${i++}`);
 		while (!(await Zotero.GoogleDocs_API.run(this.documentID, 'clearAllFields'))) {
 			Zotero.debug(`GDocs: Clearing fields ${i++}`)
 		}
+		Zotero.GoogleDocs.downloadInterceptBlocked = true;
 	}
 };
 		
