@@ -933,22 +933,21 @@ var HTMLConverter = {
 		this.defaultAttributes = this.insertElem.getAttributes();
 		// Preserve link
 		delete this.defaultAttributes[DocumentApp.Attribute.LINK_URL];
+
+		this.rangeBuilder = doc.newRange();
 		try {
 			if (html[0] != '<' || html[html.length-1] != '>') {
 				var xmlDoc = XmlService.parse("<div>" + html + "</div>");
 			} else {
 				var xmlDoc = XmlService.parse(html);
 			}
+			// Insert formatted text
+			HTMLConverter.addElem(xmlDoc.getRootElement(), modifiers);
 		} catch (e) {
 			// Something's wrong. Just append.
 			this.insertElem.insertText(this.insertAt, html);
-			return html.length;
+			this.insertAt += html.length;
 		}
-		
-		this.rangeBuilder = doc.newRange();
-
-		// Insert formatted text
-		HTMLConverter.addElem(xmlDoc.getRootElement(), modifiers);
 		
 		if (this.startAt != this.insertAt) {
 			this.rangeBuilder.addElement(this.insertElem, this.startAt, this.insertAt-1);
