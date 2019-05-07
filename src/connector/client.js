@@ -231,9 +231,9 @@ Zotero.GoogleDocs.Client.prototype = {
 				let nextField = this.fields[this.insertIdx];
 				let noteIndex = 1;
 				if (prevField) {
-					noteIndex = prevField.noteIndex+1;
+					noteIndex = prevField.noteIndex == 0 ? 0 : prevField.noteIndex+1;
 				} else if (nextField) {
-					noteIndex = nextField.noteIndex-1;
+					noteIndex = nextField.noteIndex == 0 ? 0 : nextField.noteIndex-1;
 				}
 				let insert = Object.assign({noteIndex}, this.queued.insert);
 				fields = fields.slice(0, this.insertIdx).concat([insert],
