@@ -945,8 +945,7 @@ var HTMLConverter = {
 			HTMLConverter.addElem(xmlDoc.getRootElement(), modifiers);
 		} catch (e) {
 			// Something's wrong. Just append.
-			this.insertElem.insertText(this.insertAt, html);
-			this.insertAt += html.length;
+			HTMLConverter.addText(html, modifiers);
 		}
 		
 		if (this.startAt != this.insertAt) {
@@ -998,10 +997,10 @@ var HTMLConverter = {
 		var cls = elem.getAttribute('class');
 		cls = cls ? cls.getValue() : null;
 		if (cls === 'csl-block') {
-			this.insertElem.insertText(this.insertAt, "\n"); this.insertAt += 1; this.insertedLength += 1;
+			this.insertElem.insertText(this.insertAt, "\n"); this.insertAt += 1;
 		}
 		else if (cls === 'csl-indent') {
-			this.insertElem.insertText(this.insertAt, "\t"); this.insertAt += 1; this.insertedLength += 1;
+			this.insertElem.insertText(this.insertAt, "\t"); this.insertAt += 1;
 		}
 		else if (cls === 'csl-entry') {
 			// Don't insert the first paragraph, except when we're not in a new paragraph already
@@ -1027,9 +1026,9 @@ var HTMLConverter = {
 		}
 		
 		if (cls === 'csl-left-margin') {
-			this.insertElem.insertText(this.insertAt, "\t"); this.insertAt += 1; this.insertedLength += 1;
+			this.insertElem.insertText(this.insertAt, "\t"); this.insertAt += 1;
 		} else if (cls === 'csl-block') {
-			this.insertElem.insertText(this.insertAt, "\n"); this.insertAt += 1; this.insertedLength += 1;
+			this.insertElem.insertText(this.insertAt, "\n"); this.insertAt += 1;
 		}
 	},
 
@@ -1038,7 +1037,6 @@ var HTMLConverter = {
 		var start = this.insertAt;
 		var end = start + text.length - 1;
 		this.insertAt += text.length;
-		this.insertedLength += text.length;
 		
 		var setSub = modifiers['sub'];
 		var setSuper = modifiers['super'];
