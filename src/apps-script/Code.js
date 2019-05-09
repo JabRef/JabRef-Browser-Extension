@@ -481,7 +481,7 @@ exposed.exportDocument = function(_, importInstructions) {
 	// Convert fields
 	var fields = getFields();
 	fields.forEach(function(field) {
-		field.write({text: field.code});
+		field.write({text: field.code}, true);
 	});
 	var para;
 	var body = doc.getBody();
@@ -609,9 +609,10 @@ Field.prototype = {
 	 * 
 	 * We don't do that for performance reasons and because you shouldn't need to use
 	 * this object again after writing without calling #getFields()
-	 * @param field
+	 * @param field {text: {String}, code: {String}}
+	 * @param ignoreHTML insert as raw text
 	 */
-	write: function(field) {
+	write: function(field, ignoreHTML) {
 		var newTextRange = null;
 		var newCode = (field.code && field.code != this.code) ? field.code : undefined;
 		if (field.text) {
@@ -627,7 +628,7 @@ Field.prototype = {
 			if (isBibl) {
 				paragraphModifiers = getBibliographyStyle();
 			}
-			newTextRange = HTMLConverter.insert(link.text, field.text, modifiers, startOffset, paragraphModifiers);
+			newTextRange = HTMLConverter.insert(link.text, field.text, modifiers, startOffset, paragraphModifiers, ignoreHTML);
 			
 			
 			// Remove old text
@@ -916,7 +917,7 @@ var HTMLConverter = {
 	insertElem: null,
 	insertedLength: 0,
 	firstParagraph: true,
-	insert: function(docsElem, html, modifiers, insertAt, paragraphModifiers) {
+	insert: function(docsElem, html, modifiers, insertAt, paragraphModifiers, ignoreHTML) {
 		if (docsElem.getType() != DocumentApp.ElementType.TEXT) {
 			throw new Error('Attempting to insert rich text into non-Text object');
 		}
@@ -935,17 +936,21 @@ var HTMLConverter = {
 		delete this.defaultAttributes[DocumentApp.Attribute.LINK_URL];
 
 		this.rangeBuilder = doc.newRange();
-		try {
-			if (html[0] != '<' || html[html.length-1] != '>') {
-				var xmlDoc = XmlService.parse("<div>" + html + "</div>");
-			} else {
-				var xmlDoc = XmlService.parse(html);
-			}
-			// Insert formatted text
-			HTMLConverter.addElem(xmlDoc.getRootElement(), modifiers);
-		} catch (e) {
-			// Something's wrong. Just append.
+		if (ignoreHTML) {
 			HTMLConverter.addText(html, modifiers);
+		} else {
+			try {
+				if (html[0] != '<' || html[html.length-1] != '>') {
+					var xmlDoc = XmlService.parse("<div>" + html + "</div>");
+				} else {
+					var xmlDoc = XmlService.parse(html);
+				}
+				// Insert formatted text
+				HTMLConverter.addElem(xmlDoc.getRootElement(), modifiers);
+			} catch (e) {
+				// Something's wrong. Just append.
+				HTMLConverter.addText(html, modifiers);
+			}
 		}
 		
 		if (this.startAt != this.insertAt) {
