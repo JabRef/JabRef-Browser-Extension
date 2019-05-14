@@ -491,10 +491,11 @@ exposed.exportDocument = function(_, importInstructions) {
 		para = body.appendParagraph("DOCUMENT_PREFERENCES " + docData);
 		para.setLinkUrl(config.fieldURL);
 	}
-	// Insert export marker
+	// Insert export marker, empty paragraph, import instructions and another empty paragraph
 	body.insertParagraph(0, EXPORTED_DOCUMENT_MARKER);
-	body.insertParagraph(1, importInstructions);
-	body.insertParagraph(2, " ");
+	body.insertParagraph(1, " ");
+	body.insertParagraph(2, importInstructions);
+	body.insertParagraph(3, " ");
 }
 
 exposed.importDocument = function() {
@@ -527,8 +528,10 @@ exposed.importDocument = function() {
 	});
 	var paragraphs = doc.getBody().getParagraphs();
 	// Empty para
-	paragraphs[2].removeFromParent();
+	paragraphs[3].removeFromParent();
 	// Import instructions
+	paragraphs[2].removeFromParent();
+	// Empty para
 	paragraphs[1].removeFromParent();
 	// Marker
 	paragraphs[0].removeFromParent();
