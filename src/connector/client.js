@@ -42,7 +42,7 @@ Zotero.GoogleDocs = {
 	},
 	clients: {},
 
-	shouldInterceptDownload: false,
+	hasZoteroCitations: false,
 	downloadInterceptBlocked: false,
 	downloadIntercepted: false,
 
@@ -416,7 +416,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		this.queued.fields[fieldID].removeCode = true;
 		// This call is a part of Unlink Citations, which means that
 		// after this there will be no more Zotero links in the file
-		Zotero.GoogleDocs.shouldInterceptDownload = false;
+		Zotero.GoogleDocs.hasZoteroCitations = false;
 	},
 	
 	select: async function(fieldID) {

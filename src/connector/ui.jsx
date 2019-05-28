@@ -528,7 +528,10 @@ Zotero.GoogleDocs.UI = {
 Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = { open: Zotero.GoogleDocs.UI.menubutton.classList.contains('goog-control-open') }
+		this.state = {
+			open: Zotero.GoogleDocs.UI.menubutton.classList.contains('goog-control-open'),
+			displayExportOption: false
+		}
 	}
 
 	render() {
@@ -551,6 +554,18 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			}
 		}
 		
+		let exportMenuItem = '';
+		if (this.state.displayExportOption) {
+			let client = new Zotero.GoogleDocs.Client();
+			exportMenuItem = (
+				<Zotero.GoogleDocs.UI.Menu.Item
+					label="Export document"
+					handleClick={() => {
+						this.props.execCommand('exportDocument');
+					}} />
+			);
+		}
+		
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
 				style={style}>
@@ -559,17 +574,31 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 				<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences" handleClick={this.props.execCommand.bind(this, 'setDocPrefs', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" handleClick={this.props.execCommand.bind(this, 'refresh', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Unlink citations" handleClick={this.props.execCommand.bind(this, 'removeCodes', null)} />
+				{exportMenuItem}
 			</div>
 		);
 	}
 
 	componentDidMount() {
-		this.observer = new MutationObserver(function(mutations) {
+		this.observer = new MutationObserver(async function(mutations) {
 			for (let mutation of mutations) {
 				if (mutation.attributeName != 'class' || 
 					mutation.target.classList.contains('goog-control-open') == this.state.open) continue;
 				let open = mutation.target.classList.contains('goog-control-open');
 				this.setState({open});
+				if (open) {
+					let { displayExportOption } = this.state;
+					let clientVersion = await Zotero.Connector.getClientVersion();
+					displayExportOption = clientVersion && Zotero.GoogleDocs.hasZoteroCitations;
+					if (displayExportOption) {
+						let major = parseInt(clientVersion.split('.')[0]);
+						let patch = parseInt(clientVersion.split('.')[2]);
+						displayExportOption = major > 5 || major == 5 && patch >= 67;
+					}
+					if (this.state.displayExportOption != displayExportOption) {
+						this.setState({ displayExportOption });
+					}
+				}
 			}
 		}.bind(this));
 		this.observer.observe(Zotero.GoogleDocs.UI.menubutton, {attributes: true});
@@ -679,7 +708,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		if (!this.state.open) {
 			return <div></div>
 		}
-		Zotero.GoogleDocs.shouldInterceptDownload = true;
+		Zotero.GoogleDocs.hasZoteroCitations = true;
 		
 		var top;
 		// If we click away from the link and then on it again, google docs doesn't update
