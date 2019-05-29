@@ -559,7 +559,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			let client = new Zotero.GoogleDocs.Client();
 			exportMenuItem = (
 				<Zotero.GoogleDocs.UI.Menu.Item
-					label="Export document"
+					label="Export document..."
 					handleClick={() => {
 						this.props.execCommand('exportDocument');
 					}} />
@@ -569,12 +569,12 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
 				style={style}>
-				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit citation" handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={Zotero.GoogleDocs.UI.shortcut} />
+				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit citation..." handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={Zotero.GoogleDocs.UI.shortcut} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit bibliography" handleClick={this.props.execCommand.bind(this, 'addEditBibliography', null)} />
-				<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences" handleClick={this.props.execCommand.bind(this, 'setDocPrefs', null)} />
+				<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences..." handleClick={this.props.execCommand.bind(this, 'setDocPrefs', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" handleClick={this.props.execCommand.bind(this, 'refresh', null)} />
-				<Zotero.GoogleDocs.UI.Menu.Item label="Unlink citations" handleClick={this.props.execCommand.bind(this, 'removeCodes', null)} />
 				{exportMenuItem}
+				<Zotero.GoogleDocs.UI.Menu.Item label="Unlink citations..." handleClick={this.props.execCommand.bind(this, 'removeCodes', null)} />
 			</div>
 		);
 	}
