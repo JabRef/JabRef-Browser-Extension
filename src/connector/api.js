@@ -130,7 +130,8 @@ Zotero.GoogleDocs.API = {
 		} catch (e) {
 			if (e.status >= 400 && e.status < 404) {
 				this.resetAuth();
-				throw new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
+				throw new Zotero.ConnectorIntegration.Alert(
+					`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
 			} else {
 				throw new Error(`${e.status}: Google Docs request failed.\n\n${e.responseText}`);
 			}
