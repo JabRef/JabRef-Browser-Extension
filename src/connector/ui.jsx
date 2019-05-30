@@ -111,7 +111,7 @@ Zotero.GoogleDocs.UI = {
 		for (let elem of downloadMenuItems) {
 			if (elem.textContent.includes('.txt')) continue;
 			elem.addEventListener('mouseup', async function(event) {
-				if (!Zotero.GoogleDocs.shouldInterceptDownload ||
+				if (!Zotero.GoogleDocs.hasZoteroCitations ||
 					Zotero.GoogleDocs.downloadInterceptBlocked) return;
 				if (Zotero.GoogleDocs.UI.dontInterceptDownload) {
 					Zotero.GoogleDocs.UI.dontInterceptDownload = false;
@@ -554,17 +554,21 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			}
 		}
 		
-		let exportMenuItem = '';
-		if (this.state.displayExportOption) {
-			let client = new Zotero.GoogleDocs.Client();
-			exportMenuItem = (
-				<Zotero.GoogleDocs.UI.Menu.Item
-					label="Export document..."
-					handleClick={() => {
-						this.props.execCommand('exportDocument');
-					}} />
-			);
-		}
+		let exportMenuItem = (
+			<Zotero.GoogleDocs.UI.Menu.Item
+				label="Export document..."
+				handleClick={async () => {
+					let clientVersion = await Zotero.Connector.getClientVersion();
+					if (clientVersion) {
+						let major = parseInt(clientVersion.split('.')[0]);
+						let patch = parseInt(clientVersion.split('.')[2]);
+						if (! (major > 5 || major == 5 && patch >= 67)) {
+							return Zotero.Connector_Browser.newerVersionRequiredPrompt();
+						}
+					}
+					this.props.execCommand('exportDocument');
+				}} />
+		);
 		
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
@@ -580,25 +584,12 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 	}
 
 	componentDidMount() {
-		this.observer = new MutationObserver(async function(mutations) {
+		this.observer = new MutationObserver(function(mutations) {
 			for (let mutation of mutations) {
 				if (mutation.attributeName != 'class' || 
 					mutation.target.classList.contains('goog-control-open') == this.state.open) continue;
 				let open = mutation.target.classList.contains('goog-control-open');
 				this.setState({open});
-				if (open) {
-					let { displayExportOption } = this.state;
-					let clientVersion = await Zotero.Connector.getClientVersion();
-					displayExportOption = clientVersion && Zotero.GoogleDocs.hasZoteroCitations;
-					if (displayExportOption) {
-						let major = parseInt(clientVersion.split('.')[0]);
-						let patch = parseInt(clientVersion.split('.')[2]);
-						displayExportOption = major > 5 || major == 5 && patch >= 67;
-					}
-					if (this.state.displayExportOption != displayExportOption) {
-						this.setState({ displayExportOption });
-					}
-				}
 			}
 		}.bind(this));
 		this.observer.observe(Zotero.GoogleDocs.UI.menubutton, {attributes: true});
