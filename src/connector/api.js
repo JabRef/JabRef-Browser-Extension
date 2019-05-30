@@ -108,8 +108,9 @@ Zotero.GoogleDocs.API = {
 	},
 	
 	onAuthCancel: function() {
-		Zotero.GoogleDocs.API.authDeferred &&
-			Zotero.GoogleDocs.API.authDeferred.reject(new Error('Google Docs authentication cancelled'));
+		Zotero.GoogleDocs.API.authDeferred
+			&& Zotero.GoogleDocs.API.authDeferred.reject(
+				new Zotero.ConnectorIntegration.Alert('Google Docs authentication was cancelled'));
 	},
 	
 	run: async function(docID, method, args, email, tab) {
