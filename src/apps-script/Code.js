@@ -524,7 +524,7 @@ exposed.importDocument = function() {
 		var text = link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1).trim();
 		for (var key in importTypes) {
 			if (text.indexOf(key) == 0) {
-				return importTypes[key](link, text);
+				importTypes[key](link, text);
 			}
 		}
 	}
