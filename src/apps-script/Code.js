@@ -480,9 +480,10 @@ exposed.insertField = function(field) {
 exposed.exportDocument = function(_, importInstructions) {
 	// Convert fields
 	var fields = getFields();
-	fields.forEach(function(field) {
+	for (var i = fields.length-1; i >= 0; i--) {
+		var field = fields[i];
 		field.write({text: field.code}, true);
-	});
+	}
 	var para;
 	var body = doc.getBody();
 	// Append document data
@@ -518,14 +519,15 @@ exposed.importDocument = function() {
 		},
 	}
 	var links = getAllLinks(true);
-	links.forEach(function(link) {
+	for (var i = links.length-1; i >= 0; i--) {
+		var link = links[i];
 		var text = link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1).trim();
 		for (var key in importTypes) {
 			if (text.indexOf(key) == 0) {
 				return importTypes[key](link, text);
 			}
 		}
-	});
+	}
 	var paragraphs = doc.getBody().getParagraphs();
 	// Empty para
 	paragraphs[3].removeFromParent();
