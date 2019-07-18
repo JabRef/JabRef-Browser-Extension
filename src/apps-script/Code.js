@@ -40,7 +40,7 @@ var CLEAR_FIELDS_TIMEOUT = 60; //s
 
 var LOCK_NAME = "Z_LOCK";
 
-var EXPORTED_DOCUMENT_MARKER = "ZOTERO_EXPORTED_DOCUMENT";
+var EXPORTED_DOCUMENT_MARKERS = ["ZOTERO_TRANSFER_DOCUMENT", "ZOTERO_EXPORTED_DOCUMENT"];
 
 var doc, bodyRange, docUrl, insertIdx, apiVersion = 0;
 var extraReturnData = {};
@@ -226,7 +226,8 @@ function decodeRanges(namedRanges, prefix) {
 }
 
 function checkForExportMarker() {
-	return !!doc.getBody().getParagraphs()[0].findText(EXPORTED_DOCUMENT_MARKER);
+	var p = doc.getBody().getParagraphs()[0];
+	return EXPORTED_DOCUMENT_MARKERS.some(function (marker) { return p.findText(marker); });
 }
 
 var exposed = {};
@@ -234,7 +235,7 @@ var exposed = {};
 exposed.getDocumentData = function() {
 	var isExported = checkForExportMarker();
 	if (isExported) {
-		return EXPORTED_DOCUMENT_MARKER;
+		return EXPORTED_DOCUMENT_MARKERS[0];
 	}
 	var dataFields = getFields(config.dataPrefix);
 	if (!dataFields.length) {
@@ -493,7 +494,7 @@ exposed.exportDocument = function(_, importInstructions) {
 		para.setLinkUrl(config.fieldURL);
 	}
 	// Insert export marker, empty paragraph, import instructions and another empty paragraph
-	body.insertParagraph(0, EXPORTED_DOCUMENT_MARKER);
+	body.insertParagraph(0, EXPORTED_DOCUMENT_MARKERS[0]);
 	body.insertParagraph(1, " ");
 	body.insertParagraph(2, importInstructions);
 	body.insertParagraph(3, " ");
