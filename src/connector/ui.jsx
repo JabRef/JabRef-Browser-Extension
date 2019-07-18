@@ -556,7 +556,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		
 		let exportMenuItem = (
 			<Zotero.GoogleDocs.UI.Menu.Item
-				label="Export document..."
+				label="Switch word processors..."
 				handleClick={async () => {
 					let clientVersion = await Zotero.Connector.getClientVersion();
 					if (clientVersion) {
