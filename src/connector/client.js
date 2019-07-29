@@ -167,7 +167,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		let batchSize = Zotero.GoogleDocs.updateBatchSize;
 		let count = 0;
 		while (count < keys.length || this.queued.documentData) {
-			Zotero.debug(`GDocs: Updating doc. Batch ${batchSize}, numItems: ${keys-count}`);
+			Zotero.debug(`GDocs: Updating doc. Batch ${batchSize}, numItems: ${keys.length - count}`);
 			let batch = keys.slice(count, count+batchSize);
 			try {
 				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
