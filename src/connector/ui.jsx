@@ -32,6 +32,13 @@ if(window.top) {
 }	
 if (!isTopWindow) return;
 
+let imageURL
+if (Zotero.isBrowserExt) {
+	imageURL = browser.extension.getURL('images/zotero-z-16px-offline.png');
+} else {
+	imageURL = safari.extension.baseURI + 'images/zotero-new-z-16px.png';
+}
+
 /**
  * A class that hacks into the Google Docs editor UI to allow performing various actions that should
  * be properly done using AppsScript if our script was document-bound, but it is not.
@@ -718,11 +725,29 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		}
 		return (
 			<div
-				className="docs-bubble" role="dialog" style={style}>
-				<a href="javascript:void(0);">Edit with Zotero</a>
-				<span style={{color: '#777', textDecoration: 'none', marginLeft: '1em'}}>
-					 ({Zotero.GoogleDocs.UI.shortcut})
-				 </span>
+				className="docs-bubble docs-linkbubble-bubble docs-linkbubble-link-preview" role="dialog" style={style}>
+				<div className="link-bubble-header">
+					<div className="docs-link-bubble-mime-icon goog-inline-block docs-material">
+						<div className="docs-icon goog-inline-block ">
+							<div style={{
+								backgroundImage: `url(${imageURL})`,
+								backgroundRepeat: 'no-repeat',
+								backgroundPosition: 'center',
+								width: "100%",
+								height: "100%"
+							}} />
+						</div>
+					</div>
+					<a style={{
+						fontFamily: '"Google Sans",Roboto,RobotoDraft,Helvetica,Arial,sans-serif',
+						fontWeight: 500,
+						padding: "0 6px",
+						textDecoration: "none !important"
+					}} href="javascript:void(0);">Edit with Zotero</a>
+					<span style={{color: '#777', textDecoration: 'none', marginRight: '6px'}}>
+						 ({Zotero.GoogleDocs.UI.shortcut})
+					 </span>
+				</div>
 			</div>
 		);
 	}
