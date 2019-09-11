@@ -512,10 +512,10 @@ Zotero.GoogleDocs.UI = {
 	getSelectedFieldID: function() {
 		var linkbubble = document.querySelector('.docs-bubble.docs-linkbubble-bubble');
 		if (!linkbubble) return null;
-		var isZoteroLink = linkbubble.children[0].innerText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
-		var isLinkbubbleVisible = linkbubble.style.display == 'none';
-		if (isLinkbubbleVisible || !isZoteroLink) return null;
-		return linkbubble.children[0].innerText.substr(Zotero.GoogleDocs.config.fieldURL.length);
+		let linkbubbleText = Zotero.Utilities.trim(linkbubble.children[0].innerText);
+		var isZoteroLink = linkbubbleText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
+		if (!isZoteroLink) return null;
+		return linkbubbleText.substr(Zotero.GoogleDocs.config.fieldURL.length);
 	},
 
 	// Wait for google docs to save the text insertion

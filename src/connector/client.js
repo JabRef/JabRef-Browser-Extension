@@ -195,6 +195,9 @@ Zotero.GoogleDocs.Client.prototype = {
 				}
 				throw e;
 			}
+			if (this.queued.insert) {
+				this.fields.splice(this.insertIdx, 0, this.queued.insert);
+			}
 			this.queued.insert = null;
 			this.queued.documentData = null;
 			this.queued.bibliographyStyle = null;
