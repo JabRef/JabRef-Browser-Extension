@@ -237,7 +237,6 @@ Zotero.GoogleDocs.UI = {
 	toggleUpdatingScreen: function(display) {
 		this.isUpdating = display || !this.isUpdating;
 		Zotero.GoogleDocs.UI.pleaseWaitScreen.toggle(this.isUpdating);
-		Zotero.GoogleDocs.UI.toggleEnabled(!this.isUpdating);
 	},
 	
 	initModeMonitor: async function() {
@@ -486,7 +485,7 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	moveCursorToEndOfCitation: async function() {
-		let selectedFieldID = this.getSelectedFieldID();
+		let selectedFieldID = await this.getSelectedFieldID(true);
 		if (selectedFieldID) {
 			let observer;
 			// Wait until doc changes are received from the GDocs backend
@@ -503,18 +502,27 @@ Zotero.GoogleDocs.UI = {
 				});
 			});
 			observer.disconnect();
+			selectedFieldID = await this.getSelectedFieldID(true);
+			if (!selectedFieldID) return;
 			await this.clickElement(document.getElementById('insertLinkButton'));
 			await Zotero.Promise.delay();
 			await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
 		}
 	},
 	
-	getSelectedFieldID: function() {
-		var linkbubble = document.querySelector('.docs-bubble.docs-linkbubble-bubble');
+	getSelectedFieldID: async function(noAddRemove) {
+		// We add and remove a non-breaking-space to re-display the linkbubble in case it is not showing
+		// due to window blur or any other reasons.
+		if (!noAddRemove) {
+			await this.sendKeyboardEvent({key: " ", keyCode: 160});
+			await this.sendKeyboardEvent({key: "Backspace", keyCode: 8});
+		}
+		let linkbubble = document.querySelector('.docs-bubble.docs-linkbubble-bubble');
 		if (!linkbubble) return null;
 		let linkbubbleText = Zotero.Utilities.trim(linkbubble.children[0].innerText);
-		var isZoteroLink = linkbubbleText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
-		if (!isZoteroLink) return null;
+		let isZoteroLink = linkbubbleText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
+		let cursorInLink = this.isInLink();
+		if (!cursorInLink || !isZoteroLink) return null;
 		return linkbubbleText.substr(Zotero.GoogleDocs.config.fieldURL.length);
 	},
 
@@ -649,29 +657,32 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		this.linkbubble = await this.waitForLinkbubble();
 		this.lastTop = "";
 		let style = this.linkbubble.style;
-		let open = style.display != 'none';
-		let url = this.linkbubble.children[0].innerText;
+		const url = this.linkbubble.children[0].innerText;
+		const open = style.display != 'none';
+
+		Zotero.GoogleDocs.UI.inLink = open;
+		Zotero.GoogleDocs.UI.lastLinkURL = url;
+		
 		// Check if on zotero field link
 		if (url.includes(Zotero.GoogleDocs.config.fieldURL)) {
 			this.setState({open});
 		}
-		Zotero.GoogleDocs.UI.lastLinkURL = url;
 		
 		this.observer = new MutationObserver(function(mutations) {
 			for (let mutation of mutations) {
 				if (mutation.attributeName != 'style') continue;
 
-				let url = this.linkbubble.children[0].innerText;
+				let style = this.linkbubble.style;
+				const url = this.linkbubble.children[0].innerText;
+				const open = style.display != 'none';
+
+				Zotero.GoogleDocs.UI.inLink = open;
+				Zotero.GoogleDocs.UI.lastLinkURL = url;
+				
 				// Check if on zotero field link
 				if (!url.includes(Zotero.GoogleDocs.config.fieldURL)) {
 					return this.setState({open: false});
 				}
-				
-				let style = this.linkbubble.style;
-				let open = style.display != 'none';
-				
-				Zotero.GoogleDocs.UI.inLink = open;
-				Zotero.GoogleDocs.UI.lastLinkURL = url;
 
 				// This is us moving the linkbubble away from view
 				if (this.state.open == open &&

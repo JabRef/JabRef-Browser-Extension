@@ -56,18 +56,20 @@ Zotero.GoogleDocs = {
 			await Zotero.Connector_Browser.injectScripts(['zotero-google-docs-integration/ui.js']);
 		}
 		Zotero.GoogleDocs.UI.init();
-		window.addEventListener(`${Zotero.GoogleDocs.name}.call`, function(e) {
+		window.addEventListener(`${Zotero.GoogleDocs.name}.call`, async function(e) {
 			var client = Zotero.GoogleDocs.clients[e.data.client.id];
 			if (!client) {
 				client = new Zotero.GoogleDocs.Client();
+				await client.init();
 			}
 			client.call.apply(client, e.data.args);
 		});
 	},
 	
-	execCommand: function(command, client) {
+	execCommand: async function(command, client) {
 		if (!client) {
 			client = new Zotero.GoogleDocs.Client();
+			await client.init();
 		}
 		window.dispatchEvent(new MessageEvent('Zotero.Integration.execCommand', {
 			data: {client: {documentID: client.documentID, name: Zotero.GoogleDocs.name, id: client.id}, command}
@@ -84,6 +86,7 @@ Zotero.GoogleDocs = {
 	editField: async function() {
 		// Use the last client with a cached field list to speed up the cursorInField() lookup
 		var client = this.lastClient || new Zotero.GoogleDocs.Client();
+		await client.init();
 		try {
 			var field = await client.cursorInField();
 		} catch (e) {
@@ -113,6 +116,11 @@ Zotero.GoogleDocs.Client = function() {
 	Zotero.GoogleDocs.clients[this.id] = this;
 };
 Zotero.GoogleDocs.Client.prototype = {
+	init: async function() {
+		this.currentFieldID = await Zotero.GoogleDocs.UI.getSelectedFieldID();
+		this.isInLink = Zotero.GoogleDocs.UI.isInLink();
+	},
+	
 	call: async function(request) {
 		var method = request.command.split('.')[1];
 		var args = Array.from(request.arguments);
@@ -298,13 +306,11 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	cursorInField: async function() {
-		if (!Zotero.GoogleDocs.UI.getSelectedFieldID()) return false;
-		var selectedFieldID = Zotero.GoogleDocs.UI.getSelectedFieldID();
-		if (!selectedFieldID) return false;
+		if (!(this.currentFieldID)) return false;
 		
 		var fields = await this.getFields();
 		// The call to getFields() might change the selectedFieldID if there are duplicates
-		selectedFieldID = Zotero.GoogleDocs.UI.getSelectedFieldID();
+		let selectedFieldID = this.currentFieldID = await Zotero.GoogleDocs.UI.getSelectedFieldID();
 		for (let field of fields) {
 			if (field.id == selectedFieldID) {
 				return field;
@@ -314,7 +320,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	canInsertField: async function() {
-		return !Zotero.GoogleDocs.UI.isInLink();
+		return !this.isInLink;
 	},
 	
 	convert: async function(fieldIDs, fieldType, fieldNoteTypes) {
