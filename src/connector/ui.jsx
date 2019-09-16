@@ -517,7 +517,7 @@ Zotero.GoogleDocs.UI = {
 			await this.sendKeyboardEvent({key: " ", keyCode: 160});
 			await this.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 		}
-		let linkbubble = document.querySelector('.docs-bubble.docs-linkbubble-bubble');
+		let linkbubble = document.querySelector('#docs-link-bubble');
 		if (!linkbubble) return null;
 		let linkbubbleText = Zotero.Utilities.trim(linkbubble.children[0].innerText);
 		let isZoteroLink = linkbubbleText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
@@ -657,7 +657,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		this.linkbubble = await this.waitForLinkbubble();
 		this.lastTop = "";
 		let style = this.linkbubble.style;
-		const url = this.linkbubble.children[0].innerText;
+		const url = Zotero.Utilities.trim(this.linkbubble.children[0].innerText);
 		const open = style.display != 'none';
 
 		Zotero.GoogleDocs.UI.inLink = open;
@@ -673,7 +673,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 				if (mutation.attributeName != 'style') continue;
 
 				let style = this.linkbubble.style;
-				const url = this.linkbubble.children[0].innerText;
+				const url = Zotero.Utilities.trim(this.linkbubble.children[0].innerText);
 				const open = style.display != 'none';
 
 				Zotero.GoogleDocs.UI.inLink = open;
@@ -696,12 +696,12 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 	
 	waitForLinkbubble() {
 		return new Promise(function(resolve) {
-			var linkbubble = document.getElementsByClassName('docs-linkbubble-bubble')[0];	
+			var linkbubble = document.querySelector('#docs-link-bubble');	
 			if (linkbubble) return resolve(linkbubble);
 			var observer = new MutationObserver(function(mutations) {
 				for (let mutation of mutations) {
 					for (let node of mutation.addedNodes) {
-						if (node.classList.contains('docs-linkbubble-bubble')) {
+						if (node.id == "docs-link-bubble") {
 							observer.disconnect();
 							Zotero.GoogleDocs.UI.inLink = true;
 							return resolve(node);
