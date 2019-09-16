@@ -147,7 +147,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		}
 		
 		if (method == 'complete') return result;
-		return Zotero.GoogleDocs.respond(this, result || null);
+		return Zotero.GoogleDocs.respond(this, result ? JSON.stringify(result) : 'null');
 	},
 	
 	getDocument: async function() {
