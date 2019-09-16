@@ -108,9 +108,10 @@ Zotero.GoogleDocs.API = {
 	},
 	
 	onAuthCancel: function() {
+		let error = new Error('Google Docs authentication was cancelled');
+		error.type = "Alert";
 		Zotero.GoogleDocs.API.authDeferred
-			&& Zotero.GoogleDocs.API.authDeferred.reject(
-				new Zotero.ConnectorIntegration.Alert('Google Docs authentication was cancelled'));
+			&& Zotero.GoogleDocs.API.authDeferred.reject(error);
 	},
 	
 	run: async function(docID, method, args, email, tab) {
@@ -131,8 +132,9 @@ Zotero.GoogleDocs.API = {
 		} catch (e) {
 			if (e.status >= 400 && e.status < 404) {
 				this.resetAuth();
-				throw new Zotero.ConnectorIntegration.Alert(
-					`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
+				let error = new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
+				error.type = "Alert";
+				throw error;
 			} else {
 				throw new Error(`${e.status}: Google Docs request failed.\n\n${e.responseText}`);
 			}
