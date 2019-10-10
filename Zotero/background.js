@@ -86,7 +86,7 @@ Zotero.Connector_Browser = new function() {
 			isPDF
 		});
 
-		//_updateExtensionUI(tab);
+		//Zotero.Connector_Browser._updateExtensionUI(tab);
 	}
 
 	/**
@@ -107,54 +107,27 @@ Zotero.Connector_Browser = new function() {
 				frameId
 			});
 			Zotero.Connector_Browser.injectTranslationScripts(tab, frameId);
-			_updateExtensionUI(tab);
+			Zotero.Connector_Browser._updateExtensionUI(tab);
 		});
 	}
 
 	/**
 	 * Called to display select items dialog
 	 */
-	this.onSelect = function(items, tab) {
-		var width, height, left, top;
-		return browser.windows.get(tab.windowId, null).then(function(win) {
-			width = 600;
-			height = 325;
-			left = Math.floor(win.left + (win.width / 2) - (width / 2));
-			top = Math.floor(win.top + (win.height / 2) - (height / 2));
-
-			return browser.windows.create({
-				url: browser.extension.getURL("itemSelector/itemSelector.html") +
-					"#" + encodeURIComponent(JSON.stringify([tab.id, items]))
-					// Remove once https://bugzilla.mozilla.org/show_bug.cgi?id=719905 is fixed
-					.replace(/%3A/g, 'ZOTEROCOLON'),
-				height: height,
-				width: width,
-				top: top,
-				left: left,
-				type: 'popup'
-			})
-		}).then(async function(win) {
-			// Fix positioning in Chrome when window is on second monitor
-			// https://bugs.chromium.org/p/chromium/issues/detail?id=137681
-			if (Zotero.isBrowserExt && win.left < left) {
-				browser.windows.update(win.id, {
-					left
-				});
-			}
-			// Fix a Firefox bug where content does not appear before resize on linux
-			// https://bugzilla.mozilla.org/show_bug.cgi?id=1402110
-			// this one might actually get fixed, unlike the one above
-			if (Zotero.isFirefox) {
-				await Zotero.Promise.delay(1000);
-				browser.windows.update(win.id, {
-					width: win.width + 1
-				});
-			}
-			return new Promise(function(resolve) {
-				_tabInfo[tab.id].selectCallback = resolve;
-			});
+	this.onSelect = async function(items, tab) {
+		await Zotero.Connector_Browser.openWindow(
+			browser.extension.getURL("itemSelector/itemSelector.html") +
+			"#" + encodeURIComponent(JSON.stringify([tab.id, items]))
+			// Remove once https://bugzilla.mozilla.org/show_bug.cgi?id=719905 is fixed
+			.replace(/%3A/g, 'ZOTEROCOLON'), {
+				width: 600,
+				height: 325
+			}, tab
+		);
+		return new Promise(function(resolve) {
+			_tabInfo[tab.id].selectCallback = resolve;
 		});
-	}
+	};
 
 	/**
 	 * Called when a tab is removed or the URL has changed
@@ -178,7 +151,7 @@ Zotero.Connector_Browser = new function() {
 	}
 
 	this.onTabActivated = function(tab) {
-		_updateExtensionUI(tab);
+		Zotero.Connector_Browser._updateExtensionUI(tab);
 	};
 
 	/**
@@ -196,6 +169,22 @@ Zotero.Connector_Browser = new function() {
 	}
 
 	/**
+	 * Called if Zotero version is determined to be incompatible with Standalone
+	 */
+	this.newerVersionRequiredPrompt = function() {
+		let clientName = ZOTERO_CONFIG.CLIENT_NAME;
+		let url = ZOTERO_CONFIG.CLIENT_DOWNLOAD_URL;
+		let pageName = Zotero.getString('progressWindow_error_upgradeClient_latestVersion');
+		let pageLink = `<a href="${url}">${pageName}</a>`;
+
+		return Zotero.Messaging.sendMessage('confirm', {
+			title: Zotero.getString("general_warning"),
+			button2Text: "",
+			message: Zotero.getString("progressWindow_error_upgradeClient", [clientName, pageLink])
+		});
+	}
+
+	/**
 	 * Checks whether a given frame has any matching translators. Injects translation code
 	 * if translators are found.
 	 * 
@@ -203,7 +192,7 @@ Zotero.Connector_Browser = new function() {
 	 * @param frameId
 	 * @param url - url of the frame
 	 */
-	this.onFrameLoaded = Zotero.Promise.method(function(tab, frameId, url) {
+	this.onFrameLoaded = async function(tab, frameId, url) {
 		if (_isDisabledForURL(tab.url) && frameId == 0 || _isDisabledForURL(url)) {
 			return;
 		}
@@ -219,6 +208,11 @@ Zotero.Connector_Browser = new function() {
 				// Also in the first frame detected
 				// See https://github.com/zotero/zotero-connectors/issues/156
 				_tabInfo[tab.id].frameChecked = true;
+				// If you try to inject here immediately Firefox throws
+				// "Frame not found, or missing host permission"
+				if (Zotero.isFirefox) {
+					await Zotero.Promise.delay(100);
+				}
 				return Zotero.Connector_Browser.injectTranslationScripts(tab, frameId);
 			}
 		}
@@ -236,7 +230,7 @@ Zotero.Connector_Browser = new function() {
 			Zotero.debug(translators[0].length + " translators found. Injecting into [tab.url, url]: " + tab.url + " , " + url);
 			return Zotero.Connector_Browser.injectTranslationScripts(tab, frameId);
 		});
-	});
+	};
 
 	this.isIncognito = function(tab) {
 		return tab.incognito;
@@ -378,6 +372,68 @@ Zotero.Connector_Browser = new function() {
 		}
 	};
 
+	this.openWindow = async function(url, options = {}, tab = null) {
+		if (!tab) {
+			tab = (await browser.tabs.query({
+				active: true
+			}))[0];
+		}
+		options = Object.assign({
+			width: 800,
+			height: 600,
+			type: "popup"
+		}, options);
+		let win = await browser.windows.get(tab.windowId, null);
+		options.left = Math.floor(win.left + (win.width / 2) - (options.width / 2));
+		options.top = Math.floor(win.top + (win.height / 2) - (options.height / 2));
+
+		win = await browser.windows.create({
+			url,
+			type: options.type,
+			width: options.width,
+			height: options.height,
+			left: options.left,
+			top: options.top
+		});
+
+		// Fix positioning in Chrome when window is on second monitor
+		// https://bugs.chromium.org/p/chromium/issues/detail?id=137681
+		if (Zotero.isBrowserExt && win.left < options.left) {
+			browser.windows.update(win.id, {
+				left: options.left
+			});
+		}
+		// Fix a Firefox bug where content does not appear before resize on linux
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=1402110
+		// this one might actually get fixed, unlike the one above
+		if (Zotero.isFirefox) {
+			await Zotero.Promise.delay(1000);
+			browser.windows.update(win.id, {
+				width: win.width + 1
+			});
+		}
+		if (typeof options.onClose == 'function') {
+			browser.windows.onRemoved.addListener(function onClose(id) {
+				if (id == win.id) options.onClose();
+				browser.windows.onRemoved.removeListener(onClose);
+			});
+		}
+	};
+
+	this.bringToFront = async function(drawAttention = false, tab) {
+		var windowId;
+		if (tab && tab.windowId) {
+			windowId = tab.windowId;
+		} else {
+			let win = await browser.windows.getLastFocused();
+			windowId = win.id;
+		}
+		browser.windows.update(windowId, {
+			drawAttention,
+			focused: true
+		});
+	}
+
 	this.openTab = function(url, tab) {
 		if (tab) {
 			let tabProps = {
@@ -449,8 +505,9 @@ Zotero.Connector_Browser = new function() {
 	/**
 	 * Update status and tooltip of Zotero button
 	 */
-	function _updateExtensionUI(tab) {
+	this._updateExtensionUI = function(tab) {
 		if (Zotero.Prefs.get('firstUse') && Zotero.isFirefox) return _showFirstUseUI(tab);
+		if (!tab.active) return;
 		browser.contextMenus.removeAll();
 
 		if (_isDisabledForURL(tab.url, true)) {
@@ -477,7 +534,7 @@ Zotero.Connector_Browser = new function() {
 			saveMenuID = "zotero-context-menu-save-menu";
 			browser.contextMenus.create({
 				id: saveMenuID,
-				title: "Save to Zotero",
+				title: `${Zotero.getString('general_saveTo', 'Zotero')}`,
 				contexts: ['all']
 			});
 		}
@@ -485,6 +542,7 @@ Zotero.Connector_Browser = new function() {
 		if (translators && translators.length) {
 			_showTranslatorIcon(tab, translators[0]);
 			_showTranslatorContextMenuItem(translators, saveMenuID);
+			_showNoteContextMenuItems(translators, saveMenuID);
 		} else if (isPDF) {
 			Zotero.Connector_Browser._showPDFIcon(tab);
 		} else {
@@ -531,22 +589,22 @@ Zotero.Connector_Browser = new function() {
 		delete _tabInfo[tabID];
 	}
 
-	function _updateInfoForTab(tab) {
-		if (!(tab.id in _tabInfo)) {
-			_tabInfo[tab.id] = {
-				url: tab.url,
+	function _updateInfoForTab(tabId, url) {
+		if (!(tabId in _tabInfo)) {
+			_tabInfo[tabId] = {
+				url: url,
 				injections: {}
 			}
 		}
-		if (_tabInfo[tab.id].url != tab.url) {
-			Zotero.debug(`Connector_Browser: URL changed from ${_tabInfo[tab.id].url} to ${tab.url}`);
-			if (_tabInfo[tab.id].injections) {
-				for (let frameId in _tabInfo[tab.id].injections) {
-					_tabInfo[tab.id].injections[frameId].reject(new Error(`URL changed for tab ${tab.url}`));
+		if (_tabInfo[tabId].url != url) {
+			Zotero.debug(`Connector_Browser: URL changed from ${_tabInfo[tabId].url} to ${url}`);
+			if (_tabInfo[tabId].injections) {
+				for (let frameId in _tabInfo[tabId].injections) {
+					_tabInfo[tabId].injections[frameId].reject(new Error(`URL changed for tab ${url}`));
 				}
 			}
-			_tabInfo[tab.id] = {
-				url: tab.url,
+			_tabInfo[tabId] = {
+				url: url,
 				injections: {}
 			};
 		}
@@ -632,7 +690,9 @@ Zotero.Connector_Browser = new function() {
 				title: _getTranslatorLabel(translators[i]),
 				onclick: (function(i) {
 					return function(info, tab) {
-						Zotero.Connector_Browser.saveWithTranslator(tab, i);
+						Zotero.Connector_Browser.saveWithTranslator(tab, i, {
+							resave: true
+						});
 					};
 				})(i),
 				parentId: parentID,
@@ -641,13 +701,33 @@ Zotero.Connector_Browser = new function() {
 		}
 	}
 
+	function _showNoteContextMenuItems(translators, parentID) {
+		if (translators[0].itemType == "multiple") return;
+		browser.contextMenus.create({
+			id: "zotero-context-menu-translator-save-with-selection-note",
+			title: "Create Zotero Item and Note from Selection",
+			onclick: function(info, tab) {
+				Zotero.Connector_Browser.saveWithTranslator(
+					tab,
+					0, {
+						note: '<blockquote>' + info.selectionText + '</blockquote>'
+					}
+				);
+			},
+			parentId: parentID,
+			contexts: ['selection']
+		});
+	}
+
 	function _showWebpageContextMenuItem(parentID) {
 		var fns = [];
 		fns.push(() => browser.contextMenus.create({
 			id: "zotero-context-menu-webpage-withSnapshot-save",
 			title: "Save to Zotero (Web Page with Snapshot)",
 			onclick: function(info, tab) {
-				Zotero.Connector_Browser.saveAsWebpage(tab, 0, true);
+				Zotero.Connector_Browser.saveAsWebpage(tab, 0, {
+					snapshot: true
+				});
 			},
 			parentId: parentID,
 			contexts: ['page', 'browser_action']
@@ -656,7 +736,7 @@ Zotero.Connector_Browser = new function() {
 			id: "zotero-context-menu-webpage-withoutSnapshot-save",
 			title: "Save to Zotero (Web Page without Snapshot)",
 			onclick: function(info, tab) {
-				Zotero.Connector_Browser.saveAsWebpage(tab, 0, false);
+				Zotero.Connector_Browser.saveAsWebpage(tab, 0);
 			},
 			parentId: parentID,
 			contexts: ['page', 'browser_action']
@@ -731,34 +811,62 @@ Zotero.Connector_Browser = new function() {
 			Zotero.Messaging.sendMessage("firstUse", null, tab)
 				.then(function() {
 					Zotero.Prefs.set('firstUse', false);
-					_updateExtensionUI(tab);
+					Zotero.Connector_Browser._updateExtensionUI(tab);
 				});
 		} else if (_tabInfo[tab.id] && _tabInfo[tab.id].translators && _tabInfo[tab.id].translators.length) {
-			Zotero.Connector_Browser.saveWithTranslator(tab, 0, true);
+			Zotero.Connector_Browser.saveWithTranslator(tab, 0, {
+				fallbackOnFailure: true
+			});
 		} else {
 			if (_tabInfo[tab.id] && _tabInfo[tab.id].isPDF) {
-				Zotero.Connector_Browser.saveAsWebpage(tab, _tabInfo[tab.id].frameId, true);
+				Zotero.Connector_Browser.saveAsWebpage(
+					tab,
+					_tabInfo[tab.id].frameId, {
+						snapshot: true
+					}
+				);
 			} else {
 				let withSnapshot = Zotero.Connector.isOnline ? Zotero.Connector.automaticSnapshots :
 					Zotero.Prefs.get('automaticSnapshots');
-				Zotero.Connector_Browser.saveAsWebpage(tab, 0, withSnapshot);
+				Zotero.Connector_Browser.saveAsWebpage(tab, 0, {
+					snapshot: withSnapshot
+				});
 			}
 		}
 	}
 
-	this.saveWithTranslator = function(tab, i, fallbackOnFailure = false) {
+	/**
+	 * @param tab <Tab>
+	 * @param i <Integer> the index of translator to save with
+	 * @param options <Object>
+	 * 		- fallbackOnFailure <Boolean> if translation fails, attempt to save with lower priority translators
+	 * 		- note <String> add string as a note to the saved item
+	 * @returns {Promise<*>}
+	 */
+	this.saveWithTranslator = function(tab, i, options = {}) {
+		var translator = _tabInfo[tab.id].translators[i];
+
 		// Set frameId to null - send message to all frames
 		// There is code to figure out which frame should translate with instanceID.
-		return Zotero.Messaging.sendMessage("translate", [
-			_tabInfo[tab.id].instanceID,
-			_tabInfo[tab.id].translators[i].translatorID,
-			fallbackOnFailure
-		], tab, null);
+		return Zotero.Messaging.sendMessage(
+			"translate",
+			[
+				_tabInfo[tab.id].instanceID,
+				translator.translatorID,
+				options
+			],
+			tab,
+			null
+		);
 	}
 
-	this.saveAsWebpage = function(tab, frameId, withSnapshot) {
+	this.saveAsWebpage = function(tab, frameId, options) {
+		if (Zotero.isFirefox && Zotero.browserMajorVersion >= 60 && _tabInfo[tab.id].isPDF) {
+			return Zotero.Utilities.saveFirefoxPDF(tab);
+		}
+
 		if (tab.id != -1) {
-			return Zotero.Messaging.sendMessage("saveAsWebpage", [tab.title, withSnapshot], tab, frameId);
+			return Zotero.Messaging.sendMessage("saveAsWebpage", [tab.title, options], tab, frameId);
 		}
 		// Handle right-click on PDF overlay, which exists in a weird non-tab state
 		else {
@@ -812,16 +920,21 @@ Zotero.Connector_Browser = new function() {
 	}));
 	
 	browser.webNavigation.onCommitted.addListener(logListenerErrors(async function(details) {
-		var tab = await browser.tabs.get(details.tabId);
-		// Ignore developer tools
-		if (tab.id < 0 || _isDisabledForURL(tab.url, true)) return;
+		// Ignore developer tools, item selector
+		if (details.tabId < 0 || _isDisabledForURL(details.url, true)
+				|| details.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html")) === 0) return;
 
 		if (details.frameId == 0) {
-			// Ignore item selector
-			if (tab.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html")) === 0) return;
-			_updateInfoForTab(tab);
-			_updateExtensionUI(tab);
+			_updateInfoForTab(details.tabId, details.url);
+			// Getting the tab is uber slow in Firefox. Since _updateInfoForTab() resets the
+			// object we use to store tab related metadata, it needs to fire ASAP, so that other hooks
+			// such as those from webNavigation events can update the metadata, without it being overwritten
+			var tab = await browser.tabs.get(details.tabId);
+			Zotero.Connector_Browser._updateExtensionUI(tab);
 			Zotero.Connector.reportActiveURL(tab.url);
+		}
+		if (!tab) {
+			var tab = await browser.tabs.get(details.tabId);
 		}
 		// _updateInfoForTab will reject pending injections, but we need to make sure this
 		// executes in the next event loop such that the rejections can be processed

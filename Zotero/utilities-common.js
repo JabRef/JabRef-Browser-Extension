@@ -194,6 +194,23 @@
 		return newItems;
 	}
 
+	Zotero.Utilities.kbEventToShortcutString = function(e) {
+		const keymap = [
+			['ctrlKey', 'Ctrl+'],
+			['shiftKey', 'Shift+'],
+			['altKey', 'Alt+'],
+			['metaKey', '⌘'],
+		];
+		let val = "";
+		for (let [key, value] of keymap) {
+			if (e[key]) {
+				val += value;
+			}
+		}
+		val += e.key.length == 1 ? e.key.toUpperCase() : '';
+		return val;
+	}
+
 	Zotero.Utilities.Internal.filterStack = function(stack) {
 		return stack;
 	}

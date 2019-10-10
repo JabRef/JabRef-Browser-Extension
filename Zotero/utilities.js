@@ -86,6 +86,8 @@ var CSL_TEXT_MAPPINGS = {
 	"chapter-number": ["session"],
 	"references": ["history", "references"],
 	"shortTitle": ["shortTitle"],
+	/* preserved to read legacy data */
+	"title-short": ["shortTitle"],
 	"journalAbbreviation": ["journalAbbreviation"],
 	"status": ["legalStatus"],
 	"language": ["language"]
@@ -136,7 +138,7 @@ var CSL_TYPE_MAPPINGS = {
 	'videoRecording': "motion_picture",
 	'tvBroadcast': "broadcast",
 	'radioBroadcast': "broadcast",
-	'podcast': "song", // ??
+	'podcast': "broadcast",
 	'computerProgram': "book", // ??
 	'document': "article",
 	'note': "article",
@@ -147,6 +149,47 @@ var CSL_TYPE_MAPPINGS = {
  * @class Functions for text manipulation and other miscellaneous purposes
  */
 Zotero.Utilities = {
+	/**
+	 * Returns a function which will execute `fn` with provided arguments after `delay` milliseconds and not more
+	 * than once, if called multiple times. See
+	 * http://stackoverflow.com/questions/24004791/can-someone-explain-the-debounce-function-in-javascript
+	 * @param fn {Function} function to debounce
+	 * @param delay {Integer} number of miliseconds to delay the function execution
+	 * @returns {Function}
+	 */
+	debounce: function(fn, delay = 500) {
+		var timer = null;
+		return function() {
+			let args = arguments;
+			clearTimeout(timer);
+			timer = setTimeout(function() {
+				fn.apply(this, args);
+			}.bind(this), delay);
+		};
+	},
+
+	/**
+	 * Fixes author name capitalization.
+	 * Currently for all uppercase names only
+	 *
+	 * JOHN -> John
+	 * GUTIÉRREZ-ALBILLA -> Gutiérrez-Albilla
+	 * O'NEAL -> O'Neal
+	 *
+	 * @param {String} string Uppercase author name
+	 * @return {String} Title-cased author name
+	 */
+	"capitalizeName": function(string) {
+		if (typeof string === "string" && string.toUpperCase() === string) {
+			string = Zotero.Utilities.XRegExp.replace(
+				string.toLowerCase(),
+				Zotero.Utilities.XRegExp('(^|[^\\pL])\\pL', 'g'),
+				m => m.toUpperCase()
+			);
+		}
+		return string;
+	},
+
 	/**
 	 * Cleans extraneous punctuation off a creator name and parse into first and last name
 	 *
@@ -163,7 +206,7 @@ Zotero.Utilities = {
 		var initialRe = new RegExp('^-?[' + allCaps + ']$');
 
 		if (typeof(author) != "string") {
-			throw "cleanAuthor: author must be a string";
+			throw new Error("cleanAuthor: author must be a string");
 		}
 
 		author = author.replace(/^[\s\u00A0\.\,\/\[\]\:]+/, '')
@@ -231,7 +274,7 @@ Zotero.Utilities = {
 	 */
 	"trim": function( /**String*/ s) {
 		if (typeof(s) != "string") {
-			throw "trim: argument must be a string";
+			throw new Error("trim: argument must be a string");
 		}
 
 		s = s.replace(/^\s+/, "");
@@ -257,7 +300,7 @@ Zotero.Utilities = {
 	 */
 	"superCleanString": function( /**String*/ x) {
 		if (typeof(x) != "string") {
-			throw "superCleanString: argument must be a string";
+			throw new Error("superCleanString: argument must be a string");
 		}
 
 		var x = x.replace(/^[\x00-\x27\x29-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F\s]+/, "");
@@ -274,10 +317,8 @@ Zotero.Utilities = {
 		url = url.trim();
 		if (!url) return false;
 
-		var ios = Components.classes["@mozilla.org/network/io-service;1"]
-			.getService(Components.interfaces.nsIIOService);
 		try {
-			return ios.newURI(url, null, null).spec; // Valid URI if succeeds
+			return Services.io.newURI(url, null, null).spec; // Valid URI if succeeds
 		} catch (e) {
 			if (e instanceof Components.Exception &&
 				e.result == Components.results.NS_ERROR_MALFORMED_URI
@@ -285,7 +326,7 @@ Zotero.Utilities = {
 				if (tryHttp && /\w\.\w/.test(url)) {
 					// Assume it's a URL missing "http://" part
 					try {
-						return ios.newURI('http://' + url, null, null).spec;
+						return Services.io.newURI('http://' + url, null, null).spec;
 					} catch (e) {}
 				}
 
@@ -302,7 +343,7 @@ Zotero.Utilities = {
 	 */
 	"cleanTags": function( /**String*/ x) {
 		if (typeof(x) != "string") {
-			throw "cleanTags: argument must be a string";
+			throw new Error("cleanTags: argument must be a string");
 		}
 
 		x = x.replace(/<br[^>]*>/gi, "\n");
@@ -316,7 +357,7 @@ Zotero.Utilities = {
 	 */
 	"cleanDOI": function( /**String**/ x) {
 		if (typeof(x) != "string") {
-			throw "cleanDOI: argument must be a string";
+			throw new Error("cleanDOI: argument must be a string");
 		}
 
 		var doi = x.match(/10(?:\.[0-9]{4,})?\/[^\s]*[^\s\.,]/);
@@ -514,17 +555,11 @@ Zotero.Utilities = {
 				node.innerHTML = str;
 				return node.textContent.replace(/ {2,}/g, " ");
 			} else if (Zotero.isNode) {
-				/*var doc = require('jsdom').jsdom(str, null, {
-					"features":{
-						"FetchExternalResources":false,
-						"ProcessExternalResources":false,
-						"MutationEvents":false,
-						"QuerySelector":false
-					}
-				});
-				if(!doc.documentElement) return str;
-				return doc.documentElement.textContent;*/
-				return Zotero.Utilities.cleanTags(str);
+				let {
+					JSDOM
+				} = require('jsdom');
+				let document = (new JSDOM(str)).window.document;
+				return document.documentElement.textContent.replace(/ {2,}/g, " ");
 			} else {
 				if (!node) node = document.createElement("div");
 				node.innerHTML = str;
@@ -858,6 +893,7 @@ Zotero.Utilities = {
 		if (str.length <= len) {
 			return str;
 		}
+		var origLen = str.length;
 		let radius = Math.min(len, 5);
 		if (wordBoundary) {
 			let min = len - radius;
@@ -870,7 +906,7 @@ Zotero.Utilities = {
 		} else {
 			str = str.substr(0, len)
 		}
-		return str + '\u2026' + (countChars ? ' (' + str.length + ' chars)' : '');
+		return str + '\u2026' + (countChars ? ' (' + origLen + ' chars)' : '');
 	},
 
 
@@ -1491,7 +1527,7 @@ Zotero.Utilities = {
 	 */
 	"quotemeta": function(literal) {
 		if (typeof literal !== "string") {
-			throw "Argument " + literal + " must be a string in Zotero.Utilities.quotemeta()";
+			throw new Error("Argument " + literal + " must be a string in Zotero.Utilities.quotemeta()");
 		}
 		const metaRegexp = /[-[\]{}()*+?.\\^$|,#\s]/g;
 		return literal.replace(metaRegexp, "\\$&");
@@ -1613,6 +1649,7 @@ Zotero.Utilities = {
 		return strings.join(delimiter !== undefined ? delimiter : ", ");
 	},
 
+
 	/**
 	 * Generate a random string of length 'len' (defaults to 8)
 	 **/
@@ -1647,8 +1684,8 @@ Zotero.Utilities = {
 			} else {
 				return '' + obj;
 			}
-		} else if (type == 'string') {
-			return JSON.stringify(obj);
+		} else if (type == 'string' || typeof obj.toJSON == 'function') {
+			return JSON.stringify(obj, false, '    ');
 		} else if (type == 'function') {
 			var funcStr = ('' + obj).trim();
 			if (!level) {
@@ -1817,6 +1854,7 @@ Zotero.Utilities = {
 
 		// get all text variables (there must be a better way)
 		for (var variable in CSL_TEXT_MAPPINGS) {
+			if (variable === "shortTitle") continue; // read both title-short and shortTitle, but write only title-short
 			var fields = CSL_TEXT_MAPPINGS[variable];
 			for (var i = 0, n = fields.length; i < n; i++) {
 				var field = fields[i],
@@ -1916,6 +1954,16 @@ Zotero.Utilities = {
 			}
 
 			if (date) {
+				// Convert UTC timestamp to local timestamp for access date
+				if (CSL_DATE_MAPPINGS[variable] == 'accessDate' && !Zotero.Date.isSQLDate(date)) {
+					// Accept ISO date
+					if (Zotero.Date.isISODate(date)) {
+						let d = Zotero.Date.isoToDate(date);
+						date = Zotero.Date.dateToSQL(d, true);
+					}
+					let localDate = Zotero.Date.sqlToDate(date, true);
+					date = Zotero.Date.dateToSQL(localDate);
+				}
 				var dateObj = Zotero.Date.strToDate(date);
 				// otherwise, use date-parts
 				var dateParts = [];
@@ -2245,5 +2293,9 @@ Zotero.Utilities = {
 	 * Provides unicode support and other additional features for regular expressions
 	 * See https://github.com/slevithan/xregexp for usage
 	 */
-	"XRegExp": XRegExp
+	"XRegExp": typeof XRegExp !== "undefined" ? XRegExp : null
+}
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = Zotero.Utilities;
 }

@@ -49,7 +49,7 @@ Zotero.Translate.SandboxManager.prototype = {
 			delete this.sandbox[functions[i]];
 		}
 
-		// Send global sandbox temporarily to this sandbox
+		// Set global sandbox temporarily to this sandbox
 		GlobalSandbox = this.sandbox;
 
 		// Prepend sandbox properties within eval environment (what a mess (1))

@@ -24,14 +24,14 @@
 */
 
 // Enumeration of types of translators
-var TRANSLATOR_TYPES = {
+window.TRANSLATOR_TYPES = {
 	"import": 1,
 	"export": 2,
 	"web": 4,
 	"search": 8
 };
 
-var TRANSLATOR_CACHING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES.concat(["browserSupport", "targetAll"]);
+window.TRANSLATOR_CACHING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES.concat(["browserSupport", "targetAll"]);
 
 /**
  * Singleton to handle loading and caching of translators
@@ -161,6 +161,9 @@ Zotero.Translators = new function() {
 
 	/**
 	 * Gets web translators for a specific location
+	 *
+	 * NOTE: Keep in sync with the bookmarklet version
+	 *
 	 * @param {String} uri The URI for which to look for translators
 	 * @return {Promise<Array[]>} - A promise for a 2-item array containing an array of translators and
 	 *     an array of functions for converting URLs from proper to proxied forms

@@ -52,7 +52,7 @@ Zotero.OpenURL = new function() {
 		req.send(null);
 
 		if (!req.responseXML) {
-			throw "Could not access resolver registry";
+			throw new Error("Could not access resolver registry");
 		}
 
 		var resolverArray = new Array();
@@ -208,7 +208,7 @@ Zotero.OpenURL = new function() {
 
 		if (item.creators && item.creators.length) {
 			// encode first author as first and last
-			let firstCreator = Zotero.Items.getFirstCreatorFromJSON(item);
+			let firstCreator = Zotero.Utilities.Internal.getFirstCreatorFromItemJSON(item);
 			if (item.itemType == "patent") {
 				_mapTag(firstCreator.firstName, "invfirst");
 				_mapTag(firstCreator.lastName, "invlast");
@@ -518,4 +518,8 @@ Zotero.OpenURL = new function() {
 
 		return item;
 	}
+}
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = Zotero.OpenURL;
 }

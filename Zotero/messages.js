@@ -122,7 +122,8 @@ var MESSAGES = {
 	Connector: {
 		checkIsOnline: true,
 		callMethod: true,
-		callMethodWithCookies: true
+		callMethodWithCookies: true,
+		getClientVersion: true,
 	},
 	Connector_Browser: {
 		onSelect: true,
@@ -130,10 +131,11 @@ var MESSAGES = {
 		onTranslators: false,
 		injectScripts: true,
 		isIncognito: true,
-		firstSaveToServerPrompt: true,
+		newerVersionRequiredPrompt: true,
 		openTab: false,
 		openConfigEditor: false,
-		openPreferences: false
+		openPreferences: false,
+		bringToFront: true
 	},
 	Connector_Debug: {
 		storing: true,
@@ -147,13 +149,38 @@ var MESSAGES = {
 		sendErrorReport: true
 	},
 	Messaging: {
-		sendMessage: true
+		sendMessage: {
+			background: {
+				postReceive: async function(args, tab, frameId) {
+					// Ensure arg[2] is the current tab
+					if (args.length > 2) {
+						args[2] = tab;
+					} else {
+						args.push(tab);
+					}
+					// If frameId not set then use the top frame
+					if (args.length <= 3) {
+						args.push(0);
+					}
+					return args;
+				}
+			},
+		}
 	},
 	API: {
 		authorize: true,
 		onAuthorizationComplete: false,
 		clearCredentials: false,
-		getUserInfo: true
+		getUserInfo: true,
+		run: true
+	},
+	GoogleDocs_API: {
+		onAuthComplete: false,
+		run: {
+			background: {
+				minArgs: 4
+			}
+		}
 	},
 	Prefs: {
 		set: false,
@@ -207,6 +234,7 @@ if (Zotero.isSafari) {
 	MESSAGES.API.createItem = true;
 	MESSAGES.API.uploadAttachment = false;
 	MESSAGES.Connector_Browser.onPDFFrame = false;
-	// Override, because tests don't work in Safari and this causes errors in normal function
-	MESSAGES.Messaging.sendMessage = false;
+	MESSAGES.i18n = {
+		getStrings: true
+	}
 }

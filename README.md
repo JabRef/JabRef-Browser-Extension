@@ -60,7 +60,8 @@ Now just follow the typical steps to [contribute code](https://guides.github.com
 To update dependencies:
 
  - `npm outdated` gives an overview of outdated packages ([doc](https://docs.npmjs.com/cli/outdated))
- - `npm update` updates all packages ([doc](https://docs.npmjs.com/cli/update))
+ - `npm-upgrade` updates all packages 
+ - `npm install` install updated packages
  - `git submodule update --recursive --remote` updates `zotero-connectors` submodule
  - `gulp update-zotero-scripts` copies Zotero scripts from `zotero-connectors` to `Zotero` folder
  - `gulp process-zotero-scripts` post-processes Zotero scripts

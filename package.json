@@ -1,41 +1,39 @@
 {
 	"name": "jabfox",
 	"devDependencies": {
-		"babel-cli": "^6.16.0",
-		"babel-core": "^6.16.0",
-		"babel-plugin-transform-react-jsx": "^6.8.0",
-		"babel-preset-babili": "0.0.2",
-		"babel-preset-es2015": "^6.8.0",
-		"bluebird": "^3.5.0",
-		"browserify": "^13.1.0",
-		"chai": "^4.0.2",
-		"chalk": "^2.0.1",
-		"chromedriver": "^2.30.1",
-		"geckodriver": "^1.7.1",
-		"gulp": "^3.9.1",
+		"babel-cli": "^6.26.0",
+		"babel-core": "^6.26.3",
+		"babel-plugin-transform-react-jsx": "^6.24.1",
+		"babel-preset-env": "^1.7.0",
+		"bluebird": "^3.7.0",
+		"browserify": "^16.5.0",
+		"chai": "^4.2.0",
+		"chalk": "^2.4.2",
+		"chromedriver": "^77.0.0",
+		"geckodriver": "^1.18.0",
+		"gulp": "^4.0.2",
 		"gulp-jsbeautify": "^0.1.1",
-		"gulp-plumber": "^1.1.0",
-		"gulp-rename": "^1.2.2",
-		"mocha": "^3.4.2",
-		"react": "^15.3.2",
-		"react-dom": "^15.3.2",
-		"selenium-webdriver": "^3.4.0",
-		"sinon": "^2.3.4",
-		"through2": "^2.0.1",
-		"yargs": "^6.0.0"
+		"gulp-plumber": "^1.2.1",
+		"gulp-rename": "^1.4.0",
+		"mocha": "^6.2.1",
+		"react": "^16.10.2",
+		"react-dom": "^16.10.2",
+		"selenium-webdriver": "^3.6.0",
+		"sinon": "^7.5.0",
+		"through2": "^3.0.1",
+		"yargs": "^14.2.0"
 	},
 	"babel": {
 		"presets": [
 			[
-				"es2015", {
+				"env",
+				{
 					"modules": false
 				}
 			]
 		]
 	},
-	"dependencies": {
-
-	},
+	"dependencies": {},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/JabRef/JabFox.git"

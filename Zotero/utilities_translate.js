@@ -216,26 +216,6 @@ Zotero.Utilities.Translate.prototype.processDocuments = async function(urls, pro
 	}
 
 	var processDoc = function(doc) {
-		if (Zotero.isFx) {
-			let newLoc = doc.location;
-			let url = Services.io.newURI(newLoc.href, null, null);
-			return processor(
-				// Rewrap document for the sandbox
-				translate._sandboxManager.wrap(
-					Zotero.Translate.DOMWrapper.unwrap(doc),
-					null,
-					// Duplicate overrides from Zotero.HTTP.wrapDocument()
-					{
-						documentURI: newLoc.spec,
-						URL: newLoc.spec,
-						location: new Zotero.HTTP.Location(url),
-						defaultView: new Zotero.HTTP.Window(url)
-					}
-				),
-				newLoc.href
-			);
-		}
-
 		return processor(doc, doc.location.href);
 	};
 
@@ -260,8 +240,9 @@ Zotero.Utilities.Translate.prototype.processDocuments = async function(urls, pro
 				function(doc) {
 					if (!processor) return;
 					return processDoc(doc);
-				},
-				translate.cookieSandbox
+				}, {
+					cookieSandbox: translate.cookieSandbox
+				}
 			)
 		);
 	}
@@ -306,9 +287,11 @@ Zotero.Utilities.Translate.prototype.processDocuments = async function(urls, pro
  * @param {Function} done Callback to be executed after all documents have been loaded
  * @param {String} responseCharset Character set to force on the response
  * @param {Object} requestHeaders HTTP headers to include with request
+ * @param {Number[]} successCodes - HTTP status codes that are considered
+ *     successful, or FALSE to allow all
  * @return {Boolean} True if the request was sent, or false if the browser is offline
  */
-Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, responseCharset, requestHeaders) {
+Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, responseCharset, requestHeaders, successCodes) {
 	var callAgain = false,
 		me = this,
 		translate = this._translate;
@@ -324,6 +307,18 @@ Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, res
 
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#doGet");
 	var xmlhttp = Zotero.HTTP.doGet(url, function(xmlhttp) {
+		if (successCodes) {
+			var success = successCodes.includes(xmlhttp.status);
+		} else if (successCodes === false) {
+			var success = true;
+		} else {
+			var success = xmlhttp.status >= 200 && xmlhttp.status < 400;
+		}
+		if (!success) {
+			translate.complete(false, `HTTP GET ${url} failed with status code ${xmlhttp.status}`);
+			return;
+		}
+
 		try {
 			if (processor) {
 				processor(xmlhttp.responseText, xmlhttp, url);
@@ -340,26 +335,38 @@ Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, res
 		} catch (e) {
 			translate.complete(false, e);
 		}
-	}, responseCharset, this._translate.cookieSandbox, requestHeaders);
+	}, responseCharset, this._translate.cookieSandbox, Object.assign({}, this._translate.requestHeaders, requestHeaders));
 }
 
 /**
  * Already documented in Zotero.HTTP
  * @ignore
  */
-Zotero.Utilities.Translate.prototype.doPost = function(url, body, onDone, headers, responseCharset) {
+Zotero.Utilities.Translate.prototype.doPost = function(url, body, onDone, headers, responseCharset, successCodes) {
 	var translate = this._translate;
 	url = translate.resolveURL(url);
 
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#doPost");
 	var xmlhttp = Zotero.HTTP.doPost(url, body, function(xmlhttp) {
+		if (successCodes) {
+			var success = successCodes.includes(xmlhttp.status);
+		} else if (successCodes === false) {
+			var success = true;
+		} else {
+			var success = xmlhttp.status >= 200 && xmlhttp.status < 400;
+		}
+		if (!success) {
+			translate.complete(false, `HTTP POST ${url} failed with status code ${xmlhttp.status}`);
+			return;
+		}
+
 		try {
 			onDone(xmlhttp.responseText, xmlhttp);
 			translate.decrementAsyncProcesses("Zotero.Utilities.Translate#doPost");
 		} catch (e) {
 			translate.complete(false, e);
 		}
-	}, headers, responseCharset, translate.cookieSandbox ? translate.cookieSandbox : undefined);
+	}, Object.assign({}, translate.requestHeaders, headers), responseCharset, translate.cookieSandbox ? translate.cookieSandbox : undefined);
 }
 
 Zotero.Utilities.Translate.prototype.urlToProxy = function(url) {
@@ -381,4 +388,8 @@ for (var j in Zotero.Utilities.Translate.prototype) {
 	if (typeof Zotero.Utilities.Translate.prototype[j] === "function" && j[0] !== "_" && j != "Translate") {
 		Zotero.Utilities.Translate.prototype.__exposedProps__[j] = "r";
 	}
+}
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = Zotero.Utilities.Translate;
 }

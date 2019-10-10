@@ -35,10 +35,12 @@
  *         <li>cookieSandbox - Cookie sandbox for attachment requests</li>
  *         <li>proxy - A proxy to deproxify item URLs</li>
  *         <li>baseURI - URI to which attachment paths should be relative</li>
+ *         <li>sessionID - A sessionID for the save session to allow changes later</li>
  *         
  */
 Zotero.Translate.ItemSaver = function(options) {
 	this.newItems = [];
+	this._sessionID = options.sessionID;
 	this._proxy = options.proxy;
 	this._baseURI = options.baseURI;
 
@@ -70,11 +72,12 @@ Zotero.Translate.ItemSaver.ATTACHMENT_MODE_DOWNLOAD = 1;
 Zotero.Translate.ItemSaver.ATTACHMENT_MODE_FILE = 2;
 
 Zotero.Translate.ItemSaver.prototype = {
-	saveAsWebpage: function() {
+	saveAsWebpage: function(doc) {
+		var doc = doc || document;
 		var item = {
 			itemType: 'webpage',
-			title: document.title,
-			url: document.location.href,
+			title: doc.title,
+			url: doc.location.href,
 			attachments: [],
 			accessDate: Zotero.Date.dateToSQL(new Date(), true)
 		};
@@ -88,10 +91,13 @@ Zotero.Translate.ItemSaver.prototype = {
 	 *     save progress. The callback will be called as attachmentCallback(attachment, false, error)
 	 *     on failure or attachmentCallback(attachment, progressPercent) periodically during saving.
 	 */
-	saveItems: function(items, attachmentCallback) {
+	saveItems: async function(items, attachmentCallback, itemsDoneCallback = () => 0) {
+		items = await this._processItems(items);
+
 		// first try to save items via connector
 		var payload = {
 			items,
+			sessionID: this._sessionID,
 			uri: this._baseURI
 		};
 		if (Zotero.isSafari) {
@@ -99,32 +105,50 @@ Zotero.Translate.ItemSaver.prototype = {
 			payload.cookie = document.cookie;
 		}
 		payload.proxy = this._proxy && this._proxy.toJSON();
-		return Zotero.Connector.callMethodWithCookies("saveItems", payload).then(function(data) {
-			Zotero.debug("Translate: Save via Standalone succeeded");
-			var haveAttachments = false;
-			if (data && data.items) {
-				for (var i = 0; i < data.items.length; i++) {
-					var attachments = items[i].attachments = data.items[i].attachments;
-					for (var j = 0; j < attachments.length; j++) {
-						if (attachments[j].id) {
-							if (!attachments[j].title) attachments[j].title = 'Attachment';
-							attachmentCallback(attachments[j], 0);
-							haveAttachments = true;
-						}
+		try {
+			var data = await Zotero.Connector.callMethodWithCookies("saveItems", payload)
+		} catch (e) {
+			if (e.status == 0) {
+				return this._saveToServer(items, attachmentCallback, itemsDoneCallback);
+			}
+			throw e;
+		}
+
+		Zotero.debug("Translate: Save via Zotero succeeded");
+		Zotero.Messaging.sendMessage("progressWindow.sessionCreated", {
+			sessionID: this._sessionID
+		});
+
+		if (data && data.items) {
+			itemsDoneCallback(data.items);
+			for (let i = 0; i < data.items.length; i++) {
+				let attachments = items[i].attachments = data.items[i].attachments;
+				for (let attachment of attachments) {
+					if (attachment.id) {
+						if (!attachment.title) attachment.title = 'Attachment';
+						attachmentCallback(attachment, 0);
 					}
 				}
 			}
-			if (haveAttachments) this._pollForProgress(items, attachmentCallback);
-			return items;
-		}.bind(this), function(e) {
-			if (e.status == 0) {
-				return this._saveToServer(items, attachmentCallback);
-			} else if (e.value && e.value.libraryEditable === false) {
-				// This is mostly a hack for now. We'll have a better SSE based solution soon.
-				return new Zotero.Promise(() => 0);
+		}
+		this._pollForProgress(data.items, attachmentCallback);
+		return data.items;
+	},
+
+	_processItems: function(items) {
+		var saveOptions = !Zotero.isBookmarklet && Zotero.Inject.sessionDetails.saveOptions;
+		if (saveOptions && saveOptions.note && items.length == 1) {
+			if (items[0].notes) {
+				items[0].notes.push({
+					note: saveOptions.note
+				})
+			} else {
+				items[0].notes = {
+					note: saveOptions.note
+				};
 			}
-			throw e;
-		}.bind(this));
+		}
+		return items;
 	},
 
 	/**
@@ -135,7 +159,71 @@ Zotero.Translate.ItemSaver.prototype = {
 	 *     on failure or attachmentCallback(attachment, progressPercent) periodically during saving.
 	 *     attachmentCallback() will be called with all attachments that will be saved 
 	 */
-	"_pollForProgress": function(items, attachmentCallback) {
+	_pollForProgress: async function(items, attachmentCallback) {
+		var attachments = [];
+		for (let item of items) {
+			if (!item.attachments) continue;
+			for (let attachment of item.attachments) {
+				if (attachment.id) {
+					attachments.push(attachment);
+				}
+			}
+		}
+
+		var nPolls = 0;
+		while (true) {
+			try {
+				var response = await Zotero.Connector.callMethod(
+					"sessionProgress", {
+						sessionID: this._sessionID
+					}
+				)
+			} catch (e) {
+				// Zotero <=5.0.55
+				if (e.status == 404) {
+					Zotero.Messaging.sendMessage("progressWindow.done", [true]);
+					return this._pollForProgressLegacy(items, attachmentCallback);
+				} else if (Zotero.isBookmarklet && e.status == 400) {
+					Zotero.Messaging.sendMessage("progressWindow.done", [true]);
+					for (let item of items) {
+						for (let attachment of item.attachments) {
+							attachmentCallback(Object.assign({}, attachment, {
+								parentItem: item.id
+							}), 100);
+						}
+					}
+				}
+
+				for (let attachment of attachments) {
+					attachmentCallback(attachment, false, "Lost connection to Zotero");
+				}
+				return;
+			}
+
+			// Store last version of attachments so we can cancel them if a subsequent request fails
+			let newAttachments = [];
+			for (let item of response.items) {
+				if (!item.attachments) continue;
+				for (let attachment of item.attachments) {
+					attachment.parentItem = item.id;
+					attachmentCallback(attachment, attachment.progress);
+					newAttachments.push(attachment);
+				}
+			}
+			attachments = newAttachments;
+
+			if (nPolls++ < 60 && !response.done) {
+				await Zotero.Promise.delay(1000);
+			} else {
+				break;
+			}
+		}
+
+		Zotero.Messaging.sendMessage("progressWindow.done", [true]);
+	},
+
+
+	_pollForProgressLegacy: function(items, attachmentCallback) {
 		var attachments = [];
 		var progressIDs = [];
 		var previousStatus = [];
@@ -179,6 +267,7 @@ Zotero.Translate.ItemSaver.prototype = {
 		poll();
 	},
 
+
 	/**
 	 * Saves items to server
 	 * @param items Items in Zotero.Item.toArray() format
@@ -187,7 +276,7 @@ Zotero.Translate.ItemSaver.prototype = {
 	 *     on failure or attachmentCallback(attachment, progressPercent) periodically during saving.
 	 *     attachmentCallback() will be called with all attachments that will be saved 
 	 */
-	_saveToServer: function(items, attachmentCallback) {
+	_saveToServer: async function(items, attachmentCallback, itemsDoneCallback = () => 0) {
 		var newItems = [],
 			itemIndices = [],
 			typedArraysSupported = false;
@@ -212,33 +301,34 @@ Zotero.Translate.ItemSaver.prototype = {
 			}
 		}
 
-		return Zotero.API.createItem(newItems).then(function(response) {
-			try {
-				var resp = JSON.parse(response);
-			} catch (e) {
-				throw new Error("Unexpected response received from server");
-			}
+		let response = await Zotero.API.createItem(newItems);
+		try {
+			var resp = JSON.parse(response);
+		} catch (e) {
+			throw new Error("Unexpected response received from server");
+		}
 
-			for (var key in resp.failed) {
-				throw new Error("Save to server failed with " + statusCode + " " + response);
-			}
+		for (var key in resp.failed) {
+			throw new Error("Save to server failed with " + statusCode + " " + response);
+		}
 
-			Zotero.debug("Translate: Save to server complete");
-			return Zotero.Prefs.getAsync(["downloadAssociatedFiles", "automaticSnapshots"])
-				.then(function(prefs) {
-					if (typedArraysSupported) {
-						for (var i = 0; i < items.length; i++) {
-							var item = items[i],
-								key = resp.success[itemIndices[i]];
-							if (item.attachments && item.attachments.length) {
-								this._saveAttachmentsToServer(key, this._getFileBaseNameFromItem(item),
-									item.attachments, prefs, attachmentCallback);
-							}
+		Zotero.debug("Translate: Save to server complete");
+		return Zotero.Prefs.getAsync(["downloadAssociatedFiles", "automaticSnapshots"])
+			.then(function(prefs) {
+				if (typedArraysSupported) {
+					for (var i = 0; i < items.length; i++) {
+						var item = items[i],
+							key = resp.success[itemIndices[i]];
+						if (item.attachments && item.attachments.length) {
+							this._saveAttachmentsToServer(key, this._getFileBaseNameFromItem(item),
+								item.attachments, prefs, attachmentCallback);
 						}
 					}
-					return items;
-				}.bind(this));
-		}.bind(this));
+				}
+
+				itemsDoneCallback(items);
+				return items;
+			}.bind(this));
 	},
 
 	/**
@@ -282,6 +372,8 @@ Zotero.Translate.ItemSaver.prototype = {
 				attachmentCallback && attachmentCallback(attachment, 0);
 				deferredHeadersProcessed.resolve();
 				deferredAttachmentData.resolve();
+			} else if (Zotero.isBookmarklet && window.isSecureContext && attachment.url.indexOf('https') != 0) {
+				deferredAttachmentData.reject(new Error('Cannot load a HTTP attachment in a HTTPS page'));
 			} else {
 				let xhr = new XMLHttpRequest();
 				xhr.open((attachment.snapshot === false ? "HEAD" : "GET"), attachment.url, true);
@@ -295,17 +387,15 @@ Zotero.Translate.ItemSaver.prototype = {
 							xhr.abort();
 						}
 					}
-					if (xhr.readyState == 4) {
-						deferredAttachmentData.resolve(xhr.response)
-					}
 				}.bind(this);
 				xhr.onprogress = function(event) {
 					if (event.total && attachmentCallback) {
 						attachmentCallback(attachment, event.loaded / event.total * 50);
 					}
 				};
-				xhr.onerror = deferredAttachmentData.reject;
+				xhr.onerror = e => deferredAttachmentData.reject(e.error);
 				xhr.onabort = () => deferredAttachmentData.reject(new Error('Attachment download aborted'));
+				xhr.onload = () => deferredAttachmentData.resolve(xhr.response);
 				xhr.send();
 
 				if (attachmentCallback) attachmentCallback(attachment, 0);
@@ -324,7 +414,9 @@ Zotero.Translate.ItemSaver.prototype = {
 				attachmentCallback(attachment, 100);
 			}).catch(function(e) {
 				Zotero.logError(e);
-				attachmentCallback(attachment, false, e);
+				attachmentCallback(Object.assign({}, attachment, {
+					parentItem: itemKey
+				}), false, e);
 				throw e;
 			});
 			promises.push(promise);
@@ -626,11 +718,18 @@ Zotero.Translate.ItemSaver.prototype = {
 				6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 			]);
 
-			var k = new Int32Array([-680876936, -389564586, 606105819, -1044525330, -176418897, 1200080426, -1473231341, -45705983, 1770035416, -1958414417, -42063, -1990404162,
+			var k = new Int32Array([
+				-680876936, -389564586, 606105819, -1044525330, -176418897, 1200080426,
+				-1473231341, -45705983, 1770035416, -1958414417, -42063, -1990404162,
 				1804603682, -40341101, -1502002290, 1236535329, -165796510, -1069501632,
 				643717713, -373897302, -701558691, 38016083, -660478335, -405537848,
 				568446438, -1019803690, -187363961, 1163531501, -1444681467, -51403784,
-				1735328473, -1926607734, -378558, -2022574463, 1839030562, -35309556, -1530992060, 1272893353, -155497632, -1094730640, 681279174, -358537222, -722521979, 76029189, -640364487, -421815835, 530742520, -995338651, -198630844, 1126891415, -1416354905, -57434055, 1700485571, -1894986606, -1051523, -2054922799, 1873313359, -30611744, -1560198380, 1309151649, -145523070, -1120210379, 718787259, -343485551
+				1735328473, -1926607734, -378558, -2022574463, 1839030562, -35309556,
+				-1530992060, 1272893353, -155497632, -1094730640, 681279174, -358537222,
+				-722521979, 76029189, -640364487, -421815835, 530742520, -995338651,
+				-198630844, 1126891415, -1416354905, -57434055, 1700485571, -1894986606,
+				-1051523, -2054922799, 1873313359, -30611744, -1560198380, 1309151649,
+				-145523070, -1120210379, 718787259, -343485551
 			]);
 		} catch (e) {};
 

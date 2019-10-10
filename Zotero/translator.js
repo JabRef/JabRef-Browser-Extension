@@ -114,7 +114,7 @@ Zotero.Translator.prototype.init = function(info) {
 		delete this.importRegexp;
 	}
 
-	this.cacheCode = Zotero.isConnector;
+	this.cacheCode = Zotero.isConnector || info.cacheCode;
 	if (this.translatorType & TRANSLATOR_TYPES["web"]) {
 		// compile web regexp
 		this.cacheCode |= !this.target;
@@ -223,3 +223,6 @@ Zotero.Translator.replaceDeprecatedStatements = function(code) {
 Zotero.Translator.RUN_MODE_IN_BROWSER = 1;
 Zotero.Translator.RUN_MODE_ZOTERO_STANDALONE = 2;
 Zotero.Translator.RUN_MODE_ZOTERO_SERVER = 4;
+Zotero.Translator.TRANSLATOR_TYPES = TRANSLATOR_TYPES;
+Zotero.Translator.TRANSLATOR_OPTIONAL_PROPERTIES = TRANSLATOR_OPTIONAL_PROPERTIES;
+Zotero.Translator.TRANSLATOR_REQUIRED_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES;

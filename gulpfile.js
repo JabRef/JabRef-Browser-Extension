@@ -38,7 +38,7 @@ var injectInclude = [
 
 function processJSX(file) {
 	try {
-		file.contents = new Buffer(babel.transform(file.contents, {
+		file.contents = Buffer.from(babel.transform(file.contents, {
 			plugins: ['transform-react-jsx']
 		}).code);
 	} catch (e) {
@@ -54,7 +54,7 @@ function postProcessContents(basename, file) {
 				// Specify correct injection scripts
 				.replace("/*INJECT SCRIPTS*/",
 					injectInclude.map((s) => `"${s}"`).join(',\n\t\t'))
-				.replace("_updateExtensionUI(tab);", "//_updateExtensionUI(tab);")
+				.replace("Zotero.Connector_Browser._updateExtensionUI(tab);", "//Zotero.Connector_Browser._updateExtensionUI(tab);")
 				.replace("_enableForTab(tab.id);", "//_enableForTab(tab.id);")
 				.replace("catch(() => undefined)", `catch((e) => console.log("Error while loading % s: % o ", script, e))`)
 				// Uncomment message listener, because we take care of them ourself
@@ -68,6 +68,8 @@ function postProcessContents(basename, file) {
 			file.contents = Buffer.from(file.contents.toString()
 				// Use correct zotero version
 				.replace("browser.runtime.getManifest().version", `"5.0.0"`)
+				// Prevent init of non existing zotero connector
+				.replace("Zotero.ConnectorIntegration.init();", "//Zotero.ConnectorIntegration.init();")
 			);
 			break;
 		case 'proxy.js':
@@ -106,7 +108,7 @@ function postProcessContents(basename, file) {
 				.replace("this._itemGetter.legacy = Services.vc.compare('4.0.27', this._translatorInfo.minVersion) > 0;", "this._itemGetter.legacy = false;")
 				// Make parsing of translator wait for injected code
 				.replace("var parse = function", "var parse = async function")
-				.replace("this._sandboxManager.eval", "await this._sandboxManager.eval")
+				.replace(/this._sandboxManager.eval/g, "await this._sandboxManager.eval")
 			);
 			break;
 		case 'translate_inject.js':
@@ -120,6 +122,7 @@ function postProcessContents(basename, file) {
 					\
 					var GlobalSandbox;\
 					')
+				.replace('this.sandbox.', 'GlobalSandbox.')
 				.replace(
 					'delete this.sandbox[functions[i]];\
 					}\
@@ -127,10 +130,9 @@ function postProcessContents(basename, file) {
 					'delete this.sandbox[functions[i]];\
 					}\
 					\
-					// Send global sandbox temporarily to this sandbox\
+					// Set global sandbox temporarily to this sandbox\
 					GlobalSandbox = this.sandbox;\
 					')
-				.replace('this.sandbox.', 'GlobalSandbox.')
 				// Eval script using tabs.contentScript instead of eval()
 				.replace(
 					'(function() {\
@@ -151,13 +153,8 @@ function postProcessContents(basename, file) {
 		case 'inject.js':
 			file.contents = Buffer.from(file.contents.toString()
 				// We don't want to show a select dialog -> always choose all items
-				.replace('Zotero.Connector_Browser.onSelect(items).then(function(returnItems) {\
-							// if no items selected, close save dialog immediately\
-							if (!returnItems || Zotero.Utilities.isEmpty(returnItems)) {\
-								Zotero.Messaging.sendMessage("progressWindow.close", null);\
-							}\
-							callback(returnItems);\
-						});', 'callback(items);')
+				.replace('var returnItems = await Zotero.Connector_Browser.onSelect(items);', 'var returnItems;')
+				.replace('callback(returnItems);', 'callback(items);')
 			);
 			break;
 	}
@@ -219,7 +216,7 @@ gulp.task('update-zotero-scripts', function() {
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/rdfparser.js'
 	];
 
-	gulp.src(sources, {
+	return gulp.src(sources, {
 			base: process.cwd()
 		})
 		.pipe(plumber())
@@ -250,7 +247,7 @@ gulp.task('process-zotero-scripts', function() {
 		'./zotero/**/*'
 	];
 
-	gulp.src(sources)
+	return gulp.src(sources)
 		.pipe(plumber())
 		.pipe(processFile())
 		.pipe(beautify({

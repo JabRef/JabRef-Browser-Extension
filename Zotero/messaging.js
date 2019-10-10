@@ -32,8 +32,7 @@ Zotero.Messaging = new function() {
 		_messageListeners = {
 			"structuredCloneTest": function() {}
 		},
-		_nextTabIndex = 1,
-		_structuredCloneSupported = false;
+		_nextTabIndex = 1;
 
 	/**
 	 * Add a message listener
@@ -49,7 +48,7 @@ Zotero.Messaging = new function() {
 	 * @param {TabObject} tab 
 	 * @param {Number} frameId not available in safari
 	 */
-	this.receiveMessage = Zotero.Promise.method(function(messageName, args, tab, frameId) {
+	this.receiveMessage = async function(messageName, args, tab, frameId) {
 		console.log("Messaging: Received message: %s, %s", messageName, args);
 		if (!Array.isArray(args)) {
 			args = [args];
@@ -76,9 +75,11 @@ Zotero.Messaging = new function() {
 				args.push(undefined);
 			}
 		}
-		args.push(tab);
-		// Calls from inject pages to sendMessage are intended to go to top-frame
-		if (messageParts[1] != 'sendMessage') {
+
+		if (messageConfig.background && messageConfig.background.postReceive) {
+			args = await messageConfig.background.postReceive(args, tab, frameId);
+		} else {
+			args.push(tab);
 			args.push(frameId);
 		}
 
@@ -93,7 +94,7 @@ Zotero.Messaging = new function() {
 				return response;
 			});
 		}
-	});
+	};
 
 	/**
 	 * Sends a message to a tab
@@ -101,8 +102,7 @@ Zotero.Messaging = new function() {
 	this.sendMessage = async function(messageName, args, tab, frameId = 0) {
 		var response;
 		if (Zotero.isBookmarklet) {
-			window.parent.postMessage((_structuredCloneSupported ?
-				[messageName, args] : JSON.stringify([messageName, args])), "*");
+			window.parent.postMessage([messageName, args], "*");
 		}
 		// Use the promise or response callback in BrowserExt for advanced functionality
 		else if (Zotero.isBrowserExt) {
@@ -119,7 +119,7 @@ Zotero.Messaging = new function() {
 			};
 
 			try {
-				response = await browser.tabs.sendMessage(tab.id, [messageName, args], options).catch(() => undefined)
+				response = await browser.tabs.sendMessage(tab.id, [messageName, args], options);
 			} catch (e) {}
 			if (response && response[0] == 'error') {
 				response[1] = JSON.parse(response[1]);
@@ -175,29 +175,29 @@ Zotero.Messaging = new function() {
 	 */
 	this.init = function() {
 		if (Zotero.isBookmarklet) {
-			var listener = function(event) {
+			async function listener(event) {
 				var data = event.data,
 					source = event.source;
 
 				// Ensure this message was sent by Zotero
 				if (event.source !== window.parent && event.source !== window) return;
 
-				// Parse and receive message
-				if (typeof data === "string") {
-					try {
-						// parse out the data
-						data = JSON.parse(data);
-					} catch (e) {
-						return;
-					}
-				} else {
-					_structuredCloneSupported = true;
+				try {
+					let response = await Zotero.Messaging.receiveMessage(data[1], data[2]);
+					var message = [data[0], data[1], response];
+					source.postMessage(message, "*");
+				} catch (err) {
+					// Zotero.logError(err);
+					err = JSON.stringify(Object.assign({
+						name: err.name,
+						message: err.message,
+						stack: err.stack
+					}, err));
+					var message = [data[0], data[1],
+						['error', err]
+					];
+					source.postMessage(message, "*");
 				}
-
-				Zotero.Messaging.receiveMessage(data[1], data[2], function(output) {
-					var message = [data[0], data[1], output];
-					source.postMessage(_structuredCloneSupported ? message : JSON.stringify(message), "*");
-				}, event);
 			};
 
 			if (window.addEventListener) {
@@ -207,13 +207,11 @@ Zotero.Messaging = new function() {
 					listener(event)
 				});
 			}
-
-			window.postMessage([null, "structuredCloneTest", null], window.location.href);
 		} else if (Zotero.isBrowserExt) {
 			browser.runtime.onMessage.addListener(function(request, sender) {
 				return Zotero.Messaging.receiveMessage(request[0], request[1], sender.tab, sender.frameId)
 					.catch(function(err) {
-						Zotero.logError(err);
+						// Zotero.logError(err);
 						err = JSON.stringify(Object.assign({
 							name: err.name,
 							message: err.message,
@@ -230,11 +228,12 @@ Zotero.Messaging = new function() {
 				_ensureSafariTabID(tab);
 
 				function dispatchResponse(response) {
-					tab.page.dispatchMessage(event.name + MESSAGE_SEPARATOR + "Response", [event.message[0], response], tab);
+					tab.page.dispatchMessage(event.name + MESSAGE_SEPARATOR + "Response",
+						[event.message[0], response], tab);
 				}
 				Zotero.Messaging.receiveMessage(event.name, event.message[1], tab)
 					.then(dispatchResponse, function(err) {
-						Zotero.logError(err);
+						// Zotero.logError(err);
 						err = JSON.stringify(Object.assign({
 							name: err.name,
 							message: err.message,

@@ -43,51 +43,44 @@ Zotero.Date = new function() {
 	var _monthsWithEnglish;
 
 	this.init = function() {
-		if (!Zotero.isFx || Zotero.isBookmarklet) {
+		if (!(Zotero.isFx || Zotero.isElectron) || Zotero.isBookmarklet) {
 			throw new Error("Unimplemented");
 		}
 
-		return Zotero.HTTP.request(
-			'GET', 'resource://zotero/schema/dateFormats.json', {
-				responseType: 'json'
+		var json = JSON.parse(Zotero.File.getResource('resource://zotero/schema/dateFormats.json'));
+		var locale = Zotero.locale;
+		var english = locale.startsWith('en');
+		// If no exact match, try first two characters ('de')
+		if (!json[locale]) {
+			locale = locale.substr(0, 2);
+		}
+		// Try first two characters repeated ('de-DE')
+		if (!json[locale]) {
+			locale = locale + "-" + locale.toUpperCase();
+		}
+		// Look for another locale with same first two characters
+		if (!json[locale]) {
+			let sameLang = Object.keys(json).filter(l => l.startsWith(locale.substr(0, 2)));
+			if (sameLang.length) {
+				locale = sameLang[0];
 			}
-		).then(function(xmlhttp) {
-			var json = xmlhttp.response;
+		}
+		// If all else fails, use English
+		if (!json[locale]) {
+			locale = 'en-US';
+			english = true;
+		}
+		_months = json[locale];
 
-			var locale = Zotero.locale;
-			var english = locale.startsWith('en');
-			// If no exact match, try first two characters ('de')
-			if (!json[locale]) {
-				locale = locale.substr(0, 2);
+		// Add English versions if not already added
+		if (english) {
+			_monthsWithEnglish = _months;
+		} else {
+			_monthsWithEnglish = {};
+			for (let key in _months) {
+				_monthsWithEnglish[key] = _months[key].concat(json['en-US'][key]);
 			}
-			// Try first two characters repeated ('de-DE')
-			if (!json[locale]) {
-				locale = locale + "-" + locale.toUpperCase();
-			}
-			// Look for another locale with same first two characters
-			if (!json[locale]) {
-				let sameLang = Object.keys(json).filter(l => l.startsWith(locale.substr(0, 2)));
-				if (sameLang.length) {
-					locale = sameLang[0];
-				}
-			}
-			// If all else fails, use English
-			if (!json[locale]) {
-				locale = 'en-US';
-				english = true;
-			}
-			_months = json[locale];
-
-			// Add English versions if not already added
-			if (english) {
-				_monthsWithEnglish = _months;
-			} else {
-				_monthsWithEnglish = {};
-				for (let key in _months) {
-					_monthsWithEnglish[key] = _months[key].concat(json['en-US'][key]);
-				}
-			}
-		});
+		}
 	};
 
 
@@ -231,44 +224,13 @@ Zotero.Date = new function() {
 	/**
 	 * Convert an ISO 8601–formatted date/time to a JS Date
 	 *
-	 * Adapted from http://delete.me.uk/2005/03/iso8601.html (AFL-licensed)
-	 *
 	 * @param	{String}		isoDate		ISO 8601 date
 	 * @return {Date|False} - JS Date, or false if not a valid date
 	 */
 	this.isoToDate = function(isoDate) {
 		var d = isoDate.match(_re8601);
 		if (!d) return false;
-
-		var offset = 0;
-		var date = new Date(d[1], 0, 1);
-
-		if (d[3]) {
-			date.setMonth(d[3] - 1);
-		}
-		if (d[5]) {
-			date.setDate(d[5]);
-		}
-		if (d[7]) {
-			date.setHours(d[7]);
-		}
-		if (d[8]) {
-			date.setMinutes(d[8]);
-		}
-		if (d[10]) {
-			date.setSeconds(d[10]);
-		}
-		if (d[12]) {
-			date.setMilliseconds(Number("0." + d[12]) * 1000);
-		}
-		if (d[14]) {
-			offset = (Number(d[16]) * 60) + Number(d[17]);
-			offset *= ((d[15] == '-') ? 1 : -1);
-		}
-
-		offset -= date.getTimezoneOffset();
-		var time = (Number(date) + (offset * 60 * 1000));
-		return new Date(time);
+		return new Date(isoDate);
 	}
 
 
@@ -306,11 +268,11 @@ Zotero.Date = new function() {
 
 		// Parse 'yesterday'/'today'/'tomorrow'
 		var lc = (string + '').toLowerCase();
-		if (lc == 'yesterday' || (Zotero.getString && lc === Zotero.getString('date.yesterday'))) {
+		if (lc == 'yesterday' || (Zotero.isClient && lc === Zotero.getString('date.yesterday'))) {
 			string = Zotero.Date.dateToSQL(new Date(Date.now() - 1000 * 60 * 60 * 24)).substr(0, 10); // no 'this' for translator sandbox
-		} else if (lc == 'today' || (Zotero.getString && lc == Zotero.getString('date.today'))) {
+		} else if (lc == 'today' || (Zotero.isClient && lc == Zotero.getString('date.today'))) {
 			string = Zotero.Date.dateToSQL(new Date()).substr(0, 10);
-		} else if (lc == 'tomorrow' || (Zotero.getString && lc == Zotero.getString('date.tomorrow'))) {
+		} else if (lc == 'tomorrow' || (Zotero.isClient && lc == Zotero.getString('date.tomorrow'))) {
 			string = Zotero.Date.dateToSQL(new Date(Date.now() + 1000 * 60 * 60 * 24)).substr(0, 10);
 		} else {
 			string = string.toString().replace(/^\s+|\s+$/g, "").replace(/\s+/, " ");
@@ -477,7 +439,7 @@ Zotero.Date = new function() {
 		if (!date.day) {
 			// compile day regular expression
 			if (!_dayRe) {
-				var daySuffixes = Zotero.getString ? Zotero.getString("date.daySuffixes").replace(/, ?/g, "|") : "";
+				var daySuffixes = Zotero.isClient ? Zotero.getString("date.daySuffixes").replace(/, ?/g, "|") : "";
 				_dayRe = new RegExp("\\b([0-9]{1,2})(?:" + daySuffixes + ")?\\b(.*)", "i");
 			}
 
@@ -927,4 +889,8 @@ Zotero.Date = new function() {
 		}
 		return _localeDateOrder;
 	}
+}
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = Zotero.Date;
 }

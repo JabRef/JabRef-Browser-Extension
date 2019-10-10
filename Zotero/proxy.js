@@ -270,7 +270,8 @@
 
 				_showNotification(
 						'New Zotero Proxy Host',
-						`Zotero automatically associated ${host} with a previously defined proxy. Future requests to this site will be redirected through ${proxy.toDisplayName()}.`, ["✕", "Proxy Settings", "Don’t Proxy This Site"],
+						`Zotero automatically associated ${host} with a previously defined proxy. Future requests to this site will be redirected through ${proxy.toDisplayName()}.`,
+						["✕", "Proxy Settings", "Don’t Proxy This Site"],
 						details.tabId
 					)
 					.then(function(response) {
@@ -291,7 +292,8 @@
 			async function notifyNewProxy(proxy, proxiedHost) {
 				let response = await _showNotification(
 					'New Zotero Proxy',
-					`Zotero detected that you are accessing ${proxy.hosts[proxy.hosts.length-1]} through a proxy. Would you like to automatically redirect future requests to ${proxy.hosts[proxy.hosts.length-1]} through ${proxy.toDisplayName()}?`, ['✕', 'Proxy Settings', 'Accept'],
+					`Zotero detected that you are accessing ${proxy.hosts[proxy.hosts.length-1]} through a proxy. Would you like to automatically redirect future requests to ${proxy.hosts[proxy.hosts.length-1]} through ${proxy.toDisplayName()}?`,
+					['✕', 'Proxy Settings', 'Accept'],
 					details.tabId
 				);
 				if (response == 2) {
@@ -396,7 +398,8 @@
 				}
 				_showNotification(
 					'Zotero Proxy Redirection',
-					`Zotero automatically redirected your request to ${url.parse(details.url).host} through the proxy at ${proxy.toDisplayName()}.`, ['✕', 'Proxy Settings', "Don’t Proxy This Site"],
+					`Zotero automatically redirected your request to ${url.parse(details.url).host} through the proxy at ${proxy.toDisplayName()}.`,
+					['✕', 'Proxy Settings', "Don’t Proxy This Site"],
 					details.tabId
 				).then(function(response) {
 					if (response == 1) Zotero.Connector_Browser.openPreferences("proxies");
@@ -424,7 +427,7 @@
 		 */
 		this.save = function(proxy) {
 			proxy.scheme = proxy.scheme.trim();
-			proxy.hosts = proxy.hosts.map(host => host.trim());
+			proxy.hosts = proxy.hosts.map(host => host.trim()).filter(host => host);
 
 			// If empty or default scheme
 			var invalid = Zotero.Proxies.validate(proxy);
@@ -491,11 +494,6 @@
 				(!Zotero_Proxy_schemeParameterRegexps["%d"].test(proxy.scheme) ||
 					!Zotero_Proxy_schemeParameterRegexps["%f"].test(proxy.scheme))) {
 				return ["scheme.noPath"];
-			}
-
-			// If empty or unmodified hosts
-			if (proxy.hosts.length == 0 || proxy.hosts.length == 1 && proxy.hosts[0].trim().length == 0) {
-				return ["hosts.invalid"];
 			}
 
 			for (let host in proxy.hosts) {
@@ -580,6 +578,8 @@
 		 * Check the url for potential proxies and deproxify, providing a schema to build
 		 * a proxy object.
 		 * 
+		 * NOTE: Keep in sync with bookmarklet Translators._getPotentialProxies()
+		 *
 		 * @param URL
 		 * @returns {Object} Unproxied url to proxy object
 		 */
