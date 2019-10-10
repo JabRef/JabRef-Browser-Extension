@@ -35,5 +35,10 @@
 	},
 	"dependencies": {
 
-	}
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/JabRef/JabFox.git"
+	},
+	"license": "AGPL-3.0-or-later"
 }
