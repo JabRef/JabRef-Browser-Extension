@@ -38,9 +38,9 @@ def get_message():
         logger.error("Raw_length")
         sys.exit(0)
     message_length = struct.unpack("=I", raw_length)[0]
-    logger.info("Got length: %d bytes to be read", message_length)
+    logger.info(f"Got length: {message_length} bytes to be read")
     message = sys.stdin.buffer.read(message_length).decode("utf-8")
-    logger.info("Got message of %d chars", len(message))
+    logger.info(f"Got message of {message} chars")
     data = json.loads(message)
     logger.info("Successfully retrieved JSON")
     return data
@@ -69,9 +69,9 @@ def add_jabref_entry(data):
     try:
         response = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as exc:
-        logger.error("Failed to call JabRef: %s %s", exc.returncode, exc.output)
+        logger.error(f"Failed to call JabRef: {exc.returncode} {exc.output}")
     else:
-        logger.info(f"Called JabRef and got: %s", response)
+        logger.info(f"Called JabRef and got: {response}")
     return response
 
 
@@ -90,10 +90,10 @@ if "status" in message and message["status"] == "validate":
             shlex.split(cmd), stderr=subprocess.STDOUT, shell=True
         )
     except subprocess.CalledProcessError as exc:
-        logger.error("Failed to call JabRef: %s %s", exc.returncode, exc.output)
+        logger.error(f"Failed to call JabRef: {exc.returncode}, {exc.output}")
         send_message({"message": "jarNotFound", "path": JABREF_PATH})
     else:
-        logger.info(f"Found JabRed binary: %s", response)
+        logger.info(f"Found JabRed binary: {response}")
         send_message({"message": "jarFound"})
 else:
     entry = message["text"]
