@@ -13,14 +13,23 @@ import shlex
 import shutil
 from pathlib import Path
 
-paths = ["/opt/jabref/bin/JabRef", shutil.which("jabref")]
+# TODO: check that the paths are ok for freebsd
+platform = sys.platform
+if platform == "linux" or platform == "freebsd":
+    logging_dir = Path.home() / ".mozilla/native-messaging-hosts/"
+    paths = ["/opt/jabref/bin/JabRef", shutil.which("jabref")]
+elif platform == "darwin":
+    logging_dir = Path.home() / "Library/Application Support/Mozilla/NativeMessagingHosts"
+    paths = ["/Applications/JabRef.app/Contents/MacOS/JabRef", shutil.which("jabref")]
+else: # Something wrong happend
+    logger.error("Wrong platform: {platform}")
+    exit(1)
 
 JABREF_PATH = None
 for path in paths:
     if path and Path(path).is_file():
         JABREF_PATH = path
 
-logging_dir = Path.home() / ".mozilla/native-messaging-hosts/"
 if not logging_dir.exists():
     logging_dir.mkdir(parents=True)
 logging.basicConfig(
