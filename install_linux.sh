@@ -1,6 +1,8 @@
 #!/bin/bash
 
-APP_REL_PATH="jabref.py"
+set -e
+
+APP_REL_PATH="jabrefHost.py"
 
 if [[ $EUID != 0 ]]; then
     # User-based install (does not require sudo premission)
@@ -15,29 +17,9 @@ fi
 # Creating folder if required
 mkdir -p "$INSTALL_PATH"
 
-# Getting windows jabref json for windows
-curl "https://raw.githubusercontent.com/JabRef/jabref/master/buildres/jabref.json" > "$INSTALL_PATH/jabref_win.json"
+# Getting jabref json from upstream and change path to the INSTALL_PATH env variable
+curl "https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/org.jabref.jabref.json" > "$INSTALL_PATH/org.jabref.jabref.json"
+sed -i "s|/opt/jabref/lib/jabrefHost.py|$INSTALL_PATH/jabrefHost.py|g" "$INSTALL_PATH/org.jabref.jabref.json"
 
-cat > tmp.py << EOF
-import json
-import pprint
-import sys
-
-with open(sys.argv[2]) as f:
-    data = json.load(f)
-    
-if sys.argv[1] == "path":
-    data["path"] = "$INSTALL_PATH/$APP_REL_PATH"
-    print(json.dumps(data, indent=4))
-elif sys.argv[1] == "name":
-    print(data["name"])
-EOF
-
-APP_NAME=`python "tmp.py" name "$INSTALL_PATH/jabref_win.json"`
-python "tmp.py" path "$INSTALL_PATH/jabref_win.json" > "$INSTALL_PATH/$APP_NAME.json"
-
-rm -r "$INSTALL_PATH/jabref_win.json"
-rm -r "tmp.py"
-
-cp "jabref.py" "$INSTALL_PATH/$APP_REL_PATH"
+cp "$APP_REL_PATH" "$INSTALL_PATH/$APP_REL_PATH"
 chmod a+x "$INSTALL_PATH/$APP_REL_PATH"
