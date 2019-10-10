@@ -1,7 +1,6 @@
 [![Circle CI](https://circleci.com/gh/JabRef/JabFox.svg?style=svg)](https://circleci.com/gh/JabRef/JabFox)
 
-JabFox: Firefox Add-on for JabRef
-=======================
+# JabFox: Firefox Add-on for JabRef
 
 JabFox is a Firefox add-on for users of the bibliographic reference manager [JabRef](http://www.jabref.org/).
 It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.
@@ -12,19 +11,21 @@ Even links to accompanying PDFs are send to JabRef, where those documents can ea
 
 _Please post any issues or suggestions [here on GitHub](https://github.com/JabRef/JabFox/issues)._
 
-Installation and Configuration
------------------------------------
+## Installation and Configuration
 
+### Windows
 1. Make sure you have at least [JabRef 4.2](https://www.jabref.org/#downloads) installed.
 2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 3. On Windows 7, please [upgrade Powershell](https://www.microsoft.com/en-us/download/details.aspx?id=54616).
 
-Now you should be able to import bibliographic references into JabRef directly from your browser.
-Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox search bar (or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>).
-Once JabFox has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
+### Linux
+1. Download and install the Debian package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
+2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 
-You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef.
-For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
+### Mac OS
+1. Download and install the DMG package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
+2. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref.json) and put it into `/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` (or into `~/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` in case you do not have admin rights)
+3. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 
 _Manual installation on Windows (only necessary when you don't use the installer to install/update JabRef):_
 
@@ -32,15 +33,25 @@ _Manual installation on Windows (only necessary when you don't use the installer
 4. Make sure that the correct file name of the JabRef `.jar` file is specified in `JabRef.ps1` under `$jabRefJarFileName`.
 5. Run `REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f` from the console (with the correct path to the `jabref.json` file). You may need to change the root `HKEY_LOCAL_MACHINE` to  `HKEY_CURRENT_USER` if you don't have admin rights.
 
+_Manual installation on Linux
+2. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref.json) and put it into `/usr/lib/mozilla/native-messaging-hosts/jabref.json` (or into `/usr/lib64/mozilla/native-messaging-hosts/jabref.json` in case you do not have admin rights)
 
-About this Add-On
----------------------
+## Usage
+After the installation, you should be able to import bibliographic references into JabRef directly from your browser.
+Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox search bar (or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>).
+Once JabFox has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
+
+You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef.
+For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
+
+
+## About this Add-On
+
 Internally, JabFox uses the magic of Zotero's site translators.
 Thus most of the credit has to go to the Zotero development team and to the many authors of the [site translators collection](https://github.com/zotero/translators).
 Note that JabFox does not make any changes to the Zotero database and thus both plug-ins coexist happily with each other.
 
-Contributing to the Development
----------------------------------------
+## Contributing to the Development
 
 JabFox uses the [WebExtensions API](https://developer.mozilla.org/en-US/Add-ons/WebExtensions).
 
