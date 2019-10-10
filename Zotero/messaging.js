@@ -209,16 +209,18 @@ Zotero.Messaging = new function() {
 			}
 		} else if (Zotero.isBrowserExt) {
 			browser.runtime.onMessage.addListener(function(request, sender) {
-				return Zotero.Messaging.receiveMessage(request[0], request[1], sender.tab, sender.frameId)
-					.catch(function(err) {
-						// Zotero.logError(err);
-						err = JSON.stringify(Object.assign({
-							name: err.name,
-							message: err.message,
-							stack: err.stack
-						}, err));
-						return ['error', err];
-					});
+				if (typeof request[0] !== 'undefined') {
+					return Zotero.Messaging.receiveMessage(request[0], request[1], sender.tab, sender.frameId)
+						.catch(function(err) {
+							// Zotero.logError(err);
+							err = JSON.stringify(Object.assign({
+								name: err.name,
+								message: err.message,
+								stack: err.stack
+							}, err));
+							return ['error', err];
+						});
+				}
 			});
 		} else if (Zotero.isSafari) {
 			safari.application.addEventListener("message", function(event) {
@@ -228,8 +230,7 @@ Zotero.Messaging = new function() {
 				_ensureSafariTabID(tab);
 
 				function dispatchResponse(response) {
-					tab.page.dispatchMessage(event.name + MESSAGE_SEPARATOR + "Response",
-						[event.message[0], response], tab);
+					tab.page.dispatchMessage(event.name + MESSAGE_SEPARATOR + "Response", [event.message[0], response], tab);
 				}
 				Zotero.Messaging.receiveMessage(event.name, event.message[1], tab)
 					.then(dispatchResponse, function(err) {

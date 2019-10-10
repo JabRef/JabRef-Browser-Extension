@@ -1852,7 +1852,7 @@ Zotero.Translate.Base.prototype = {
 
 		src += "Zotero.Item.prototype.complete = function() { return Zotero._itemDone(this); }";
 
-		await this._sandboxManager.eval(src);
+		this._sandboxManager.eval(src);
 		this._sandboxManager.importObject(this.Sandbox, this);
 		this._sandboxManager.importObject({
 			"Utilities": new Zotero.Utilities.Translate(this)

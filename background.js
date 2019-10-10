@@ -79,8 +79,8 @@ function lookForTranslators(tab) {
 	});
 }
 
-async function evalInTab(code) {
-	await browser.tabs.executeScript({
+function evalInTab(code) {
+	return browser.tabs.executeScript({
 			code: code
 		})
 		.then(
@@ -116,6 +116,7 @@ onTranslators = function(translators, instanceID, contentType) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+	console.log("JabFox: message in background.js: %o", JSON.parse(JSON.stringify(message)))
 	if (message.popupOpened) {
 		// The popup opened, i.e. the user clicked on the page action button
 		console.log("JabFox: Popup opened confirmed");
@@ -131,7 +132,7 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 				Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 			});
 	} else if (message.eval) {
-		evalInTab(message.eval);
+		return evalInTab(message.eval);
 	} else if (message[0] == 'Connector_Browser.onTranslators') {
 		// Intercept message to Zotero background script
 		onTranslators.apply(null, message[1]);
