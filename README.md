@@ -1,4 +1,5 @@
 [![Circle CI](https://circleci.com/gh/JabRef/JabFox.svg?style=svg)](https://circleci.com/gh/JabRef/JabFox)
+[![GitHub license](https://img.shields.io/github/license/JabRef/JabFox)](https://github.com/JabRef/JabFox/blob/master/LICENSE)
 
 # JabFox: Firefox Add-on for JabRef
 
