@@ -15,7 +15,7 @@
 		"gulp-jsbeautify": "^0.1.1",
 		"gulp-plumber": "^1.2.1",
 		"gulp-rename": "^1.4.0",
-		"mocha": "^6.2.1",
+		"mocha": "^6.2.2",
 		"react": "^16.10.2",
 		"react-dom": "^16.10.2",
 		"selenium-webdriver": "^3.6.0",
