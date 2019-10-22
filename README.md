@@ -76,3 +76,6 @@ To update dependencies:
  - `git submodule update --recursive --remote` updates `zotero-connectors` submodule
  - `gulp update-zotero-scripts` copies Zotero scripts from `zotero-connectors` to `Zotero` folder
  - `gulp process-zotero-scripts` post-processes Zotero scripts
+
+## License
+JabFox is licensed under [GNU Affero General Public License v3.0](https://github.com/JabRef/JabFox/blob/master/LICENSE).
