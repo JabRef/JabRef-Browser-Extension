@@ -39,7 +39,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 
 ### Mac OS
 1. Download and install the DMG package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
-2. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref.json) and put it into `/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` (or into `~/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` in case you do not have admin rights)
+2. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/windows/jabref.json) and put it into `/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` (or into `~/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` in case you do not have admin rights)
 3. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 
 ## Usage
