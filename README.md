@@ -33,7 +33,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 <details>
  <summary>Manual installation on Linux (only necessary when you don't use the `deb` file to install/update JabRef)</summary>
  
-3. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref.json) and put it into `/usr/lib/mozilla/native-messaging-hosts/jabref.json` (or into `/usr/lib64/mozilla/native-messaging-hosts/jabref.json` in case you do not have admin rights)
+3. Download [org.jabref.jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/linux/org.jabref.jabref.json) and put it into `/usr/lib/mozilla/native-messaging-hosts/jabref.json` (or into `/usr/lib64/mozilla/native-messaging-hosts/jabref.json` in case you do not have admin rights)
 
 </details>
 
