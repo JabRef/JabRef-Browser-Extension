@@ -33,7 +33,8 @@ var injectInclude = [
 	'Zotero/translate_inject.js',
 	'Zotero/messages.js',
 	'Zotero/messaging_inject.js',
-	'Zotero/inject.js'
+	'Zotero/inject.js',
+	'Zotero/browser-polyfill.js'
 ];
 
 function processJSX(file) {

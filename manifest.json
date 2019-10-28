@@ -1,5 +1,5 @@
 {
-	"applications": {
+	"browser_specific_settings": {
 		"gecko": {
 			"id": "@jabfox"
 		}
@@ -35,13 +35,14 @@
 			"Zotero/messages.js",
 			"Zotero/messaging.js",
 			"Zotero/background.js",
+			"Zotero/browser-polyfill.js",
 			"background.js"
 		]
 	},
 
-	"page_action": {
+	"browser_action": {
 		"browser_style": true,
-		"default_icon": "data/JabRef-icon.svg",
+		"default_icon": "data/JabRef-icon-48.png",
 		"default_title": "Import references into JabRef",
 		"default_popup": "data/progressPanel.html"
 	},
@@ -122,6 +123,7 @@
 			"Zotero/messages.js",
 			"Zotero/messaging_inject.js",
 			"Zotero/inject.js",
+			"Zotero/browser-polyfill.js",
 			"bibtexConverter.js"
 		]
 	}],
