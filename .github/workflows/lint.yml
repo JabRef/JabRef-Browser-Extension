@@ -4,6 +4,8 @@ jobs:
   run:
     name: Run
     runs-on: ubuntu-latest
+    env:
+      PATH: $PATH:$(npm bin)
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
