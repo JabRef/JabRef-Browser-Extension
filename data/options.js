@@ -11,7 +11,7 @@ function checkConnection() {
 		.then(response => {
 			if (response.message == 'jarNotFound') {
 				status.setAttribute('class', 'alert-error');
-				status.innerHTML = 'Unable to locate JabRef at:<br>' + response.path;
+				status.textContent = 'Unable to locate JabRef at:<br>' + response.path;
 			} else if (response.message == 'jarFound') {
 				status.setAttribute('class', 'alert-positive')
 				status.textContent = 'Communication to JabRef successful!';
