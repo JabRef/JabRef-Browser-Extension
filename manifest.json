@@ -77,7 +77,8 @@
 
 	"options_ui": {
 		"page": "data/options.html",
-		"browser_style": true
+		"browser_style": true,
+		"chrome_style": true
 	},
 
 	"permissions": [
