@@ -16,7 +16,7 @@
 		"gulp-plumber": "^1.2.1",
 		"gulp-rename": "^1.4.0",
 		"mocha": "^6.2.2",
-		"react": "^16.10.2",
+		"react": "^16.11.0",
 		"react-dom": "^16.10.2",
 		"selenium-webdriver": "^3.6.0",
 		"sinon": "^7.5.0",
