@@ -9,5 +9,5 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: '13.x'
-    - run: npm install gulp-cli web-ext
+    - run: npm install web-ext
     - run: web-ext lint --self-hosted
