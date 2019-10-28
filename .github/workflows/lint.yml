@@ -4,12 +4,10 @@ jobs:
   run:
     name: Run
     runs-on: ubuntu-latest
-    env:
-      PATH: $PATH:$(npm bin)
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-node@v1
       with:
         node-version: '13.x'
     - run: npm install web-ext
-    - run: web-ext lint --self-hosted
+    - run: $(npm bin)/web-ext lint --self-hosted
