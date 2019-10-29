@@ -67,8 +67,8 @@
 	"homepage_url": "http://www.jabref.org/",
 
 	"icons": {
-		"48": "data/JabRef-icon.svg",
-		"96": "data/JabRef-icon.svg"
+		"48": "data/JabRef-icon-48.png",
+		"96": "data/JabRef-icon-96.png"
 	},
 
 	"manifest_version": 2,
