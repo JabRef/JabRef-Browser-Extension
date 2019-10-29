@@ -9,6 +9,7 @@ var beautify = require('gulp-jsbeautify');
 const babel = require('babel-core');
 
 var injectInclude = [
+	'Zotero/browser-polyfill.js',
 	'Zotero/zotero_config.js',
 	'Zotero/zotero.js',
 	'Zotero/promise.js',
@@ -33,8 +34,7 @@ var injectInclude = [
 	'Zotero/translate_inject.js',
 	'Zotero/messages.js',
 	'Zotero/messaging_inject.js',
-	'Zotero/inject.js',
-	'Zotero/browser-polyfill.js'
+	'Zotero/inject.js'
 ];
 
 function processJSX(file) {

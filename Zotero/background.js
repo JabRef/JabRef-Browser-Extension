@@ -50,7 +50,6 @@ Zotero.Connector_Browser = new function() {
 		"Zotero/translate_inject.js",
 		"Zotero/messages.js",
 		"Zotero/messaging_inject.js",
-		"Zotero/browser-polyfill.js",
 		"Zotero/inject.js"
 	];
 	// Exposed for tests
