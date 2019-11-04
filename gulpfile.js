@@ -9,7 +9,7 @@ var beautify = require('gulp-jsbeautify');
 const babel = require('babel-core');
 
 var injectInclude = [
-	'Zotero/browser-polyfill.js',
+	'browser-polyfill.js',
 	'Zotero/zotero_config.js',
 	'Zotero/zotero.js',
 	'Zotero/promise.js',

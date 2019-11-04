@@ -9,7 +9,7 @@
 
 	"background": {
 		"scripts": [
-			"Zotero/browser-polyfill.js",
+			"browser-polyfill.js",
 			"Zotero/init.js",
 			"Zotero/zotero_config.js",
 			"Zotero/zotero.js",
@@ -94,7 +94,7 @@
 		"matches": ["http://*/*", "https://*/*"],
 		"run_at": "document_start",
 		"js": [
-			"Zotero/browser-polyfill.js",
+			"browser-polyfill.js",
 			"Zotero/zotero_config.js",
 			"Zotero/zotero.js",
 			"Zotero/promise.js",
