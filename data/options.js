@@ -17,7 +17,7 @@ function checkConnection() {
 				status.textContent = 'Communication to JabRef successful!';
 			} else {
 				status.setAttribute('class', 'alert-error');
-				status.textContent = 'Unexpected response:<br>' + response.message;
+				status.innerHTML = 'Unexpected response:<br>' + response.message;
 			}
 		}, error => {
 			status.setAttribute('class', 'alert-error');
