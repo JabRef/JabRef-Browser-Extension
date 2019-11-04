@@ -1,5 +1,5 @@
 {
-	"browser_specific_settings": {
+	"applications": {
 		"gecko": {
 			"id": "@jabfox"
 		}
@@ -40,7 +40,7 @@
 		]
 	},
 
-	"browser_action": {
+	"page_action": {
 		"browser_style": true,
 		"default_icon": "data/JabRef-icon-48.png",
 		"default_title": "Import references into JabRef",
