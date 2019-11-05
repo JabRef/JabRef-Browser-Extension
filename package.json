@@ -21,6 +21,7 @@
 		"selenium-webdriver": "^3.6.0",
 		"sinon": "^7.5.0",
 		"through2": "^3.0.1",
+		"webextension-polyfill": "^0.5.0",
 		"yargs": "^14.2.0"
 	},
 	"babel": {
@@ -32,6 +33,9 @@
 				}
 			]
 		]
+	},
+	"scripts": {
+		"prepare": "cp node_modules/webextension-polyfill/dist/browser-polyfill.min.js ."
 	},
 	"dependencies": {},
 	"repository": {
