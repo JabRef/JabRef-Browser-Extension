@@ -1,5 +1,5 @@
 {
-	"name": "jabfox",
+	"name": "jabrefbrowserextension",
 	"scripts": {
 		"prepare": "ncp node_modules/webextension-polyfill/dist/browser-polyfill.min.js browser-polyfill.min.js",
 		"dev:firefox": "web-ext run",
@@ -46,7 +46,7 @@
 	"dependencies": {},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/JabRef/JabFox.git"
+		"url": "https://github.com/JabRef/JabRef-Browser-Extension.git"
 	},
 	"license": "AGPL-3.0-or-later"
 }

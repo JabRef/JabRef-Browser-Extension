@@ -1,6 +1,6 @@
 Zotero.Connector = new function() {
 	this.callMethod = Zotero.Promise.method(function(options, data, cb, tab) {
-		console.log("JabFox: Tried to contact Zotero standalone: " + options);
+		console.log("JabRef: Tried to contact Zotero standalone: " + options);
 		throw new Error("Zotero Offline");
 	})
 
@@ -60,20 +60,20 @@ Zotero.Connector = new function() {
 		browser.runtime.sendMessage({
 			"onSendToJabRef": "sendToJabRefStarted"
 		});
-		console.log("JabFox: Send BibTeX to JabRef: %o", bibtex);
+		console.log("JabRef: Send BibTeX to JabRef: %o", bibtex);
 
 		browser.runtime.sendNativeMessage("org.jabref.jabref", {
 				"text": bibtex
 			})
 			.then(response => {
-				console.log("JabFox: Got response from JabRef: %o with details %o", response.message, response.output);
+				console.log("JabRef: Got response from JabRef: %o with details %o", response.message, response.output);
 				if (response.message == 'ok') {
 					browser.runtime.sendMessage({
 						"popupClose": "close"
 					});
 				}
 			}, error => {
-				console.error("JabFox: Error connecting to JabRef: %o", error);
+				console.error("JabRef: Error connecting to JabRef: %o", error);
 			});
 	}
 }

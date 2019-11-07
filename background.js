@@ -15,7 +15,7 @@ browser.tabs.query({})
 	.then((tabs) => {
 		// We wait a bit before injection to give Zotero time to load the translators
 		setTimeout(() => {
-			console.log("JabFox: Inject into open tabs %o", tabs);
+			console.log("JabRef: Inject into open tabs %o", tabs);
 			for (let tab of tabs) {
 				lookForTranslators(tab);
 			}
@@ -65,16 +65,16 @@ function lookForTranslators(tab) {
 		return;
 	}
 
-	console.log("JabFox: Searching for translators for %o", tab);
+	console.log("JabRef: Searching for translators for %o", tab);
 	Zotero.Translators.getWebTranslatorsForLocation(tab.url, tab.url).then((translators) => {
 		if (translators[0].length == 0) {
 			// No translators found, so hide button
-			console.log("JabFox: No translators found");
+			console.log("JabRef: No translators found");
 			browser.pageAction.hide(tab.id);
 		} else {
 			// Potential translators found, Zotero will check if these can detect something on the website.
 			// We will be notified about the result of this check using the `onTranslators` method below, so nothing to do here. 
-			console.log("JabFox: Found potential translators %o", translators[0]);
+			console.log("JabRef: Found potential translators %o", translators[0]);
 		}
 	});
 }
@@ -84,7 +84,7 @@ function evalInTab(code) {
 			code: code
 		})
 		.then(
-			result => console.log(`JabFox: code executed`),
+			result => console.log(`JabRef: code executed`),
 			error => console.log(`Error: ${error}`));
 }
 
@@ -101,10 +101,10 @@ onTranslators = function(translators, instanceID, contentType) {
 			var tab = tabs[0];
 
 			if (translators.length == 0) {
-				console.log("JabFox: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tab)));
+				console.log("JabRef: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tab)));
 				browser.pageAction.hide(tab.id);
 			} else {
-				console.log("JabFox: Found translators %o for tab %o", translators, JSON.parse(JSON.stringify(tab)));
+				console.log("JabRef: Found translators %o for tab %o", translators, JSON.parse(JSON.stringify(tab)));
 
 				browser.pageAction.show(tab.id);
 				browser.pageAction.setTitle({
@@ -116,10 +116,10 @@ onTranslators = function(translators, instanceID, contentType) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	console.log("JabFox: message in background.js: %o", JSON.parse(JSON.stringify(message)))
+	console.log("JabRef: message in background.js: %o", JSON.parse(JSON.stringify(message)))
 	if (message.popupOpened) {
 		// The popup opened, i.e. the user clicked on the page action button
-		console.log("JabFox: Popup opened confirmed");
+		console.log("JabRef: Popup opened confirmed");
 
 		browser.tabs.query({
 				active: true,
@@ -128,7 +128,7 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			.then((tabs) => {
 				var tab = tabs[0];
 
-				console.log("JabFox: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
+				console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
 				Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 			});
 	} else if (message.eval) {

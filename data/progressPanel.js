@@ -7,14 +7,14 @@ window.addEventListener("load", function load(event) {
 		"popupOpened": "opened"
 	});
 
-	console.log("JabFox: Popup opened")
+	console.log("JabRef: Popup opened")
 }, false);
 
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (message.popupClose) {
 		// The popup should be closed
 		window.close();
-		console.log("JabFox: Popup closed");
+		console.log("JabRef: Popup closed");
 	} else if (message.onConvertToBibtex) {
 		document.getElementById("status").innerHTML = 'Convert to BibTeX...';
 		// = "";

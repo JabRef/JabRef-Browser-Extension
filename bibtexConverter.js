@@ -1,5 +1,5 @@
 convertToBibTex = function(items) {
-	console.log("JabFox: Convert items to BibTeX: %o", items);
+	console.log("JabRef: Convert items to BibTeX: %o", items);
 	var deferred = Zotero.Promise.defer();
 
 	var translation = new Zotero.Translate.Export();
@@ -46,7 +46,7 @@ Zotero.Translate.ItemGetter.prototype = {
 
 browser.runtime.onMessage.addListener(message => {
 	if (message.convertToBibTex) {
-		console.log("JabFox: Got task to convert %o to BibTeX", message.convertToBibTex);
+		console.log("JabRef: Got task to convert %o to BibTeX", message.convertToBibTex);
 		return convertToBibTex(message.convertToBibTex);
 	}
 });
