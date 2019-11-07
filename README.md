@@ -1,19 +1,19 @@
-# JabFox: Firefox Add-on for JabRef
+# JabRef Browser Extension
 
-JabFox is a Firefox add-on for users of the bibliographic reference manager [JabRef](http://www.jabref.org/).
+Browser extension for users of the bibliographic reference manager [JabRef](http://www.jabref.org/).
 It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.
 
-When you find an interesting article through Google Scholar, the arXiv or journal websites, JabFox allows you to add those references to JabRef.
+When you find an interesting article through Google Scholar, the arXiv or journal websites, this browser extension allows you to add those references to JabRef.
 Even links to accompanying PDFs are sent to JabRef, where those documents can easily be downloaded, renamed and placed in the correct folder. 
-[A wide range of publisher sites, library catalogues and databases are supported](https://www.zotero.org/support/translators).
+[A wide range of publisher sites, library catalogs and databases are supported](https://www.zotero.org/support/translators).
 
-_Please post any issues or suggestions [here on GitHub](https://github.com/JabRef/JabFox/issues)._
+_Please post any issues or suggestions [here on GitHub](https://github.com/JabRef/JabRef-Browser-Extension/issues)._
 
 ## Installation and Configuration
 
 ### Windows
 1. Make sure you have at least [JabRef 4.2](https://www.jabref.org/#downloads) installed.
-2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
+2. Install the JabRef browser extension. [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 3. On Windows 7, please [upgrade Powershell](https://www.microsoft.com/en-us/download/details.aspx?id=54616).
 <details>
  <summary>Manual installation on Windows (only necessary when you don't use the installer to install/update JabRef)</summary>
@@ -36,7 +36,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 
 ### Linux
 1. Download and install the Debian package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
-2. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
+2. Install the JabRef browser extension. [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 <details>
  <summary>Manual installation on Linux (only necessary when you don't use the `deb` file to install/update JabRef)</summary>
  
@@ -47,12 +47,12 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 ### Mac OS
 1. Download and install the DMG package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
 2. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref.json) and put it into `/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` (or into `~/Library/Application Support/Mozilla/NativeMessagingHosts/jabref.json` in case you do not have admin rights)
-3. [Install the JabFox add-on](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
+3. Install the JabRef browser extension. [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github).
 
 ## Usage
 After the installation, you should be able to import bibliographic references into JabRef directly from your browser.
 Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox search bar (or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>).
-Once JabFox has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
+Once the JabRef browser extension has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
 
 You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef.
 For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
@@ -60,23 +60,25 @@ For this, activate "Remote operation" under the Advanced tab in the JabRef Prefe
 
 ## About this Add-On
 
-Internally, JabFox uses the magic of Zotero's site translators.
+Internally, this browser extension uses the magic of Zotero's site translators.
 Thus most of the credit has to go to the Zotero development team and to the many authors of the [site translators collection](https://github.com/zotero/translators).
-Note that JabFox does not make any changes to the Zotero database and thus both plug-ins coexist happily with each other.
+Note that this browser extension does not make any changes to the Zotero database and thus both plug-ins coexist happily with each other.
 
 ## Contributing to the Development
 
-JabFox uses the [WebExtensions API](https://developer.mozilla.org/en-US/Add-ons/WebExtensions).
+JabRef browser extension uses the [WebExtensions API](https://developer.mozilla.org/en-US/Add-ons/WebExtensions).
 
 Preparation:
 1. Install [Node.js](https://nodejs.org) (e.g., `choco install nodejs`)
 2. Install [gulp](https://gulpjs.com/) and [web-ext](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext): `npm install --global gulp-cli web-ext`
 3. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
-4. Start Firefox with the add-on activated: `web-ext run`
+4. Start browser with the add-on activated: 
+   Firefox: `npm run dev:firefox`
+   Chrome: `npm run dev:opera`
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 1. Create your feature branch: `git checkout -b my-new-feature`
-3. Build the add-on by running `web-ext run` and test it.
+3. Build and run the add-on as described above.
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request.
