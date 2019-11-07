@@ -15,14 +15,13 @@ askBrowserSnap() {
 }
 
 getJson() {
-    # if [[ ! -z $1 ]]; then
-    #     # Insert Firefox data
-    #     JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json"
-    # else
-    #     # Insert Chrome data
-    #     JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/chromium/org.jabref.jabref.json"
-    # fi
-    JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/org.jabref.jabref.json"
+    if [[ ! -z $1 ]]; then
+        # Insert Firefox data
+        JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json"
+    else
+        # Insert Chrome data
+        JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/chromium/org.jabref.jabref.json"
+    fi
 }
 
 setSnapJabrefPath() {
