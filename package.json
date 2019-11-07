@@ -1,5 +1,13 @@
 {
 	"name": "jabfox",
+	"scripts": {
+		"dev:firefox": "web-ext run",
+		"dev:chrome": "concurrently -k -i -n run,build 'npm:open:chrome' 'npm:dev chrome'",
+		"open:chrome": "wait-on -l ./dist/chrome/manifest.json && ./scripts/open-chrome ./dist/chrome",
+		"build:firefox": "web-ext build",
+		"lint:firefox": "web-ext lint",
+		"submit:firefox": "web-ext sign"
+	},
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
 		"babel-core": "^6.26.3",
@@ -21,6 +29,7 @@
 		"selenium-webdriver": "^3.6.0",
 		"sinon": "^7.5.0",
 		"through2": "^3.0.1",
+		"web-ext": "^3.2.1",
 		"webextension-polyfill": "^0.5.0",
 		"yargs": "^14.2.0"
 	},
