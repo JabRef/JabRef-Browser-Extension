@@ -13,11 +13,11 @@ function checkConnection() {
 				status.setAttribute('class', 'alert-error');
 				status.textContent = 'Unable to locate JabRef at:<br>' + response.path;
 			} else if (response.message == 'jarFound') {
-				status.setAttribute('class', 'alert-positive')
+				status.setAttribute('class', 'alert-positive');
 				status.textContent = 'Communication to JabRef successful!';
 			} else {
 				status.setAttribute('class', 'alert-error');
-				status.textContent = 'Unexpected response:<br>' + response.message;
+				status.innerHTML = 'Unexpected response:<br>' + response.message;
 			}
 		}, error => {
 			status.setAttribute('class', 'alert-error');

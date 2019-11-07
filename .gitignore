@@ -2,6 +2,8 @@ JabFox.sublime-workspace
 node_modules
 web-ext-artifacts
 
+# Ignore polyfill and fetch it with npm install
+browser-polyfill.min.js
 
 # Created by https://www.gitignore.io/api/linux,macos,windows
 # Edit at https://www.gitignore.io/?templates=linux,macos,windows

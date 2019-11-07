@@ -1,5 +1,5 @@
 {
-	"applications": {
+	"browser_specific_settings": {
 		"gecko": {
 			"id": "@jabfox"
 		}
@@ -9,6 +9,7 @@
 
 	"background": {
 		"scripts": [
+			"browser-polyfill.min.js",
 			"Zotero/init.js",
 			"Zotero/zotero_config.js",
 			"Zotero/zotero.js",
@@ -41,7 +42,7 @@
 
 	"page_action": {
 		"browser_style": true,
-		"default_icon": "data/JabRef-icon.svg",
+		"default_icon": "data/JabRef-icon-48.png",
 		"default_title": "Import references into JabRef",
 		"default_popup": "data/progressPanel.html"
 	},
@@ -66,8 +67,8 @@
 	"homepage_url": "http://www.jabref.org/",
 
 	"icons": {
-		"48": "data/JabRef-icon.svg",
-		"96": "data/JabRef-icon.svg"
+		"48": "data/JabRef-icon-48.png",
+		"96": "data/JabRef-icon-96.png"
 	},
 
 	"manifest_version": 2,
@@ -76,7 +77,8 @@
 
 	"options_ui": {
 		"page": "data/options.html",
-		"browser_style": true
+		"browser_style": true,
+		"chrome_style": true
 	},
 
 	"permissions": [
@@ -92,6 +94,7 @@
 		"matches": ["http://*/*", "https://*/*"],
 		"run_at": "document_start",
 		"js": [
+			"browser-polyfill.min.js",
 			"Zotero/zotero_config.js",
 			"Zotero/zotero.js",
 			"Zotero/promise.js",
