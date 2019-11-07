@@ -109,11 +109,11 @@ if [ $exitstatus = 0 ]; then
     mkdir -p "$INSTALL_DIR"
     curl -SL --silent "$JSON_OUT" -o $TMPFILE
 
-    # if [ -d /snap/jabref ]; then
-    if (whiptail --title "Setup Snap" --defaultno --yesno "Configure snap version of JabRef?" 8 60); then
-        setSnapJabrefPath "$TMPFILE"
+    if [ -d "$HOME/snap/jabref/common" ]; then
+        if (whiptail --title "Setup Snap" --defaultno --yesno "Configure snap version of JabRef?" 8 60); then
+            setSnapJabrefPath "$TMPFILE"
+        fi
     fi
-    # fi
 
     install $TMPFILE ${INSTALL_DIR}/${INSTALL_FILE}
 
