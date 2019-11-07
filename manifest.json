@@ -1,11 +1,11 @@
 {
 	"browser_specific_settings": {
 		"gecko": {
-			"id": "@jabfox"
+			"id": "browserextension@jabref.org"
 		}
 	},
 
-	"author": "Tobias Diez",
+	"author": "JabRef",
 
 	"background": {
 		"scripts": [
@@ -58,10 +58,10 @@
 
 	"content_security_policy": "script-src 'self'; object-src 'self'",
 
-	"description": "JabFox imports new bibliographic information directly from the browser into JabRef.",
+	"description": "The JabRef browser extension imports new bibliographic information directly from the browser into JabRef.",
 
 	"developer": {
-		"name": "Tobias Diez",
+		"name": "JabRef",
 		"url": "http://www.jabref.org/"
 	},
 
@@ -74,7 +74,7 @@
 
 	"manifest_version": 2,
 
-	"name": "JabFox",
+	"name": "JabRef Browser Extension",
 
 	"options_ui": {
 		"page": "data/options.html",
