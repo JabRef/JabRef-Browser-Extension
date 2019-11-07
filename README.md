@@ -18,10 +18,19 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 <details>
  <summary>Manual installation on Windows (only necessary when you don't use the installer to install/update JabRef)</summary>
 
-4. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref.json), [JabRef.bat](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/JabRef.bat) and [JabRef.ps1](https://github.com/JabRef/jabref/blob/master/buildres/JabRef.ps1), and copy them to the same directory as `JabRef.exe`
+4. Download [jabref.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref.json), [jabref-chrome.json](https://github.com/JabRef/jabref/blob/master/buildres/jabref-chrome.json), [JabRef.bat](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/JabRef.bat) and [JabRef.ps1](https://github.com/JabRef/jabref/blob/master/buildres/JabRef.ps1), and copy them to the same directory as `JabRef.exe`
 5. Make sure that the correct file name of the JabRef `.jar` file is specified in `JabRef.ps1` under `$jabRefJarFileName`.
-6. Run `REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f` from the console (with the correct path to the `jabref.json` file). You may need to change the root `HKEY_LOCAL_MACHINE` to  `HKEY_CURRENT_USER` if you don't have admin rights.
+6. Run the following command from the console (with the correct path to the `jabref.json` file):
 
+   For Firefox support:
+   ```
+   REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f
+   ```
+   For Chrome support
+    ```
+   REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Google\Chrome\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f
+   ``` 
+   You may need to change the root `HKEY_LOCAL_MACHINE` to  `HKEY_CURRENT_USER` if you don't have admin rights.
 </details>
 
 
