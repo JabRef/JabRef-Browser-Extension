@@ -26,7 +26,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
    ```
    REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f
    ```
-   For Chrome support
+   For Chrome/Opera support
     ```
    REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Google\Chrome\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f
    ``` 
