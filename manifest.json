@@ -41,8 +41,9 @@
 	},
 
 	"page_action": {
-		"browser_style": true,
-		"default_icon": "data/JabRef-icon-48.png",
+		"default_icon": {
+			"48": "data/JabRef-icon-48.png"
+		},
 		"default_title": "Import references into JabRef",
 		"default_popup": "data/progressPanel.html"
 	},
