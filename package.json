@@ -3,8 +3,7 @@
 	"scripts": {
 		"prepare": "ncp node_modules/webextension-polyfill/dist/browser-polyfill.min.js browser-polyfill.min.js",
 		"dev:firefox": "web-ext run",
-		"dev:chrome": "concurrently -k -i -n run,build 'npm:open:chrome' 'npm:dev chrome'",
-		"open:chrome": "wait-on -l ./dist/chrome/manifest.json && ./scripts/open-chrome ./dist/chrome",
+		"dev:chrome": "web-ext run -t chromium",
 		"build:firefox": "web-ext build",
 		"lint:firefox": "web-ext lint",
 		"submit:firefox": "web-ext sign"
@@ -38,8 +37,7 @@
 	"babel": {
 		"presets": [
 			[
-				"env",
-				{
+				"env", {
 					"modules": false
 				}
 			]
