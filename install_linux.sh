@@ -15,13 +15,18 @@ askBrowserSnap() {
 }
 
 getJson() {
-    if [[ ! -z $1 ]]; then
-        # Insert Firefox data
-        JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json"
-    else
-        # Insert Chrome data
-        JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/chromium/org.jabref.jabref.json"
-    fi
+    # if [[ ! -z $1 ]]; then
+    #     # Insert Firefox data
+    #     JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json"
+    # else
+    #     # Insert Chrome data
+    #     JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/chromium/org.jabref.jabref.json"
+    # fi
+    JSON_OUT="https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/org.jabref.jabref.json"
+}
+
+setSnapJabrefPath() {
+    sed -i 's|/opt/jabref/lib/jabrefHost.py|/snap/bin/jabref.browser-proxy|g' $TMPFILE
 }
 
 setupFirefox() {
@@ -62,7 +67,7 @@ setupBrave() {
 
 BROWSER=$(whiptail \
             --title "Browser Selection" \
-            --menu "Choose a browser to integrate with KeePassXC:" \
+            --menu "Choose a browser to integrate with JabRef:" \
             15 60 5 \
             "1" "Firefox" \
             "2" "Chrome" \
@@ -101,16 +106,23 @@ if [ $exitstatus = 0 ]; then
         fi
     fi
 
-
-
+    TMPFILE=$(mktemp)
     mkdir -p "$INSTALL_DIR"
-    curl -SL --silent "$JSON_OUT" -o ${INSTALL_DIR}/${INSTALL_FILE}
+    curl -SL --silent "$JSON_OUT" -o $TMPFILE
+
+    # if [ -d /snap/jabref ]; then
+    if (whiptail --title "Setup Snap" --defaultno --yesno "Configure snap version of JabRef?" 8 60); then
+        setSnapJabrefPath "$TMPFILE"
+    fi
+    # fi
+
+    install $TMPFILE ${INSTALL_DIR}/${INSTALL_FILE}
 
     $DEBUG && echo "Installed to: ${INSTALL_DIR}/${INSTALL_FILE}"
 
     whiptail \
         --title "Installation Complete" \
-        --msgbox "You will need to restart your browser in order to connect to KeePassXC" \
+        --msgbox "You will need to restart your browser in order to connect to JabRef" \
         8 50
 else
     whiptail --title "Installation Canceled" --msgbox "No changes were made to your system" 8 50
