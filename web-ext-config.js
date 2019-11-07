@@ -5,7 +5,8 @@ module.exports = {
 		'gulpfile.js',
 		'JabFox.sublime-project',
 		'JabFox.sublime-workspace',
-		'package-lock.json'
+		'package-lock.json',
+		'install_linux.sh'
 	],
 	run: {
 		startUrl: [
