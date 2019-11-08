@@ -1,0 +1,3 @@
+# Jekyll rendering configuration
+
+include: [README.md]
