@@ -1,7 +1,7 @@
 # JabRef Browser Extension
 
-Browser extension for users of the bibliographic reference manager [JabRef](http://www.jabref.org/).
-It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.
+> Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/).
+> It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.
 
 When you find an interesting article through Google Scholar, the arXiv or journal websites, this browser extension allows you to add those references to JabRef.
 Even links to accompanying PDFs are sent to JabRef, where those documents can easily be downloaded, renamed and placed in the correct folder. 
