@@ -5,7 +5,7 @@
 		"dev:firefox": "web-ext run",
 		"dev:chrome": "web-ext run -t chromium",
 		"dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
-		"build:firefox": "web-ext build",
+		"build": "web-ext build",
 		"lint:firefox": "web-ext lint",
 		"submit:firefox": "web-ext sign"
 	},
