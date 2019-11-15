@@ -73,7 +73,7 @@ Zotero.GoogleDocs.API = {
 		if (Zotero.isBrowserExt) {
 			browser.tabs.remove(tab.id);
 		} else if (Zotero.isSafari) {
-			tab.close();
+			Zotero.Connector_Browser.closeTab(tab);
 		}
 		try {
 			var url = require('url');

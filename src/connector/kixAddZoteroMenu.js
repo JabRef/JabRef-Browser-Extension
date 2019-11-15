@@ -35,8 +35,6 @@ if (!isTopWindow) return;
  * Inject the Zotero menubutton ASAP so that kix attaches handlers for
  * hovering and clicking events when it initializes
  */
-await Zotero.initDeferred.promise;
-if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
 
 var menuAdded = false;
 var buttonAdded = false;
@@ -55,7 +53,7 @@ function addToolbarButton(toolbar) {
 	if (Zotero.isBrowserExt) {
 		imageURL = browser.extension.getURL('images/zotero-z-16px-offline.png');
 	} else {
-		imageURL = safari.extension.baseURI + 'images/zotero-new-z-16px.png';
+		imageURL = `${safari.extension.baseURI}safari/images/zotero-new-z-16px.png`;
 	}
 	var shortcut = 'Ctrl+Alt+C';
 	if (Zotero.isMac) {
@@ -93,5 +91,17 @@ var observer = new MutationObserver(function(mutations) {
 });
 
 observer.observe(document.documentElement, {childList: true, subtree: true});
+
+await Zotero.initDeferred.promise;
+if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) {
+	if (menuAdded) {
+		let menubutton = document.querySelector('#docs-zotero-menubutton');
+		menubutton.parentNode.removeChild(menubutton);
+	}
+	if (buttonAdded) {
+		let button = document.querySelector('#zoteroAddEditCitation');
+		button.parentNode.removeChild(button);
+	}
+}
 
 })();

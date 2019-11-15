@@ -32,11 +32,11 @@ if(window.top) {
 }	
 if (!isTopWindow) return;
 
-let imageURL
+let imageURL;
 if (Zotero.isBrowserExt) {
 	imageURL = browser.extension.getURL('images/zotero-z-16px-offline.png');
 } else {
-	imageURL = safari.extension.baseURI + 'images/zotero-new-z-16px.png';
+	imageURL = `${safari.extension.baseURI}safari/` + 'images/zotero-new-z-16px.png';
 }
 
 /**
@@ -150,7 +150,10 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	interceptPaste: function() {
-		let pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.children[0];
+		let pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
+		if (Zotero.isFirefox) {
+			pasteTarget = pasteTarget.children[0];
+		}
 		pasteTarget.addEventListener('paste', async (e) => {
 			let insertPromise = this.waitToSaveInsertion();
 			let data = (e.clipboardData || window.clipboardData)
@@ -367,7 +370,7 @@ Zotero.GoogleDocs.UI = {
 	 */
 	writeText: async function(text) {
 		var evt, pasteTarget;
-		if (Zotero.isChrome) {
+		if (!Zotero.isFirefox) {
 			var dt = new DataTransfer();
 			dt.setData('text/plain', text);
 			evt = new ClipboardEvent('paste', {clipboardData: dt});
