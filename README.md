@@ -18,7 +18,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 <details>
  <summary>Manual installation on Windows (only necessary when you don't use the installer to install/update JabRef)</summary>
 
-4. (This step is not necessary in the portable install) Download the following files copy them to the same directory as `JabRef.exe`
+4. Download the following files and copy them to the same directory as `JabRef.exe`
    - [jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/windows/jabref.json)
    - [jabref-chrome.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/windows/jabref-chrome.json)
    - [JabRef.bat](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/windows/JabRefHost.bat)
