@@ -21,7 +21,7 @@ function checkConnection() {
 			}
 		}, error => {
 			status.setAttribute('class', 'alert-error');
-			status.textContent = error;
+			status.textContent = error.message;
 		});
 }
 
