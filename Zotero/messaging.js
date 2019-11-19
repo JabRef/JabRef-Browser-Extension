@@ -230,7 +230,8 @@ Zotero.Messaging = new function() {
 				_ensureSafariTabID(tab);
 
 				function dispatchResponse(response) {
-					tab.page.dispatchMessage(event.name + MESSAGE_SEPARATOR + "Response", [event.message[0], response], tab);
+					tab.page.dispatchMessage(event.name + MESSAGE_SEPARATOR + "Response",
+						[event.message[0], response], tab);
 				}
 				Zotero.Messaging.receiveMessage(event.name, event.message[1], tab)
 					.then(dispatchResponse, function(err) {

@@ -27,6 +27,7 @@ Zotero.Connector_Browser = new function() {
 	var _tabInfo = {};
 	var _incompatibleVersionMessageShown;
 	var _injectTranslationScripts = [
+		"browser-polyfill.min.js",
 		"Zotero/zotero_config.js",
 		"Zotero/zotero.js",
 		"Zotero/promise.js",

@@ -223,7 +223,7 @@ Zotero.Translate.Sandbox = {
 
 				// For synchronous import (when Promise isn't available in the sandbox or the do*
 				// function doesn't use it) and web translators, queue saves
-				if (!async || !asyncTranslator) {
+				if (!async ||!asyncTranslator) {
 					Zotero.debug("Translate: Saving via queue");
 					translate.saveQueue.push(item);
 				}
@@ -315,16 +315,6 @@ Zotero.Translate.Sandbox = {
 			 * @inner
 			 */
 			var safeTranslator = {};
-			safeTranslator.__exposedProps__ = {
-				"setSearch": "r",
-				"setDocument": "r",
-				"setHandler": "r",
-				"setString": "r",
-				"setTranslator": "r",
-				"getTranslators": "r",
-				"translate": "r",
-				"getTranslatorObject": "r"
-			};
 			safeTranslator.setSearch = function(arg) {
 				if (!Zotero.isBookmarklet) arg = JSON.parse(JSON.stringify(arg));
 				return translation.setSearch(arg);
@@ -1796,7 +1786,8 @@ Zotero.Translate.Base.prototype = {
 				"(" + translator.translatorID + ", " + translator.lastUpdated + ")", 4);
 			if (this._entryFunctionSuffix == "Web") {
 				await this._sandboxManager.eval(
-					"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
+					"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code,
+					[
 						"detect" + this._entryFunctionSuffix,
 						"do" + this._entryFunctionSuffix,
 						"exports",
