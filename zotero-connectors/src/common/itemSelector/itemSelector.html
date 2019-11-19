@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+    ***** BEGIN LICENSE BLOCK *****
+    
+    Copyright © 2011 Center for History and New Media
+                     George Mason University, Fairfax, Virginia, USA
+                     http://zotero.org
+    
+    This file is part of Zotero.
+    
+    Zotero is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    ***** END LICENSE BLOCK *****
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="google" content="notranslate">
+		<link rel="stylesheet" type="text/css" media="screen" href="itemSelector.css" />
+		<title>Zotero Item Selector</title>
+	</head>
+	<body>
+		<div id="label">Select which items you'd like to add to your library:</div>
+		<div id="item-selector"></div>
+		<div id="buttons">
+			<div id="select-deselect">
+				<input type="submit" id="select" value="Select All"/>
+				<input type="submit" id="deselect" value="Deselect All"/>
+			</div>
+			<div id="cancel-ok">
+				<input type="submit" value="Cancel" id="cancel"/>
+				<input type="submit" value="OK" id="ok"/>
+			</div>
+		</div>
+		<!--BEGIN CONNECTOR-->
+		<script type="text/javascript" src="../browser-polyfill.js"></script>
+		<!--END CONNECTOR-->
+		<script type="text/javascript" src="itemSelector_browserSpecific.js"></script>
+		<script type="text/javascript" src="itemSelector.js"></script>
+	</body>
+</html>
