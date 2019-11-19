@@ -96,6 +96,12 @@ To update dependencies:
  - `npm outdated` gives an overview of outdated packages ([doc](https://docs.npmjs.com/cli/outdated))
  - `npm-upgrade` updates all packages 
  - `npm install` install updated packages
- - `git submodule update --recursive --remote` updates `zotero-connectors` submodule
+ - 
+   ```
+    git subtree pull --prefix zotero-connectors https://github.com/zotero/zotero-connectors.git master --squash
+    git subtree pull --prefix zotero-connectors/src/zotero https://github.com/zotero/zotero.git master --squash
+   ```
+   updates `zotero-connectors` submodule
+
  - `gulp update-zotero-scripts` copies Zotero scripts from `zotero-connectors` to `Zotero` folder
  - `gulp process-zotero-scripts` post-processes Zotero scripts
