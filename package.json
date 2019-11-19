@@ -38,7 +38,8 @@
 	"babel": {
 		"presets": [
 			[
-				"env", {
+				"env",
+				{
 					"modules": false
 				}
 			]
