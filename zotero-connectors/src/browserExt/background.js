@@ -27,7 +27,31 @@ Zotero.Connector_Browser = new function() {
 	var _tabInfo = {};
 	var _incompatibleVersionMessageShown;
 	var _injectTranslationScripts = [
-		/*INJECT SCRIPTS*/
+		"browser-polyfill.min.js",
+		"Zotero/zotero_config.js",
+		"Zotero/zotero.js",
+		"Zotero/promise.js",
+		"Zotero/http.js",
+		"Zotero/proxy.js",
+		"Zotero/cachedTypes.js",
+		"Zotero/date.js",
+		"Zotero/debug.js",
+		"Zotero/openurl.js",
+		"Zotero/xregexp-all.js",
+		"Zotero/unicode-zotero.js",
+		"Zotero/translate.js",
+		"Zotero/translator.js",
+		"Zotero/translate_item.js",
+		"Zotero/connectorTypeSchemaData.js",
+		"Zotero/utilities.js",
+		"Zotero/utilities_translate.js",
+		"Zotero/utilities-common.js",
+		"Zotero/http_inject.js",
+		"Zotero/progressWindow.js",
+		"Zotero/translate_inject.js",
+		"Zotero/messages.js",
+		"Zotero/messaging_inject.js",
+		"Zotero/inject.js"
 	];
 	// Exposed for tests
 	this._tabInfo = _tabInfo;
@@ -36,7 +60,7 @@ Zotero.Connector_Browser = new function() {
 	 * Called when translators are available for a given page
 	 */
 	this.onTranslators = function(translators, instanceID, contentType, tab, frameId) {
-		_enableForTab(tab.id);
+		//_enableForTab(tab.id);
 
 		let existingTranslators = _tabInfo[tab.id] && _tabInfo[tab.id].translators;
 		// If translators already exist for tab we need to figure out if the new translators
@@ -57,7 +81,7 @@ Zotero.Connector_Browser = new function() {
 		var isPDF = contentType == 'application/pdf';
 		_tabInfo[tab.id] = Object.assign(_tabInfo[tab.id] || {injections: {}}, {translators, instanceID, isPDF});
 		
-		Zotero.Connector_Browser._updateExtensionUI(tab);
+		//Zotero.Connector_Browser._updateExtensionUI(tab);
 	}
 
 	/**
@@ -252,7 +276,7 @@ Zotero.Connector_Browser = new function() {
 				// Firefox returns an error for unstructured data being returned from scripts
 				// We are forced to catch these, even though when sometimes they may be legit errors
 				yield browser.tabs.executeScript(tab.id, {file: script, frameId, runAt: 'document_end'})
-					.catch(() => undefined);
+					.catch((e) => console.log("Error while loading % s: % o ", script, e));
 			}
 			
 			// Send a ready message to confirm successful injection
@@ -832,6 +856,7 @@ Zotero.Connector_Browser = new function() {
 		}
 	}
 
+	/*
 	browser.browserAction.onClicked.addListener(logListenerErrors(_browserAction));
 	
 	browser.tabs.onRemoved.addListener(logListenerErrors(_clearInfoForTab));
@@ -867,6 +892,7 @@ Zotero.Connector_Browser = new function() {
 		await Zotero.Promise.delay(1);
 		await Zotero.Connector_Browser.onFrameLoaded(tab, details.frameId, details.url);
 	}));
+	*/
 }
 
-Zotero.initGlobal();
+//Zotero.initGlobal();

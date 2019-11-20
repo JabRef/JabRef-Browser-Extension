@@ -83,3 +83,6 @@ Zotero.Errors = new function() {
 		return reported[0].getAttribute('reportID');
 	}
 }
+
+// Remove access to Zotero.Debug
+//Zotero.Debug.bgInit = Zotero.Debug.init;

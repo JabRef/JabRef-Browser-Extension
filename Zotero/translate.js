@@ -1781,6 +1781,7 @@ Zotero.Translate.Base.prototype = {
 		this._aborted = false;
 		this.saveQueue = [];
 
+		// Make parsing of translator wait for injected code
 		var parse = async function(code) {
 			Zotero.debug("Translate: Parsing code for " + translator.label + " " +
 				"(" + translator.translatorID + ", " + translator.lastUpdated + ")", 4);
@@ -1796,7 +1797,14 @@ Zotero.Translate.Base.prototype = {
 					(translator.file ? translator.file.path : translator.label)
 				);
 			} else {
-				await this._sandboxManager.eval("var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, ["do" + this._entryFunctionSuffix, "exports", "ZOTERO_TRANSLATOR_INFO"], (translator.file ? translator.file.path : translator.label));
+				await this._sandboxManager.eval(
+					"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
+						"do" + this._entryFunctionSuffix,
+						"exports",
+						"ZOTERO_TRANSLATOR_INFO"
+					],
+					(translator.file ? translator.file.path : translator.label)
+				);
 			}
 			this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;
 		}.bind(this);
@@ -2239,12 +2247,15 @@ Zotero.Translate.Web.prototype.complete = async function(returnValue, error) {
 	var oldState = this._currentState;
 	var errorString = Zotero.Translate.Base.prototype.complete.apply(this, [returnValue, error]);
 
+	/*
+	// Never report translation errors to Zotero
 	var promise;
 	if (Zotero.Prefs.getAsync) {
 		promise = Zotero.Prefs.getAsync('reportTranslationFailure');
 	} else {
 		promise = Zotero.Promise.resolve(Zotero.Prefs.get("reportTranslationFailure"));
 	}
+	*/
 	var reportTranslationFailure = false;
 	// Report translation failure if we failed
 	if (oldState == "translate" && errorString && !this._parentTranslator && this.translator.length &&
@@ -2510,6 +2521,7 @@ Zotero.Translate.Export.prototype._prepareTranslation = Zotero.Promise.method(fu
 	this._itemGetter = new Zotero.Translate.ItemGetter();
 
 	// Toggle legacy mode for translators pre-4.0.27
+	// BibTeX exporter is no legacy exporter, so we don't need this check
 	this._itemGetter.legacy = false;
 
 	var configOptions = this._translatorInfo.configOptions || {},

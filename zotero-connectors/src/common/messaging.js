@@ -49,7 +49,7 @@ Zotero.Messaging = new function() {
 	 * @param {Number} frameId not available in safari
 	 */
 	this.receiveMessage = async function(messageName, args, tab, frameId) {
-		//Zotero.debug("Messaging: Received message: "+messageName);
+		console.log("Messaging: Received message: %s, %s", messageName, args);
 		if (!Array.isArray(args)) {
 			args = [args];
 		}
@@ -70,7 +70,7 @@ Zotero.Messaging = new function() {
 		}
 		var messageConfig = MESSAGES[messageParts[0]][messageParts[1]];
 		
-		if (messageConfig && messageConfig.background) {
+		if (messageConfig && messageConfig.background && messageConfig.background.minArgs) {
 			while (messageConfig.background.minArgs > args.length) {
 				args.push(undefined);
 			}
@@ -199,16 +199,18 @@ Zotero.Messaging = new function() {
 			}
 		} else if(Zotero.isBrowserExt) {
 			browser.runtime.onMessage.addListener(function(request, sender) {
-				return Zotero.Messaging.receiveMessage(request[0], request[1], sender.tab, sender.frameId)
-				.catch(function(err) {
-					// Zotero.logError(err);
-					err = JSON.stringify(Object.assign({
-						name: err.name,
-						message: err.message,
-						stack: err.stack
-					}, err));
-					return ['error', err];
-				});
+				if (typeof request[0] !== 'undefined') {
+					return Zotero.Messaging.receiveMessage(request[0], request[1], sender.tab, sender.frameId)
+					.catch(function(err) {
+						// Zotero.logError(err);
+						err = JSON.stringify(Object.assign({
+							name: err.name,
+							message: err.message,
+							stack: err.stack
+						}, err));
+						return ['error', err];
+					});
+				}
 			});
 		} else if(Zotero.isSafari) {
 			safari.application.addEventListener("message", function(event) {

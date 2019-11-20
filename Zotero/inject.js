@@ -139,14 +139,17 @@ Zotero.Inject = new function() {
 						}
 					}
 
-					var returnItems = await Zotero.Connector_Browser.onSelect(items);
-
-					// If items were selected, reopen the save popup
-					if (returnItems && !Zotero.Utilities.isEmpty(returnItems)) {
-						let sessionID = this.sessionDetails.id;
-						Zotero.Messaging.sendMessage("progressWindow.show", [sessionID]);
-					}
-					callback(returnItems);
+					// We don't want to show a select dialog -> always choose all items
+					/*
+     var returnItems = await Zotero.Connector_Browser.onSelect(items);
+     
+     // If items were selected, reopen the save popup
+     if (returnItems && !Zotero.Utilities.isEmpty(returnItems)) {
+     	let sessionID = this.sessionDetails.id;
+     	Zotero.Messaging.sendMessage("progressWindow.show", [sessionID]);
+     }
+     */
+					callback(items);
 				}).bind(this)();
 			}.bind(this));
 			translate.setHandler("itemSaving", function(obj, item) {

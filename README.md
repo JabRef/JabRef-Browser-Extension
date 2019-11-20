@@ -103,5 +103,4 @@ To update dependencies:
    ```
    updates `zotero-connectors` submodule
 
- - `gulp update-zotero-scripts` copies Zotero scripts from `zotero-connectors` to `Zotero` folder
- - `gulp process-zotero-scripts` post-processes Zotero scripts
+ - `gulp update-zotero-scripts` copies and post-processes Zotero scripts from `zotero-connectors` to `Zotero` folder

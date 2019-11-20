@@ -79,4 +79,5 @@ Zotero.Errors = new function() {
 	}
 }
 
-Zotero.Debug.bgInit = Zotero.Debug.init;
+// Remove access to Zotero.Debug
+//Zotero.Debug.bgInit = Zotero.Debug.init;

@@ -78,7 +78,7 @@ var Zotero = window.Zotero = new function() {
 	setTimeout(() => {
 		if (!this.isBookmarklet) {
 			if (this.isBrowserExt) {
-				this.version = browser.runtime.getManifest().version;
+				this.version = "5.0.0";
 			} else if (this.isSafari) {
 				this.version = safari.extension.bundleVersion;
 			}
@@ -212,7 +212,7 @@ var Zotero = window.Zotero = new function() {
 			await Zotero.i18n.init();
 		}
 		if (!Zotero.isBookmarklet) {
-			Zotero.ConnectorIntegration.init();
+			//Zotero.ConnectorIntegration.init();
 		}
 		Zotero.Connector_Types.init();
 		Zotero.Prefs.loadNamespace(['translators.', 'downloadAssociatedFiles', 'automaticSnapshots',

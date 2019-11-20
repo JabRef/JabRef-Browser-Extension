@@ -8,35 +8,6 @@ var rename = require("gulp-rename");
 var beautify = require('gulp-jsbeautify');
 const babel = require('babel-core');
 
-var injectInclude = [
-	'browser-polyfill.min.js',
-	'Zotero/zotero_config.js',
-	'Zotero/zotero.js',
-	'Zotero/promise.js',
-	'Zotero/http.js',
-	'Zotero/proxy.js',
-	'Zotero/cachedTypes.js',
-	'Zotero/date.js',
-	'Zotero/debug.js',
-	'Zotero/openurl.js',
-	'Zotero/xregexp-all.js',
-	'Zotero/unicode-zotero.js',
-	// rdf
-	'Zotero/translate.js',
-	'Zotero/translator.js',
-	'Zotero/translate_item.js',
-	'Zotero/connectorTypeSchemaData.js',
-	'Zotero/utilities.js',
-	'Zotero/utilities_translate.js',
-	'Zotero/utilities-common.js',
-	'Zotero/http_inject.js',
-	'Zotero/progressWindow.js',
-	'Zotero/translate_inject.js',
-	'Zotero/messages.js',
-	'Zotero/messaging_inject.js',
-	'Zotero/inject.js'
-];
-
 function processJSX(file) {
 	try {
 		file.contents = Buffer.from(babel.transform(file.contents, {
@@ -48,122 +19,10 @@ function processJSX(file) {
 	}
 }
 
-function postProcessContents(basename, file) {
-	switch (basename) {
-		case 'background.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// Specify correct injection scripts
-				.replace("/*INJECT SCRIPTS*/",
-					injectInclude.map((s) => `"${s}"`).join(',\n\t\t'))
-				.replace("Zotero.Connector_Browser._updateExtensionUI(tab);", "//Zotero.Connector_Browser._updateExtensionUI(tab);")
-				.replace("_enableForTab(tab.id);", "//_enableForTab(tab.id);")
-				.replace("catch(() => undefined)", `catch((e) => console.log("Error while loading % s: % o ", script, e))`)
-				// Uncomment message listener, because we take care of them ourself
-				.replace("browser.browserAction.onClicked.addListener(logListenerErrors",
-					'/*\n\tbrowser.browserAction.onClicked.addListener(logListenerErrors')
-				.replace("}\r\n\r\nZotero.initGlobal();",
-					'\t*/\n}\r\n\r\n//Zotero.initGlobal();')
-			);
-			break;
-		case 'zotero.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// Use correct zotero version
-				.replace("browser.runtime.getManifest().version", `"5.0.0"`)
-				// Prevent init of non existing zotero connector
-				.replace("Zotero.ConnectorIntegration.init();", "//Zotero.ConnectorIntegration.init();")
-			);
-			break;
-		case 'proxy.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// Remove require statement
-				.replace("var url = require('url');", '')
-			);
-			break;
-		case 'messaging.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// Fix 'undefined' error
-				.replace("if (messageConfig && messageConfig.background)", 'if (messageConfig && messageConfig.background && messageConfig.background.minArgs)')
-				// Add log statement
-				.replace('//Zotero.debug("Messaging: Received message: "+messageName);', 'console.log("Messaging: Received message: %s, %s", messageName, args);')
-			);
-			break;
-		case 'translate.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// Never report translation errors to Zotero
-				.replace("var reportTranslationFailure = await promise;", 'var reportTranslationFailure = false;')
-				// Make it possible to call exporter
-				.replace("this._sandboxManager.eval(\r\n", 'if (this._entryFunctionSuffix == "Web") { \r\n this._sandboxManager.eval(\r\n')
-				.replace('this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;',
-					'} else {\
-						this._sandboxManager.eval(\
-						"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [\
-							"do" + this._entryFunctionSuffix,\
-							"exports",\
-							"ZOTERO_TRANSLATOR_INFO"\
-						],\
-						(translator.file ? translator.file.path : translator.label)\
-						);\
-					}\
-					this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;')
-				// BibTeX exporter is no legacy exporter, so we don't need this check
-				.replace("this._itemGetter.legacy = Services.vc.compare('4.0.27', this._translatorInfo.minVersion) > 0;", "this._itemGetter.legacy = false;")
-				// Make parsing of translator wait for injected code
-				.replace("var parse = function", "var parse = async function")
-				.replace(/this._sandboxManager.eval/g, "await this._sandboxManager.eval")
-			);
-			break;
-		case 'translate_inject.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// Use a global sandbox (because the translator code will be injected as a content script and thus 'this' does not work)
-				.replace(
-					'***** END LICENSE BLOCK *****\
-					*/',
-					'***** END LICENSE BLOCK *****\
-					*/\
-					\
-					var GlobalSandbox;\
-					')
-				.replace('this.sandbox.', 'GlobalSandbox.')
-				.replace(
-					'delete this.sandbox[functions[i]];\
-					}\
-					',
-					'delete this.sandbox[functions[i]];\
-					}\
-					\
-					// Set global sandbox temporarily to this sandbox\
-					GlobalSandbox = this.sandbox;\
-					')
-				// Eval script using tabs.contentScript instead of eval()
-				.replace(
-					'(function() {\
-						eval(code);\
-						}).call(this);',
-					'var codeClosure = "(function() {" + code + "})();";\
-					return browser.runtime.sendMessage({\
-						"eval": codeClosure\
-					});')
-			);
-			break;
-		case 'errors_webkit.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// Remove access to Zotero.Debug
-				.replace("Zotero.Debug.bgInit = Zotero.Debug.init;", '')
-			);
-			break;
-		case 'inject.js':
-			file.contents = Buffer.from(file.contents.toString()
-				// We don't want to show a select dialog -> always choose all items
-				.replace('var returnItems = await Zotero.Connector_Browser.onSelect(items);', 'var returnItems;')
-				.replace('callback(returnItems);', 'callback(items);')
-			);
-			break;
-	}
-}
 
 function processFile() {
 	return through.obj(function(file, enc, cb) {
-		console.log(path.relative(file.cwd, file.path));
+		//console.log(path.relative(file.cwd, file.path));
 		var basename = path.basename(file.path);
 		var ext = path.extname(file.path);
 
@@ -171,14 +30,12 @@ function processFile() {
 			processJSX(file);
 		}
 
-		postProcessContents(basename, file);
-
 		this.push(file);
 		cb();
 	});
 }
 
-gulp.task('update-zotero-scripts', function() {
+gulp.task('copy-zotero-scripts', function() {
 	let sources = [
 		'./zotero-connectors/src/browserExt/background.js',
 		'./zotero-connectors/src/common/cachedTypes.js',
@@ -264,6 +121,4 @@ gulp.task('process-zotero-scripts', function() {
 		.pipe(gulp.dest((data) => data.base));
 });
 
-gulp.task('default', function() {
-	// place code for your default task here
-});
+gulp.task('update-zotero-scripts', gulp.series('copy-zotero-scripts', 'process-zotero-scripts'));

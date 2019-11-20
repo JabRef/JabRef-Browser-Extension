@@ -65,11 +65,11 @@ Zotero.Translate.SandboxManager.prototype = {
 		}
 
 		// Eval in a closure
+		// Eval script using tabs.contentScript instead of eval()
 		var codeClosure = "(function() {" + code + "})();";
 		return browser.runtime.sendMessage({
 			"eval": codeClosure
 		});
-
 	},
 
 	/**

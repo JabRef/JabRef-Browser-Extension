@@ -137,6 +137,8 @@ Zotero.Inject = new function() {
 						}
 					}
 					
+					// We don't want to show a select dialog -> always choose all items
+					/*
 					var returnItems = await Zotero.Connector_Browser.onSelect(items);
 					
 					// If items were selected, reopen the save popup
@@ -144,7 +146,8 @@ Zotero.Inject = new function() {
 						let sessionID = this.sessionDetails.id;
 						Zotero.Messaging.sendMessage("progressWindow.show", [sessionID]);
 					}
-					callback(returnItems);
+					*/
+					callback(items);
 				}.bind(this))();
 			}.bind(this));
 			translate.setHandler("itemSaving", function(obj, item) {
