@@ -116,7 +116,6 @@ onTranslators = function(translators, instanceID, contentType) {
 }
 
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	console.log("JabRef: message in background.js: %o", JSON.parse(JSON.stringify(message)))
 	if (message.popupOpened) {
 		// The popup opened, i.e. the user clicked on the page action button
 		console.log("JabRef: Popup opened confirmed");
@@ -132,9 +131,15 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 				Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 			});
 	} else if (message.eval) {
+		console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
 		return evalInTab(message.eval);
 	} else if (message[0] == 'Connector_Browser.onTranslators') {
 		// Intercept message to Zotero background script
+		console.log("JabRef: Intercept message to Zotero background script", JSON.parse(JSON.stringify(message)));
 		onTranslators.apply(null, message[1]);
+	} else if (message[0] == 'Debug.log') {
+		console.log(message[1]);
+	} else {
+		console.log("JabRef: other message in background.js: %o", JSON.parse(JSON.stringify(message)));
 	}
 });
