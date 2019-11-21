@@ -74,6 +74,9 @@ Zotero.Connector = new function() {
 				}
 			}, error => {
 				console.error("JabRef: Error connecting to JabRef: %o", error);
+				browser.runtime.sendMessage({
+					"errorWhileSendingToJabRef": error.message
+				});
 			});
 	}
 }

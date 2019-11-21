@@ -20,6 +20,8 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		// = "";
 	} else if (message.onSendToJabRef) {
 		document.getElementById("status").innerHTML = 'Send to JabRef...';
+	} else if (message.errorWhileSendingToJabRef) {
+		document.getElementById("status").innerHTML = 'Error while sending to JabRef. <br>Please see the browsers error console for details.';
 	}
 });
 
