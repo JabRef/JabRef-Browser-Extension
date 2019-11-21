@@ -328,6 +328,9 @@ Zotero.Inject = new function() {
 	 * return {Promise<Boolean>} whether the action should proceed
 	 */
 	this.checkActionToServer = async function() {
+		// Pretend that zotero is online
+		return true;
+
 		var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([Zotero.Prefs.getAsync('firstSaveToServer'), Zotero.Connector.checkIsOnline()]);
 		if (zoteroIsOnline || !firstSaveToServer) {
 			return true;
@@ -349,6 +352,9 @@ Zotero.Inject = new function() {
 		let result = await Zotero.Inject.checkActionToServer();
 		if (!result) return;
 		var translator = this.translators.find(t => t.translatorID == translatorID);
+
+		// We always want to save again
+		options.resave = true;
 
 		// In some cases, we just reopen the popup instead of saving again
 		if (this.sessionDetails.id
