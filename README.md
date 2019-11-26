@@ -44,7 +44,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 <details>
  <summary>Manual installation on Linux (only necessary when you don't use the `deb` file to install/update JabRef)</summary>
  
-3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/org.jabref.jabref.json) and put it into 
+3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json) and put it into 
    - `/usr/lib/mozilla/native-messaging-hosts/org.jabref.jabref.json` to install with admin rights for all users
    - `~/.mozilla/native-messaging-hosts/org.jabref.jabref.json` to install without admin rights for the current user
 
@@ -53,7 +53,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 ### Mac OS
 1. Download and install the DMG package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
 2. Install the JabRef browser extension: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github)
-3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/org.jabref.jabref.json) and put it into
+3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json) and put it into
    - `/Library/Application Support/Mozilla/NativeMessagingHosts/org.jabref.jabref.json` to install with admin rights for all users
    - `~/Library/Application Support/Mozilla/NativeMessagingHosts/org.jabref.jabref.json` to install without admin rights for the current user
 
