@@ -208,7 +208,12 @@ Zotero.GoogleDocs.UI = {
 						&& links[i].lnks_link.ulnk_url.startsWith(Zotero.GoogleDocs.config.fieldURL)) {
 					let link = links[i].lnks_link.ulnk_url;
 					let linkRanges = ranges[i].nrs_ei.cv.opValue
-						.filter(key => !ignoreKeys.has(key))
+					// `&& key in keysToCode` is kinda strange
+					// since we have just grabbed all the named ranges above from doc slices
+					// but we get reports of copy pasting failing occassionally
+					// and finally got a reproducible case:
+					// https://forums.zotero.org/discussion/80427/
+						.filter(key => !ignoreKeys.has(key) && key in keysToCodes)
 						.map(key => keysToCodes[key]);
 					if (linkRanges.some(code => code.includes('CSL_BIBLIOGRAPHY'))) continue;
 					linksToRanges[link] = linkRanges;
