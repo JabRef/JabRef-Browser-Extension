@@ -32,7 +32,7 @@
 		"sinon": "^8.0.1",
 		"through2": "^3.0.1",
 		"web-ext": "^3.2.1",
-		"webextension-polyfill": "^0.5.0",
+		"webextension-polyfill": "^0.6.0",
 		"yargs": "^15.0.2"
 	},
 	"babel": {
