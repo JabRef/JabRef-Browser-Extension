@@ -47,7 +47,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json) and put it into 
    - `/usr/lib/mozilla/native-messaging-hosts/org.jabref.jabref.json` to install with admin rights for all users
    - `~/.mozilla/native-messaging-hosts/org.jabref.jabref.json` to install without admin rights for the current user
-4. Ensure that the script `/opt/JabRef/lib/jabrefHost.py` is marked as executable.
+4. Ensure that the script `/opt/jabref/lib/jabrefHost.py` is marked as executable. Check that the capitalization of the path `/opt/jabref/` in `org.jabref.jabref.json` agrees with the path on your system (e.g. installing from the tarball would create `/opt/JabRef/` instead).
 
 </details>
 
