@@ -33,7 +33,11 @@
     "through2": "^3.0.1",
     "web-ext": "^4.0.0",
     "webextension-polyfill": "^0.6.0",
-    "yargs": "^15.1.0"
+    "yargs": "^15.1.0",
+    "jsdom": "^16.1.0",
+    "canvas": "^2.6.1",
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
   },
   "babel": {
     "presets": [
