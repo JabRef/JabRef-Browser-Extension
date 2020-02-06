@@ -2,8 +2,11 @@
  * This file partially overrides methods of zotero-scholar-citations/chrome/content/zsc.js for customization purposes.
  */
 
+zsc._captchaString = "Please show Google Scholar, that you are not a robot, by loading https://scholar.google.com, searching for any string and solving the shown captcha.";
+
 zsc.processItems = function(items) {
-	while (item = items.shift()) {
+	for (let i = 0; i < items.length; i++) {
+		let item = items[i];
 		if (!zsc.hasRequiredFields(item)) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'skipping item "' + item.getField('title') + '"'
@@ -26,12 +29,12 @@ zsc.retrieveCitationData = function(item, cb) {
 	if (isDebug()) Zotero.debug("[scholar-citations] GET " + url);
 	let citeCount;
 	let xhr = new XMLHttpRequest();
-	xhr.open('GET', url, true);
+	xhr.open('GET', url, false); // TODO: original: async: true; improvement: make asynchronous calls possible
 	xhr.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
 				if (isDebug()) Zotero.debug("[scholar-citations] "
-					+ "recieved non-captcha scholar results");
+					+ "received non-captcha scholar results");
 				cb(item, zsc.getCiteCount(this.responseText));
 			} else {
 				if (isDebug()) Zotero.debug("[scholar-citations] "
