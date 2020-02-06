@@ -9,8 +9,7 @@
  * - zotero-connectors/src/zotero/chrome/content/zotero/xpcom/notifier.js
  *
  **********************************************************************************************************************/
-
-Zotero.Notifier = new function(){
+Zotero.Notifier = new function() {
 
 	this.registerObserver = function (ref, types, id, priority) {
 
