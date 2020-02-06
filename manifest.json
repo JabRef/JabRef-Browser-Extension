@@ -36,6 +36,9 @@
 			"Zotero/messages.js",
 			"Zotero/messaging.js",
 			"Zotero/background.js",
+			"zsc_misc_pre.js",
+			"zotero-scholar-citations/chrome/content/zsc.js",
+			"zsc_misc_post.js",
 			"background.js"
 		]
 	},
