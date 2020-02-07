@@ -13,8 +13,15 @@ window.addEventListener("load", function load(event) {
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (message.popupClose) {
 		// The popup should be closed
-		window.close();
+		setTimeout(function() { window.close(); }, 3000);
 		console.log("JabRef: Popup closed");
+	} else if (message.onGoogleScholarCaptcha) {
+		document.getElementById("googleScholarCaptchaLink").href = message.onGoogleScholarCaptcha;
+		//document.getElementById("googleScholarCaptchaLink").innerHTML = message.onGoogleScholarCaptcha;
+		document.getElementById("googleScholarCaptcha").style.display = "block";
+	}else if (message.onCitationCount) {
+		document.getElementById("citationCountNumber").innerHTML = '' + message.onCitationCount;
+		document.getElementById("citationCount").style.display = "block";
 	} else if (message.onConvertToBibtex) {
 		document.getElementById("status").innerHTML = 'Convert to BibTeX...';
 		// = "";

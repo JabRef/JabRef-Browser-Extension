@@ -16,6 +16,10 @@ zsc.processItems = function(items) {
 		this.retrieveCitationData(item, function(item, citeCount) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'Updating item "' + item.getField('title') + '"');
+			browser.runtime.sendMessage({
+				"onCitationCount": citeCount
+			});
+			console.log("[scholar-citations] citation count: " + citeCount);
 			zsc.updateItem(item, citeCount);
 		});
 	}
@@ -40,6 +44,9 @@ zsc.retrieveCitationData = function(item, cb) {
 				if (isDebug()) Zotero.debug("[scholar-citations] "
 					+ "received a captcha instead of a scholar result");
 				alert(zsc._captchaString);
+				browser.runtime.sendMessage({
+					"onGoogleScholarCaptcha": url
+				});
 				if (typeof Zotero.openInViewer !== 'undefined') {
 					Zotero.openInViewer(url);
 				} else if (typeof ZoteroStandalone !== 'undefined') {
