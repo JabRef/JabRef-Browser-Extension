@@ -38,5 +38,13 @@ li.inprogress:after {
   width: 14px; 
   height: 14px;
   content:"";
-  
+}
+#citationCount {
+  display: none;
+  font-size: small;
+}
+#googleScholarCaptcha {
+  display: none;
+  color: red;
+  font-size: small;
 }

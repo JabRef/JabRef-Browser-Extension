@@ -23,13 +23,15 @@ Zotero.Connector = new function() {
 
 	this.prepareForExport = function(items) {
 
-		// create zsc compatible items
-		for (var i = 0; i < items.length; i++) {
-			items[i] = new ZscItem(items[i]);
-		}
+		if (browser.storage.sync.get('retrieveCitationCounts')) {
+			// create zsc compatible items
+			for (var i = 0; i < items.length; i++) {
+				items[i] = new ZscItem(items[i]);
+			}
 
-		// get citations counts for all items
-		zsc.processItems(items);
+			// get citations counts for all items
+			zsc.processItems(items);
+		}
 
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
