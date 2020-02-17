@@ -7,6 +7,7 @@ Zotero.Messaging.init();
 Zotero.Connector_Types.init();
 Zotero.Translators.init();
 zsc.init();
+wsClient.init();
 
 
 /*
