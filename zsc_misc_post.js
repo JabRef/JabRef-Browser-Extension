@@ -11,6 +11,7 @@ zsc.processItems = function(items) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'skipping item "' + item.getField('title') + '"'
 				+ ' it has either an empty title or is missing creator information');
+			item.setField("citationCount", "unknown (title or creators missing)");
 			continue;
 		}
 		this.retrieveCitationData(item, function(item, citeCount) {
@@ -20,6 +21,12 @@ zsc.processItems = function(items) {
 				"onCitationCount": citeCount
 			});
 			console.log("[scholar-citations] citation count: " + citeCount);
+			if (citeCount > -1) {
+				item.setField("citationCount", zsc.padLeftWithZeroes("" + citeCount));
+			}
+			else {
+				item.setField("citationCount", "unknown (no citation data)");
+			}
 			zsc.updateItem(item, citeCount);
 		});
 	}
@@ -35,8 +42,8 @@ zsc.retrieveCitationData = function(item, cb) {
 	let xhr = new XMLHttpRequest();
 	xhr.open('GET', url, false); // TODO: original: async: true; improvement: make asynchronous calls possible
 	xhr.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
+		if (this.readyState === 4 && this.status === 200) {
+			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) {
 				if (isDebug()) Zotero.debug("[scholar-citations] "
 					+ "received non-captcha scholar results");
 				cb(item, zsc.getCiteCount(this.responseText));
@@ -54,17 +61,26 @@ zsc.retrieveCitationData = function(item, cb) {
 				} else if (typeof Zotero.launchURL !== 'undefined') {
 					Zotero.launchURL(url);
 				} else {
-					window.gBrowser.loadOneTab(url, {inBackground: false});
+					//window.gBrowser.loadOneTab(url, {inBackground: false});
 				}
 			}
-		} else if (this.readyState == 4 && this.status == 429) {
+		} else if (this.readyState === 4 && this.status === 429) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'could not retrieve the google scholar data. Server returned: ['
 				+ xhr.status + ': '  + xhr.statusText + ']. '
 				+ 'GS want\'s you to wait for ' + this.getResponseHeader("Retry-After")
 				+ ' seconds before sending further requests.');
 
-		} else if (this.readyState == 4) {
+			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) {
+				if (isDebug()) Zotero.debug("[scholar-citations] "
+					+ "received a captcha instead of a scholar result");
+				alert(zsc._captchaString);
+				browser.runtime.sendMessage({
+					"onGoogleScholarCaptcha": url
+				});
+			}
+
+		} else if (this.readyState === 4) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'could not retrieve the google scholar data. Server returned: ['
 				+ xhr.status + ': '  + xhr.statusText + ']');
