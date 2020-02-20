@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- * A simple, robust websocket client implementation for the JabRef-Browser-Extension for bidirectional communication.
+ * A simple, robust websocket client implementation for the JabRef-Browser-Extension for bidirectional communication with JabRef.
  */
 let wsClient = {
     WsAction: {
@@ -25,24 +25,27 @@ let wsClient = {
         JABREF_BROWSER_EXTENSION: "JabRefBrowserExtension"
     },
 
+    // internals
+    connection: null, // socket
+    heartbeatTimeout: null, // timeout instance
+    tryReconnectFlag: false,
+
+    // client state
+    clientStarted: false,
+
     // configuration (must be configured before starting the client)
     configuration: {
         websocketScheme: "ws", // "ws" or "wss"
         websocketHost: "localhost", // "localhost", "127.0.0.1", ...
-        websocketPort: "8855",
+        websocketPort: 8855, // default port: 8855
 
         heartbeatEnabled: true,
         heartbeatInterval: 6000, // [ms] should be an even number
         heartbeatToleranceFactor: 0.5,
 
-        tryReconnect: true // true: tries to reconnect, if not connected
+        tryReconnect: true, // true: tries to reconnect, if not connected
+        wsReconnectInterval: 6000 // [ms]
     },
-
-    tryReconnectFlag: false,
-    wsReconnectInterval: 5000, // [ms]
-
-    connection: null,
-    heartbeatTimeout: null, // timeout instance
 
     getConfiguration: function () {
         return wsClient.configuration;
@@ -50,10 +53,51 @@ let wsClient = {
 
     /**
      * should be called before starting the websocket client
+     *
      * @param configuration
      */
     setConfiguration: function (configuration) {
         wsClient.configuration = configuration;
+    },
+
+    /**
+     *
+     * @returns {number}
+     *          -1 ... n/a<br>
+     *           0 ... WebSocket.CONNECTING<br>
+     *           1 ... WebSocket.OPEN<br>
+     *           2 ... WebSocket.CLOSING<br>
+     *           3 ... WebSocket.CLOSED
+     */
+    getConnectionState: function () {
+        if (wsClient.connection) {
+            return wsClient.connection.readyState;
+        } else {
+            return -1;
+        }
+    },
+
+    getConnectionStateAsText: function () {
+        let readyStateText;
+
+        switch (wsClient.getConnectionState()) {
+            case WebSocket.CONNECTING:
+                readyStateText = "connecting";
+                break;
+            case WebSocket.OPEN:
+                readyStateText = "open";
+                break;
+            case WebSocket.CLOSING:
+                readyStateText = "closing";
+                break;
+            case WebSocket.CLOSED:
+                readyStateText = "closed";
+                break;
+            default:
+                readyStateText = "n/a";
+        }
+
+        return readyStateText;
     },
 
     heartbeat: function () {
@@ -62,32 +106,106 @@ let wsClient = {
         clearTimeout(wsClient.heartbeatTimeout);
 
         if (wsClient.configuration.heartbeatEnabled) {
-
             wsClient.heartbeatTimeout = setTimeout(() => {
-                console.log("[ws] closing websocket (reason: no heartbeat in time)");
-                wsClient.connection.close();
+                console.log("[ws] closing websocket (reason: no heartbeat received in time)");
+                wsClient.closeConnection();
             }, wsClient.configuration.heartbeatInterval * (1 + wsClient.configuration.heartbeatToleranceFactor));
         }
     },
 
     sendMessage: function (wsAction, messagePayload) {
-        let messageContainer = {};
-        messageContainer.action = wsAction;
-        messageContainer.payload = messagePayload;
+        if (!wsClient.clientStarted) {
+            return false;
+        }
 
-        wsClient.connection.send(JSON.stringify(messageContainer));
+        if (!wsAction || !messagePayload) {
+            return false;
+        }
+
+        if (wsClient.connection && wsClient.getConnectionState() === WebSocket.OPEN) {
+            let messageContainer = {};
+            messageContainer.action = wsAction;
+            messageContainer.payload = messagePayload;
+
+            wsClient.connection.send(JSON.stringify(messageContainer));
+
+            return true;
+        } else {
+            return false;
+        }
     },
 
+    startClient: function () {
+        if (wsClient.clientStarted) {
+            console.log("[ws] wsClient has already been started");
+
+            return false;
+        } else {
+            if (!("WebSocket" in window)) {
+                console.log("[ws] wsClient could not be started, since WebSockets are not supported by this browser. Please use another browser.");
+
+                return;
+            }
+
+            console.log("[ws] wsClient is starting up...");
+
+            wsClient.clientStarted = true;
+            wsClient.openConnection();
+
+            return true;
+        }
+    },
+
+    stopClient: function () {
+        if (wsClient.clientStarted) {
+            console.log("[ws] stopping wsClient...");
+
+            wsClient.tryReconnectFlag = false; // disable trying to reconnect
+            wsClient.closeConnection();
+            wsClient.clientStarted = false;
+
+            return true;
+        } else {
+            console.log("[ws] wsClient is not started");
+
+            return false;
+        }
+    },
+
+    stopClientForcefully: function () {
+        console.log("[ws] wsClient will stop forcefully...");
+
+        wsClient.tryReconnectFlag = false; // disable trying to reconnect
+        wsClient.closeConnection();
+        wsClient.clientStarted = false;
+
+        return true;
+    },
+
+    isClientStarted: function () {
+        return wsClient.clientStarted;
+    },
+
+    /**
+     * closes the connection; if <code>tryReconnect</code> is <code>true</code>, then a new connection will be established
+     *
+     * @returns {boolean}
+     */
     closeConnection: function () {
-        wsClient.tryReconnectFlag = false; // disable trying to reconnect, if closing connection was triggered manually
-        wsClient.connection.close();
+        if (wsClient.clientStarted && wsClient.connection) {
+            wsClient.connection.close();
+
+            return true;
+        } else {
+            return false;
+        }
     },
 
-    init: function () {
-        if (!("WebSocket" in window)) {
-            console.log("[ws] Websockets are not supported by this browser! Please use another browser.");
+    openConnection: function () {
+        if (!wsClient.clientStarted) {
+            console.log("[ws] wsClient must be started before opening a connection");
 
-            return;
+            return false;
         }
 
         wsClient.tryReconnectFlag = wsClient.configuration.tryReconnect;
@@ -105,6 +223,10 @@ let wsClient = {
             messagePayload.wsClientType = wsClient.WsClientType.JABREF_BROWSER_EXTENSION;
 
             wsClient.sendMessage(wsClient.WsAction.CMD_REGISTER, messagePayload);
+        };
+
+        wsClient.connection.onerror = function (event) {
+            console.log(`[ws] @onError`);
         };
 
         wsClient.connection.onclose = function (event) {
@@ -129,14 +251,11 @@ let wsClient = {
             if (wsClient.tryReconnectFlag) {
                 setTimeout(() => {
                     console.log("[ws] trying to connect...");
-                    wsClient.init();
-                }, wsClient.wsReconnectInterval);
+                    wsClient.openConnection();
+                }, wsClient.configuration.wsReconnectInterval);
+            } else {
+                wsClient.clientStarted = false;
             }
-        };
-
-        wsClient.connection.onerror = function (event) {
-            console.log(`[ws] @onError`);
-            clearTimeout(wsClient.heartbeatTimeout);
         };
 
         wsClient.connection.onmessage = function (event) {
@@ -166,6 +285,8 @@ let wsClient = {
                 console.log("[ws] unimplemented WsAction received: " + action);
             }
         };
+
+        return true;
     },
 
     handlerHeartbeat: function (messagePayload) {
@@ -174,6 +295,11 @@ let wsClient = {
         }
     },
 
+    /**
+     * synchronizes the server configuration with the client configuration
+     *
+     * @param messagePayload
+     */
     handlerInfoConfiguration: function (messagePayload) {
         wsClient.configuration.heartbeatEnabled = messagePayload.heartbeatEnabled;
         wsClient.configuration.heartbeatInterval = messagePayload.heartbeatInterval;
@@ -184,6 +310,8 @@ let wsClient = {
         } else {
             clearTimeout(wsClient.heartbeatTimeout);
         }
+
+        console.log("[ws] wsClient configuration has been synchronized with server configuration")
     },
 
     handlerInfoMessage: function (messagePayload) {
