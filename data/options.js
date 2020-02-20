@@ -3,7 +3,7 @@ var ExportMode = Object.freeze({
 	BibTeX: 2
 });
 
-function checkConnection() {
+function checkConnections() {
 	var status = document.getElementById('connectionStatus');
 	browser.runtime.sendNativeMessage("org.jabref.jabref", {
 			"status": "validate"
@@ -23,6 +23,43 @@ function checkConnection() {
 			status.setAttribute('class', 'alert-error');
 			status.textContent = error.message;
 		});
+
+	let wsClientStatus = document.getElementById('wsClientStatus');
+	let wsClientConnectionStatus = document.getElementById('wsClientConnectionStatus');
+	browser.runtime.sendMessage({
+		"getWsClientState": true
+	}).then(response => {
+		if (response.clientStarted) {
+			wsClientStatus.setAttribute('class', 'alert-positive');
+			wsClientStatus.textContent = 'started';
+		} else {
+			wsClientStatus.setAttribute('class', 'alert-error');
+			wsClientStatus.textContent = 'stopped';
+		}
+
+		switch (response.connectionState) {
+			case WebSocket.CONNECTING:
+				wsClientConnectionStatus.setAttribute('class', 'alert-positive');
+				wsClientConnectionStatus.textContent = 'connecting';
+				break;
+			case WebSocket.OPEN:
+				wsClientConnectionStatus.setAttribute('class', 'alert-positive');
+				wsClientConnectionStatus.textContent = 'connected';
+				break;
+			case WebSocket.CLOSING:
+				wsClientConnectionStatus.setAttribute('class', 'alert-error');
+				wsClientConnectionStatus.textContent = 'closing';
+				break;
+			case WebSocket.CLOSED:
+				wsClientConnectionStatus.setAttribute('class', 'alert-error');
+				wsClientConnectionStatus.textContent = 'closed';
+				break;
+			default:
+				readyStateText = "n/a";
+				wsClientConnectionStatus.setAttribute('class', 'alert-error');
+				wsClientConnectionStatus.textContent = 'n/a';
+		}
+	});
 }
 
 function restoreOptions() {
@@ -56,7 +93,7 @@ function saveOptions() {
 
 function init() {
 	restoreOptions();
-	checkConnection();
+	checkConnections();
 
 	document.getElementById("exportBiblatex").addEventListener('change', () => saveOptions());
 	document.getElementById("exportBibtex").addEventListener('change', () => saveOptions());

@@ -132,6 +132,12 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 				console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
 				Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 			});
+	} else if (message.getWsClientState) {
+		console.debug("JabRef: wsClientState requested");
+		let wsClientState = {};
+		wsClientState.clientStarted = wsClient.isClientStarted();
+		wsClientState.connectionState = wsClient.getConnectionState();
+		sendResponse(wsClientState);
 	} else if (message.eval) {
 		console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
 		return evalInTab(message.eval);
