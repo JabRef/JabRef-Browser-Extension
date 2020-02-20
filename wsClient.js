@@ -319,7 +319,17 @@ let wsClient = {
     },
 
     handlerCmdFetchGoogleScholarCitationCounts: function (messagePayload) {
+        let items = messagePayload.entries;
 
+        // create zsc compatible items
+        for (var i = 0; i < items.length; i++) {
+            items[i] = new ZscItem(items[i]);
+        }
+
+        // get citations counts for all items
+        zsc.processItems(items);
+
+        wsClient.sendMessage(wsClient.WsAction.INFO_GOOGLE_SCHOLAR_CITATION_COUNTS, messagePayload);
     },
 
     handlerCmdContinueFetchGoogleScholarCitationCounts: function (messagePayload) {

@@ -152,10 +152,31 @@ ZscItem.prototype.getField = function(field) {
 	}
 
 	if (field === 'year') {
-		if (this.hasOwnProperty("date") && this['date']) {
-			let isoString = Zotero.Date.strToISO(this['date']);
-			return isoString.substr(0, 4);
-		} else {
+		let sanitizedYear = "";
+		if (this.hasOwnProperty("year") && this['year']) {
+			// Zotero.Date.strToISO(value): exemplary values which result in false: "", "  ", true, false, {}, ...
+			let isoString = Zotero.Date.strToISO(this['year']); // returns false, if unsuccessful or a string (trimmed year) otherwise (e.g. "2020")
+			if (isoString) {
+				sanitizedYear = isoString.substr(0, 4); // added for safety purposes
+			}
+		}
+
+		if (!sanitizedYear) {
+			// sanitizedYear is either false or empty string ""
+			if (this.hasOwnProperty("date") && this['date']) {
+				// Zotero.Date.strToISO(value): exemplary values which result in false: "", "  ", true, false, {}, ...
+				let isoDateString = Zotero.Date.strToISO(this['date']); // returns false, if unsuccessful or a string otherwise (e.g. "2020-01-18")
+				if (isoDateString) {
+					sanitizedYear = isoDateString.substr(0, 4);
+				}
+			}
+		}
+
+		if (sanitizedYear) {
+			// sanitizedYear is a non-empty string
+			return sanitizedYear;
+		}
+		else {
 			return "";
 		}
 	} else if (field === 'date') {
