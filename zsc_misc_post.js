@@ -11,21 +11,29 @@ zsc.processItems = function(items) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'skipping item "' + item.getField('title') + '"'
 				+ ' it has either an empty title or is missing creator information');
-			item.setField("citationCount", "unknown (title or creators missing)");
+			browser.runtime.sendMessage({
+				"onCitationCount": '' + zsc._noData
+			});
+			item.setField("citationCount", zsc._noData); // no data (title or creators missing)
+			zsc.updateItem(item, -1); // info: added
 			continue;
 		}
 		this.retrieveCitationData(item, function(item, citeCount) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'Updating item "' + item.getField('title') + '"');
-			browser.runtime.sendMessage({
-				"onCitationCount": citeCount
-			});
 			console.log("[scholar-citations] citation count: " + citeCount);
 			if (citeCount > -1) {
-				item.setField("citationCount", zsc.padLeftWithZeroes("" + citeCount));
+				let paddedCitationCount = zsc.padLeftWithZeroes("" + citeCount);
+				browser.runtime.sendMessage({
+					"onCitationCount": '' + paddedCitationCount
+				});
+				item.setField("citationCount", paddedCitationCount);
 			}
 			else {
-				item.setField("citationCount", "unknown (no citation data)");
+				browser.runtime.sendMessage({
+					"onCitationCount": '' + zsc._noData
+				});
+				item.setField("citationCount", zsc._noData); // no data (no citation data)
 			}
 			zsc.updateItem(item, citeCount);
 		});

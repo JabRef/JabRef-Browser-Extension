@@ -17,6 +17,8 @@ Zotero.Connector = new function() {
 					console.log("retrieveCitationCounts: " + globalSettings.retrieveCitationCounts);
 
 					if (globalSettings.retrieveCitationCounts) {
+						console.log("[scholar-citations] fetching citation counts...");
+
 						// create zsc compatible items
 						for (let i = 0; i < data.items.length; i++) {
 							data.items[i] = new ZscItem(data.items[i]);

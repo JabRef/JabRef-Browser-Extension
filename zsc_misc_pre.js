@@ -144,6 +144,7 @@ ZscItem.prototype.clearItem = function() {
 	this.proceedingsTitle = "";
 	this.libraryCatalog = "";
 	this.id = "";
+	this.extra = "";
 };
 
 ZscItem.prototype.getField = function(field) {

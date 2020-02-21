@@ -23,10 +23,10 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		document.getElementById("citationCountNumber").innerHTML = '' + message.onCitationCount;
 		document.getElementById("citationCount").style.display = "block";
 	} else if (message.onConvertToBibtex) {
-		document.getElementById("status").innerHTML = 'Convert to BibTeX...';
+		document.getElementById("status").innerHTML = 'Converting to BibTeX...';
 		// = "";
 	} else if (message.onSendToJabRef) {
-		document.getElementById("status").innerHTML = 'Send to JabRef...';
+		document.getElementById("status").innerHTML = 'Sending to JabRef...';
 	} else if (message.errorWhileSendingToJabRef) {
 		document.getElementById("status").innerHTML = 'Error while sending to JabRef. <br>Please see the browsers error console for details.';
 	}
