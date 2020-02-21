@@ -68,7 +68,7 @@ function restoreOptions() {
 			console.log(res.exportMode);
 			console.log(res.takeSnapshots);
 			console.log(res.retrieveCitationCounts);
-			let exportBiblatex = res.exportMode !== undefined ? res.exportMode === ExportMode.BibLaTeX : true;
+			let exportBiblatex = res.exportMode !== undefined ? res.exportMode === ExportMode.BibLaTeX : false;
 			let takeSnapshots = res.takeSnapshots || false;
 			let retrieveCitationCountsOn = res.retrieveCitationCounts || false;
 			if (exportBiblatex) {
