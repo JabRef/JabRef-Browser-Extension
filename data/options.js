@@ -68,10 +68,24 @@ function restoreOptions() {
 			console.log(res.exportMode);
 			console.log(res.takeSnapshots);
 			console.log(res.retrieveCitationCounts);
-			var exportBiblatex = res.exportMode !== undefined ? res.exportMode == ExportMode.BibLaTeX : true;
-			document.getElementById("exportBiblatex").checked = exportBiblatex;
-			document.getElementById("snapshotsOn").checked = res.takeSnapshots || false;
-			document.getElementById("retrieveCitationCounts").checked = res.retrieveCitationCounts || false;
+			let exportBiblatex = res.exportMode !== undefined ? res.exportMode === ExportMode.BibLaTeX : true;
+			let takeSnapshots = res.takeSnapshots || false;
+			let retrieveCitationCountsOn = res.retrieveCitationCounts || false;
+			if (exportBiblatex) {
+				document.getElementById("exportBiblatex").checked = true;
+			} else {
+				document.getElementById("exportBibtex").checked = true;
+			}
+			if (takeSnapshots) {
+				document.getElementById("snapshotsOn").checked = true;
+			} else {
+				document.getElementById("snapshotsOff").checked = true;
+			}
+			if (retrieveCitationCountsOn) {
+				document.getElementById("retrieveCitationCountsOn").checked = true;
+			} else {
+				document.getElementById("retrieveCitationCountsOff").checked = true;
+			}
 		});
 }
 
@@ -83,7 +97,7 @@ function saveOptions() {
 		exportMode = ExportMode.BibTeX;
 	}
 	var takeSnapshots = document.getElementById("snapshotsOn").checked;
-	var retrieveCitationCounts = document.getElementById("retrieveCitationCounts").checked;
+	var retrieveCitationCounts = document.getElementById("retrieveCitationCountsOn").checked;
 	browser.storage.sync.set({
 		exportMode: exportMode,
 		takeSnapshots: takeSnapshots,

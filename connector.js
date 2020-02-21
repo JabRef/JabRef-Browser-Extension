@@ -2,37 +2,42 @@ Zotero.Connector = new function() {
 	this.callMethod = Zotero.Promise.method(function(options, data, cb, tab) {
 		console.log("JabRef: Tried to contact Zotero standalone: " + options);
 		throw new Error("Zotero Offline");
-	})
+	});
 
 	this.callMethodWithCookies = function(options, data, tab) {
-		if (options == "saveItems") {
-			this.convertToBibTex(data.items)
-				.then((bibtex) => this.sendBibTexToJabRef(bibtex));
+		if (options === "saveItems") {
+			browser.storage.sync.get(['exportMode', 'takeSnapshots', 'retrieveCitationCounts'])
+				.then(configuration => {
+					console.debug("exportMode: " + configuration.exportMode);
+					console.debug("takeSnapshots: " + configuration.takeSnapshots);
+					console.debug("retrieveCitationCounts: " + configuration.retrieveCitationCounts);
+					if (configuration.retrieveCitationCounts) {
+						// create zsc compatible items
+						for (let i = 0; i < data.items.length; i++) {
+							data.items[i] = new ZscItem(data.items[i]);
+						}
+
+						// get citations counts for all items
+						zsc.processItems(data.items);
+					}
+
+					this.convertToBibTex(data.items)
+						.then((bibtex) => this.sendBibTexToJabRef(bibtex));
+				});
 		} else {
 			console.log("Tried to contact Zotero standalone: " + options);
 			throw new Error("Zotero Offline");
 		}
-	}
+	};
 
 	this.checkIsOnline = Zotero.Promise.method(function() {
 		var deferred = Zotero.Promise.defer();
 		// Pretend that we are connected to Zotero standalone
 		deferred.resolve(true);
 		return deferred.promise;
-	})
+	});
 
 	this.prepareForExport = function(items) {
-
-		if (browser.storage.sync.get('retrieveCitationCounts')) {
-			// create zsc compatible items
-			for (var i = 0; i < items.length; i++) {
-				items[i] = new ZscItem(items[i]);
-			}
-
-			// get citations counts for all items
-			zsc.processItems(items);
-		}
-
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			for (var j = 0; j < item.attachments.length; j++) {
@@ -44,7 +49,7 @@ Zotero.Connector = new function() {
 				}
 			}
 		}
-	}
+	};
 
 	this.convertToBibTex = function(items) {
 		this.prepareForExport(items);
@@ -65,7 +70,7 @@ Zotero.Connector = new function() {
 				);
 			}
 		})
-	}
+	};
 
 	this.sendBibTexToJabRef = function(bibtex) {
 		browser.runtime.sendMessage({
@@ -90,4 +95,4 @@ Zotero.Connector = new function() {
 				});
 			});
 	}
-}
+};
