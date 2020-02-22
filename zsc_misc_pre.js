@@ -109,7 +109,8 @@ let ZscItem = function(item) {
 	this.libraryCatalog = "IEEE Xplore";
 	this.id = "TPOlkafz";
 
-	this.clearItem();
+	//this.clearItem();
+	this.deleteContentOfItem();
 
 	// add all elements from given item
 	if (item) {
@@ -145,6 +146,17 @@ ZscItem.prototype.clearItem = function() {
 	this.libraryCatalog = "";
 	this.id = "";
 	this.extra = "";
+};
+
+/**
+ * delete the content of the item
+ */
+ZscItem.prototype.deleteContentOfItem = function() {
+	for (let property in this) {
+		if (this.hasOwnProperty(property)) {
+			delete this[property];
+		}
+	}
 };
 
 ZscItem.prototype.getField = function(field) {
@@ -186,7 +198,15 @@ ZscItem.prototype.getField = function(field) {
 		} else {
 			return "";
 		}
-	} else {
+	} else if (field === 'DOI' || field === 'doi') {
+		if (this.hasOwnProperty(field) && this[field]) {
+			let cleanedDoi = Zotero.Utilities.cleanDOI(this[field]);
+			return cleanedDoi || "";
+		} else {
+			return "";
+		}
+	}
+	else {
 		if (this.hasOwnProperty(field) && this[field]) {
 			return this[field];
 		} else {

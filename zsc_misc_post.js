@@ -4,10 +4,41 @@
 
 zsc._captchaString = "Please show Google Scholar, that you are not a robot, by loading https://scholar.google.com, searching for any string and solving the shown captcha.";
 
+zsc._preferDoiForLookupIfExisting = true; // additional setting; possible values: true, false (default: false; true: should be more accurate, assuming that the DOI is correct)
+zsc._doiFieldName = 'DOI'; // additional setting; Zotero sends 'DOI' and JabRef as well
+
+/**
+ * additional helper
+ *
+ * does not check whether it is a valid DOI, only checks if it exists
+ *
+ * @param item
+ * @returns {*|boolean}
+ */
+zsc.hasDoi = function(item) {
+	return item.getField(zsc._doiFieldName)
+		&& item.getField(zsc._doiFieldName).trim().length > 0;
+};
+
+/**
+ * additional helper
+ *
+ * @param item
+ * @returns {boolean|*|boolean}
+ */
+zsc.useDoiForLookup = function(item) {
+	return zsc._preferDoiForLookupIfExisting && zsc.hasDoi(item);
+};
+
 zsc.processItems = function(items) {
 	for (let i = 0; i < items.length; i++) {
 		let item = items[i];
-		if (!zsc.hasRequiredFields(item)) {
+		if (zsc.useDoiForLookup(item)) {
+			if (isDebug()) Zotero.debug('[scholar-citations] '
+				+ 'DOI "' + item.getField(zsc._doiFieldName) + '" exists and'
+				+ ' will be used, since it is preferred');
+		}
+		else if (!zsc.hasRequiredFields(item)) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'skipping item "' + item.getField('title') + '"'
 				+ ' it has either an empty title or is missing creator information');
@@ -40,11 +71,31 @@ zsc.processItems = function(items) {
 	}
 };
 
+/**
+ * additional helper
+ *
+ * @param item
+ * @returns {string}
+ */
+zsc.generateItemDoiUrl = function(item) {
+	let url = this._baseUrl
+		+ 'scholar?hl=en&q='
+		+ item.getField(zsc._doiFieldName).trim()
+		+ '&num=1';
+	return encodeURI(url);
+};
+
 // TODO: complex version, i.e. batching + retrying + blocking for solved captchas
 // this prob. involves some nasty callback hell shit
 // TODO: retries with random author permutations decreasing in author number :^)
 zsc.retrieveCitationData = function(item, cb) {
-	let url = this.generateItemUrl(item);
+	let url;
+	if (zsc.useDoiForLookup(item)) {
+		url = this.generateItemDoiUrl(item);
+	}
+	else {
+		url = this.generateItemUrl(item);
+	}
 	if (isDebug()) Zotero.debug("[scholar-citations] GET " + url);
 	let citeCount;
 	let xhr = new XMLHttpRequest();
