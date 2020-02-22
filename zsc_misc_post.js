@@ -42,10 +42,13 @@ zsc.processItems = function(items) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'skipping item "' + item.getField('title') + '"'
 				+ ' it has either an empty title or is missing creator information');
-			browser.runtime.sendMessage({
-				"onCitationCount": '' + zsc._noData
-			});
+			if (!item.isExternalRequest()) {
+				browser.runtime.sendMessage({
+					"onCitationCount": '' + zsc._noData
+				});
+			}
 			item.setField("citationCount", zsc._noData); // no data (title or creators missing)
+			item.setStatus(false, false, false, false); // no success, item not complete, no captcha, not too many requests
 			zsc.updateItem(item, -1); // info: added
 			continue;
 		}
@@ -55,15 +58,19 @@ zsc.processItems = function(items) {
 			console.log("[scholar-citations] citation count: " + citeCount);
 			if (citeCount > -1) {
 				let paddedCitationCount = zsc.padLeftWithZeroes("" + citeCount);
-				browser.runtime.sendMessage({
-					"onCitationCount": '' + paddedCitationCount
-				});
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onCitationCount": '' + paddedCitationCount
+					});
+				}
 				item.setField("citationCount", paddedCitationCount);
 			}
 			else {
-				browser.runtime.sendMessage({
-					"onCitationCount": '' + zsc._noData
-				});
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onCitationCount": '' + zsc._noData
+					});
+				}
 				item.setField("citationCount", zsc._noData); // no data (no citation data)
 			}
 			zsc.updateItem(item, citeCount);
@@ -105,14 +112,18 @@ zsc.retrieveCitationData = function(item, cb) {
 			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) {
 				if (isDebug()) Zotero.debug("[scholar-citations] "
 					+ "received non-captcha scholar results");
+				item.setStatus(true, true, false, false); // success, item complete, no captcha, not too many requests
 				cb(item, zsc.getCiteCount(this.responseText));
 			} else {
 				if (isDebug()) Zotero.debug("[scholar-citations] "
 					+ "received a captcha instead of a scholar result");
+				item.setStatus(false, true, true, false); // no success, item complete, captcha, not too many requests
 				alert(zsc._captchaString);
-				browser.runtime.sendMessage({
-					"onGoogleScholarCaptcha": url
-				});
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onGoogleScholarCaptcha": url
+					});
+				}
 				if (typeof Zotero.openInViewer !== 'undefined') {
 					Zotero.openInViewer(url);
 				} else if (typeof ZoteroStandalone !== 'undefined') {
@@ -131,18 +142,37 @@ zsc.retrieveCitationData = function(item, cb) {
 				+ ' seconds before sending further requests.');
 
 			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) {
+				item.setStatus(false, true, false, true); // no success, item complete, no captcha, too many requests
+			}
+			else {
 				if (isDebug()) Zotero.debug("[scholar-citations] "
 					+ "received a captcha instead of a scholar result");
+				item.setStatus(false, true, true, true); // no success, item complete, captcha, too many requests
 				alert(zsc._captchaString);
-				browser.runtime.sendMessage({
-					"onGoogleScholarCaptcha": url
-				});
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onGoogleScholarCaptcha": url
+					});
+				}
 			}
-
 		} else if (this.readyState === 4) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'could not retrieve the google scholar data. Server returned: ['
 				+ xhr.status + ': '  + xhr.statusText + ']');
+			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) {
+				item.setStatus(false, true, false, false); // no success, item complete, no captcha, not too many requests
+			}
+			else {
+				if (isDebug()) Zotero.debug("[scholar-citations] "
+					+ "received a captcha instead of a scholar result");
+				item.setStatus(false, true, true, false); // no success, item complete, captcha, not too many requests
+				alert(zsc._captchaString);
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onGoogleScholarCaptcha": url
+					});
+				}
+			}
 		} else {
 			// request progress, I guess
 		}

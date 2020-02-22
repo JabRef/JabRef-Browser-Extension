@@ -22,6 +22,9 @@ Zotero.Connector = new function() {
 						// create zsc compatible items
 						for (let i = 0; i < data.items.length; i++) {
 							data.items[i] = new ZscItem(data.items[i]);
+							// add internal metadata
+							data.items[i].setField('_externalRequest', false); // false: triggered from browser; true: triggered from JabRef
+							data.items[i].setStatus(false, true, false, false); // init: no success, item complete (initial assumption), no captcha, not too many requests
 						}
 
 						// get citations counts for all items

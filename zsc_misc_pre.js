@@ -236,6 +236,32 @@ ZscItem.prototype.getCreators = function() {
 	}
 };
 
+/**
+ * additional helper
+ *
+ * @returns {boolean}
+ */
+ZscItem.prototype.isExternalRequest = function() {
+	if (this.getField('_externalRequest') === true) {
+		return true;
+	}
+	else {
+		return false;
+	}
+};
+
+/**
+ * additional helper
+ *
+ * @param success <code>true</code> if fetching the citation count was successful, <code>false</code> otherwise
+ * @param itemComplete <code>false</code> if no data could be fetched since the item is incomplete, <code>true</code> otherwise
+ * @param solvingCaptchaNeeded <code>true</code> if fetching the citation count from Google Scholar was not successful because a captcha needs to be solved first, <code>false</code> otherwise
+ * @param tooManyRequests <code>true</code> if too many request were sent to Google Scholar, <code>false</code> otherwise
+ */
+ZscItem.prototype.setStatus = function(success, itemComplete, solvingCaptchaNeeded, tooManyRequests) {
+	this.setField('_status', {success: success, itemComplete: itemComplete, solvingCaptchaNeeded: solvingCaptchaNeeded, tooManyRequests: tooManyRequests});
+};
+
 ZscItem.prototype.saveTx = function() {
 
 };

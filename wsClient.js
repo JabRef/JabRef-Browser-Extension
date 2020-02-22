@@ -324,6 +324,9 @@ let wsClient = {
         // create zsc compatible items
         for (var i = 0; i < items.length; i++) {
             items[i] = new ZscItem(items[i]);
+            // add internal metadata
+            items[i].setField('_externalRequest', true); // false: triggered from browser; true: triggered from JabRef
+            items[i].setStatus(false, true, false, false); // init: no success, item complete (initial assumption), no captcha, not too many requests
         }
 
         // get citations counts for all items
