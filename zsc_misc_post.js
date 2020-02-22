@@ -46,6 +46,9 @@ zsc.processItems = function(items) {
 				browser.runtime.sendMessage({
 					"onCitationCount": '' + zsc._noData
 				});
+				browser.runtime.sendMessage({
+					"itemIncomplete": true
+				});
 			}
 			item.setField("citationCount", zsc._noData); // no data (title or creators missing)
 			item.setStatus(false, false, false, false); // no success, item not complete, no captcha, not too many requests
@@ -140,6 +143,11 @@ zsc.retrieveCitationData = function(item, cb) {
 				+ xhr.status + ': '  + xhr.statusText + ']. '
 				+ 'GS want\'s you to wait for ' + this.getResponseHeader("Retry-After")
 				+ ' seconds before sending further requests.');
+			if (!item.isExternalRequest()) {
+				browser.runtime.sendMessage({
+					"tooManyRequests": true
+				});
+			}
 
 			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) {
 				item.setStatus(false, true, false, true); // no success, item complete, no captcha, too many requests

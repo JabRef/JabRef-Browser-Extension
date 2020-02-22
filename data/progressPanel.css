@@ -43,7 +43,17 @@ li.inprogress:after {
   display: none;
   font-size: small;
 }
+#itemIncomplete {
+  display: none;
+  color: red;
+  font-size: small;
+}
 #googleScholarCaptcha {
+  display: none;
+  color: red;
+  font-size: small;
+}
+#tooManyRequests {
   display: none;
   color: red;
   font-size: small;
