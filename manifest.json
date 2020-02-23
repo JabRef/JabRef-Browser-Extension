@@ -38,7 +38,7 @@
 			"Zotero/background.js",
 			"globalSettings.js",
 			"zsc_misc_pre.js",
-			"zotero-scholar-citations/chrome/content/zsc.js",
+			"zsc/zsc.js",
 			"zsc_misc_post.js",
 			"wsClient.js",
 			"background.js"

@@ -1,5 +1,5 @@
 /**
- * This file provides functions and methods for zotero-scholar-citations/chrome/content/zsc.js.
+ * This file provides external functions and methods for zotero-scholar-citations/chrome/content/zsc.js (zsc/zsc.js).
  */
 
 /***********************************************************************************************************************
@@ -194,7 +194,8 @@ ZscItem.prototype.getField = function(field) {
 		}
 	} else if (field === 'date') {
 		if (this.hasOwnProperty(field) && this[field]) {
-			return Zotero.Date.strToISO(this[field]);
+			let isoDateString = Zotero.Date.strToISO(this[field]);
+			return isoDateString || "";
 		} else {
 			return "";
 		}

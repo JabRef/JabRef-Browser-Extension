@@ -1,5 +1,5 @@
 /**
- * This file partially overrides methods of zotero-scholar-citations/chrome/content/zsc.js for customization purposes.
+ * This file partially overrides methods of zotero-scholar-citations/chrome/content/zsc.js (zsc/zsc.js) for customization purposes and adds additional functionality.
  */
 
 zsc._captchaString = "Please show Google Scholar, that you are not a robot, by loading https://scholar.google.com, searching for any string and solving the shown captcha.";
@@ -13,7 +13,7 @@ zsc._doiFieldName = 'DOI'; // additional setting; Zotero sends 'DOI' and JabRef 
  * does not check whether it is a valid DOI, only checks if it exists
  *
  * @param item
- * @returns {*|boolean}
+ * @returns {boolean}
  */
 zsc.hasDoi = function(item) {
 	return item.getField(zsc._doiFieldName)
@@ -24,7 +24,7 @@ zsc.hasDoi = function(item) {
  * additional helper
  *
  * @param item
- * @returns {boolean|*|boolean}
+ * @returns {boolean}
  */
 zsc.useDoiForLookup = function(item) {
 	return zsc._preferDoiForLookupIfExisting && zsc.hasDoi(item);
