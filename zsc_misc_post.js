@@ -33,6 +33,7 @@ zsc.useDoiForLookup = function(item) {
 zsc.processItems = function(items) {
 	for (let i = 0; i < items.length; i++) {
 		let item = items[i];
+		item.setField("citationCount", ""); // empty initialization
 		if (zsc.useDoiForLookup(item)) {
 			if (isDebug()) Zotero.debug('[scholar-citations] '
 				+ 'DOI "' + item.getField(zsc._doiFieldName) + '" exists and'

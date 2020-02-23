@@ -217,7 +217,7 @@ ZscItem.prototype.getField = function(field) {
 };
 
 ZscItem.prototype.setField = function(field, value) {
-	if (!field || !value) {
+	if (!field) {
 		return;
 	}
 
@@ -234,6 +234,9 @@ ZscItem.prototype.setField = function(field, value) {
 ZscItem.prototype.getCreators = function() {
 	if (this.hasOwnProperty('creators') && this['creators']) {
 		return this['creators'];
+	}
+	else {
+		return [];
 	}
 };
 
