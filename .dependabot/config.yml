@@ -10,4 +10,4 @@ update_configs:
     automerged_updates:
       - match:
          dependency_type: "all"
-         update_type: "semver:minor"
+         update_type: "all"
