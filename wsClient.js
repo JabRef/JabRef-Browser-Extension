@@ -9,12 +9,10 @@ let wsClient = {
         HEARTBEAT: "heartbeat",
         INFO_CONFIGURATION: "info.configuration",
         CMD_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS: "cmd.fetchGoogleScholarCitationCounts",
-        CMD_CONTINUE_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS: "cmd.continueFetchGoogleScholarCitationCounts",
 
         // send only
         CMD_REGISTER: "cmd.register",
         INFO_GOOGLE_SCHOLAR_CITATION_COUNTS: "info.googleScholarCitationCounts",
-        INFO_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS_INTERRUPTED: "info.fetchGoogleScholarCitationCountsInterrupted",
 
         // send and receive
         INFO_MESSAGE: "info.message"
@@ -279,8 +277,6 @@ let wsClient = {
                 wsClient.handlerInfoMessage(messagePayload);
             } else if (action === wsClient.WsAction.CMD_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS) {
                 wsClient.handlerCmdFetchGoogleScholarCitationCounts(messagePayload);
-            } else if (action === wsClient.WsAction.CMD_CONTINUE_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS) {
-                wsClient.handlerCmdContinueFetchGoogleScholarCitationCounts(messagePayload);
             } else {
                 console.log("[ws] unimplemented WsAction received: " + action);
             }
@@ -333,9 +329,5 @@ let wsClient = {
         zsc.processItems(items);
 
         wsClient.sendMessage(wsClient.WsAction.INFO_GOOGLE_SCHOLAR_CITATION_COUNTS, messagePayload);
-    },
-
-    handlerCmdContinueFetchGoogleScholarCitationCounts: function (messagePayload) {
-
-    },
+    }
 };
