@@ -33,6 +33,7 @@ let wsClient = {
 
     // configuration (must be configured before starting the client)
     configuration: {
+        showVerboseDebugOutput: false,
         websocketScheme: "ws", // "ws" or "wss"
         websocketHost: "localhost", // "localhost", "127.0.0.1", ...
         websocketPort: 8855, // default port: 8855
@@ -99,7 +100,9 @@ let wsClient = {
     },
 
     heartbeat: function () {
-        console.log("[ws] heartbeat called...");
+        if (wsClient.configuration.showVerboseDebugOutput) {
+            console.debug("[ws] heartbeat called...");
+        }
 
         clearTimeout(wsClient.heartbeatTimeout);
 
@@ -211,7 +214,7 @@ let wsClient = {
         wsClient.connection = new WebSocket(wsClient.configuration.websocketScheme + "://" + wsClient.configuration.websocketHost + ":" + wsClient.configuration.websocketPort);
 
         wsClient.connection.onopen = function (event) {
-            console.log("[ws] @onOpen: connection established");
+            console.debug("[ws] @onOpen: connection established");
 
             if (wsClient.configuration.heartbeatEnabled) {
                 wsClient.heartbeat();
@@ -224,7 +227,7 @@ let wsClient = {
         };
 
         wsClient.connection.onerror = function (event) {
-            console.log(`[ws] @onError`);
+            console.error(`[ws] @onError`);
         };
 
         wsClient.connection.onclose = function (event) {
@@ -237,18 +240,18 @@ let wsClient = {
             //   - https://html.spec.whatwg.org/multipage/web-sockets.html
 
             if (event.wasClean) {
-                console.log(`[ws] @onClose: connection closed cleanly (code="${event.code}", reason="${event.reason}")`);
+                console.debug(`[ws] @onClose: connection closed cleanly (code="${event.code}", reason="${event.reason}")`);
             } else {
                 // e.g. server process killed or network down
                 // event.code is usually 1006 in this case
-                console.log(`[ws] @onClose: connection died (code="${event.code}", reason="${event.reason}")`);
+                console.debug(`[ws] @onClose: connection died (code="${event.code}", reason="${event.reason}")`);
             }
 
             clearTimeout(wsClient.heartbeatTimeout);
 
             if (wsClient.tryReconnectFlag) {
                 setTimeout(() => {
-                    console.log("[ws] trying to connect...");
+                    console.debug("[ws] trying to connect...");
                     wsClient.openConnection();
                 }, wsClient.configuration.wsReconnectInterval);
             } else {
@@ -257,7 +260,9 @@ let wsClient = {
         };
 
         wsClient.connection.onmessage = function (event) {
-            console.log(`[ws] @onMessage: ${event.data}`);
+            if (wsClient.configuration.showVerboseDebugOutput) {
+                console.debug(`[ws] @onMessage: ${event.data}`);
+            }
 
             let messageContainer = JSON.parse(event.data);
 
@@ -265,7 +270,7 @@ let wsClient = {
             let messagePayload = messageContainer.payload;
 
             if (!Object.values(wsClient.WsAction).includes(action)) {
-                console.log("[ws] unknown WsAction received: " + action);
+                console.warn("[ws] unknown WsAction received: " + action);
                 return;
             }
 
@@ -278,7 +283,7 @@ let wsClient = {
             } else if (action === wsClient.WsAction.CMD_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS) {
                 wsClient.handlerCmdFetchGoogleScholarCitationCounts(messagePayload);
             } else {
-                console.log("[ws] unimplemented WsAction received: " + action);
+                console.warn("[ws] unimplemented WsAction received: " + action);
             }
         };
 
