@@ -27,7 +27,7 @@
 		"mocha": "^7.1.0",
 		"ncp": "^2.0.0",
 		"react": "^16.13.0",
-		"react-dom": "^16.12.0",
+		"react-dom": "^16.13.0",
 		"selenium-webdriver": "^3.6.0",
 		"sinon": "^9.0.0",
 		"through2": "^3.0.1",
