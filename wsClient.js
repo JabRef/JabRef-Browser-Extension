@@ -4,7 +4,7 @@
  * A simple, robust websocket client implementation for the JabRef-Browser-Extension for bidirectional communication with JabRef.
  */
 let wsClient = {
-    WsAction: {
+    WebSocketAction: {
         // receive only
         HEARTBEAT: "heartbeat",
         INFO_CONFIGURATION: "info.configuration",
@@ -18,7 +18,7 @@ let wsClient = {
         INFO_MESSAGE: "info.message"
     },
 
-    WsClientType: {
+    WebSocketClientType: {
         UNKNOWN: "unknown",
         JABREF_BROWSER_EXTENSION: "JabRefBrowserExtension"
     },
@@ -114,18 +114,18 @@ let wsClient = {
         }
     },
 
-    sendMessage: function (wsAction, messagePayload) {
+    sendMessage: function (webSocketAction, messagePayload) {
         if (!wsClient.clientStarted) {
             return false;
         }
 
-        if (!wsAction || !messagePayload) {
+        if (!webSocketAction || !messagePayload) {
             return false;
         }
 
         if (wsClient.connection && wsClient.getConnectionState() === WebSocket.OPEN) {
             let messageContainer = {};
-            messageContainer.action = wsAction;
+            messageContainer.action = webSocketAction;
             messageContainer.payload = messagePayload;
 
             wsClient.connection.send(JSON.stringify(messageContainer));
@@ -221,9 +221,9 @@ let wsClient = {
             }
 
             let messagePayload = {};
-            messagePayload.wsClientType = wsClient.WsClientType.JABREF_BROWSER_EXTENSION;
+            messagePayload.webSocketClientType = wsClient.WebSocketClientType.JABREF_BROWSER_EXTENSION;
 
-            wsClient.sendMessage(wsClient.WsAction.CMD_REGISTER, messagePayload);
+            wsClient.sendMessage(wsClient.WebSocketAction.CMD_REGISTER, messagePayload);
         };
 
         wsClient.connection.onerror = function (event) {
@@ -269,21 +269,21 @@ let wsClient = {
             let action = messageContainer.action;
             let messagePayload = messageContainer.payload;
 
-            if (!Object.values(wsClient.WsAction).includes(action)) {
-                console.warn("[ws] unknown WsAction received: " + action);
+            if (!Object.values(wsClient.WebSocketAction).includes(action)) {
+                console.warn("[ws] unknown WebSocketAction received: " + action);
                 return;
             }
 
-            if (action === wsClient.WsAction.HEARTBEAT) {
+            if (action === wsClient.WebSocketAction.HEARTBEAT) {
                 wsClient.handlerHeartbeat(messagePayload);
-            } else if (action === wsClient.WsAction.INFO_CONFIGURATION) {
+            } else if (action === wsClient.WebSocketAction.INFO_CONFIGURATION) {
                 wsClient.handlerInfoConfiguration(messagePayload);
-            } else if (action === wsClient.WsAction.INFO_MESSAGE) {
+            } else if (action === wsClient.WebSocketAction.INFO_MESSAGE) {
                 wsClient.handlerInfoMessage(messagePayload);
-            } else if (action === wsClient.WsAction.CMD_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS) {
+            } else if (action === wsClient.WebSocketAction.CMD_FETCH_GOOGLE_SCHOLAR_CITATION_COUNTS) {
                 wsClient.handlerCmdFetchGoogleScholarCitationCounts(messagePayload);
             } else {
-                console.warn("[ws] unimplemented WsAction received: " + action);
+                console.warn("[ws] unimplemented WebSocketAction received: " + action);
             }
         };
 
@@ -333,6 +333,6 @@ let wsClient = {
         // get citations counts for all items
         zsc.processItems(items);
 
-        wsClient.sendMessage(wsClient.WsAction.INFO_GOOGLE_SCHOLAR_CITATION_COUNTS, messagePayload);
+        wsClient.sendMessage(wsClient.WebSocketAction.INFO_GOOGLE_SCHOLAR_CITATION_COUNTS, messagePayload);
     }
 };
