@@ -322,13 +322,12 @@ Zotero.Schema = new function(){
 	 * Doesn't include the .itemTypes property, which was already applied to the mapping tables
 	 */
 	async function _readGlobalSchemaFromDB() {
-		var pako = {};
-		Services.scriptloader.loadSubScript("resource://zotero/pako.js", pako);
 		var data = await Zotero.DB.valueQueryAsync(
 			"SELECT value FROM settings WHERE setting='globalSchema' AND key='data'"
 		);
 		if (data) {
 			try {
+				let pako = require('pako');
 				return JSON.parse(pako.inflate(data, { to: 'string' }));
 			}
 			catch (e) {
@@ -360,7 +359,8 @@ Zotero.Schema = new function(){
 		
 		var dbVersion = await Zotero.Schema.getDBVersion('globalSchema') || null;
 		if (dbVersion > version) {
-			Zotero.debug(`Database has newer global schema (${dbVersion} > ${version}) -- skipping update`);
+			Zotero.debug(`Database has newer global schema (${dbVersion} > ${version}) `
+				+ `-- skipping update and using schema from DB`);
 			return -1;
 		}
 		else if (dbVersion == version) {
@@ -524,9 +524,12 @@ Zotero.Schema = new function(){
 		// Don't include types and fields, which are already in the mapping tables
 		delete dbData.itemTypes;
 		await Zotero.DB.queryAsync(
-			"REPLACE INTO settings VALUES ('globalSchema', 'data', ?)",
-			pako.deflate(JSON.stringify(dbData), { to: 'string' }),
+			"REPLACE INTO settings VALUES ('globalSchema', 'data', :data)",
+			{ data: pako.deflate(JSON.stringify(dbData)) },
 			{
+				// Hack to pass named parameter to Sqlite.jsm, which in Fx60 treats an object passed
+				// as the the first parameter in a parameter array as an object of named parameters
+				noParseParams: true,
 				debugParams: false
 			}
 		);
@@ -570,6 +573,8 @@ Zotero.Schema = new function(){
 		);
 		Zotero.Schema.globalSchemaLocale = data.locales[locale];
 		Zotero.Schema.globalSchemaMeta = data.meta;
+		
+		// CSL mappings
 		Zotero.Schema.CSL_TYPE_MAPPINGS = {};
 		Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE = {};
 		for (let cslType in data.csl.types) {
@@ -581,6 +586,18 @@ Zotero.Schema = new function(){
 		Zotero.Schema.CSL_TEXT_MAPPINGS = data.csl.fields.text;
 		Zotero.Schema.CSL_DATE_MAPPINGS = data.csl.fields.date;
 		Zotero.Schema.CSL_NAME_MAPPINGS = data.csl.names;
+		
+		// Map Zotero fields to CSL fields
+		Zotero.Schema.CSL_FIELD_MAPPINGS_REVERSE = {};
+		for (let cslField in data.csl.fields.text) {
+			for (let zoteroField of data.csl.fields.text[cslField]) {
+				Zotero.Schema.CSL_FIELD_MAPPINGS_REVERSE[zoteroField] = cslField;
+			}
+		}
+		for (let cslField in data.csl.fields.date) {
+			let zoteroField = data.csl.fields.date[cslField];
+			Zotero.Schema.CSL_FIELD_MAPPINGS_REVERSE[zoteroField] = cslField;
+		}
 	}
 	
 	
@@ -775,14 +792,15 @@ Zotero.Schema = new function(){
 		yield Zotero.SearchConditions.init();
 		
 		// Update item type menus in every open window
-		var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-					.getService(Components.interfaces.nsIWindowMediator);
-		var enumerator = wm.getEnumerator("navigator:browser");
-		while (enumerator.hasMoreElements()) {
-			var win = enumerator.getNext();
-			win.ZoteroPane.buildItemTypeSubMenu();
-			win.document.getElementById('zotero-editpane-item-box').buildItemTypeMenu();
-		}
+		Zotero.Schema.schemaUpdatePromise.then(function () {
+			var wm = Services.wm;
+			var enumerator = wm.getEnumerator("navigator:browser");
+			while (enumerator.hasMoreElements()) {
+				let win = enumerator.getNext();
+				win.ZoteroPane.buildItemTypeSubMenu();
+				win.document.getElementById('zotero-editpane-item-box').buildItemTypeMenu();
+			}
+		});
 	});
 	
 	
@@ -2879,16 +2897,23 @@ Zotero.Schema = new function(){
 			else if (i == 106) {
 				yield _updateCompatibility(6);
 				
-				yield Zotero.DB.queryAsync("DROP TRIGGER insert_date_field");
-				yield Zotero.DB.queryAsync("DROP TRIGGER update_date_field");
-				yield Zotero.DB.queryAsync("DROP TRIGGER fki_itemAttachments");
-				yield Zotero.DB.queryAsync("DROP TRIGGER fku_itemAttachments");
-				yield Zotero.DB.queryAsync("DROP TRIGGER fki_itemNotes");
-				yield Zotero.DB.queryAsync("DROP TRIGGER fku_itemNotes");
+				yield Zotero.DB.queryAsync("DROP TRIGGER IF EXISTS insert_date_field");
+				yield Zotero.DB.queryAsync("DROP TRIGGER IF EXISTS update_date_field");
+				yield Zotero.DB.queryAsync("DROP TRIGGER IF EXISTS fki_itemAttachments");
+				yield Zotero.DB.queryAsync("DROP TRIGGER IF EXISTS fku_itemAttachments");
+				yield Zotero.DB.queryAsync("DROP TRIGGER IF EXISTS fki_itemNotes");
+				yield Zotero.DB.queryAsync("DROP TRIGGER IF EXISTS fku_itemNotes");
 				
-				yield Zotero.DB.queryAsync("DROP TABLE transactionSets");
-				yield Zotero.DB.queryAsync("DROP TABLE transactions");
-				yield Zotero.DB.queryAsync("DROP TABLE transactionLog");
+				yield Zotero.DB.queryAsync("DROP TABLE IF EXISTS transactionSets");
+				yield Zotero.DB.queryAsync("DROP TABLE IF EXISTS transactions");
+				yield Zotero.DB.queryAsync("DROP TABLE IF EXISTS transactionLog");
+			}
+			
+			else if (i == 107) {
+				if (!(yield Zotero.DB.valueQueryAsync("SELECT COUNT(*) FROM itemTypes"))) {
+					let sql = yield _getSchemaSQL('system-107');
+					yield Zotero.DB.executeSQLFile(sql);
+				}
 			}
 			
 			// If breaking compatibility or doing anything dangerous, clear minorUpdateFrom

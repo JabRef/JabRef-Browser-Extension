@@ -757,17 +757,16 @@ function openWindowByType(uri, type, features) {
 }
 
 const gXPInstallObserver = {
-	observe: function (aSubject, aTopic, aData) {
-		var installInfo = aSubject.QueryInterface(Components.interfaces.amIWebInstallInfo);
-		var win = installInfo.originatingWindow;
-		switch (aTopic) {
+	observe: function (subject, topic, data) {
+		const { installs } = subject.wrappedJSObject;
+		switch (topic) {
 			case "addon-install-disabled":
 			case "addon-install-blocked":
 			case "addon-install-failed":
-				var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-					.getService(Components.interfaces.nsIPromptService);
-				promptService.alert(win, Zotero.getString("standalone.addonInstallationFailed.title"),
-					Zotero.getString("standalone.addonInstallationFailed.body", installInfo.installs[0].name));
+				Zotero.alert(
+					null,
+					Zotero.getString("standalone.addonInstallationFailed.title"),
+					Zotero.getString("standalone.addonInstallationFailed.body", installs[0].name));
 				break;
 			/*case "addon-install-started":
 			case "addon-install-complete":*/
@@ -779,6 +778,31 @@ const gXPInstallObserver = {
 function openUILinkIn(url) {
 	ZoteroPane.loadURI(url);
 }
+
+// Support context menus on HTML text boxes
+//
+// Adapted from editMenuOverlay.js in Fx68
+window.addEventListener("contextmenu", e => {
+	const HTML_NS = "http://www.w3.org/1999/xhtml";
+	let needsContextMenu =
+		e.target.ownerDocument == document &&
+		!e.defaultPrevented &&
+		e.target.parentNode.nodeName != "moz-input-box" &&
+		((["textarea", "input"].includes(e.target.localName) &&
+			e.target.namespaceURI == HTML_NS) ||
+			e.target.closest("search-textbox"));
+	
+	if (!needsContextMenu) {
+		return;
+	}
+	
+	let popup = document.getElementById("contentAreaContextMenu");
+	popup.openPopupAtScreen(e.screenX, e.screenY, true);
+	// Don't show any other context menu at the same time. There can be a
+	// context menu from an ancestor too but we only want to show this one.
+	e.preventDefault();
+});
+
 
 window.addEventListener("load", function(e) { ZoteroStandalone.onLoad(e); }, false);
 window.addEventListener("unload", function(e) { ZoteroStandalone.onUnload(e); }, false);

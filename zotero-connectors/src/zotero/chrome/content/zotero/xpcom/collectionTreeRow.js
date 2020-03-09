@@ -272,8 +272,17 @@ Zotero.CollectionTreeRow.prototype.getSearchResults = Zotero.Promise.coroutine(f
 	}
 	
 	if(!Zotero.CollectionTreeCache.lastResults) {
-		var s = yield this.getSearchObject();
-		Zotero.CollectionTreeCache.lastResults = yield s.search();
+		let s = yield this.getSearchObject();
+		Zotero.CollectionTreeCache.error = false;
+		try {
+			Zotero.CollectionTreeCache.lastResults = yield s.search();
+		}
+		catch (e) {
+			Zotero.logError(e);
+			Zotero.CollectionTreeCache.lastResults = [];
+			// Flag error so ZoteroPane::onCollectionSelected() can show a message
+			Zotero.CollectionTreeCache.error = true;
+		}
 		Zotero.CollectionTreeCache.lastTreeRow = this;
 	}
 	
@@ -354,6 +363,10 @@ Zotero.CollectionTreeRow.prototype.getSearchObject = Zotero.Promise.coroutine(fu
 	
 	if (this.isTrash()) {
 		s2.addCondition('deleted', 'true');
+	}
+	// Don't search child items in "Title, Creator, Year" mode
+	if (Zotero.Prefs.get('search.quicksearch-mode') == 'titleCreatorYear') {
+		includeScopeChildren = false;
 	}
 	s2.setScope(s, includeScopeChildren);
 	

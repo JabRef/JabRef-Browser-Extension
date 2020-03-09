@@ -39,7 +39,7 @@
     "chai-as-promised": "^7.1.1",
     "chokidar": "^2.1.2",
     "co-mocha": "^1.2.1",
-    "colors": "^1.1.2",
+    "colors": "^1.4.0",
     "eslint": "^5.14.1",
     "eslint-plugin-react": "^7.12.4",
     "fs-extra": "^3.0.1",
@@ -47,7 +47,7 @@
     "jspath": "^0.4.0",
     "mocha": "^3.5.3",
     "multimatch": "^2.1.0",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.0",
     "react-virtualized": "^9.21.0",
     "sinon": "^7.3.2",
     "universalify": "^0.1.1"
