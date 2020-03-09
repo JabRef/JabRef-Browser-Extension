@@ -27,30 +27,37 @@ var Zotero = window.Zotero = new function() {
 	this.version = "5.0";
 	this.isConnector = true;
 	this.isFx = false;
-	
+
+	this.initialized = false;
 	this.initDeferred = {};
 	this.initDeferred.promise = new Promise(function(resolve, reject) {
 		this.initDeferred.resolve = resolve;
 		this.initDeferred.reject = reject;
 	}.bind(this));
 
-	// Browser check adopted from:
-	// http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
-	// Firefox 1.0+
-	this.isFirefox = typeof InstallTrigger !== 'undefined';
-	// Internet Explorer 6-11
-	this.isIE = /*@cc_on!@*/false || !!document.documentMode;
-	// Edge 20+
-	this.isEdge = !this.isIE && !!window.StyleMedia;
-	// Chrome and Chromium
-	this.isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1 || window.navigator.userAgent.indexOf("Chromium") !== -1;
-	// At least Safari 10+
-	this.isSafari = window.navigator.userAgent.includes("Safari") && !this.isChrome;
-	this.isBrowserExt = this.isFirefox || this.isEdge || this.isChrome;
+	// Safari  global page detection
+	if (typeof globalThis != "undefined" && typeof browser == "undefined") {
+		this.isSafari = true;
+		this.isMac = true;
+	} else {
+		// Browser check adopted from:
+		// http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
+		// Firefox 1.0+
+		this.isFirefox = typeof InstallTrigger !== 'undefined';
+		// Internet Explorer 6-11
+		this.isIE = /*@cc_on!@*/ false || !!document.documentMode;
+		// Edge 20+
+		this.isEdge = !this.isIE && !!window.StyleMedia;
+		// Chrome and Chromium
+		this.isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1 || window.navigator.userAgent.indexOf("Chromium") !== -1;
+		// At least Safari 10+
+		this.isSafari = window.navigator.userAgent.includes("Safari") && !this.isChrome;
+		this.isBrowserExt = this.isFirefox || this.isEdge || this.isChrome;
 
-	this.isMac = (window.navigator.platform.substr(0, 3) == "Mac");
-	this.isWin = (window.navigator.platform.substr(0, 3) == "Win");
-	this.isLinux = (window.navigator.platform.substr(0, 5) == "Linux");
+		this.isMac = (window.navigator.platform.substr(0, 3) == "Mac");
+		this.isWin = (window.navigator.platform.substr(0, 3) == "Win");
+		this.isLinux = (window.navigator.platform.substr(0, 5) == "Linux");
+	}
 
 	if (this.isFirefox) {
 		this.browser = "g";
@@ -73,25 +80,25 @@ var Zotero = window.Zotero = new function() {
 		this.clientName = window.navigator.appName;
 	}
 	this.appName = `Zotero Connector for ${this.clientName}`;
-	
+
 	// this.isBookmarklet is not set until after this runs
 	setTimeout(() => {
 		if (!this.isBookmarklet) {
 			if (this.isBrowserExt) {
 				this.version = "5.0.0";
 			} else if (this.isSafari) {
-				this.version = safari.extension.bundleVersion;
+				this.version = browser.runtime.getManifest().version;
 			}
 		}
 	});
-	
+
 	// window.Promise and Promise differ (somehow) in Firefox and when certain
 	// async promise resolution conditions arise upon calling Zotero.Promise.all().then(result => )
 	// somehow the result array doesn't properly have result[1] bound, even though
 	// Array.from(result)[1] is there. Magic of code.
 	// this.Promise = window.Promise;
 	this.Promise = Promise;
-	
+
 	this.migrate = async function() {
 		let lastVersion = Zotero.Prefs.get('lastVersion') || Zotero.version;
 		var [major, minor, patch] = lastVersion.split('.');
@@ -109,10 +116,10 @@ var Zotero = window.Zotero = new function() {
 			let pairs = [];
 			// merge pairs of proxies with http and https protocols
 			for (let i = 0; i < Zotero.Proxies.proxies.length; i++) {
-				if (Zotero.Proxies.length == i+1) break;
+				if (Zotero.Proxies.length == i + 1) break;
 				let proxy1 = Zotero.Proxies.proxies[i];
 				let scheme = proxy1.scheme.replace('https', '').replace('http', '');
-				for (let j = i+1; j < Zotero.Proxies.proxies.length; j++) {
+				for (let j = i + 1; j < Zotero.Proxies.proxies.length; j++) {
 					let proxy2 = Zotero.Proxies.proxies[j];
 					if (scheme == proxy2.scheme.replace('https', '').replace('http', '')) {
 						pairs.push([proxy1, proxy2]);
@@ -134,7 +141,7 @@ var Zotero = window.Zotero = new function() {
 			// remove protocols of single protocolless
 			for (let proxy of Zotero.Proxies.proxies) {
 				if (proxy.scheme.includes('://')) {
-					proxy.scheme = proxy.scheme.substr(proxy.scheme.indexOf('://')+3);
+					proxy.scheme = proxy.scheme.substr(proxy.scheme.indexOf('://') + 3);
 					proxy.compileRegexp();
 					Zotero.Proxies.save(proxy);
 				}
@@ -150,15 +157,15 @@ var Zotero = window.Zotero = new function() {
 			Zotero.Proxies.storeProxies();
 		}
 	};
-	
+
 	/**
 	 * Initializes Zotero services for the global page in Chrome or Safari
 	 */
 	this.initGlobal = async function() {
 		Zotero.isBackground = true;
-		
+
 		if (Zotero.isBrowserExt) {
-			browser.runtime.getPlatformInfo().then(function (info) {
+			browser.runtime.getPlatformInfo().then(function(info) {
 				switch (info.os) {
 					case 'mac':
 					case 'win':
@@ -175,7 +182,7 @@ var Zotero = window.Zotero = new function() {
 			// IE and the likes? Who knows
 			this.platform = 'win';
 		}
-		
+
 		// Add browser version info
 		if (this.isFirefox) {
 			browser.runtime.getBrowserInfo().then(info => {
@@ -184,11 +191,19 @@ var Zotero = window.Zotero = new function() {
 			});
 		}
 
-		await Zotero.Prefs.init();
-		
-		Zotero.Debug.init();
 		Zotero.Messaging.init();
+		if (Zotero.isSafari) {
+			this.version = await Zotero.Connector_Browser.getExtensionVersion();
+			window.safari = {
+				extension: {
+					baseURI: await Zotero.Messaging.sendMessage('Swift.getBaseURI')
+				}
+			};
+		}
 		Zotero.Connector_Types.init();
+		await Zotero.Prefs.init();
+
+		Zotero.Debug.init();
 		if (Zotero.isBrowserExt) {
 			Zotero.WebRequestIntercept.init();
 		}
@@ -198,10 +213,11 @@ var Zotero = window.Zotero = new function() {
 			Zotero.Proxies.init();
 		}
 		Zotero.initDeferred.resolve();
+		Zotero.initialized = true;
 
 		await Zotero.migrate();
 	};
-	
+
 	/**
 	 * Initializes Zotero services for injected pages and the inject side of the bookmarklet
 	 */
@@ -216,35 +232,48 @@ var Zotero = window.Zotero = new function() {
 		}
 		Zotero.Connector_Types.init();
 		Zotero.Prefs.loadNamespace(['translators.', 'downloadAssociatedFiles', 'automaticSnapshots',
-			'reportTranslationFailure', 'capitalizeTitles']);
+			'reportTranslationFailure', 'capitalizeTitles'
+		]);
 		await Zotero.Prefs.loadNamespace('debug');
-		
+
 		Zotero.Debug.init();
 		Zotero.initDeferred.resolve();
+		Zotero.initialized = true;
 	};
-	
-	
+
+
 	/**
 	 * Get versions, platform, etc.
 	 */
 	this.getSystemInfo = async function() {
-		var info = {
-			connector: "true",
-			version: this.version,
-			platform: navigator.platform,
-			locale: navigator.language,
-			userAgent: navigator.userAgent
-		};
-		
+		var info;
+		if (Zotero.isSafari && Zotero.isBackground) {
+			info = {
+				connector: "true",
+				version: this.version,
+				platform: "Safari App Extension",
+			};
+		} else {
+			info = {
+				connector: "true",
+				version: this.version,
+				platform: navigator.platform,
+				locale: navigator.language,
+				userAgent: navigator.userAgent
+			};
+		}
+
 		info.appName = Zotero.appName;
 		info.zoteroAvailable = !!(await Zotero.Connector.checkIsOnline());
-		
+
 		var str = '';
 		for (var key in info) {
 			str += key + ' => ' + info[key] + ', ';
 		}
 		if (Zotero.isBackground && Zotero.isChrome) {
-			let granted = await browser.permissions.contains({permissions: ['management']});
+			let granted = await browser.permissions.contains({
+				permissions: ['management']
+			});
 			if (granted) {
 				str += 'extensions => ';
 				let extensions = await browser.management.getAll();
@@ -257,43 +286,43 @@ var Zotero = window.Zotero = new function() {
 		str = str.substr(0, str.length - 2);
 		return str;
 	};
-	
+
 	/**
 	 * Writes a line to the debug console
 	 */
 	this.debug = function(message, level) {
 		Zotero.Debug.log(message, level);
 	};
-	
+
 	this.logError = function(err) {
-		if(!window.console) return;
-		
+		if (!window.console) return;
+
 		// Firefox uses this
 		var fileName = (err.fileName ? err.fileName : null);
 		var lineNumber = (err.lineNumber ? err.lineNumber : null);
-		
+
 		// Safari uses this
-		if(!fileName && err.sourceURL) fileName = err.sourceURL;
-		if(!lineNumber && err.line) lineNumber = err.line;
-		
+		if (!fileName && err.sourceURL) fileName = err.sourceURL;
+		if (!lineNumber && err.line) lineNumber = err.line;
+
 		// Chrome only gives a stack
-		if(!fileName && !lineNumber && err.stack) {
+		if (!fileName && !lineNumber && err.stack) {
 			const stackRe = /^\s+at (?:[^(\n]* \()?([^\n]*):([0-9]+):([0-9]+)\)?$/m;
 			var m = stackRe.exec(err.stack);
-			if(m) {
+			if (m) {
 				fileName = m[1];
 				lineNumber = m[2];
 			}
 		}
-		
-		if(!fileName && !lineNumber && Zotero.isIE && typeof err === "object") {
+
+		if (!fileName && !lineNumber && Zotero.isIE && typeof err === "object") {
 			// IE can give us a line number if we re-throw the exception, but we wrap this in a
 			// setTimeout call so that we won't throw in the middle of a function
 			window.setTimeout(function() {
 				window.onerror = function(errmsg, fileName, lineNumber) {
 					try {
 						Zotero.Errors.log("message" in err ? err.message : err.toString(), fileName, lineNumber);
-					} catch(e) {};
+					} catch (e) {};
 					return true;
 				};
 				throw err;
@@ -301,13 +330,13 @@ var Zotero = window.Zotero = new function() {
 			}, 0);
 			return;
 		}
-		
-		if(fileName && lineNumber) {
-			console.error(err+" at "+fileName+":"+lineNumber);
+
+		if (fileName && lineNumber) {
+			console.error(err + " at " + fileName + ":" + lineNumber);
 		} else {
 			console.error(err);
 		}
-		
+
 		if (err.stack) {
 			if (!Zotero.isChrome) {
 				Zotero.Errors.log(err.message + '\n' + err.stack);
@@ -318,7 +347,7 @@ var Zotero = window.Zotero = new function() {
 			Zotero.Errors.log(err.message ? err.message : err.toString(), fileName, lineNumber);
 		}
 	};
-	
+
 	this.getString = function() {
 		return Zotero.i18n.getString(...arguments);
 	};
@@ -345,7 +374,7 @@ Zotero.Prefs = new function() {
 		"firstSaveToServer": true,
 		"reportTranslationFailure": true,
 		"translatorMetadata": [],
-		
+
 		"proxies.transparent": true,
 		"proxies.autoRecognize": true,
 		"proxies.showRedirectNotification": true,
@@ -353,23 +382,33 @@ Zotero.Prefs = new function() {
 		"proxies.disableByDomainString": '.edu',
 		"proxies.proxies": [],
 		"proxies.clientChecked": false,
-		
+
 		"integration.googleDocs.enabled": true,
-		
-		"shortcuts.cite": {ctrlKey: true, altKey: true, key: 'c'}
+
+		"shortcuts.cite": {
+			ctrlKey: true,
+			altKey: true,
+			key: 'c'
+		}
 	};
 
 	if (Zotero.isMac) {
-		DEFAULTS['shortcuts.cite'] = {metaKey: true, ctrlKey: true, key: 'c'}
+		DEFAULTS['shortcuts.cite'] = {
+			metaKey: true,
+			ctrlKey: true,
+			key: 'c'
+		}
 	}
-	
+
 	this.syncStorage = {};
 
 	/**
 	 * Should override per browser and load data into this.syncStorage
 	 */
-	this.init = function() {throw new Error("Prefs initialization not overriden");};
-	
+	this.init = function() {
+		throw new Error("Prefs initialization not overriden");
+	};
+
 	this.get = function(pref) {
 		try {
 			if (!(pref in this.syncStorage)) throw new Error(`Prefs.get: ${pref} not preloaded`);
@@ -377,31 +416,31 @@ Zotero.Prefs = new function() {
 		} catch (e) {
 			if (DEFAULTS.hasOwnProperty(pref)) return DEFAULTS[pref];
 			if (Zotero.isBackground) {
-				throw new Error("Zotero.Prefs: Invalid preference "+pref);
+				throw new Error("Zotero.Prefs: Invalid preference " + pref);
 			} else {
 				throw e;
 			}
 		}
 	};
-	
+
 	this.getAll = function() {
 		let prefs = Object.assign({}, DEFAULTS, this.syncStorage);
 		delete prefs['translatorMetadata'];
 		return Zotero.Promise.resolve(prefs);
 	};
-	
+
 	this.getAsync = function(pref) {
 		return new Zotero.Promise(function(resolve, reject) {
 			try {
 				if (typeof pref === "object") {
 					var prefData = {};
-					for(var i=0; i<pref.length; i++) {
+					for (var i = 0; i < pref.length; i++) {
 						prefData[pref[i]] = Zotero.Prefs.get(pref[i]);
 					}
 					resolve(prefData);
 				} else {
 					resolve(Zotero.Prefs.get(pref));
-				}	
+				}
 			} catch (e) {
 				reject(e);
 			}
@@ -416,7 +455,7 @@ Zotero.Prefs = new function() {
 	 */
 	this.loadNamespace = function(namespaces) {
 		if (Zotero.isBackground) throw new Error('trying to load namespace in background. all prefs are available via the sync API');
-		if (! Array.isArray(namespaces)) namespaces = [namespaces];
+		if (!Array.isArray(namespaces)) namespaces = [namespaces];
 		return this.getAll().then(function(prefs) {
 			let keys = Object.keys(prefs);
 			for (let namespace of namespaces) {
@@ -432,7 +471,7 @@ Zotero.Prefs = new function() {
 	 * @param value
 	 */
 	this.set = function(pref, value) {
-		Zotero.debug("Setting "+pref+" to "+JSON.stringify(value));
+		Zotero.debug("Setting " + pref + " to " + JSON.stringify(value).substr(0, 100));
 		this.syncStorage[pref] = value;
 	};
 
