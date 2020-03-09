@@ -52,7 +52,6 @@ Zotero.Sync.Storage.Mode.WebDAV.prototype = {
 		Zotero.Prefs.set("sync.storage.verified", !!val)
 	},
 	
-	_initialized: false,
 	_parentURI: null,
 	_rootURI: null,	
 	_cachedCredentials: false,
@@ -205,6 +204,7 @@ Zotero.Sync.Storage.Mode.WebDAV.prototype = {
 		var io = Services.io;
 		this._parentURI = io.newURI(url, null, null);
 		this._rootURI = io.newURI(url + "zotero/", null, null);
+		Zotero.HTTP.CookieBlocker.addURL(this._rootURI.spec);
 	},
 	
 	
@@ -242,6 +242,10 @@ Zotero.Sync.Storage.Mode.WebDAV.prototype = {
 	
 	
 	clearCachedCredentials: function() {
+		Zotero.debug("WebDAV: Clearing cached credentials");
+		if (this._rootURI) {
+			Zotero.HTTP.CookieBlocker.removeURL(this._rootURI.spec);
+		}
 		this._rootURI = this._parentURI = undefined;
 		this._cachedCredentials = false;
 	},
@@ -753,9 +757,6 @@ Zotero.Sync.Storage.Mode.WebDAV.prototype = {
 		var promptService =
 			Components.classes["@mozilla.org/embedcomp/prompt-service;1"].
 				createInstance(Components.interfaces.nsIPromptService);
-		if (err.url) {
-			var spec = err.url.scheme + '://' + err.url.hostPort + err.url.pathQueryRef;
-		}
 		
 		var errorTitle, errorMsg;
 		
@@ -791,6 +792,10 @@ Zotero.Sync.Storage.Mode.WebDAV.prototype = {
 			}
 		}
 		else if (err instanceof this.VerificationError) {
+			let spec;
+			if (err.uri) {
+				spec = err.uri.scheme + '://' + err.uri.hostPort + err.uri.pathQueryRef;
+			}
 			switch (err.error) {
 				case "NO_URL":
 					errorMsg = Zotero.getString('sync.storage.error.webdav.enterURL');
@@ -810,7 +815,7 @@ Zotero.Sync.Storage.Mode.WebDAV.prototype = {
 				
 				case "PARENT_DIR_NOT_FOUND":
 					errorTitle = Zotero.getString('sync.storage.error.directoryNotFound');
-					var parentSpec = spec.replace(/\/zotero\/$/, "");
+					var parentSpec = spec.replace(/zotero\/$/, "");
 					errorMsg = Zotero.getString('sync.storage.error.doesNotExist', parentSpec);
 					break;
 				

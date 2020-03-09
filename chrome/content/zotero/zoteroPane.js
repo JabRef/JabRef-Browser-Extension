@@ -1190,8 +1190,17 @@ var ZoteroPane = new function()
 				Zotero.Prefs.clear('lastViewedFolder');
 				ZoteroPane_Local.displayErrorMessage();
 			};
-			this.itemsView.onRefresh.addListener(() => this.setTagScope());
-			this.itemsView.onLoad.addListener(() => Zotero.uiIsReady());
+			this.itemsView.onRefresh.addListener(() => {
+				this.setTagScope();
+			});
+			this.itemsView.onLoad.addListener(() => {
+				// Show error if items list couldn't loaded (e.g., bad search), as set in
+				// Zotero.CollectionTreeRow::getSearchResults()
+				if (Zotero.CollectionTreeCache.error) {
+					this.setItemsPaneMessage(Zotero.getString('pane.items.loadError'));
+				}
+				Zotero.uiIsReady();
+			});
 			
 			// If item data not yet loaded for library, load it now.
 			// Other data types are loaded at startup
@@ -1641,7 +1650,7 @@ var ZoteroPane = new function()
 			itemIDs.push(items[i].id);
 		}
 		
-		yield Zotero.Fulltext.indexItems(itemIDs, true);
+		yield Zotero.FullText.indexItems(itemIDs, { complete: true });
 		yield document.getElementById('zotero-attachment-box').updateItemIndexedState();
 	});
 	
@@ -2422,7 +2431,7 @@ var ZoteroPane = new function()
 		},
 		{
 			id: "loadReport",
-			oncommand: event => Zotero_Report_Interface.loadCollectionReport(event)
+			oncommand: () => Zotero_Report_Interface.loadCollectionReport()
 		},
 		{
 			id: "emptyTrash",
@@ -3270,8 +3279,8 @@ var ZoteroPane = new function()
 				return;
 			}
 			
-			if(uri.match(/^https?/)) {
-				this.launchURL(uri);
+			if (uri.match(/^(chrome|resource):/)) {
+				Zotero.openInViewer(uri);
 				continue;
 			}
 			
@@ -3287,7 +3296,7 @@ var ZoteroPane = new function()
 				}
 			}
 			
-			Zotero.openInViewer(uri);
+			Zotero.launchURL(uri);
 		}
 	}
 	
@@ -4004,6 +4013,8 @@ var ZoteroPane = new function()
 				throw new Error("Item " + itemID + " is not an attachment");
 			}
 			
+			Zotero.debug("Viewing attachment " + item.libraryKey);
+			
 			if (item.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_URL) {
 				this.loadURI(item.getField('url'), event);
 				continue;
@@ -4078,15 +4089,29 @@ var ZoteroPane = new function()
 				}
 			}
 			
-			if (fileExists) {
+			let fileSyncingEnabled = Zotero.Sync.Storage.Local.getEnabledForLibrary(item.libraryID);
+			let redownload = false;
+			
+			// TEMP: If file is queued for download, download first. Starting in 5.0.85, files
+			// modified remotely get marked as SYNC_STATE_FORCE_DOWNLOAD, causing them to get
+			// downloaded at sync time even in download-as-needed mode, but this causes files
+			// modified previously to be downloaded on open.
+			if (fileExists
+					&& !isLinkedFile
+					&& fileSyncingEnabled
+					&& (item.attachmentSyncState == Zotero.Sync.Storage.Local.SYNC_STATE_TO_DOWNLOAD)) {
+				Zotero.debug("File exists but is queued for download -- re-downloading");
+				redownload = true;
+			}
+			
+			if (fileExists && !redownload) {
 				Zotero.debug("Opening " + path);
 				Zotero.Notifier.trigger('open', 'file', item.id);
-				
 				launchFile(path, item.attachmentContentType);
 				continue;
 			}
 			
-			if (isLinkedFile || !Zotero.Sync.Storage.Local.getEnabledForLibrary(item.libraryID)) {
+			if (isLinkedFile || !fileSyncingEnabled) {
 				this.showAttachmentNotFoundDialog(
 					itemID,
 					path,
@@ -4100,7 +4125,10 @@ var ZoteroPane = new function()
 			}
 			
 			try {
-				await Zotero.Sync.Runner.downloadFile(item);
+				let results = await Zotero.Sync.Runner.downloadFile(item);
+				if (!results || !results.localChanges) {
+					Zotero.debug("Download failed -- opening existing file");
+				}
 			}
 			catch (e) {
 				// TODO: show error somewhere else
@@ -4121,12 +4149,11 @@ var ZoteroPane = new function()
 				return;
 			}
 			
-			// check if unchanged?
-			// maybe not necessary, since we'll get an error if there's an error
-			
 			Zotero.Notifier.trigger('redraw', 'item', []);
-			// Retry after download
-			i--;
+			
+			Zotero.debug("Opening " + path);
+			Zotero.Notifier.trigger('open', 'file', item.id);
+			launchFile(path, item.attachmentContentType);
 		}
 	});
 	
@@ -4926,7 +4953,8 @@ var ZoteroPane = new function()
 				// people close them by accident and don't know how to get them back
 				// TODO: Add a hidden pref to allow them to stay closed if people really want that?
 				if ((el.id == 'zotero-collections-splitter' || el.id == 'zotero-items-splitter')
-						&& attr == 'state') {
+						&& attr == 'state'
+						&& Zotero.Prefs.get('reopenPanesOnRestart')) {
 					continue;
 				}
 				el.setAttribute(attr, elValues[attr]);

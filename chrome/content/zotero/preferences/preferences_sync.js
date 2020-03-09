@@ -29,6 +29,9 @@ Components.utils.import("resource://gre/modules/osfile.jsm");
 Components.utils.import("resource://zotero/config.js");
 
 Zotero_Preferences.Sync = {
+	checkmarkChar: '\u2705',
+	noChar: '\uD83D\uDEAB',
+	
 	init: Zotero.Promise.coroutine(function* () {
 		this.updateStorageSettingsUI();
 		this.updateStorageSettingsGroupsUI();
@@ -273,6 +276,8 @@ Zotero_Preferences.Sync = {
 		Zotero.Prefs.set('sync.librariesToSkip', JSON.stringify(librariesToSkip));
 		 
 		var cell = row.firstChild.firstChild;
+		var spacing = Zotero.isWin ? '  ' : '   ';
+		cell.setAttribute('label', spacing + (indexOfId != -1 ? this.checkmarkChar : this.noChar));
 		cell.setAttribute('value', indexOfId != -1);
 	},
 	
@@ -284,7 +289,7 @@ Zotero_Preferences.Sync = {
 			treechildren.removeChild(treechildren.firstChild);
 		}
 		
-		function addRow(libraryName, id, checked=false, editable=true) {
+		var addRow = function (libraryName, id, checked=false, editable=true) {
 			var treeitem = document.createElement('treeitem');
 			var treerow = document.createElement('treerow');
 			var checkboxCell = document.createElement('treecell');
@@ -293,14 +298,19 @@ Zotero_Preferences.Sync = {
 			nameCell.setAttribute('label', libraryName);
 			nameCell.setAttribute('value', id);
 			nameCell.setAttribute('editable', false);
+			var spacing = Zotero.isWin ? '  ' : '   ';
+			checkboxCell.setAttribute(
+				'label',
+				id == 'loading' ? '' : (spacing + (checked ? this.checkmarkChar : this.noChar))
+			);
 			checkboxCell.setAttribute('value', checked);
-			checkboxCell.setAttribute('editable', editable);
+			checkboxCell.setAttribute('editable', false);
 			
 			treerow.appendChild(checkboxCell);
 			treerow.appendChild(nameCell);
 			treeitem.appendChild(treerow);
 			treechildren.appendChild(treeitem);
-		}
+		}.bind(this);
 		
 		// Add loading row while we're loading a group list
 		var loadingLabel = Zotero.getString("zotero.preferences.sync.librariesToSync.loadingLibraries");
@@ -422,11 +432,15 @@ Zotero_Preferences.Sync = {
 		
 		if (oldProtocol == 'webdav') {
 			this.unverifyStorageServer();
+			// The controller is getting replaced anyway, but this removes the WebDAV URL from
+			// Zotero.HTTP.CookieBlocker
+			Zotero.Sync.Runner.getStorageController('webdav').clearCachedCredentials();
 			Zotero.Sync.Runner.resetStorageController(oldProtocol);
 			
 			var username = document.getElementById('storage-username').value;
 			var password = document.getElementById('storage-password').value;
 			if (username) {
+				// Get a new controller
 				Zotero.Sync.Runner.getStorageController('webdav').password = password;
 			}
 		}

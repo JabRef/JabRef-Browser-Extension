@@ -361,18 +361,6 @@ Zotero.Utilities.Internal = {
 	
 	
 	/**
-	 * Unicode normalization
-	 */
-	"normalize":function(str) {
-		var normalizer = Components.classes["@mozilla.org/intl/unicodenormalizer;1"]
-							.getService(Components.interfaces.nsIUnicodeNormalizer);
-		var obj = {};
-		str = normalizer.NormalizeUnicodeNFC(str, obj);
-		return obj.value;
-	},
-	
-	
-	/**
 	 * Return the byte length of a UTF-8 string
 	 *
 	 * http://stackoverflow.com/a/23329386
@@ -410,7 +398,9 @@ Zotero.Utilities.Internal = {
 		if (typeof buttonText == 'undefined') {
 			buttonText = Zotero.getString('errorReport.reportError');
 			buttonCallback = function () {
-				win.ZoteroPane.reportErrors();
+				var zp = Zotero.getActiveZoteroPane();
+				// TODO: Open main window if closed
+				if (zp) zp.reportErrors();
 			}
 		}
 		// If secondary button is explicitly null, just use an alert
@@ -443,8 +433,9 @@ Zotero.Utilities.Internal = {
 	 * @param {nsIURI} uri URL
 	 * @param {nsIFile|string path} target file
 	 * @param {Object} [headers]
+	 * @param {Zotero.CookieSandbox} [cookieSandbox]
 	 */
-	saveURI: function (wbp, uri, target, headers) {
+	saveURI: function (wbp, uri, target, headers, cookieSandbox) {
 		// Handle gzip encoding
 		wbp.persistFlags |= wbp.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
 		// If not explicitly using cache, skip it
@@ -460,6 +451,11 @@ Zotero.Utilities.Internal = {
 		
 		if (headers) {
 			headers = Object.keys(headers).map(x => x + ": " + headers[x]).join("\r\n") + "\r\n";
+		}
+		
+		// Untested
+		if (cookieSandbox) {
+			cookieSandbox.attachToInterfaceRequestor(wbp.progressListener);
 		}
 		
 		wbp.saveURI(uri, null, null, null, null, headers, target, null);
@@ -976,7 +972,9 @@ Zotero.Utilities.Internal = {
 			for (let cslVar in map) {
 				let normalized = this._normalizeExtraKey(cslVar);
 				let existing = fieldNames.get(normalized) || [];
-				fieldNames.set(normalized, new Set([...existing, ...map[cslVar]]));
+				// Text fields are one-to-many; date fields are one-to-one
+				let additional = Array.isArray(map[cslVar]) ? map[cslVar] : [map[cslVar]];
+				fieldNames.set(normalized, new Set([...existing, ...additional]));
 			}
 		}
 		
@@ -1054,7 +1052,7 @@ Zotero.Utilities.Internal = {
 			}
 			
 			let possibleCreatorType = creatorTypes.get(key);
-			if (possibleCreatorType) {
+			if (possibleCreatorType && !additionalFields.has('creators')) {
 				let c = {
 					creatorType: possibleCreatorType
 				};
@@ -1135,7 +1133,7 @@ Zotero.Utilities.Internal = {
 			}
 		}
 		var fieldPairs = Array.from(fields.entries())
-			.map(x => x[0] + ': ' + x[1]);
+			.map(x => this.camelToTitleCase(x[0]) + ': ' + x[1]);
 		fieldPairs.sort();
 		return fieldPairs.join('\n')
 			+ ((fieldPairs.length && keepLines.length) ? "\n" : "")
@@ -1382,6 +1380,12 @@ Zotero.Utilities.Internal = {
 		parts.push(isbn.charAt(isbn.length-1)); // Check digit
 		
 		return parts.join('-');
+	},
+	
+	
+	camelToTitleCase: function (str) {
+		str = str.replace(/([a-z])([A-Z])/g, "$1 $2");
+		return str.charAt(0).toUpperCase() + str.slice(1);
 	},
 	
 	
