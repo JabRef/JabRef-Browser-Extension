@@ -139,6 +139,8 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		onTranslators.apply(null, message[1]);
 	} else if (message[0] == 'Debug.log') {
 		console.log(message[1]);
+	} else if (message[0] == 'Errors.log') {
+		console.log(message[1]);
 	} else {
 		console.log("JabRef: other message in background.js: %o", JSON.parse(JSON.stringify(message)));
 	}
