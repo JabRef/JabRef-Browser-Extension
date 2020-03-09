@@ -616,6 +616,15 @@ Zotero.Translate.Sandbox = {
 					item.libraryCatalog = translate.translator[0].label;
 				}
 
+				// Remove library catalog if not valid for type, so it doesn't get saved to Extra
+				if (item.libraryCatalog) {
+					let itemTypeID = Zotero.ItemTypes.getID(item.itemType);
+					let fieldID = Zotero.ItemFields.getID('libraryCatalog');
+					if (!Zotero.ItemFields.isValidForType(fieldID, itemTypeID)) {
+						delete item.libraryCatalog;
+					}
+				}
+
 				// automatically set access date if URL is set
 				if (item.url && typeof item.accessDate == 'undefined') {
 					item.accessDate = Zotero.Date.dateToISO(new Date());

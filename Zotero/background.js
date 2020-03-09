@@ -133,7 +133,7 @@ Zotero.Connector_Browser = new function() {
 	/**
 	 * Called when a tab is removed or the URL has changed
 	 */
-	this.onPageLoad = function(tab) {
+	this.onPageLoad = function(url, tab) {
 		if (tab) _clearInfoForTab(tab.id);
 	}
 
