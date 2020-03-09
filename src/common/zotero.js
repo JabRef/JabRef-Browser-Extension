@@ -28,29 +28,37 @@ var Zotero = window.Zotero = new function() {
 	this.isConnector = true;
 	this.isFx = false;
 	
+	this.initialized = false;
 	this.initDeferred = {};
 	this.initDeferred.promise = new Promise(function(resolve, reject) {
 		this.initDeferred.resolve = resolve;
 		this.initDeferred.reject = reject;
 	}.bind(this));
+	
+	// Safari  global page detection
+	if (typeof globalThis != "undefined" && typeof browser == "undefined") {
+		this.isSafari = true;
+		this.isMac = true;
+	}
+	else {
+		// Browser check adopted from:
+		// http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
+		// Firefox 1.0+
+		this.isFirefox = typeof InstallTrigger !== 'undefined';
+		// Internet Explorer 6-11
+		this.isIE = /*@cc_on!@*/false || !!document.documentMode;
+		// Edge 20+
+		this.isEdge = !this.isIE && !!window.StyleMedia;
+		// Chrome and Chromium
+		this.isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1 || window.navigator.userAgent.indexOf("Chromium") !== -1;
+		// At least Safari 10+
+		this.isSafari = window.navigator.userAgent.includes("Safari") && !this.isChrome;
+		this.isBrowserExt = this.isFirefox || this.isEdge || this.isChrome;
 
-	// Browser check adopted from:
-	// http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
-	// Firefox 1.0+
-	this.isFirefox = typeof InstallTrigger !== 'undefined';
-	// Internet Explorer 6-11
-	this.isIE = /*@cc_on!@*/false || !!document.documentMode;
-	// Edge 20+
-	this.isEdge = !this.isIE && !!window.StyleMedia;
-	// Chrome and Chromium
-	this.isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1 || window.navigator.userAgent.indexOf("Chromium") !== -1;
-	// At least Safari 10+
-	this.isSafari = window.navigator.userAgent.includes("Safari") && !this.isChrome;
-	this.isBrowserExt = this.isFirefox || this.isEdge || this.isChrome;
-
-	this.isMac = (window.navigator.platform.substr(0, 3) == "Mac");
-	this.isWin = (window.navigator.platform.substr(0, 3) == "Win");
-	this.isLinux = (window.navigator.platform.substr(0, 5) == "Linux");
+		this.isMac = (window.navigator.platform.substr(0, 3) == "Mac");
+		this.isWin = (window.navigator.platform.substr(0, 3) == "Win");
+		this.isLinux = (window.navigator.platform.substr(0, 5) == "Linux");
+	}
 
 	if (this.isFirefox) {
 		this.browser = "g";
@@ -79,8 +87,6 @@ var Zotero = window.Zotero = new function() {
 		if (!this.isBookmarklet) {
 			if (this.isBrowserExt) {
 				this.version = browser.runtime.getManifest().version;
-			} else if (this.isSafari) {
-				this.version = safari.extension.bundleVersion;
 			}
 		}
 	});
@@ -184,11 +190,15 @@ var Zotero = window.Zotero = new function() {
 			});
 		}
 
+		Zotero.Messaging.init();
+		if (Zotero.isSafari) {
+			this.version = await Zotero.Connector_Browser.getExtensionVersion();
+			window.safari = {extension: {baseURI: await Zotero.Messaging.sendMessage('Swift.getBaseURI')}};
+		}
+		Zotero.Connector_Types.init();
 		await Zotero.Prefs.init();
 		
 		Zotero.Debug.init();
-		Zotero.Messaging.init();
-		Zotero.Connector_Types.init();
 		if (Zotero.isBrowserExt) {
 			Zotero.WebRequestIntercept.init();
 		}
@@ -198,6 +208,7 @@ var Zotero = window.Zotero = new function() {
 			Zotero.Proxies.init();
 		}
 		Zotero.initDeferred.resolve();
+		Zotero.initialized = true;
 
 		await Zotero.migrate();
 	};
@@ -221,6 +232,7 @@ var Zotero = window.Zotero = new function() {
 		
 		Zotero.Debug.init();
 		Zotero.initDeferred.resolve();
+		Zotero.initialized = true;
 	};
 	
 	
@@ -228,13 +240,22 @@ var Zotero = window.Zotero = new function() {
 	 * Get versions, platform, etc.
 	 */
 	this.getSystemInfo = async function() {
-		var info = {
-			connector: "true",
-			version: this.version,
-			platform: navigator.platform,
-			locale: navigator.language,
-			userAgent: navigator.userAgent
-		};
+		var info;
+		if (Zotero.isSafari && Zotero.isBackground) {
+			info = {
+				connector: "true",
+				version: this.version,
+				platform: "Safari App Extension",
+			};
+		} else {
+			info = {
+				connector: "true",
+				version: this.version,
+				platform: navigator.platform,
+				locale: navigator.language,
+				userAgent: navigator.userAgent
+			};
+		}
 		
 		info.appName = Zotero.appName;
 		info.zoteroAvailable = !!(await Zotero.Connector.checkIsOnline());
@@ -432,7 +453,7 @@ Zotero.Prefs = new function() {
 	 * @param value
 	 */
 	this.set = function(pref, value) {
-		Zotero.debug("Setting "+pref+" to "+JSON.stringify(value));
+		Zotero.debug("Setting "+pref+" to "+JSON.stringify(value).substr(0, 100));
 		this.syncStorage[pref] = value;
 	};
 
