@@ -13,7 +13,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 ## Installation and Configuration
 
 ### Windows
-1. Make sure you have at least [JabRef 4.2](https://www.jabref.org/#downloads) installed.
+1. Make sure you have at least [JabRef 5.0](https://www.jabref.org/#downloads) installed.
 2. Install the JabRef browser extension: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github),  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
 3. On Windows 7, please [upgrade Powershell](https://www.microsoft.com/en-us/download/details.aspx?id=54616).
 <details>
@@ -40,7 +40,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 
 
 ### Linux
-1. Download and install the Debian package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
+1. Download and install the Debian package of [JabRef 5.0](https://www.jabref.org/#downloads).
 2. Install the JabRef browser extension: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github),  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
 <details>
 <summary>Manual installation on Linux (only necessary when you don't use the `deb` file to install/update JabRef)</summary>
@@ -51,7 +51,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 </details>
 
 ### Mac OS
-1. Download and install the DMG package of the [current development version of JabRef 5.0](https://builds.jabref.org/master/).
+1. Download and install the DMG package of [JabRef 5.0](https://www.jabref.org/#downloads).
 2. Install the JabRef browser extension: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github),  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
 3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json) and put it into
    - `/Library/Application Support/Mozilla/NativeMessagingHosts/org.jabref.jabref.json` to install with admin rights for all users
