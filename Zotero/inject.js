@@ -126,21 +126,21 @@ Zotero.Inject = new function() {
 				// If the handler returns a non-undefined value then it is passed
 				// back to the callback due to backwards compat code in translate.js
 				(async function() {
-					try {
-						let response = await Zotero.Connector.callMethod("getSelectedCollection", {});
-						if (response.libraryEditable === false) {
-							return callback([]);
-						}
-					} catch (e) {
-						// Zotero is online but an error occured anyway, so let's log it and display
-						// the dialog just in case
-						if (e.status != 0) {
-							Zotero.logError(e);
-						}
-					}
-
 					// We don't want to show a select dialog -> always choose all items
 					/*
+     try {
+     	let response = await Zotero.Connector.callMethod("getSelectedCollection", {});
+     	if (response.libraryEditable === false) {
+     		return callback([]);
+     	}
+     } catch (e) {
+     	// Zotero is online but an error occured anyway, so let's log it and display
+     	// the dialog just in case
+     	if (e.status != 0) {
+     		Zotero.logError(e);
+     	}
+     }
+     
      if (Zotero.isBrowserExt) {
      	var returnItems = await Zotero.Connector_Browser.onSelect(items);
      } else {
@@ -335,21 +335,26 @@ Zotero.Inject = new function() {
 		// Pretend that zotero is online
 		return true;
 
-		var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([Zotero.Prefs.getAsync('firstSaveToServer'), Zotero.Connector.checkIsOnline()]);
-		if (zoteroIsOnline || !firstSaveToServer) {
-			return true;
-		}
-		var result = await this.firstSaveToServerPrompt();
-		if (result == 'server') {
-			Zotero.Prefs.set('firstSaveToServer', false);
-			return true;
-		} else if (result == 'retry') {
-			// If we perform the retry immediately and Zotero is still unavailable the prompt returns instantly
-			// making the user interaction confusing so we wait a bit first
-			await Zotero.Promise.delay(500);
-			return this.checkActionToServer();
-		}
-		return false;
+		/*
+  var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([
+  	Zotero.Prefs.getAsync('firstSaveToServer'), 
+  	Zotero.Connector.checkIsOnline()
+  ]);
+  if (zoteroIsOnline || !firstSaveToServer) {
+  	return true;
+  }
+  var result = await this.firstSaveToServerPrompt();
+  if (result == 'server') {
+  	Zotero.Prefs.set('firstSaveToServer', false);
+  	return true;
+  } else if (result == 'retry') {
+  	// If we perform the retry immediately and Zotero is still unavailable the prompt returns instantly
+  	// making the user interaction confusing so we wait a bit first
+  	await Zotero.Promise.delay(500);
+  	return this.checkActionToServer();
+  }
+  return false;
+  */
 	};
 
 	this.translate = async function(translatorID, options = {}) {

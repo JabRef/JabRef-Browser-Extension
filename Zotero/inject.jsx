@@ -124,6 +124,8 @@ Zotero.Inject = new function() {
 				// If the handler returns a non-undefined value then it is passed
 				// back to the callback due to backwards compat code in translate.js
 				(async function() {
+					// We don't want to show a select dialog -> always choose all items
+					/*
 					try {
 						let response = await Zotero.Connector.callMethod("getSelectedCollection", {});
 						if (response.libraryEditable === false) {
@@ -137,8 +139,6 @@ Zotero.Inject = new function() {
 						}
 					}
 					
-					// We don't want to show a select dialog -> always choose all items
-					/*
 					if (Zotero.isBrowserExt) {
 						var returnItems = await Zotero.Connector_Browser.onSelect(items);
 					} else {
@@ -367,6 +367,7 @@ Zotero.Inject = new function() {
 		// Pretend that zotero is online
 		return true;
 
+		/*
 		var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([
 			Zotero.Prefs.getAsync('firstSaveToServer'), 
 			Zotero.Connector.checkIsOnline()
@@ -385,6 +386,7 @@ Zotero.Inject = new function() {
 			return this.checkActionToServer();
 		}
 		return false;
+		*/
 	};
 	
 	this.translate = async function(translatorID, options={}) {
