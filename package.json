@@ -60,8 +60,7 @@
     "url": "https://github.com/JabRef/JabRef-Browser-Extension/issues"
   },
   "homepage": "https://github.com/JabRef/JabRef-Browser-Extension#readme",
-  "version": "1.0.0",
   "main": "background.js",
-  "keywords": [],
-  "author": ""
+  "keywords": ["bibliographic information extraction", "collect references", "JabRef", "reference management"],
+  "author": "JabRef"
 }
