@@ -22,7 +22,6 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		document.getElementById("itemIncomplete").style.display = "block";
 	} else if (message.onGoogleScholarCaptcha) {
 		document.getElementById("googleScholarCaptchaLink").href = message.onGoogleScholarCaptcha;
-		//document.getElementById("googleScholarCaptchaLink").innerHTML = message.onGoogleScholarCaptcha;
 		document.getElementById("googleScholarCaptcha").style.display = "block";
 	} else if (message.tooManyRequests) {
 		document.getElementById("tooManyRequests").style.display = "block";

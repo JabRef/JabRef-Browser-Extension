@@ -11,9 +11,9 @@ Zotero.Connector = new function() {
 					globalSettings.exportMode = configuration.exportMode || 2;
 					globalSettings.takeSnapshots = configuration.takeSnapshots || false;
 					globalSettings.retrieveCitationCounts = configuration.retrieveCitationCounts || false;
-					console.log("exportMode: " + globalSettings.exportMode);
-					console.log("takeSnapshots: " + globalSettings.takeSnapshots);
-					console.log("retrieveCitationCounts: " + globalSettings.retrieveCitationCounts);
+					console.debug("exportMode: " + globalSettings.exportMode);
+					console.debug("takeSnapshots: " + globalSettings.takeSnapshots);
+					console.debug("retrieveCitationCounts: " + globalSettings.retrieveCitationCounts);
 
 					if (globalSettings.retrieveCitationCounts) {
 						console.log("[scholar-citations] fetching citation counts...");
