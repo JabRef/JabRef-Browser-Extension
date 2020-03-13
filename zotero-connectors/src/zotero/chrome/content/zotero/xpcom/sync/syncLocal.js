@@ -391,7 +391,7 @@ Zotero.Sync.Data.Local = {
 		catch (e) {
 			Zotero.logError(e);
 			var msg = Zotero.getString('sync.error.loginManagerCorrupted1', Zotero.appName) + "\n\n"
-				+ Zotero.getString('sync.error.loginManagerCorrupted2', [Zotero.appName, Zotero.appName]);
+				+ Zotero.getString('sync.error.loginManagerCorrupted2', Zotero.appName);
 			var ps = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
 				.getService(Components.interfaces.nsIPromptService);
 			ps.alert(null, Zotero.getString('general.error'), msg);
@@ -542,7 +542,23 @@ Zotero.Sync.Data.Local = {
 		
 		// Sort descendent collections last
 		if (objectType == 'collection') {
-			ids = Zotero.Collections.sortByLevel(ids);
+			try {
+				ids = Zotero.Collections.sortByLevel(ids);
+			}
+			catch (e) {
+				Zotero.logError(e);
+				// If collections were incorrectly nested, fix and try again
+				if (e instanceof Zotero.Error && e.error == Zotero.Error.ERROR_INVALID_COLLECTION_NESTING) {
+					let c = Zotero.Collections.get(e.collectionID);
+					Zotero.debug(`Removing parent collection ${c.parentKey} from collection ${c.key}`);
+					c.parentID = null;
+					yield c.saveTx();
+					return this.getUnsynced(...arguments);
+				}
+				else {
+					throw e;
+				}
+			}
 		}
 		
 		return ids;
@@ -1113,8 +1129,9 @@ Zotero.Sync.Data.Local = {
 	 * Check whether an attachment's file mod time matches the given mod time, and mark the file
 	 * for download if not (or if this is a new attachment)
 	 */
-	_checkAttachmentForDownload: Zotero.Promise.coroutine(function* (item, mtime, isNewObject) {
-		var markToDownload = false;
+	_checkAttachmentForDownload: async function (item, mtime, isNewObject) {
+		var markToDownload = true;
+		var fileExists = false;
 		if (!isNewObject) {
 			// Convert previously used Unix timestamps to ms-based timestamps
 			if (mtime < 10000000000) {
@@ -1123,7 +1140,7 @@ Zotero.Sync.Data.Local = {
 			}
 			var fmtime = null;
 			try {
-				fmtime = yield item.attachmentModificationTime;
+				fmtime = await item.attachmentModificationTime;
 			}
 			catch (e) {
 				// This will probably fail later too, but ignore it for now
@@ -1131,21 +1148,20 @@ Zotero.Sync.Data.Local = {
 			}
 			if (fmtime) {
 				let state = Zotero.Sync.Storage.Local.checkFileModTime(item, fmtime, mtime);
-				if (state !== false) {
-					markToDownload = true;
+				if (state === false) {
+					markToDownload = false;
 				}
+				fileExists = true;
 			}
-			else {
-				markToDownload = true;
-			}
-		}
-		else {
-			markToDownload = true;
 		}
 		if (markToDownload) {
-			item.attachmentSyncState = "to_download";
+			// If file already exists locally, download it even in "as needed" mode. While we could
+			// just check whether a download is necessary at file open, these are files that people
+			// have previously downloaded, and avoiding opening an outdated version seems more
+			// important than avoiding a little bit of extra data transfer.
+			item.attachmentSyncState = fileExists ? "force_download" : "to_download";
 		}
-	}),
+	},
 	
 	
 	/**
@@ -1775,9 +1791,15 @@ Zotero.Sync.Data.Local = {
 	},
 	
 	
-	addObjectsToSyncQueue: Zotero.Promise.coroutine(function* (objectType, libraryID, keys) {
+	/**
+	 * @param {String} objectType
+	 * @param {Integer} libraryID
+	 * @param {String[]} keys
+	 * @param {Boolean} [tryImmediately=false] - Assign lastCheck of 0 so item is retried immediately
+	 */
+	addObjectsToSyncQueue: Zotero.Promise.coroutine(function* (objectType, libraryID, keys, tryImmediately) {
 		var syncObjectTypeID = Zotero.Sync.Data.Utilities.getSyncObjectTypeID(objectType);
-		var now = Zotero.Date.getUnixTimestamp();
+		var now = tryImmediately ? 0 : Zotero.Date.getUnixTimestamp();
 		
 		// Default to first try
 		var keyTries = {};

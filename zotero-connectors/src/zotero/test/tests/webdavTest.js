@@ -547,6 +547,129 @@ describe("Zotero.Sync.Storage.Mode.WebDAV", function () {
 			assert.isFalse(item.synced);
 		})
 		
+		
+		// As a security measure, Nextcloud sets a regular cookie and two SameSite cookies and
+		// throws a 503 if the regular cookie gets returned without the SameSite cookies.
+		// As of Fx60 (Zotero 5.0.78), which added SameSite support, SameSite cookies don't get
+		// returned properly (because we don't have a load context?), triggering the 503. To avoid
+		// this, we just don't store or send any cookies for WebDAV requests.
+		//
+		// https://forums.zotero.org/discussion/80429/sync-error-in-5-0-80
+		it("shouldn't send cookies", function* () {
+			// Make real requests so we can test the internal cookie-handling behavior
+			Zotero.HTTP.mock = null;
+			controller.verified = true;
+			var engine = yield setup();
+			
+			var library = Zotero.Libraries.userLibrary;
+			library.libraryVersion = 5;
+			yield library.saveTx();
+			library.storageDownloadNeeded = true;
+			
+			var fileName = "test.txt";
+			var item = new Zotero.Item("attachment");
+			item.attachmentLinkMode = 'imported_file';
+			item.attachmentPath = 'storage:' + fileName;
+			var text = Zotero.Utilities.randomString();
+			item.attachmentSyncState = "to_download";
+			yield item.saveTx();
+			
+			// Create ZIP file containing above text file
+			var tmpPath = Zotero.getTempDirectory().path;
+			var tmpID = "webdav_download_" + Zotero.Utilities.randomString();
+			var zipDirPath = OS.Path.join(tmpPath, tmpID);
+			var zipPath = OS.Path.join(tmpPath, tmpID + ".zip");
+			yield OS.File.makeDir(zipDirPath);
+			yield Zotero.File.putContentsAsync(OS.Path.join(zipDirPath, fileName), text);
+			yield Zotero.File.zipDirectory(zipDirPath, zipPath);
+			yield OS.File.removeDir(zipDirPath);
+			var zipContents = yield Zotero.File.getBinaryContentsAsync(zipPath);
+			
+			var mtime = "1441252524905";
+			var md5 = yield Zotero.Utilities.Internal.md5Async(zipPath);
+			
+			yield OS.File.remove(zipPath);
+			
+			// OPTIONS request to cache credentials
+			this.httpd.registerPathHandler(
+				`${davBasePath}zotero/`,
+				{
+					handle: function (request, response) {
+						if (request.method == 'OPTIONS') {
+							// Force Basic Auth
+							if (!request.hasHeader('Authorization')) {
+								response.setStatusLine(null, 401, null);
+								response.setHeader('WWW-Authenticate', 'Basic realm="WebDAV"', false);
+								return;
+							}
+							// Cookie shouldn't be passed
+							if (request.hasHeader('Cookie')) {
+								response.setStatusLine(null, 400, null);
+								return;
+							}
+							response.setHeader('Set-Cookie', 'foo=bar', false);
+							response.setHeader('DAV', '1', false);
+							response.setStatusLine(null, 200, "OK");
+						}
+					}
+				}
+			);
+			this.httpd.registerPathHandler(
+				`${davBasePath}zotero/${item.key}.prop`,
+				{
+					handle: function (request, response) {
+						if (request.method != 'GET') {
+							response.setStatusLine(null, 400, "Bad Request");
+							return;
+						}
+						// An XHR should already include Authorization
+						if (!request.hasHeader('Authorization')) {
+							response.setStatusLine(null, 400, null);
+							return;
+						}
+						// Cookie shouldn't be passed
+						if (request.hasHeader('Cookie')) {
+							response.setStatusLine(null, 400, null);
+							return;
+						}
+						// Set a cookie
+						response.setHeader('Set-Cookie', 'foo=bar', false);
+						response.setStatusLine(null, 200, "OK");
+						response.write('<properties version="1">'
+							+ `<mtime>${mtime}</mtime>`
+							+ `<hash>${md5}</hash>`
+							+ '</properties>');
+					}
+				}
+			);
+			this.httpd.registerPathHandler(
+				`${davBasePath}zotero/${item.key}.zip`,
+				{
+					handle: function (request, response) {
+						// Make sure the cookie isn't returned
+						if (request.hasHeader('Cookie')) {
+							response.setStatusLine(null, 503, "Service Unavailable");
+							return;
+						}
+						// In case nsIWebBrowserPersist doesn't use the cached Authorization
+						if (!request.hasHeader('Authorization')) {
+							response.setStatusLine(null, 401, null);
+							response.setHeader('Set-Cookie', 'foo=bar', false);
+							response.setHeader('WWW-Authenticate', 'Basic realm="WebDAV"', false);
+							return;
+						}
+						response.setStatusLine(null, 200, "OK");
+						response.write(zipContents);
+					}
+				}
+			);
+			
+			yield engine.start();
+			
+			assert.equal(library.storageVersion, library.libraryVersion);
+		});
+		
+		
 		it("should mark item as in conflict if mod time and hash on storage server don't match synced values", function* () {
 			var engine = yield setup();
 			
@@ -656,6 +779,64 @@ describe("Zotero.Sync.Storage.Mode.WebDAV", function () {
 			
 			win.close();
 		});
+		
+		
+		it("should show an error for a 404 for the parent directory", function* () {
+				// Use httpd.js instead of sinon so we get a real nsIURL with a channel
+			Zotero.HTTP.mock = null;
+			Zotero.Prefs.set("sync.storage.url", davHostPath);
+			
+			this.httpd.registerPathHandler(
+				`${davBasePath}zotero/`,
+				{
+					handle: function (request, response) {
+						// Force Basic Auth
+						if (!request.hasHeader('Authorization')) {
+							response.setStatusLine(null, 401, null);
+							response.setHeader('WWW-Authenticate', 'Basic realm="WebDAV"', false);
+							return;
+						}
+						response.setHeader('DAV', '1', false);
+						response.setStatusLine(null, 404, "Not Found");
+					}
+				}
+			);
+			this.httpd.registerPathHandler(
+				`${davBasePath}`,
+				{
+					handle: function (request, response) {
+						response.setHeader('DAV', '1', false);
+						if (request.method == 'PROPFIND') {
+							response.setStatusLine(null, 404, null);
+						}
+						/*else {
+							response.setStatusLine(null, 207, null);
+						}*/
+					}
+				}
+			);
+			
+			// Begin verify procedure
+			var win = yield loadPrefPane('sync');
+			var button = win.document.getElementById('storage-verify');
+			
+			var spy = sinon.spy(win.Zotero_Preferences.Sync, "verifyStorageServer");
+			var promise1 = waitForDialog(function (dialog) {
+				assert.include(
+					dialog.document.documentElement.textContent,
+					Zotero.getString('sync.storage.error.doesNotExist', davURL)
+				);
+			});
+			button.click();
+			yield promise1;
+			
+			var promise2 = spy.returnValues[0];
+			spy.restore();
+			yield promise2;
+			
+			win.close();
+		});
+		
 		
 		it("should show an error for a 200 for a nonexistent file", async function () {
 			Zotero.HTTP.mock = null;

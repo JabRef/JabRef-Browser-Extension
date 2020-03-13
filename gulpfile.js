@@ -58,6 +58,7 @@ gulp.task('copy-zotero-scripts', function() {
 		'./zotero-connectors/src/common/inject/translate_inject.js',
 		'./zotero-connectors/src/common/translate_item.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/translation/translator.js',
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/translation/tlds.js',
 		'./zotero-connectors/src/common/translators.js',
 		'./zotero-connectors/src/zotero/resource/schema/connectorTypeSchemaData.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/xregexp/addons/unicode/unicode-zotero.js',

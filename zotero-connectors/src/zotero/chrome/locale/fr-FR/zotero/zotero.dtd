@@ -53,7 +53,7 @@
 
 <!ENTITY zotero.toolbar.duplicate.label "Afficher les doublons">
 <!ENTITY zotero.collections.showUnfiledItems "Afficher les documents sans collection">
-<!ENTITY zotero.collections.showRetractedItems "Afficher les éléments retirés">
+<!ENTITY zotero.collections.showRetractedItems "Afficher les documents rétractés">
 
 <!ENTITY zotero.items.itemType "Type de document">
 <!ENTITY zotero.items.type_column "Type de document">
@@ -120,7 +120,7 @@
 <!ENTITY zotero.toolbar.import.label "Importer…">
 <!ENTITY zotero.toolbar.importFromClipboard "Importer depuis le presse-papiers">
 <!ENTITY zotero.toolbar.export.label "Exporter la bibliothèque…">
-<!ENTITY zotero.toolbar.rtfScan.label "Analyse d'un fichier RTF…">
+<!ENTITY zotero.toolbar.rtfScan.label "Analyse d'un fichier RTF">
 <!ENTITY zotero.toolbar.timeline.label "Créer une chronologie">
 <!ENTITY zotero.toolbar.preferences.label "Préférences…">
 <!ENTITY zotero.toolbar.supportAndDocumentation "Assistance et documentation">

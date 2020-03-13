@@ -28,6 +28,7 @@
 			"Zotero/repo.js",
 			"Zotero/translate.js",
 			"Zotero/translate_inject.js",
+			"Zotero/tlds.js",
 			"Zotero/translator.js",
 			"Zotero/translators.js",
 			"Zotero/connectorTypeSchemaData.js",

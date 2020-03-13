@@ -606,24 +606,14 @@ Zotero.Attachments = new function(){
 		var title = options.title;
 		var collections = options.collections;
 		
-		/* Throw error on invalid URLs
-		 We currently accept the following protocols:
-		 PersonalBrain (brain://)
-		 DevonThink (x-devonthink-item://)
-		 Notational Velocity (nv://)
-		 MyLife Organized (mlo://)
-		 Evernote (evernote://)
-		 OneNote (onenote://)
-		 Kindle (kindle://) 
-		 Logos (logosres:) 
-		 Bear (bear://)
-		 MarginNote (marginnoteapp://)
-		 Zotero (zotero://) */
-
-		var urlRe = /^((https?|zotero|evernote|onenote|brain|nv|mlo|kindle|x-devonthink-item|bear|marginnoteapp|ftp):\/\/|logosres:)[^\s]*$/;
-		var matches = urlRe.exec(url);
+		var schemeRE = /^([a-z][a-z0-9+.-]+):/;
+		var matches = url.match(schemeRE);
 		if (!matches) {
-			throw ("Invalid URL '" + url + "' in Zotero.Attachments.linkFromURL()");
+			throw new Error(`Invalid URL '${url}'`);
+		}
+		var scheme = matches[1];
+		if (['javascript', 'data', 'chrome', 'resource', 'mailto'].includes(scheme)) {
+			throw new Error(`Invalid scheme '${scheme}'`);
 		}
 		
 		// If no title provided, figure it out from the URL
@@ -1676,7 +1666,6 @@ Zotero.Attachments = new function(){
 			
 			// If URL wasn't available or failed, try to get a URL from a page
 			if (pageURL) {
-				addTriedURL(pageURL);
 				url = null;
 				let responseURL;
 				try {
@@ -1732,7 +1721,6 @@ Zotero.Attachments = new function(){
 								skip = true;
 								break;
 							}
-							addTriedURL(nextURL);
 							continue;
 						}
 						
@@ -1742,10 +1730,11 @@ Zotero.Attachments = new function(){
 							Zotero.debug("Redirected to " + responseURL);
 						}
 						
-						// If HTML, check for a meta redirect
 						contentType = req.getResponseHeader('Content-Type');
 						if (contentType.startsWith('text/html')) {
 							doc = await Zotero.Utilities.Internal.blobToHTMLDocument(blob, responseURL);
+							
+							// Check for a meta redirect on HTML pages
 							let refreshURL = Zotero.HTTP.getHTMLMetaRefreshURL(doc, responseURL);
 							if (refreshURL) {
 								if (isTriedURL(refreshURL)) {
@@ -1755,10 +1744,22 @@ Zotero.Attachments = new function(){
 								}
 								doc = null;
 								nextURL = refreshURL;
-								addTriedURL(nextURL);
 								continue;
 							}
 						}
+						
+						// Don't try this page URL again
+						//
+						// We only do this for URLs that don't redirect, since some sites seem to
+						// use redirects plus cookies for IP-based authentication [1]. The downside
+						// is that we might follow the same set of redirects more than once, but we
+						// won't process the final page multiple times, and if a publisher URL does
+						// redirect that's hopefully a decent indication that a PDF will be found
+						// the first time around.
+						//
+						// [1] https://forums.zotero.org/discussion/81182
+						addTriedURL(responseURL);
+						
 						break;
 					}
 					if (skip) {
@@ -1789,6 +1790,7 @@ Zotero.Attachments = new function(){
 					Zotero.debug(`PDF at ${url} was already tried -- skipping`);
 					continue;
 				}
+				// Don't try this PDF URL again
 				addTriedURL(url);
 				
 				// Use the page we loaded as the referrer

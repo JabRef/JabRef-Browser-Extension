@@ -70,7 +70,7 @@ Zotero.Inject = new function() {
 		// (monitorDOMChanges/ZoteroItemUpdated)
 		this.sessionDetails = {};
 
-		_noteImgSrc = Zotero.isSafari ? safari.extension.baseURI + "images/treeitem-note.png" : browser.extension.getURL('images/treeitem-note.png');
+		_noteImgSrc = Zotero.isSafari ? `${safari.extension.baseURI}safari/` + "images/treeitem-note.png" : browser.extension.getURL('images/treeitem-note.png');
 
 		// wrap this in try/catch so that errors will reach logError
 		try {
@@ -86,12 +86,12 @@ Zotero.Inject = new function() {
 			if (!_translate) {
 				_translate = this.initTranslation(document);
 				_translate.setHandler("pageModified", function() {
-					Zotero.Connector_Browser.onPageLoad();
+					Zotero.Connector_Browser.onPageLoad(document.location.href);
 					Zotero.Messaging.sendMessage("pageModified", null);
 				});
 				document.addEventListener("ZoteroItemUpdated", function() {
 					Zotero.debug("Inject: ZoteroItemUpdated event received");
-					Zotero.Connector_Browser.onPageLoad();
+					Zotero.Connector_Browser.onPageLoad(document.location.href);
 					Zotero.Messaging.sendMessage("pageModified", null);
 				}, false);
 			} else {
@@ -126,22 +126,26 @@ Zotero.Inject = new function() {
 				// If the handler returns a non-undefined value then it is passed
 				// back to the callback due to backwards compat code in translate.js
 				(async function() {
-					try {
-						let response = await Zotero.Connector.callMethod("getSelectedCollection", {});
-						if (response.libraryEditable === false) {
-							return callback([]);
-						}
-					} catch (e) {
-						// Zotero is online but an error occured anyway, so let's log it and display
-						// the dialog just in case
-						if (e.status != 0) {
-							Zotero.logError(e);
-						}
-					}
-
 					// We don't want to show a select dialog -> always choose all items
 					/*
-     var returnItems = await Zotero.Connector_Browser.onSelect(items);
+     try {
+     	let response = await Zotero.Connector.callMethod("getSelectedCollection", {});
+     	if (response.libraryEditable === false) {
+     		return callback([]);
+     	}
+     } catch (e) {
+     	// Zotero is online but an error occured anyway, so let's log it and display
+     	// the dialog just in case
+     	if (e.status != 0) {
+     		Zotero.logError(e);
+     	}
+     }
+     
+     if (Zotero.isBrowserExt) {
+     	var returnItems = await Zotero.Connector_Browser.onSelect(items);
+     } else {
+     	returnItems = await Zotero.Inject.onSafariSelect(items);
+     }
      
      // If items were selected, reopen the save popup
      if (returnItems && !Zotero.Utilities.isEmpty(returnItems)) {
@@ -331,21 +335,26 @@ Zotero.Inject = new function() {
 		// Pretend that zotero is online
 		return true;
 
-		var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([Zotero.Prefs.getAsync('firstSaveToServer'), Zotero.Connector.checkIsOnline()]);
-		if (zoteroIsOnline || !firstSaveToServer) {
-			return true;
-		}
-		var result = await this.firstSaveToServerPrompt();
-		if (result == 'server') {
-			Zotero.Prefs.set('firstSaveToServer', false);
-			return true;
-		} else if (result == 'retry') {
-			// If we perform the retry immediately and Zotero is still unavailable the prompt returns instantly
-			// making the user interaction confusing so we wait a bit first
-			await Zotero.Promise.delay(500);
-			return this.checkActionToServer();
-		}
-		return false;
+		/*
+  var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([
+  	Zotero.Prefs.getAsync('firstSaveToServer'), 
+  	Zotero.Connector.checkIsOnline()
+  ]);
+  if (zoteroIsOnline || !firstSaveToServer) {
+  	return true;
+  }
+  var result = await this.firstSaveToServerPrompt();
+  if (result == 'server') {
+  	Zotero.Prefs.set('firstSaveToServer', false);
+  	return true;
+  } else if (result == 'retry') {
+  	// If we perform the retry immediately and Zotero is still unavailable the prompt returns instantly
+  	// making the user interaction confusing so we wait a bit first
+  	await Zotero.Promise.delay(500);
+  	return this.checkActionToServer();
+  }
+  return false;
+  */
 	};
 
 	this.translate = async function(translatorID, options = {}) {
@@ -565,13 +574,19 @@ try {
 	isHiddenIFrame = !isTopWindow && window.frameElement && window.frameElement.style.display === "none";
 } catch (e) {}
 
+const isWeb = window.location.protocol === "http:" || window.location.protocol === "https:";
+const isTestPage = Zotero.isBrowserExt && window.location.href.startsWith(browser.extension.getURL('test'));
 // don't try to scrape on hidden frames
-let isWeb = window.location.protocol === "http:" || window.location.protocol === "https:";
-let isTestPage = Zotero.isBrowserExt && window.location.href.startsWith(browser.extension.getURL('test')) || Zotero.isSafari && window.location.href.startsWith(safari.extension.baseURI + 'test');
 if (!isHiddenIFrame) {
 	var doInject = function() {
 		Zotero.initInject();
 
+		if (Zotero.isSafari && isTopWindow) {
+			Zotero.Connector_Browser.onPageLoad(document.location.href);
+		}
+
+		// Do not run on non-web pages (file://), test pages, safari extension pages (i.e. safari prefs)
+		// or non-top Safari pages
 		if (!isWeb && !isTestPage) return;
 		// add listener for translate message from extension
 		Zotero.Messaging.addMessageListener("translate", function(data) {
@@ -594,8 +609,6 @@ if (!isHiddenIFrame) {
 		Zotero.Messaging.addMessageListener("firstUse", function() {
 			return Zotero.Inject.firstUsePrompt();
 		});
-
-		if (Zotero.isSafari && isTopWindow) Zotero.Connector_Browser.onPageLoad();
 
 		if (document.readyState !== "complete") {
 			window.addEventListener("load", function(e) {

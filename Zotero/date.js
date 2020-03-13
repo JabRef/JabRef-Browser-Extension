@@ -259,7 +259,9 @@ Zotero.Date = new function() {
 			order: ''
 		};
 
-		string = Zotero.Utilities.trimInternal(string.toString());
+		if (typeof string == 'string' || typeof string == 'number') {
+			string = Zotero.Utilities.trimInternal(string.toString());
+		}
 
 		// skip empty things
 		if (!string) {
@@ -309,6 +311,7 @@ Zotero.Date = new function() {
 				date.order += 'y';
 			}
 
+			var zeroYear = date.year && date.year.toString().startsWith('0');
 			if (date.year) date.year = parseInt(date.year, 10);
 			if (date.day) date.day = parseInt(date.day, 10);
 			if (date.month) {
@@ -327,8 +330,8 @@ Zotero.Date = new function() {
 			}
 
 			if ((!date.month || date.month <= 12) && (!date.day || date.day <= 31)) {
-				if (date.year && date.year < 100) { // for two digit years, determine proper
-					// four digit year
+				// For two digit years, determine proper four-digit year
+				if (date.year && date.year < 100 && !zeroYear) {
 					var today = new Date();
 					var year = today.getFullYear();
 					var twoDigitYear = year % 100;
@@ -714,6 +717,27 @@ Zotero.Date = new function() {
 
 		return multi.substr(11);
 	}
+
+
+	/**
+	 * Convert 'yesterday'/'today'/'tomorrow' to SQL date, or else return original string
+	 *
+	 * @param {String} str
+	 * @return {String}
+	 */
+	this.parseDescriptiveString = function(str) {
+		// Parse 'yesterday'/'today'/'tomorrow' and convert to dates,
+		// since it doesn't make sense for those to be actual metadata values
+		var lc = str.toLowerCase().trim();
+		if (lc == 'yesterday' || lc == Zotero.getString('date.yesterday')) {
+			str = Zotero.Date.dateToSQL(new Date(new Date().getTime() - 86400000)).substr(0, 10);
+		} else if (lc == 'today' || lc == Zotero.getString('date.today')) {
+			str = Zotero.Date.dateToSQL(new Date()).substr(0, 10);
+		} else if (lc == 'tomorrow' || lc == Zotero.getString('date.tomorrow')) {
+			str = Zotero.Date.dateToSQL(new Date(new Date().getTime() + 86400000)).substr(0, 10);
+		}
+		return str;
+	};
 
 
 	function isSQLDate(str, allowZeroes) {

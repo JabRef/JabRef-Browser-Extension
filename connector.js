@@ -1,7 +1,6 @@
 Zotero.Connector = new function() {
 	this.callMethod = Zotero.Promise.method(function(options, data, cb, tab) {
-		console.log("JabRef: Tried to contact Zotero standalone: " + options);
-		throw new Error("Zotero Offline");
+		throw new Error("JabRef: Tried to contact Zotero standalone: " + options);
 	});
 
 	this.callMethodWithCookies = function(options, data, tab) {
@@ -34,9 +33,10 @@ Zotero.Connector = new function() {
 					this.convertToBibTex(data.items, globalSettings.exportMode)
 						.then((bibtex) => this.sendBibTexToJabRef(bibtex));
 				});
+		} else if (options === "saveSnapshot") {
+			// Ignore this
 		} else {
-			console.log("Tried to contact Zotero standalone: " + options);
-			throw new Error("Zotero Offline");
+			throw new Error("JabRef: Tried to contact Zotero standalone: " + options);
 		}
 	};
 

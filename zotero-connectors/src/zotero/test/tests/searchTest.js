@@ -218,6 +218,27 @@ describe("Zotero.Search", function() {
 				});
 			});
 			
+			describe("dateAdded", function () {
+				it("should handle 'today'", async function () {
+					var item = await createDataObject('item');
+					
+					var s = new Zotero.Search();
+					s.libraryID = item.libraryID;
+					s.name = "Test";
+					s.addCondition('dateAdded', 'is', 'today');
+					var matches = await s.search();
+					assert.includeMembers(matches, [item.id]);
+					
+					// Make sure 'yesterday' doesn't match
+					s = new Zotero.Search();
+					s.libraryID = item.libraryID;
+					s.name = "Test";
+					s.addCondition('dateAdded', 'is', 'yesterday');
+					matches = await s.search();
+					assert.lengthOf(matches, 0);
+				});
+			});
+			
 			describe("fileTypeID", function () {
 				it("should search by attachment file type", function* () {
 					let s = new Zotero.Search();
@@ -385,6 +406,31 @@ describe("Zotero.Search", function() {
 					s.addCondition('fulltextWord', 'contains', 'nomatch');
 					let matches = yield s.search();
 					assert.deepEqual(matches, [foobarItem.id]);
+				});
+			});
+			
+			describe("includeParentsAndChildren", function () {
+				it("should handle ANY search with no-op condition", async function () {
+					var s = new Zotero.Search();
+					s.libraryID = userLibraryID;
+					s.name = "Test";
+					s.addCondition('joinMode', 'any');
+					s.addCondition('savedSearch', 'is', Zotero.Utilities.randomString());
+					s.addCondition('includeParentsAndChildren', 'true');
+					var matches = await s.search();
+					assert.lengthOf(matches, 0);
+				});
+				
+				it("should handle ANY search with two no-op conditions", async function () {
+					var s = new Zotero.Search();
+					s.libraryID = userLibraryID;
+					s.name = "Test";
+					s.addCondition('joinMode', 'any');
+					s.addCondition('savedSearch', 'is', Zotero.Utilities.randomString());
+					s.addCondition('savedSearch', 'is', Zotero.Utilities.randomString());
+					s.addCondition('includeParentsAndChildren', 'true');
+					var matches = await s.search();
+					assert.lengthOf(matches, 0);
 				});
 			});
 			

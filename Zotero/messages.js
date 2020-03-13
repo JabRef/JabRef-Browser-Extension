@@ -124,6 +124,7 @@ var MESSAGES = {
 		callMethod: true,
 		callMethodWithCookies: true,
 		getClientVersion: true,
+		reportActiveURL: false,
 	},
 	Connector_Browser: {
 		onSelect: true,
@@ -233,8 +234,17 @@ MESSAGES.COHTTP = {
 if (Zotero.isSafari) {
 	MESSAGES.API.createItem = true;
 	MESSAGES.API.uploadAttachment = false;
-	MESSAGES.Connector_Browser.onPDFFrame = false;
 	MESSAGES.i18n = {
 		getStrings: true
-	}
+	};
+	MESSAGES.Connector_Browser = Object.assign(MESSAGES.Connector_Browser, {
+		onPDFFrame: false,
+		onPerformCommand: false,
+		onTabFocus: false,
+		onTabData: true,
+		getExtensionVersion: true
+	});
+	MESSAGES.Debug.get = true;
+	delete MESSAGES.Errors.sendErrorReport;
+	delete MESSAGES.Connector_Debug.submitReport;
 }
