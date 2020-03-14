@@ -30,6 +30,8 @@ Zotero.Connector = new function() {
 	})
 
 	this.prepareForExport = function(items) {
+		// TODO: Get value from preferences
+		var shouldTakeSnapshots;
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			for (var j = 0; j < item.attachments.length; j++) {
