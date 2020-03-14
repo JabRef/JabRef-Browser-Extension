@@ -35,7 +35,7 @@ function processFile() {
 	});
 }
 
-gulp.task('copy-zotero-scripts', function() {
+gulp.task('copy-external-scripts', function() {
 	let sources = [
 		'./zotero-connectors/src/browserExt/background.js',
 		'./zotero-connectors/src/common/cachedTypes.js',
@@ -72,7 +72,9 @@ gulp.task('copy-zotero-scripts', function() {
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/term.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/identity.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/match.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/rdfparser.js'
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/rdfparser.js',
+
+		'./zotero-scholar-citations/chrome/content/zsc.js'
 	];
 
 	return gulp.src(sources, {
@@ -92,17 +94,19 @@ gulp.task('copy-zotero-scripts', function() {
 
 			// Flatten directory structure
 			if (path.dirname.endsWith("rdf")) {
-				path.dirname = "rdf"
+				path.dirname = "rdf";
+			} else if (path.dirname.startsWith("zotero-scholar-citations")) {
+				path.dirname = "zsc";
 			} else {
 				path.dirname = "";
 			}
 		}))
-		.pipe(gulp.dest("./Zotero"));
+		.pipe(gulp.dest("./external-scripts"));
 });
 
-gulp.task('process-zotero-scripts', function() {
+gulp.task('process-external-scripts', function() {
 	let sources = [
-		'./Zotero/**/*'
+		'./external-scripts/**/*'
 	];
 
 	return gulp.src(sources)
@@ -121,42 +125,4 @@ gulp.task('process-zotero-scripts', function() {
 		.pipe(gulp.dest((data) => data.base));
 });
 
-gulp.task('copy-zsc-scripts', function() {
-	let sources = [
-		'./zotero-scholar-citations/chrome/content/zsc.js'
-	];
-
-	return gulp.src(sources, {
-		base: process.cwd()
-	})
-		.pipe(plumber())
-		.pipe(rename(function(path) {
-			// Flatten directory structure
-			path.dirname = ""; // put all files into main directory
-		}))
-		.pipe(gulp.dest("./zsc"));
-});
-
-gulp.task('process-zsc-scripts', function() {
-	let sources = [
-		'./zsc/**/*'
-	];
-
-	return gulp.src(sources)
-		.pipe(plumber())
-		.pipe(processFile())
-		.pipe(beautify({
-			indent_with_tabs: true,
-			brace_style: "collapse"
-		}))
-		.pipe(rename(function(path) {
-			// Rename jsx to js
-			if (path.extname == ".jsx") {
-				path.extname = ".js";
-			}
-		}))
-		.pipe(gulp.dest((data) => data.base));
-});
-
-gulp.task('update-zotero-scripts', gulp.series('copy-zotero-scripts', 'process-zotero-scripts'));
-gulp.task('update-zsc-scripts', gulp.series('copy-zsc-scripts', 'process-zsc-scripts'));
+gulp.task('update-external-scripts', gulp.series('copy-external-scripts', 'process-external-scripts'));
