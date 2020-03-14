@@ -9,7 +9,6 @@ Zotero.Translators.init();
 zsc.init();
 wsClient.startClient();
 
-
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
 */
