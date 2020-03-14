@@ -7,7 +7,6 @@ Zotero.Messaging.init();
 Zotero.Connector_Types.init();
 Zotero.Translators.init();
 
-
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
 */
