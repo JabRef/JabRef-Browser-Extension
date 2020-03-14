@@ -37,7 +37,6 @@
 			"Zotero/messages.js",
 			"Zotero/messaging.js",
 			"Zotero/background.js",
-			"globalSettings.js",
 			"zsc_misc_pre.js",
 			"zsc/zsc.js",
 			"zsc_misc_post.js",

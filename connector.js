@@ -7,15 +7,15 @@ Zotero.Connector = new function() {
 		if (options === "saveItems") {
 			browser.storage.sync.get(['exportMode', 'takeSnapshots', 'retrieveCitationCounts'])
 				.then(configuration => {
-					// fetch current settings and update globalSettings correspondingly
-					globalSettings.exportMode = configuration.exportMode || 2;
-					globalSettings.takeSnapshots = configuration.takeSnapshots || false;
-					globalSettings.retrieveCitationCounts = configuration.retrieveCitationCounts || false;
-					console.debug("exportMode: " + globalSettings.exportMode);
-					console.debug("takeSnapshots: " + globalSettings.takeSnapshots);
-					console.debug("retrieveCitationCounts: " + globalSettings.retrieveCitationCounts);
+					// fetch current settings
+					configuration.exportMode = configuration.exportMode || 2;
+					configuration.takeSnapshots = configuration.takeSnapshots || false;
+					configuration.retrieveCitationCounts = configuration.retrieveCitationCounts || false;
+					console.debug("exportMode: " + configuration.exportMode);
+					console.debug("takeSnapshots: " + configuration.takeSnapshots);
+					console.debug("retrieveCitationCounts: " + configuration.retrieveCitationCounts);
 
-					if (globalSettings.retrieveCitationCounts) {
+					if (configuration.retrieveCitationCounts) {
 						console.log("[scholar-citations] fetching citation counts...");
 
 						// create zsc compatible items
@@ -30,7 +30,7 @@ Zotero.Connector = new function() {
 						zsc.processItems(data.items);
 					}
 
-					this.convertToBibTex(data.items, globalSettings.exportMode)
+					this.convertToBibTex(data.items, configuration.exportMode)
 						.then((bibtex) => this.sendBibTexToJabRef(bibtex));
 				});
 		} else if (options === "saveSnapshot") {
