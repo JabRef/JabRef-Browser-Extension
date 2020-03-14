@@ -25,39 +25,34 @@ function checkConnections() {
 		});
 
 	let wsClientStatus = document.getElementById('wsClientStatus');
-	let wsClientConnectionStatus = document.getElementById('wsClientConnectionStatus');
 	browser.runtime.sendMessage({
 		"getWsClientState": true
 	}).then(response => {
 		if (response.clientStarted) {
-			wsClientStatus.setAttribute('class', 'alert-positive');
-			wsClientStatus.textContent = 'started';
+			switch (response.connectionState) {
+				case WebSocket.CONNECTING:
+					wsClientStatus.setAttribute('class', 'alert-positive');
+					wsClientStatus.textContent = 'connecting';
+					break;
+				case WebSocket.OPEN:
+					wsClientStatus.setAttribute('class', 'alert-positive');
+					wsClientStatus.textContent = 'connected';
+					break;
+				case WebSocket.CLOSING:
+					wsClientStatus.setAttribute('class', 'alert-error');
+					wsClientStatus.textContent = 'closing';
+					break;
+				case WebSocket.CLOSED:
+					wsClientStatus.setAttribute('class', 'alert-error');
+					wsClientStatus.textContent = 'closed';
+					break;
+				default:
+					wsClientStatus.setAttribute('class', 'alert-error');
+					wsClientStatus.textContent = 'n/a';
+			}
 		} else {
 			wsClientStatus.setAttribute('class', 'alert-error');
-			wsClientStatus.textContent = 'stopped';
-		}
-
-		switch (response.connectionState) {
-			case WebSocket.CONNECTING:
-				wsClientConnectionStatus.setAttribute('class', 'alert-positive');
-				wsClientConnectionStatus.textContent = 'connecting';
-				break;
-			case WebSocket.OPEN:
-				wsClientConnectionStatus.setAttribute('class', 'alert-positive');
-				wsClientConnectionStatus.textContent = 'connected';
-				break;
-			case WebSocket.CLOSING:
-				wsClientConnectionStatus.setAttribute('class', 'alert-error');
-				wsClientConnectionStatus.textContent = 'closing';
-				break;
-			case WebSocket.CLOSED:
-				wsClientConnectionStatus.setAttribute('class', 'alert-error');
-				wsClientConnectionStatus.textContent = 'closed';
-				break;
-			default:
-				readyStateText = "n/a";
-				wsClientConnectionStatus.setAttribute('class', 'alert-error');
-				wsClientConnectionStatus.textContent = 'n/a';
+			wsClientStatus.textContent = 'Websocket client not started';
 		}
 	});
 }
