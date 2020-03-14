@@ -11,51 +11,10 @@ Even links to accompanying PDFs are sent to JabRef, where those documents can ea
 _Please post any issues or suggestions [here on GitHub](https://github.com/JabRef/JabRef-Browser-Extension/issues)._
 
 ## Installation and Configuration
+Normally, you simply install the extension from the browser store and are ready to go.
+> [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github) -  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
 
-### Windows
-1. Make sure you have at least [JabRef 5.0](https://www.jabref.org/#downloads) installed.
-2. Install the JabRef browser extension: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github),  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh), [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
-3. On Windows 7, please [upgrade Powershell](https://www.microsoft.com/en-us/download/details.aspx?id=54616).
-<details>
- <summary>Manual installation on Windows (only necessary when you don't use the installer to install/update JabRef)</summary>
-
-4. Download the following files and copy them to the same directory as `JabRef.exe`
-   - [jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/windows/jabref.json)
-   - [jabref-chrome.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/windows/jabref-chrome.json)
-   - [JabRef.bat](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/windows/JabRefHost.bat)
-   - [JabRef.ps1](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/windows/JabRefHost.ps1)
-5. Make sure that the correct file name of the JabRef `.jar` file is specified in `JabRef.ps1` under `$jabRefJarFileName`.
-6. Run the following command from the console (with the correct path to the `jabref.json` file):
-
-   For Firefox support:
-   ```
-   REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f
-   ```
-   For Chrome/Opera support
-    ```
-   REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Google\Chrome\NativeMessagingHosts\org.jabref.jabref" /ve /d "C:\path\to\jabref.json" /f
-   ``` 
-   You may need to change the root `HKEY_LOCAL_MACHINE` to  `HKEY_CURRENT_USER` if you don't have admin rights.
-</details>
-
-
-### Linux
-1. Download and install the Debian package of [JabRef 5.0](https://www.jabref.org/#downloads).
-2. Install the JabRef browser extension: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github),  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh), [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
-<details>
-<summary>Manual installation on Linux (only necessary when you don't use the `deb` file to install/update JabRef)</summary>
-3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json) and put it into 
-   - `/usr/lib/mozilla/native-messaging-hosts/org.jabref.jabref.json` to install with admin rights for all users
-   - `~/.mozilla/native-messaging-hosts/org.jabref.jabref.json` to install without admin rights for the current user
-
-</details>
-
-### Mac OS
-1. Download and install the DMG package of [JabRef 5.0](https://www.jabref.org/#downloads).
-2. Install the JabRef browser extension: [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabfox?src=external-github),  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh), [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
-3. Download [org.jabref.jabref.json](https://raw.githubusercontent.com/JabRef/jabref/master/buildres/linux/native-messaging-host/firefox/org.jabref.jabref.json) and put it into
-   - `/Library/Application Support/Mozilla/NativeMessagingHosts/org.jabref.jabref.json` to install with admin rights for all users
-   - `~/Library/Application Support/Mozilla/NativeMessagingHosts/org.jabref.jabref.json` to install without admin rights for the current user
+Sometimes, a manual installation is necessary (e.g. if you use the portable version of JabRef). In this case, please follow the steps described [in the user manual](https://docs.jabref.org/import-export/import/jabref-browser-extension)
 
 ## Usage
 After the installation, you should be able to import bibliographic references into JabRef directly from your browser.
