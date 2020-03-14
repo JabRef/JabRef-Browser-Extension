@@ -35,9 +35,20 @@ Zotero.Connector = new function() {
 			for (var j = 0; j < item.attachments.length; j++) {
 				var attachment = item.attachments[j];
 
-				// Pretend we downloaded the file since otherwise it is not exported
-				if (attachment.url) {
-					attachment.localPath = attachment.url;
+				var isLink = attachment.mimeType === 'text/html' || attachment.mimeType === 'application/xhtml+xml';
+				if (isLink && attachment.snapshot !== false) {
+					// Snapshot
+					if (shouldTakeSnapshots && attachment.url) {
+						attachment.localPath = attachment.url;
+					} else {
+						// Ignore
+					}
+				} else {
+					// Normal file
+					// Pretend we downloaded the file since otherwise it is not exported
+					if (attachment.url) {
+						attachment.localPath = attachment.url;
+					}
 				}
 			}
 
