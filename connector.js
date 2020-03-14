@@ -1,3 +1,11 @@
+if (!Date.prototype.toISODate) {
+	Date.prototype.toISODate = function() {
+		return this.getFullYear() + '-' +
+			('0' + (this.getMonth() + 1)).slice(-2) + '-' +
+			('0' + this.getDate()).slice(-2);
+	}
+}
+
 Zotero.Connector = new function() {
 	this.callMethod = Zotero.Promise.method(function(options, data, cb, tab) {
 		throw new Error("JabRef: Tried to contact Zotero standalone: " + options);
@@ -31,6 +39,11 @@ Zotero.Connector = new function() {
 				if (attachment.url) {
 					attachment.localPath = attachment.url;
 				}
+			}
+
+			// Fix date string
+			if (item.accessDate) {
+				item.accessDate = new Date().toISODate();
 			}
 		}
 	}
