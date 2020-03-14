@@ -63,3 +63,13 @@ To update dependencies:
    updates `zotero-connectors` submodule
 
  - `gulp update-zotero-scripts` copies and post-processes Zotero scripts from `zotero-connectors` to `Zotero` folder
+
+## Release of new version
+- Increase version number in `manifest.json`
+- `npm run build`
+- Upload to
+  - https://addons.mozilla.org/en-US/developers/addon/jabfox/edit
+  - https://chrome.google.com/u/1/webstore/devconsole
+  - https://partner.microsoft.com/en-us/dashboard/microsoftedge
+  - https://addons.opera.com/developer/upload/
+  - https://developer.apple.com/app-store-connect/
