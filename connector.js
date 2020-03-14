@@ -15,22 +15,25 @@ Zotero.Connector = new function() {
 					console.debug("takeSnapshots: " + configuration.takeSnapshots);
 					console.debug("retrieveCitationCounts: " + configuration.retrieveCitationCounts);
 
+					let items = [];
+
 					if (configuration.retrieveCitationCounts) {
 						console.log("[scholar-citations] fetching citation counts...");
 
 						// create zsc compatible items
 						for (let i = 0; i < data.items.length; i++) {
-							data.items[i] = new ZscItem(data.items[i]);
+							let item = new ZscItem(data.items[i]);
 							// add internal metadata
-							data.items[i].setField('_externalRequest', false); // false: triggered from browser; true: triggered from JabRef
-							data.items[i].setStatus(false, true, false, false); // init: no success, item complete (initial assumption), no captcha, not too many requests
+							item.setField('_externalRequest', false); // false: triggered from browser; true: triggered from JabRef
+							item.setStatus(false, true, false, false); // init: no success, item complete (initial assumption), no captcha, not too many requests
+							items.push(item);
 						}
 
 						// get citations counts for all items
-						zsc.processItems(data.items);
+						zsc.processItems(items);
 					}
 
-					this.convertToBibTex(data.items, configuration.exportMode)
+					this.convertToBibTex(items, configuration.exportMode)
 						.then((bibtex) => this.sendBibTexToJabRef(bibtex));
 				});
 		} else if (options === "saveSnapshot") {

@@ -320,10 +320,11 @@ let wsClient = {
     },
 
     handlerCmdFetchGoogleScholarCitationCounts: function (messagePayload) {
-        let items = messagePayload.entries;
+        let updatedMessagePayload = JSON.parse(JSON.stringify(messagePayload)); // deeply clone json object
+        let items = updatedMessagePayload.entries;
 
         // create zsc compatible items
-        for (var i = 0; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
             items[i] = new ZscItem(items[i]);
             // add internal metadata
             items[i].setField('_externalRequest', true); // false: triggered from browser; true: triggered from JabRef
@@ -333,6 +334,6 @@ let wsClient = {
         // get citations counts for all items
         zsc.processItems(items);
 
-        wsClient.sendMessage(wsClient.WebSocketAction.INFO_GOOGLE_SCHOLAR_CITATION_COUNTS, messagePayload);
+        wsClient.sendMessage(wsClient.WebSocketAction.INFO_GOOGLE_SCHOLAR_CITATION_COUNTS, updatedMessagePayload);
     }
 };
