@@ -80,8 +80,8 @@ function lookForTranslators(tab) {
 	});
 }
 
-function evalInTab(code) {
-	return browser.tabs.executeScript({
+function evalInTab(tabsId, code) {
+	return browser.tabs.executeScript(tabsId, {
 			code: code
 		})
 		.then(
@@ -93,27 +93,19 @@ function evalInTab(code) {
 	Is called after Zotero injected all scripts and checked if the potential translators can find something on the page.
 	We need to hide or show the page action accordingly.
 */
-onTranslators = function(translators, instanceID, contentType) {
-	browser.tabs.query({
-			active: true,
-			currentWindow: true
-		})
-		.then((tabs) => {
-			var tab = tabs[0];
+onTranslators = function(translators, tabId, contentType) {
+	if (translators.length == 0) {
+		console.log("JabRef: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tabId)));
+		browser.pageAction.hide(tabId);
+	} else {
+		console.log("JabRef: Found translators %o for tab %o", translators, JSON.parse(JSON.stringify(tabId)));
 
-			if (translators.length == 0) {
-				console.log("JabRef: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tab)));
-				browser.pageAction.hide(tab.id);
-			} else {
-				console.log("JabRef: Found translators %o for tab %o", translators, JSON.parse(JSON.stringify(tab)));
-
-				browser.pageAction.show(tab.id);
-				browser.pageAction.setTitle({
-					tabId: tab.id,
-					title: "Import references into JabRef using " + translators[0].label
-				});
-			}
+		browser.pageAction.show(tabId);
+		browser.pageAction.setTitle({
+			tabId: tabId,
+			title: "Import references into JabRef using " + translators[0].label
 		});
+	}
 }
 
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -139,10 +131,11 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		sendResponse(wsClientState);
 	} else if (message.eval) {
 		console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
-		return evalInTab(message.eval);
+		return evalInTab(sender.tab.id, message.eval);
 	} else if (message[0] == 'Connector_Browser.onTranslators') {
 		// Intercept message to Zotero background script
 		console.log("JabRef: Intercept message to Zotero background script", JSON.parse(JSON.stringify(message)));
+		message[1][1] = sender.tab.id;
 		onTranslators.apply(null, message[1]);
 	} else if (message[0] == 'Debug.log') {
 		console.log(message[1]);
