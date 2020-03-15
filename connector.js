@@ -41,7 +41,7 @@ Zotero.Connector = new function() {
 						zsc.processItems(items);
 					}
 
-					this.convertToBibTex(items, configuration.exportMode)
+					this.convertToBibTex(items, configuration.exportMode, configuration.takeSnapshots)
 						.then((bibtex) => this.sendBibTexToJabRef(bibtex));
 				});
 		} else if (options === "saveSnapshot") {
@@ -58,9 +58,7 @@ Zotero.Connector = new function() {
 		return deferred.promise;
 	});
 
-	this.prepareForExport = function(items) {
-		// TODO: Get value from preferences
-		var shouldTakeSnapshots;
+	this.prepareForExport = function(items, takeSnapshots) {
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			for (var j = 0; j < item.attachments.length; j++) {
@@ -69,7 +67,7 @@ Zotero.Connector = new function() {
 				var isLink = attachment.mimeType === 'text/html' || attachment.mimeType === 'application/xhtml+xml';
 				if (isLink && attachment.snapshot !== false) {
 					// Snapshot
-					if (shouldTakeSnapshots && attachment.url) {
+					if (takeSnapshots && attachment.url) {
 						attachment.localPath = attachment.url;
 					} else {
 						// Ignore
@@ -90,8 +88,8 @@ Zotero.Connector = new function() {
 		}
 	};
 
-	this.convertToBibTex = function(items, conversionMode) {
-		this.prepareForExport(items);
+	this.convertToBibTex = function(items, conversionMode, takeSnapshots) {
+		this.prepareForExport(items, takeSnapshots);
 
 		browser.runtime.sendMessage({
 			"onConvertToBibtex": "convertStarted"
