@@ -1,3 +1,11 @@
+/**
+ * This is an adapted version of the original file from https://github.com/MaxKuehn/zotero-scholar-citations/blob/develop/chrome/content/zsc.js
+ * in order to use it for the JabRef-Browser-Extension.
+ *
+ * Changes, required for the JabRef-Browser-Extension, are basically marked with the comment "JRBE", which is the
+ * short form for [J]ab[R]ef-[B]rowser-[E]xtension.
+ */
+
 let zsc = {
 	_captchaString: '',
 	_citedPrefixString: 'Cited by ',
@@ -6,7 +14,10 @@ let zsc = {
 	_extraEntrySep: ' \n',
 	_noData: 'NoCitationData',
 	_searchblackList: new RegExp('[-+~*":]', 'g'),
-	_baseUrl: 'https://scholar.google.com/'
+	_baseUrl: 'https://scholar.google.com/',
+
+	_preferDoiForLookupIfExisting: true, // JRBE: added; possible values: true, false (default: false; true: should be more accurate, assuming that the DOI is correct)
+	_doiFieldName: 'DOI' // JRBE: added; Zotero sends 'DOI' and JabRef as well
 };
 
 zsc._extraRegex = new RegExp(
@@ -29,17 +40,19 @@ let isDebug = function() {
 zsc.init = function() {
 	let stringBundle = document.getElementById('zoteroscholarcitations-bundle');
 	if (stringBundle != null) {
-		this._captchaString = stringBundle.getString('captchaString');
+		//this._captchaString = stringBundle.getString('captchaString'); // JRBE: commented out
+		this._captchaString = "Please show Google Scholar, that you are not a robot, by loading " + // JRBE: added
+			"https://scholar.google.com, searching for any string and solving the shown captcha."; // JRBE: added
 		this._citedPrefixString = stringBundle.getString('citedPrefixString');
 	}
 
 	// Register the callback in Zotero as an item observer
-	let notifierID = Zotero.Notifier.registerObserver(
-		this.notifierCallback, ['item']);
+	//let notifierID = Zotero.Notifier.registerObserver( // JRBE: commented out
+	//    this.notifierCallback, ['item']); // JRBE: commented out
 
 	// Unregister callback when the window closes (important to avoid a memory leak)
 	window.addEventListener('unload', function(e) {
-		Zotero.Notifier.unregisterObserver(notifierID);
+		//Zotero.Notifier.unregisterObserver(notifierID); // JRBE: commented out
 	}, false);
 };
 
@@ -101,17 +114,79 @@ zsc.updateCollection = function(collection) {
 	}
 };
 
+/**
+ * JRBE: additional helper function
+ *
+ * does not check whether it is a valid DOI, only checks if it exists
+ *
+ * @param item
+ * @returns {boolean}
+ */
+zsc.hasDoi = function(item) {
+	return item.getField(zsc._doiFieldName) &&
+		item.getField(zsc._doiFieldName).trim().length > 0;
+};
+
+/**
+ * JRBE: additional helper function
+ *
+ * @param item
+ * @returns {boolean}
+ */
+zsc.useDoiForLookup = function(item) {
+	return zsc._preferDoiForLookupIfExisting && zsc.hasDoi(item);
+};
+
+/**
+ * JRBE: heavily adapted and extended function
+ *
+ * @param items
+ */
 zsc.processItems = function(items) {
-	while (item = items.shift()) {
-		if (!zsc.hasRequiredFields(item)) {
+	for (let i = 0; i < items.length; i++) { // JRBE: adapted
+		let item = items[i]; // JRBE: adapted
+		item.setField("citationCount", ""); // JRBE: added; empty initialization
+		if (zsc.useDoiForLookup(item)) { // JRBE: added
+			if (isDebug()) Zotero.debug('[scholar-citations] ' +
+				'DOI "' + item.getField(zsc._doiFieldName) + '" exists and' +
+				' will be used, since it is preferred');
+		} else if (!zsc.hasRequiredFields(item)) {
 			if (isDebug()) Zotero.debug('[scholar-citations] ' +
 				'skipping item "' + item.getField('title') + '"' +
 				' it has either an empty title or is missing creator information');
+			if (!item.isExternalRequest()) { // JRBE: added
+				browser.runtime.sendMessage({
+					"onCitationCount": '' + zsc._noData
+				});
+				browser.runtime.sendMessage({
+					"itemIncomplete": true
+				});
+			}
+			item.setField("citationCount", zsc._noData); // JRBE: added; no data (title or creators missing)
+			item.setStatus(false, false, false, false); // JRBE: added; no success, item not complete, no captcha, not too many requests
+			zsc.updateItem(item, -1); // JRBE: added
 			continue;
 		}
 		this.retrieveCitationData(item, function(item, citeCount) {
 			if (isDebug()) Zotero.debug('[scholar-citations] ' +
 				'Updating item "' + item.getField('title') + '"');
+			console.log("[scholar-citations] citation count: " + citeCount); // JRBE: added
+			if (citeCount > -1) { // JRBE: added
+				let paddedCitationCount = zsc.padLeftWithZeroes("" + citeCount);
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onCitationCount": '' + paddedCitationCount
+					});
+				}
+				item.setField("citationCount", paddedCitationCount);
+			} else { // JRBE: added
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onCitationCount": '' + zsc._noData
+					});
+				}
+				item.setField("citationCount", zsc._noData); // no data (no citation data)
+			}
 			zsc.updateItem(item, citeCount);
 		});
 	}
@@ -172,25 +247,53 @@ zsc.updateItem = function(item, citeCount) {
 	}
 };
 
+/**
+ * JRBE: additional helper function
+ *
+ * @param item
+ * @returns {string}
+ */
+zsc.generateItemDoiUrl = function(item) {
+	let url = this._baseUrl +
+		'scholar?hl=en&q=' +
+		item.getField(zsc._doiFieldName).trim() +
+		'&num=1';
+	return encodeURI(url);
+};
+
+// JRBE: heavily adapted and extended function
+//
 // TODO: complex version, i.e. batching + retrying + blocking for solved captchas
 // this prob. involves some nasty callback hell shit
 // TODO: retries with random author permutations decreasing in author number :^)
 zsc.retrieveCitationData = function(item, cb) {
-	let url = this.generateItemUrl(item);
+	let url;
+	if (zsc.useDoiForLookup(item)) { // JRBE: added
+		url = this.generateItemDoiUrl(item);
+	} else {
+		url = this.generateItemUrl(item);
+	}
 	if (isDebug()) Zotero.debug("[scholar-citations] GET " + url);
 	let citeCount;
 	let xhr = new XMLHttpRequest();
-	xhr.open('GET', url, true);
+	xhr.open('GET', url, false); // TODO: JRBE: adapted; original: async: true; possible improvement: make asynchronous calls possible
 	xhr.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') == -1) {
+		if (this.readyState === 4 && this.status === 200) {
+			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) {
 				if (isDebug()) Zotero.debug("[scholar-citations] " +
-					"recieved non-captcha scholar results");
+					"received non-captcha scholar results");
+				item.setStatus(true, true, false, false); // JRBE: added; success, item complete, no captcha, not too many requests
 				cb(item, zsc.getCiteCount(this.responseText));
 			} else {
 				if (isDebug()) Zotero.debug("[scholar-citations] " +
 					"received a captcha instead of a scholar result");
+				item.setStatus(false, true, true, false); // JRBE: added; no success, item complete, captcha, not too many requests
 				alert(zsc._captchaString);
+				if (!item.isExternalRequest()) { // JRBE: added
+					browser.runtime.sendMessage({
+						"onGoogleScholarCaptcha": url
+					});
+				}
 				if (typeof Zotero.openInViewer !== 'undefined') {
 					Zotero.openInViewer(url);
 				} else if (typeof ZoteroStandalone !== 'undefined') {
@@ -198,22 +301,51 @@ zsc.retrieveCitationData = function(item, cb) {
 				} else if (typeof Zotero.launchURL !== 'undefined') {
 					Zotero.launchURL(url);
 				} else {
-					window.gBrowser.loadOneTab(url, {
-						inBackground: false
-					});
+					//window.gBrowser.loadOneTab(url, {inBackground: false}); // JRBE: commented out
 				}
 			}
-		} else if (this.readyState == 4 && this.status == 429) {
+		} else if (this.readyState === 4 && this.status === 429) {
 			if (isDebug()) Zotero.debug('[scholar-citations] ' +
 				'could not retrieve the google scholar data. Server returned: [' +
 				xhr.status + ': ' + xhr.statusText + ']. ' +
 				'GS want\'s you to wait for ' + this.getResponseHeader("Retry-After") +
 				' seconds before sending further requests.');
+			if (!item.isExternalRequest()) { // JRBE: added
+				browser.runtime.sendMessage({
+					"tooManyRequests": true
+				});
+			}
 
-		} else if (this.readyState == 4) {
+			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) { // JRBE: added
+				item.setStatus(false, true, false, true); // no success, item complete, no captcha, too many requests
+			} else { // JRBE: added
+				if (isDebug()) Zotero.debug("[scholar-citations] " +
+					"received a captcha instead of a scholar result");
+				item.setStatus(false, true, true, true); // no success, item complete, captcha, too many requests
+				alert(zsc._captchaString);
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onGoogleScholarCaptcha": url
+					});
+				}
+			}
+		} else if (this.readyState === 4) {
 			if (isDebug()) Zotero.debug('[scholar-citations] ' +
 				'could not retrieve the google scholar data. Server returned: [' +
 				xhr.status + ': ' + xhr.statusText + ']');
+			if (this.responseText.indexOf('www.google.com/recaptcha/api.js') === -1) { // JRBE: added
+				item.setStatus(false, true, false, false); // no success, item complete, no captcha, not too many requests
+			} else { // JRBE: added
+				if (isDebug()) Zotero.debug("[scholar-citations] " +
+					"received a captcha instead of a scholar result");
+				item.setStatus(false, true, true, false); // no success, item complete, captcha, not too many requests
+				alert(zsc._captchaString);
+				if (!item.isExternalRequest()) {
+					browser.runtime.sendMessage({
+						"onGoogleScholarCaptcha": url
+					});
+				}
+			}
 		} else {
 			// request progress, I guess
 		}

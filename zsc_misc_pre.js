@@ -1,24 +1,6 @@
 /**
- * This file provides external functions and methods for zotero-scholar-citations/chrome/content/zsc.js (zsc/zsc.js).
+ * This file provides additional, external functionality for zotero-scholar-citations/chrome/content/zsc.js (external-scripts/zsc/zsc.js).
  */
-
-/***********************************************************************************************************************
- * Zotero.Notifier
- *
- * source derived from:
- * - zotero-connectors/src/zotero/chrome/content/zotero/xpcom/notifier.js
- *
- **********************************************************************************************************************/
-Zotero.Notifier = new function() {
-
-	this.registerObserver = function (ref, types, id, priority) {
-
-	};
-
-	this.unregisterObserver = function (id) {
-
-	};
-};
 
 /***********************************************************************************************************************
  * ZscItem
@@ -149,7 +131,7 @@ ZscItem.prototype.clearItem = function() {
 };
 
 /**
- * delete the content of the item
+ * deletes the content of the item
  */
 ZscItem.prototype.deleteContentOfItem = function() {
 	for (let property in this) {

@@ -39,7 +39,6 @@
 			"external-scripts/background.js",
 			"zsc_misc_pre.js",
 			"external-scripts/zsc/zsc.js",
-			"zsc_misc_post.js",
 			"wsClient.js",
 			"background.js"
 		]
