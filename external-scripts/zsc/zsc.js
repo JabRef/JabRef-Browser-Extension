@@ -16,7 +16,7 @@ let zsc = {
 	_searchblackList: new RegExp('[-+~*":]', 'g'),
 	_baseUrl: 'https://scholar.google.com/',
 
-	_preferDoiForLookupIfExisting: true, // JRBE: added; possible values: true, false (default: false; true: should be more accurate, assuming that the DOI is correct)
+	_preferDoiForLookupIfExisting: false, // JRBE: added; possible values: true, false (default: false; true: could be be more accurate, assuming that the DOI is correct)
 	_doiFieldName: 'DOI' // JRBE: added; Zotero sends 'DOI' and JabRef as well
 };
 
