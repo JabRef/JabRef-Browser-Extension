@@ -130,11 +130,22 @@ zsc.hasDoi = function(item) {
 /**
  * JRBE: additional helper function
  *
+ * Uses the preferred source, if possible, otherwise the alternative.
+ *
  * @param item
  * @returns {boolean}
  */
 zsc.useDoiForLookup = function(item) {
-    return zsc._preferDoiForLookupIfExisting && zsc.hasDoi(item);
+    if (zsc._preferDoiForLookupIfExisting) {
+        if (zsc.hasDoi(item)) {
+            return true;
+        }
+    } else {
+        if (!zsc.hasRequiredFields(item) && zsc.hasDoi(item)) {
+            return true;
+        }
+    }
+    return false;
 };
 
 /**
@@ -148,13 +159,13 @@ zsc.processItems = function(items) {
         item.setField("citationCount", ""); // JRBE: added; empty initialization
         if (zsc.useDoiForLookup(item)) { // JRBE: added
             if (isDebug()) Zotero.debug('[scholar-citations] '
-                + 'DOI "' + item.getField(zsc._doiFieldName) + '" exists and'
-                + ' will be used, since it is preferred');
+                + 'DOI "' + item.getField(zsc._doiFieldName) + '" exists and will be used');
         }
         else if (!zsc.hasRequiredFields(item)) {
             if (isDebug()) Zotero.debug('[scholar-citations] '
                 + 'skipping item "' + item.getField('title') + '"'
-                + ' it has either an empty title or is missing creator information');
+                + ', since it doesn\'t have sufficient information for reliably fetching the citation count '
+                + '(DOI or title and author(s) are needed)'); // JRBE: changed
             if (!item.isExternalRequest()) { // JRBE: added
                 browser.runtime.sendMessage({
                     "onCitationCount": '' + zsc._noData
