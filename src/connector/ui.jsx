@@ -151,9 +151,6 @@ Zotero.GoogleDocs.UI = {
 	
 	interceptPaste: function() {
 		let pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
-		if (Zotero.isFirefox) {
-			pasteTarget = pasteTarget.children[0];
-		}
 		pasteTarget.addEventListener('paste', async (e) => {
 			let insertPromise = this.waitToSaveInsertion();
 			let data = (e.clipboardData || window.clipboardData)
@@ -239,7 +236,7 @@ Zotero.GoogleDocs.UI = {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(false);
 				Zotero.GoogleDocs.lastClient = null;
 			}
-		});
+		}, {capture: true});
 	},
 	
 	toggleUpdatingScreen: function(display) {
