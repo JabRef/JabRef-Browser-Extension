@@ -589,7 +589,9 @@ exposed.addPastedRanges = function(linksToCodes) {
 		
 		if (linksToCodes[link.url]) {
 			if (rangeFields[key]) {
-				debug('Link "' + link.url + '" has named ranges')
+				debug('Citation "' + link.text + '" already has named ranges, refreshing named ranges');
+				var newKey = changeFieldLinkKey(link);
+				copyNamedRanges(rangeFields[key], key, newKey, getRangeFromLinks([link]));
 			} else {
 				var range = getRangeFromLinks([link]);
 				linksToCodes[link.url].forEach(function(code) {
