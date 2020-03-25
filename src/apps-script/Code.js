@@ -26,7 +26,6 @@ var config = {
 	fieldURL: 'https://www.zotero.org/google-docs/?',
 	fieldKeyLength: 6,
 	citationPlaceholder: "{Updating}",
-	fieldIndexPlaceholder: "{Processing}",
 	fieldPrefix: "Z_F",
 	dataPrefix: "Z_D",
 	biblStylePrefix: "Z_B",
@@ -82,6 +81,13 @@ function callMethod(documentUrl, method, args, apiVers) {
 	return Object.assign({response: response}, extraReturnData);
 }
 
+/**
+ * Get all fields with a specified prefix
+ *
+ * @param prefix {String} [config.fieldPrefix] Field prefix
+ * @param removePlaceholder {Boolean} [false] Should remove placeholder {Updating} links
+ * @returns {[]}
+ */
 function getFields(prefix, removePlaceholder) {
 	var rangeFields = {};
 	prefix = prefix || config.fieldPrefix;
@@ -131,24 +137,23 @@ function getFields(prefix, removePlaceholder) {
 					link.text.deleteText(link.startOffset, link.endOffsetInclusive);
 				}
 				insertIdx = idx;
-			// NOTE: Remove once connectors upgraded to api version 2
-			} else if (link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1) == config.fieldIndexPlaceholder) {
-				link.text.deleteText(link.startOffset, link.endOffsetInclusive);
-				insertIdx = idx;
 			} else if (key) {
 				// Unlink orphaned links
 				link.text.setLinkUrl(link.startOffset, link.endOffsetInclusive, null);
+				debug('Unlinking orphaned link: "' + link.url + '": ' + link.url);
 			}
 		});
 	}
 	for (var key in rangeFields) {
 		if (isField) {
+			// Remove namedRanges that do not have a link associated with them
 			if (!rangeFields[key].exists) {
 				for (var i = 0; i < rangeFields[key].length; i++) {
 						rangeFields[key][i].remove();
 				}
 			}
 		} else {
+			// Document preferences have no associated links and need to be added manually
 			var field = {code: decodeRanges(rangeFields[key], prefix), namedRanges: rangeFields[key]};
 			fields.push(field);
 		}
