@@ -54,6 +54,9 @@ Zotero.GoogleDocs.UI = {
 		await Zotero.Inject.loadReactComponents();
 		await this.addKeyboardShortcuts();
 		this.injectIntoDOM();
+		if (this.checkIsDocx()) {
+			return;
+		}
 		this.interceptDownloads();
 		this.interceptPaste();
 		this.initModeMonitor();
@@ -237,6 +240,20 @@ Zotero.GoogleDocs.UI = {
 				Zotero.GoogleDocs.lastClient = null;
 			}
 		}, {capture: true});
+	},
+	
+	checkIsDocx: function() {
+		this.isDocx = document.querySelector('#office-editing-file-extension').innerHTML.includes('docx');
+		return this.isDocx;
+	},
+	
+	displayDocxAlert: function() {
+		const options = {
+			title: ZOTERO_CONFIG.CLIENT_NAME,
+			button2Text: "",
+			message: Zotero.getString('integration_googleDocs_docxAlert', ZOTERO_CONFIG.CLIENT_NAME),
+		};
+		Zotero.Inject.confirm(options);
 	},
 	
 	toggleUpdatingScreen: function(display) {

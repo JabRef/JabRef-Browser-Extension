@@ -67,6 +67,9 @@ Zotero.GoogleDocs = {
 	},
 	
 	execCommand: async function(command, client) {
+		if (Zotero.GoogleDocs.UI.isDocx) {
+			return Zotero.GoogleDocs.UI.displayDocxAlert();
+		}
 		if (!client) {
 			client = new Zotero.GoogleDocs.Client();
 			await client.init();
