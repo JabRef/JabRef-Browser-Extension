@@ -284,7 +284,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		var id = Zotero.Utilities.randomString(Zotero.GoogleDocs.config.fieldKeyLength);
 		var field = {text: Zotero.GoogleDocs.config.citationPlaceholder, code: '{}', id, noteType};
 		this.queued.insert = field;
-		await this._insertField(field);
+		await this._insertField(field, false);
 		return field;
 	},
 
