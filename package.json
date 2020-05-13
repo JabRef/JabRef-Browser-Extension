@@ -34,10 +34,10 @@
 		"web-ext": "^4.2.0",
 		"webextension-polyfill": "^0.6.0",
 		"yargs": "^15.3.1",
-    "jsdom": "^16.1.0",
-    "canvas": "^2.6.1",
-    "bufferutil": "^4.0.1",
-    "utf-8-validate": "^5.0.2"
+		"jsdom": "^16.1.0",
+		"canvas": "^2.6.1",
+		"bufferutil": "^4.0.1",
+		"utf-8-validate": "^5.0.2"
 	},
 	"babel": {
 		"presets": [
@@ -55,12 +55,17 @@
 		"url": "git+https://github.com/JabRef/JabRef-Browser-Extension.git"
 	},
 	"license": "AGPL-3.0-or-later",
-  "description": "Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.",
-  "bugs": {
-    "url": "https://github.com/JabRef/JabRef-Browser-Extension/issues"
-  },
-  "homepage": "https://github.com/JabRef/JabRef-Browser-Extension#readme",
-  "main": "background.js",
-  "keywords": ["bibliographic information extraction", "collect references", "JabRef", "reference management"],
-  "author": "JabRef"
+	"description": "Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.",
+	"bugs": {
+		"url": "https://github.com/JabRef/JabRef-Browser-Extension/issues"
+	},
+	"homepage": "https://github.com/JabRef/JabRef-Browser-Extension#readme",
+	"main": "background.js",
+	"keywords": [
+		"bibliographic information extraction",
+		"collect references",
+		"JabRef",
+		"reference management"
+	],
+	"author": "JabRef"
 }
