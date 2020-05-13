@@ -7,7 +7,7 @@ Zotero.Messaging.init();
 Zotero.Connector_Types.init();
 Zotero.Translators.init();
 zsc.init();
-wsClient.startClient();
+//wsClient.startClient(); // TODO: don't start websocket client, until JabRef's counterpart is integrated
 
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
