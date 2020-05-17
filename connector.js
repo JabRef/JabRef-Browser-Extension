@@ -39,6 +39,8 @@ Zotero.Connector = new function() {
 
 						// get citations counts for all items
 						zsc.processItems(items);
+					} else {
+						items = data.items;
 					}
 
 					this.convertToBibTex(items, configuration.exportMode, configuration.takeSnapshots)
