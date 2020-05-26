@@ -22,12 +22,31 @@
     
     ***** END LICENSE BLOCK *****
 */
+if (Zotero.isFirefox) {
+	console.log("Haini: firefoxPDF.js: Is this executed?");
+	
+	Zotero.Utilities.saveFirefoxPDF = async function(tab) {
+		console.log("Haini: firefoxPDF.js: Saving as fireFoxPDF");
+		var data = {
+			url: tab.url,
+			pdf: true
+		};
+		try {
+			
+			await Zotero.Connector.callMethodWithCookies("saveSnapshot", data, tab);
+		
+		} catch (e) {
+			Zotero.logError(e);
+		}
+	}
+}
 
 Zotero.Connector_Browser = new function() {
 	var _tabInfo = {};
 	var _incompatibleVersionMessageShown;
 	var _injectTranslationScripts = [
 		"browser-polyfill.min.js",
+		"firefoxPDF.js",
 		"Zotero/zotero_config.js",
 		"Zotero/zotero.js",
 		"Zotero/promise.js",
@@ -86,7 +105,7 @@ Zotero.Connector_Browser = new function() {
 			instanceID,
 			isPDF
 		});
-
+		console.log("Haini: Checked %s for PDF status: %s", _tabInfo[tab.id].url , isPDF);
 		//Zotero.Connector_Browser._updateExtensionUI(tab);
 	}
 
@@ -96,9 +115,12 @@ Zotero.Connector_Browser = new function() {
 	 * @param tabId
 	 */
 	this.onPDFFrame = function(frameURL, frameId, tabId) {
+		console.log("Haini: onPDFFrame Checking if we are a PDF?");
 		if (_tabInfo[tabId] && _tabInfo[tabId].translators) {
+			console.log("Haini: onPDFFrame No we are not %o?", _tabInfo);
 			return;
 		}
+		console.log("Haini: onPDFFrame Yes we are?");
 		browser.tabs.get(tabId).then(function(tab) {
 			_tabInfo[tab.id] = Object.assign(_tabInfo[tab.id] || {
 				injections: {}
@@ -845,8 +867,11 @@ Zotero.Connector_Browser = new function() {
 	 * @returns {Promise<*>}
 	 */
 	this.saveWithTranslator = function(tab, i, options = {}) {
+		console.log("Haini: _tabInfo looks like %o", _tabInfo);
 		var translator = _tabInfo[tab.id].translators[i];
-
+		
+		console.log("Haini: Using Translator %o", translator);
+		console.log("Haini: tabinfo looks like this %o", _tabInfo);
 		// Set frameId to null - send message to all frames
 		// There is code to figure out which frame should translate with instanceID.
 		return Zotero.Messaging.sendMessage(
@@ -862,11 +887,19 @@ Zotero.Connector_Browser = new function() {
 	}
 
 	this.saveAsWebpage = function(tab, frameId, options) {
-		if (Zotero.isFirefox && Zotero.browserMajorVersion >= 60 && _tabInfo[tab.id].isPDF) {
+		console.log("Haini: saveAsWebpage -> Tabinfo looks like this %o", _tabInfo[tab.id]);
+		console.log("Haini: saveAsWebpage -> tab %o", tab);
+		_tabInfo[tab.id] = {isPDF:true};
+		console.log("Haini: afterEdit -> Tabinfo looks like this %o", _tabInfo[tab.id]);
+		//console.log("Haini: %o | %o | %o", Zotero.isFirefox, Zotero.browserMajorVersion, _tabInfo[tab.id].isPDF);
+		//if (Zotero.isFirefox && Zotero.browserMajorVersion >= 60 && _tabInfo[tab.id].isPDF) {
+		if (Zotero.isFirefox && _tabInfo[tab.id].isPDF) {
+			console.log("Haini: We should land here %o", tab);
 			return Zotero.Utilities.saveFirefoxPDF(tab);
 		}
 
 		if (tab.id != -1) {
+			console.log("Haini: Saving as Webpage %o, %o", tab, frameId);
 			return Zotero.Messaging.sendMessage("saveAsWebpage", [tab.title, options], tab, frameId);
 		}
 		// Handle right-click on PDF overlay, which exists in a weird non-tab state

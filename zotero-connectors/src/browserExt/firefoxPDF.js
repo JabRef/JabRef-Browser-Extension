@@ -48,6 +48,7 @@ if (Zotero.isFirefox) {
 	});
 	
 	Zotero.Utilities.saveFirefoxPDF = async function(tab) {
+		console.log("Haini: firefoxPDF.js: Saving as fireFoxPDF");
 		var data = {
 			url: tab.url,
 			pdf: true
