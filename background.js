@@ -68,22 +68,22 @@ function lookForTranslators(tab) {
 	Zotero.Translators.getWebTranslatorsForLocation(tab.url, tab.url).then((translators) => {
 		if (translators[0].length == 0) {
 			// No translators found, so hide button
-			console.log("JabRef: No translators found");
+			console.log("JabRef: No translators found for %s", tab.url);
 			//browser.pageAction.hide(tab.id);
 			browser.pageAction.show(tab.id);
-			browser.pageAction.setTitle({
-				tabId: tab.id,
-				title: "Import references into JabRef using " + translators[0].label
-			});
+                       browser.pageAction.setTitle({
+                               tabId: tab.id,
+                               title: "Import references into JabRef using SaveAsWebpage" 
+                       });
 		} else {
 			// Potential translators found, Zotero will check if these can detect something on the website.
 			// We will be notified about the result of this check using the `onTranslators` method below, so nothing to do here. 
 			console.log("JabRef: Found potential translators for %s, %o", tab.url, translators[0]);
 			browser.pageAction.show(tab.id);
-			browser.pageAction.setTitle({
-				tabId: tab.id,
-				title: "Import references into JabRef using " + translators[0].label
-			});
+                       browser.pageAction.setTitle({
+                               tabId: tab.id,
+                               title: "Import references into JabRef using " + translators[0].label
+                       });
 		}
 	});
 }
@@ -134,33 +134,20 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 				var tab = tabs[0];
 
 				console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
-				console.log("Haini: %o", tab.url);	
+				
 				if (tab.url.includes(".pdf")) {
-					console.log("Haini: Saving as PDF: %o", tab.url);	
-					//Zotero.Connector_Browser.saveAsWebpage(tab);
-					//Zotero.Connector_Browser.saveAsWebpage(tab, 0, {
-					//	snapshot: true
-					//});
+					//Zotero.Connector_Browser.saveAsWebpage(tab, 0);
+					Zotero.Connector_Browser.saveAsWebpage(
+						tab,
+						0, {
+							snapshot: true
+						}
+					);
 
-					//Zotero.Connector_Browser.saveWithTranslator(tab, 0);
-					Zotero.Connector_Browser.saveAsWebpage(tab, 0);
-					//Zotero.Connector_Browser.saveAsWebpage(
-					//	tab,
-					//	_tabInfo[tab.id].frameId, {
-					//		snapshot: true
-					//	}
-					//);
-					//Zotero.Connector_Browser.saveAsWebpage(tab, 0, {
-					//	snapshot: withSnapshot
-					//});
-
-					//var ret = Zotero.Connector_Browser.saveAsWebpage(tab, 0, { snapshot: true });
-
-					//console.log("Haini: This is returned %o", ret);
-					//Zotero.Connector_Browser.saveWithTranslator(tab, 3);
 				} else {
 					Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 				}
+
 			});
 	} else if (message.eval) {
 		console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));

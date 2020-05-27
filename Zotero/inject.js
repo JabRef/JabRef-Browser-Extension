@@ -443,7 +443,6 @@ Zotero.Inject = new function() {
 	};
 
 	this.saveAsWebpage = async function(args) {
-		console.log("Haini: inject.js: we call saveAsWebPage %o", args);
 		var title = args[0] || document.title,
 			options = args[1] || {};
 		var result = await Zotero.Inject.checkActionToServer();
@@ -475,7 +474,6 @@ Zotero.Inject = new function() {
 	};
 
 	this._saveAsWebpage = async function(options = {}) {
-		console.log("Haini: Calling saveAsWebpage in Zotero/inject.js");
 		var sessionID = options.sessionID;
 		var title = options.title || document.title;
 		var translatorID = 'webpage' + (options.snapshot ? 'WithSnapshot' : '');
@@ -530,7 +528,6 @@ Zotero.Inject = new function() {
 			if (e.status === 0) {
 				// Attempt saving to server if not pdf
 				if (document.contentType != 'application/pdf') {
-					console.log("Haini: PDF Type detected in Zotero/inject.js");
 					let itemSaver = new Zotero.Translate.ItemSaver({});
 					let items = await itemSaver.saveAsWebpage();
 					if (items.length) {

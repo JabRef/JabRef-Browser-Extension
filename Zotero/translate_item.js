@@ -73,7 +73,6 @@ Zotero.Translate.ItemSaver.ATTACHMENT_MODE_FILE = 2;
 
 Zotero.Translate.ItemSaver.prototype = {
 	saveAsWebpage: function(doc) {
-		console.log("Haini: translateItem.js: saveItems %o", doc);
 		var doc = doc || document;
 		var item = {
 			itemType: 'webpage',

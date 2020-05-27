@@ -810,7 +810,6 @@ Zotero.Connector_Browser = new function() {
 	}
 	
 	this.saveAsWebpage = function(tab, frameId, options) {
-		console.log("Haini: src/browserExt/background.js saveAsWebpage");
 		if (Zotero.isFirefox && Zotero.browserMajorVersion >= 60 && _tabInfo[tab.id].isPDF) {
 			return Zotero.Utilities.saveFirefoxPDF(tab);
 		}
