@@ -16,61 +16,76 @@ Zotero.Connector = new function() {
 			this.convertToBibTex(data.items)
 				.then((bibtex) => this.sendBibTexToJabRef(bibtex));
 			console.log("Haini: Sending bibtex to Jabref %o", bibtex)
-		} else if (options == "saveSnapshot") {
+		} else if (options == "saveSnapshot" && tab.url.includes(".pdf")) {
 			console.log("Haini: No longer ignore saveSnapshot");
+
 			var manualEntry = [];
-			
 			manualEntry.push(
 			{
 				itemType: "journalArticle",
-				creators: [
-				  {
-					firstName: "Tobias",
-					lastName: "Diez",
-					creatorType: "author"
-				  },
-				  {
-					firstName: "Tudor S.",
-					lastName: "Ratiu",
-					creatorType: "author"
-				  }
-				],
-				notes: [],
-				tags: [
-				  {
-					tag: "Mathematics - Differential Geometry"
-				  },
-				  {
-					tag: "Mathematical Physics"
-				  },
-				  {
-					tag: "53D20, (58D27, 53C08, 53C10, 58B99, 32G15)"
-				  }
-				],
-				seeAlso: [],
+				title: tab.title,
+				url: tab.url,
+				accessDate: new Date().toISODate(),
 				attachments: [
 				  {
-					title: "arXiv Fulltext PDF",
-					url: "https://arxiv.org/pdf/2002.01273.pdf",
+					title: tab.title,
+					url: tab.url,
 					mimeType: "application/pdf",
-					localPath: "https://arxiv.org/pdf/2002.01273.pdf"
-				  },
-				  {
-					title: "arXiv.org Snapshot",
-					url: "http://arxiv.org/abs/2002.01273",
-					mimeType: "text/html"
-				  }
-				],
-				title: "TESTTESTTESTGroup-valued momentum maps for actions of automorphism groups",
-				date: "2020-02-04",
-				abstractNote: "The space of smooth sections of a symplectic fiber bundle carries a natural symplectic structure. We provide a general framework to determine the momentum map for the action of the group of bundle automorphism on this space. Since, in general, this action does not admit a classical momentum map, we introduce the more general class of group-valued momentum maps which is inspired by the Poisson Lie setting. In this approach, the group-valued momentum map assigns to every section of the symplectic fiber bundle a principal circle-bundle with connection. The power of this general framework is illustrated in many examples: we construct generalized Clebsch variables for fluids with integral helicity; the anti-canonical bundle turns out to be the momentum map for the action of the group of symplectomorphisms on the space of compatible complex structures; the Teichm\\\"uller moduli space is realized as a symplectic orbit reduced space associated to a coadjoint orbit of $\\mathrm{SL}(2,\\mathbb{R})$ and spaces related to the other coadjoint orbits are identified and studied. Moreover, we show that the momentum map for the group of bundle automorphisms on the space of connections over a Riemann surface encodes, besides the curvature, also topological information of the bundle.",
-				url: "http://arxiv.org/abs/2002.01273",
-				publicationTitle: "arXiv:2002.01273 [math-ph]",
-				extra: "arXiv: 2002.01273",
-				libraryCatalog: "arXiv.org",
-				accessDate: "2020-05-26",
-				id: "RLlishFW"
+					localPath: tab.url 
+				  }],
 			  });
+			
+			//manualEntry.push(
+			//{
+			//	itemType: "journalArticle",
+			//	creators: [
+			//	  {
+			//		firstName: "Tobias",
+			//		lastName: "Diez",
+			//		creatorType: "author"
+			//	  },
+			//	  {
+			//		firstName: "Tudor S.",
+			//		lastName: "Ratiu",
+			//		creatorType: "author"
+			//	  }
+			//	],
+			//	notes: [],
+			//	tags: [
+			//	  {
+			//		tag: "Mathematics - Differential Geometry"
+			//	  },
+			//	  {
+			//		tag: "Mathematical Physics"
+			//	  },
+			//	  {
+			//		tag: "53D20, (58D27, 53C08, 53C10, 58B99, 32G15)"
+			//	  }
+			//	],
+			//	seeAlso: [],
+			//	attachments: [
+			//	  {
+			//		title: "arXiv Fulltext PDF",
+			//		url: "https://arxiv.org/pdf/2002.01273.pdf",
+			//		mimeType: "application/pdf",
+			//		localPath: "https://arxiv.org/pdf/2002.01273.pdf"
+			//	  },
+			//	  {
+			//		title: "arXiv.org Snapshot",
+			//		url: "http://arxiv.org/abs/2002.01273",
+			//		mimeType: "text/html"
+			//	  }
+			//	],
+			//	title: "TESTTESTTESTGroup-valued momentum maps for actions of automorphism groups",
+			//	date: "2020-02-04",
+			//	abstractNote: "The space of smooth sections of a symplectic fiber bundle carries a natural symplectic structure. We provide a general framework to determine the momentum map for the action of the group of bundle automorphism on this space. Since, in general, this action does not admit a classical momentum map, we introduce the more general class of group-valued momentum maps which is inspired by the Poisson Lie setting. In this approach, the group-valued momentum map assigns to every section of the symplectic fiber bundle a principal circle-bundle with connection. The power of this general framework is illustrated in many examples: we construct generalized Clebsch variables for fluids with integral helicity; the anti-canonical bundle turns out to be the momentum map for the action of the group of symplectomorphisms on the space of compatible complex structures; the Teichm\\\"uller moduli space is realized as a symplectic orbit reduced space associated to a coadjoint orbit of $\\mathrm{SL}(2,\\mathbb{R})$ and spaces related to the other coadjoint orbits are identified and studied. Moreover, we show that the momentum map for the group of bundle automorphisms on the space of connections over a Riemann surface encodes, besides the curvature, also topological information of the bundle.",
+			//	url: "http://arxiv.org/abs/2002.01273",
+			//	publicationTitle: "arXiv:2002.01273 [math-ph]",
+			//	extra: "arXiv: 2002.01273",
+			//	libraryCatalog: "arXiv.org",
+			//	accessDate: "2020-05-26",
+			//	id: "RLlishFW"
+			//  });
 			
 
 			this.convertToBibTex(manualEntry)
