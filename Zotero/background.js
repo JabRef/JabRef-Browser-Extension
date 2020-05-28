@@ -882,8 +882,6 @@ Zotero.Connector_Browser = new function() {
 		//if (Zotero.isFirefox && Zotero.browserMajorVersion >= 60 && _tabInfo[tab.id].isPDF) {
 		//if (Zotero.isFirefox && tab.url.includes(".pdf")) {
 		if (Zotero.isFirefox) {
-			console.log("Haini: Calling saveFireFoxPDF");
-
 			return Zotero.Utilities.saveFirefoxPDF(tab);
 		}
 
