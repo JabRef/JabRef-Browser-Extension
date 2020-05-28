@@ -870,7 +870,7 @@ Zotero.Connector_Browser = new function() {
 		};
 		
 		try {
-			await Zotero.Connector.callMethodWithCookies("saveSnapshot", data, tab);
+			await Zotero.Connector.callMethodWithCookies("savePdfOrWebsite", data, tab);
 		
 		} catch (e) {
 			Zotero.logError(e);
@@ -880,6 +880,7 @@ Zotero.Connector_Browser = new function() {
 
 	this.saveAsWebpage = function(tab, frameId, options) {
 		//if (Zotero.isFirefox && Zotero.browserMajorVersion >= 60 && _tabInfo[tab.id].isPDF) {
+		//if (Zotero.isFirefox && tab.url.includes(".pdf")) {
 		if (Zotero.isFirefox) {
 			console.log("Haini: Calling saveFireFoxPDF");
 

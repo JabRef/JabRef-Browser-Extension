@@ -7,6 +7,9 @@ Zotero.Messaging.init();
 Zotero.Connector_Types.init();
 Zotero.Translators.init();
 
+/* Replace this later on, indicates wether there are translators for the tab */
+var translatorAvailable = false;
+
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
 */
@@ -70,6 +73,7 @@ function lookForTranslators(tab) {
 			// No translators found, so hide button
 			console.log("JabRef: No translators found for %s", tab.url);
 			//browser.pageAction.hide(tab.id);
+			this.translatorAvailable = false;
 			browser.pageAction.show(tab.id);
                        browser.pageAction.setTitle({
                                tabId: tab.id,
@@ -79,6 +83,7 @@ function lookForTranslators(tab) {
 			// Potential translators found, Zotero will check if these can detect something on the website.
 			// We will be notified about the result of this check using the `onTranslators` method below, so nothing to do here. 
 			console.log("JabRef: Found potential translators for %s, %o", tab.url, translators[0]);
+			this.translatorAvailable = true;
 			browser.pageAction.show(tab.id);
                        browser.pageAction.setTitle({
                                tabId: tab.id,
@@ -105,6 +110,8 @@ onTranslators = function(translators, tabId, contentType) {
 	if (translators.length == 0) {
 		console.log("JabRef: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tabId)));
 		//browser.pageAction.hide(tabId);
+
+		this.translatorAvailable = false;
 		browser.pageAction.show(tabId);
 		browser.pageAction.setTitle({
 			tabId: tabId,
@@ -113,6 +120,7 @@ onTranslators = function(translators, tabId, contentType) {
 	} else {
 		console.log("JabRef: Found translators %o for tab %o", translators, JSON.parse(JSON.stringify(tabId)));
 
+		this.translatorAvailable = true;
 		browser.pageAction.show(tabId);
 		browser.pageAction.setTitle({
 			tabId: tabId,
@@ -135,8 +143,7 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
 				console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
 				
-				if (tab.url.includes(".pdf")) {
-					//Zotero.Connector_Browser.saveAsWebpage(tab, 0);
+				if (tab.url.includes(".pdf") || !this.translatorAvailable) {
 					Zotero.Connector_Browser.saveAsWebpage(
 						tab,
 						0, {
