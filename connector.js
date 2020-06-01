@@ -18,28 +18,28 @@ Zotero.Connector = new function() {
 		} else if (options == "saveSnapshot") {
 			/* Ignore this branch for now */
 		} else if (options == "savePdfOrWebsite") {
-			if (tab.url.includes(".pdf")) {
-				//Construct a manual Bibtex Entry for the PDF so that we don't need
-				//to use a Zotero Translator in another tab 
-				var bibtexString =  "@misc{unknown\
-					author={unknownAuthor},\
-					title={" + tab.title + "},\
-					file={PDF:" + tab.url.replace(":","\\:") + ":application/pdf},\
-					url = {" + tab.url + "},\
-					accessDate={" + new Date().toISODate() + "},\
-					}"
-			}  else {
-				//Construct a manual Bibtex Entry for the PDF so that we don't need
-				//to use a Zotero Translator in another tab 
-				var bibtexString =  "@misc{unknown\
-					author={unknownAuthor},\
-					title={" + tab.title + "},\
-					file={HTML:" + tab.url.replace(":","\\:") + ":application/html},\
-					url = {" + tab.url + "},\
-					accessDate={" + new Date().toISODate() + "},\
-					}"
-			}
-			this.sendBibTexToJabRef(bibtexString);
+			//if (tab.url.includes(".pdf")) {
+			//	//Construct a manual Bibtex Entry for the PDF so that we don't need
+			//	//to use a Zotero Translator in another tab 
+			//	var bibtexString =  "@misc{unknown\
+			//		author={unknownAuthor},\
+			//		title={" + tab.title + "},\
+			//		file={PDF:" + tab.url.replace(":","\\:") + ":application/pdf},\
+			//		url = {" + tab.url + "},\
+			//		accessDate={" + new Date().toISODate() + "},\
+			//		}"
+			//}  else {
+			//	//Construct a manual Bibtex Entry for the PDF so that we don't need
+			//	//to use a Zotero Translator in another tab 
+			//	var bibtexString =  "@misc{unknown\
+			//		author={unknownAuthor},\
+			//		title={" + tab.title + "},\
+			//		file={HTML:" + tab.url.replace(":","\\:") + ":application/html},\
+			//		url = {" + tab.url + "},\
+			//		accessDate={" + new Date().toISODate() + "},\
+			//		}"
+			//}
+			//this.sendBibTexToJabRef(bibtexString);
 		}
 		else {
 			throw new Error("JabRef: Tried to contact Zotero standalone: " + options);
@@ -128,5 +128,32 @@ Zotero.Connector = new function() {
 					"errorWhileSendingToJabRef": error.message
 				});
 			});
+	}
+
+	this.savePdf = function(options, data, tab) {
+		//Construct a manual Bibtex Entry for the PDF so that we don't need
+		//to use a Zotero Translator in another tab 
+		var bibtexString =  "@misc{unknown\
+			author={unknownAuthor},\
+			title={" + tab.title + "},\
+			file={PDF:" + tab.url.replace(":","\\:") + ":application/pdf},\
+			url = {" + tab.url + "},\
+			accessDate={" + new Date().toISODate() + "},\
+			}"
+		this.sendBibTexToJabRef(bibtexString);
+	}
+
+	this.saveWebsite = function(options, data, tab) {
+		//Construct a manual Bibtex Entry for the Website so that we don't need
+		//to use a Zotero Translator in another tab 
+		var bibtexString =  "@misc{unknown\
+			author={unknownAuthor},\
+			title={" + tab.title + "},\
+			file={HTML:" + tab.url.replace(":","\\:") + ":application/html},\
+			url = {" + tab.url + "},\
+			accessDate={" + new Date().toISODate() + "},\
+			}"
+		this.sendBibTexToJabRef(bibtexString);
+
 	}
 }
