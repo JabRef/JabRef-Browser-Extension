@@ -10,6 +10,10 @@ Zotero.Translators.init();
 /* Replace this later on, indicates wether there are translators for the tab */
 var translatorAvailable = false;
 
+var _tabInfo = {};
+
+this._tabInfo = _tabInfo;
+
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
 */
@@ -107,11 +111,11 @@ function evalInTab(tabsId, code) {
 	We need to hide or show the page action accordingly.
 */
 onTranslators = function(translators, tabId, contentType) {
+	console.log("Haini: onTranslators fired");
 	if (translators.length == 0) {
 		console.log("JabRef: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tabId)));
 		//browser.pageAction.hide(tabId);
 
-		this.translatorAvailable = false;
 		browser.pageAction.show(tabId);
 		browser.pageAction.setTitle({
 			tabId: tabId,
@@ -120,7 +124,6 @@ onTranslators = function(translators, tabId, contentType) {
 	} else {
 		console.log("JabRef: Found translators %o for tab %o", translators, JSON.parse(JSON.stringify(tabId)));
 
-		this.translatorAvailable = true;
 		browser.pageAction.show(tabId);
 		browser.pageAction.setTitle({
 			tabId: tabId,
@@ -140,21 +143,39 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			})
 			.then((tabs) => {
 				var tab = tabs[0];
-
+				_tabInfo = Zotero.Connector_Browser._tabInfo;
+				var isPDF = tab.contentType == 'application/pdf';
+				console.log("Haini: Zotero _tabinfo in click: %o", _tabInfo);
 				console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
-				
-				if (tab.url.includes(".pdf") || !this.translatorAvailable) {
-					Zotero.Connector_Browser.saveAsWebpage(
-						tab,
-						0, {
-							snapshot: true
-						}
-					);
+				if (_tabInfo[tab.id] == null || _tabInfo[tab.id].translators.length == 0) {
+					console.log("Haini: No translators available")
+					if (isPDF) {
+						console.log("Haini: Saving as PDF")
+						var data = {};
 
+						data.items = {
+							url: tab.url,
+							pdf: true
+						};
+
+						Zotero.Connector.savePdf(0, data, tab);
+					} else {
+						console.log("Haini: Saving as Webpage")
+						/* Assume we save a website with HTML */
+						var data = {};
+
+						data.items = {
+							url: tab.url,
+							pdf: false 
+						};
+
+						Zotero.Connector.saveWebsite(0, data, tab);
+					}
 				} else {
+					/* Regular page with metainformation, save with Zotero
+					Translator */
 					Zotero.Connector_Browser.saveWithTranslator(tab, 0);
 				}
-
 			});
 	} else if (message.eval) {
 		console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
@@ -164,6 +185,8 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		console.log("JabRef: Intercept message to Zotero background script", JSON.parse(JSON.stringify(message)));
 		message[1][1] = sender.tab.id;
 		onTranslators.apply(null, message[1]);
+	} else if (message[0] == 'Connector_Browser.onPDFFrame') {
+		console.log("Haini: onPDFFRame was called!");
 	} else if (message[0] == 'Debug.log') {
 		console.log(message[1]);
 	} else if (message[0] == 'Errors.log') {
