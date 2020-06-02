@@ -552,11 +552,28 @@ Zotero.GoogleDocs.UI = {
 	waitToSaveInsertion: async function() {
 		await Zotero.Promise.delay(5);
 		var deferred = Zotero.Promise.defer();
-		// We cannot check for specific text because of localization, so we just wait for the text
-		// to change. Best bet.
-		var observer = new MutationObserver(() => deferred.resolve());
-		var saveLabel = document.getElementsByClassName('docs-title-save-label-text')[0];
-		observer.observe(saveLabel, {childList: true});
+		// In case the new UI is being pushed out in phases we'll keep the old logic for now
+		var newStyleSaveLabel = document.querySelector('.docs-save-indicator-container');
+		if (!newStyleSaveLabel) {
+			// We cannot check for specific text because of localization, so we just wait for the text
+			// to change. Best bet.
+			var observer = new MutationObserver(() => deferred.resolve());
+			var saveLabel = document.getElementsByClassName('docs-title-save-label-text')[0];
+			observer.observe(saveLabel, {childList: true});	
+		} else {
+			// Ahh this used to be a pain but google added a sync indicator so now waiting to finalize
+			// an insertion is super reliable!
+			if (!document.querySelector('.docs-icon-sync')) {
+				return;
+			}
+			observer = new MutationObserver(() => {
+				if (!document.querySelector('.docs-icon-sync')) {
+					deferred.resolve()
+				}
+			});
+			saveLabel = document.querySelector('.docs-save-indicator-container');
+			observer.observe(saveLabel, {childList: true, subtree: true});
+		}
 		await deferred.promise;
 		observer.disconnect();
 	}
