@@ -1,0 +1,9 @@
+{
+  "name": "google-docs-plugin",
+  "version": "5.0.0",
+  "devDependencies": {
+    "@babel/cli": "^7.10.1",
+    "@babel/core": "^7.10.2",
+    "@babel/preset-react": "^7.10.1"
+  }
+}
