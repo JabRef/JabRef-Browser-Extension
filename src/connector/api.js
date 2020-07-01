@@ -29,7 +29,7 @@ Zotero.GoogleDocs.API = {
 	authDeferred: null,
 	authHeaders: null,
 	lastAuthEmail: null,
-	apiVersion: 4,
+	apiVersion: 5,
 	
 	resetAuth: function() {
 		delete this.authHeaders;

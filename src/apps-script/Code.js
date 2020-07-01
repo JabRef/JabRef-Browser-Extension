@@ -24,6 +24,7 @@
 */
 var config = {
 	fieldURL: 'https://www.zotero.org/google-docs/?',
+	brokenFieldURL: 'https://www.zotero.org/google-docs/?broken=',
 	fieldKeyLength: 6,
 	citationPlaceholder: "{Updating}",
 	fieldPrefix: "Z_F",
@@ -43,6 +44,7 @@ var EXPORTED_DOCUMENT_MARKERS = ["ZOTERO_TRANSFER_DOCUMENT", "ZOTERO_EXPORTED_DO
 
 var doc, bodyRange, docUrl, insertIdx, apiVersion = 0;
 var extraReturnData = {};
+var orphanedCitations = [];
 
 function callMethod(documentUrl, method, args, apiVers) {
 	apiVersion = apiVers || apiVersion;
@@ -138,9 +140,7 @@ function getFields(prefix, removePlaceholder) {
 				}
 				insertIdx = idx;
 			} else if (key) {
-				// Unlink orphaned links
-				link.text.setLinkUrl(link.startOffset, link.endOffsetInclusive, null);
-				debug('Unlinking orphaned link: "' + link.url + '": ' + link.url);
+				handleOrphanedCitation(link);
 			}
 		});
 	}
@@ -233,6 +233,41 @@ function decodeRanges(namedRanges, prefix) {
 function checkForExportMarker() {
 	var p = doc.getBody().getParagraphs()[0];
 	return EXPORTED_DOCUMENT_MARKERS.some(function (marker) { return p.findText(marker); });
+}
+
+function handleOrphanedCitation(link) {
+	if (apiVersion < 5) {
+		// Unlink orphaned links
+		link.text.setLinkUrl(link.startOffset, link.endOffsetInclusive, null);
+		debug('Unlinking orphaned link: "' + link.url + '": ' + link.url);
+		return;
+	}
+	var text = link.text.getText().substring(link.startOffset, link.endOffsetInclusive+1);
+	var key = link.url.substr(config.fieldURL.length);
+	if (key.indexOf('broken=') === 0) {
+		key = key.substr('broken='.length);
+	} else {
+		// Assign a new key in case the citation was copied and the original
+		// one is still intact and has a working key. The url-key is later used
+		// to select the orphaned citation in the UI
+		key = randomString(config.fieldKeyLength)
+	}
+	orphanedCitations.push({
+		url: config.brokenFieldURL + key,
+		text: text,
+		key: key
+	});
+	// Already processed previously
+	if (link.url.indexOf(config.brokenFieldURL) === 0) return;
+	
+	debug('Found a new orphaned citation: "' + link.url + '": ' + text);
+	link.text.setLinkUrl(link.startOffset, link.endOffsetInclusive, config.brokenFieldURL + key);
+	// Set red text color for unlinked citations
+	var attr = {};
+	attr[DocumentApp.Attribute.FOREGROUND_COLOR] = "#cc2936";
+	// Setting link above applies default styling so we have to override underline
+	attr[DocumentApp.Attribute.UNDERLINE] = false;
+	link.text.setAttributes(link.startOffset, link.endOffsetInclusive, attr);
 }
 
 var exposed = {};
@@ -365,16 +400,19 @@ exposed.unlockTheDoc = function() {
 
 exposed.getFields = function (placeholders) {
 	var fields;
-	if (apiVersion >= 4 && placeholders) {
-		var fields = getFieldPlaceholders();
+	if (placeholders) {
+		fields = getFieldPlaceholders();
 	} else {
-		var fields = getFields();
+		fields = getFields();
 	}
 	fields = fields.map(function(field) {
 		return field.serialize();
 	});
 	if (apiVersion > 0 && typeof insertIdx == 'number') {
 		fields = fields.slice(0, insertIdx).concat([-1], fields.slice(insertIdx));
+	}
+	if (apiVersion >= 5) {
+		return { fields: fields, orphanedCitations: orphanedCitations };
 	}
 	return fields;
 };
@@ -887,7 +925,7 @@ function getRangeLink(rangeElement) {
 		url = elem.getLinkUrl();
 	}
 	var links = getAllLinks();
-	var idx;
+	var idx = -1;
 	links.forEach(function(link, index) {
 		if (link.url == url) idx = index;
 	});
@@ -896,7 +934,9 @@ function getRangeLink(rangeElement) {
 
 function filterFieldLinks(links) {
 	return links.filter(function (link) {
-		return link.url.indexOf(config.fieldURL) == 0 && link.url.length == config.fieldURL.length + config.fieldKeyLength;
+		return link.url.indexOf(config.fieldURL) == 0 &&
+			(link.url.length == config.fieldURL.length + config.fieldKeyLength 
+				|| link.url.length == config.brokenFieldURL.length + config.fieldKeyLength)
 	})
 }
 

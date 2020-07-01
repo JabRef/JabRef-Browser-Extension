@@ -35,6 +35,7 @@ if (!isTopWindow) return;
 Zotero.GoogleDocs = {
 	config: {
 		fieldURL: 'https://www.zotero.org/google-docs/?',
+		brokenFieldURL: 'https://www.zotero.org/google-docs/?broken=',
 		fieldKeyLength: 6,
 		citationPlaceholder: "{Updating}",
 		fieldPrefix: "Z_F",
@@ -74,6 +75,20 @@ Zotero.GoogleDocs = {
 			client = new Zotero.GoogleDocs.Client();
 			await client.init();
 		}
+
+		if (command == 'addEditCitation') {
+			// Check if we're in a broken field and cancel operation if user
+			// wants clicks More Info
+			try {
+				await client.cursorInField(true);
+			} catch (e) {
+				if (e.message != "Handled Error") {
+					Zotero.logError(e);
+				}
+				return;
+			}
+		}
+
 		window.dispatchEvent(new MessageEvent('Zotero.Integration.execCommand', {
 			data: {client: {documentID: client.documentID, name: Zotero.GoogleDocs.name, id: client.id}, command}
 		}));
@@ -91,7 +106,7 @@ Zotero.GoogleDocs = {
 		var client = this.lastClient || new Zotero.GoogleDocs.Client();
 		await client.init();
 		try {
-			var field = await client.cursorInField();
+			var field = await client.cursorInField(true);
 		} catch (e) {
 			if (e.message == "Handled Error") {
 				Zotero.debug('Handled Error in editField()');
@@ -119,9 +134,13 @@ Zotero.GoogleDocs.Client = function() {
 	Zotero.GoogleDocs.clients[this.id] = this;
 };
 Zotero.GoogleDocs.Client.prototype = {
+	/**
+	 * Called before each integration transaction once
+	 */
 	init: async function() {
 		this.currentFieldID = await Zotero.GoogleDocs.UI.getSelectedFieldID();
 		this.isInLink = Zotero.GoogleDocs.UI.isInLink();
+		this.orphanedCitationAlertShown = false;
 	},
 	
 	call: async function(request) {
@@ -171,7 +190,13 @@ Zotero.GoogleDocs.Client.prototype = {
 	getDocumentData: async function() {
 		return Zotero.GoogleDocs_API.run(this.documentID, 'getDocumentData', Array.from(arguments));
 	},
-	
+
+	/**
+	 * This is a sneaky method where all actual calls to gdocs occur and multiple queued document
+	 * changes are performed
+	 * @param data {String} - from Zotero. Serialized doc data string
+	 * @returns {Promise}
+	 */
 	setDocumentData: async function(data) {
 		this.queued.documentData = data;
 		var keys = Object.keys(this.queued.fields); 
@@ -179,6 +204,9 @@ Zotero.GoogleDocs.Client.prototype = {
 		let count = 0;
 		while (count < keys.length || this.queued.documentData) {
 			Zotero.debug(`GDocs: Updating doc. Batch ${batchSize}, numItems: ${keys.length - count}`);
+			if (this.queued.insert) {
+				await this._insertField(this.queued.insert, false);
+			}
 			let batch = keys.slice(count, count+batchSize);
 			try {
 				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
@@ -256,7 +284,10 @@ Zotero.GoogleDocs.Client.prototype = {
 			return fields;
 		}
 
-		this.fields = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', [this.queued.conversion]);
+		let response = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', [this.queued.conversion]);
+		this.fields = response.fields;
+		this.orphanedCitations = response.orphanedCitations;
+		Zotero.GoogleDocs.UI.orphanedCitations.setCitations(this.orphanedCitations);
 		let i = 0;
 		for (let field of this.fields) {
 			if (field == -1) {
@@ -284,7 +315,6 @@ Zotero.GoogleDocs.Client.prototype = {
 		var id = Zotero.Utilities.randomString(Zotero.GoogleDocs.config.fieldKeyLength);
 		var field = {text: Zotero.GoogleDocs.config.citationPlaceholder, code: '{}', id, noteType};
 		this.queued.insert = field;
-		await this._insertField(field, false);
 		return field;
 	},
 
@@ -308,8 +338,9 @@ Zotero.GoogleDocs.Client.prototype = {
 		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 	},
 	
-	cursorInField: async function() {
+	cursorInField: async function(showOrphanedCitationAlert=false) {
 		if (!(this.currentFieldID)) return false;
+		this.isInOrphanedField = false;
 		
 		var fields = await this.getFields();
 		// The call to getFields() might change the selectedFieldID if there are duplicates
@@ -319,11 +350,22 @@ Zotero.GoogleDocs.Client.prototype = {
 				return field;
 			}
 		}
+		if (selectedFieldID.startsWith("broken=")) {
+			this.isInOrphanedField = true;
+			if (showOrphanedCitationAlert && !this.orphanedCitationAlertShown) {
+				let result = await Zotero.GoogleDocs.UI.displayOrphanedCitationAlert();
+				if (!result) {
+					throw new Error('Handled Error');
+				}
+				this.orphanedCitationAlertShown = true;
+			}
+			return false;
+		}
 		throw new Error(`Selected field ${selectedFieldID} not returned from Docs backend`);
 	},
 	
 	canInsertField: async function() {
-		return !this.isInLink;
+		return this.isInOrphanedField || !this.isInLink;
 	},
 	
 	convert: async function(fieldIDs, fieldType, fieldNoteTypes) {
