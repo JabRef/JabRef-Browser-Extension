@@ -7,3 +7,9 @@ updates:
   open-pull-requests-limit: 10
   labels:
   - type:dependency
+- package-ecosystem: "github-actions"
+  directory: "/"
+  schedule:
+    interval: weekly
+  labels:
+  - type:dependency
