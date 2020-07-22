@@ -275,12 +275,16 @@ Zotero.GoogleDocs.UI = {
 	displayOrphanedCitationAlert: async function() {
 		const options = {
 			title: Zotero.getString('general_warning'),
-			button2Text: "",
+			button1Text: Zotero.getString('integration_googleDocs_orphanedCitations_alertButton'),
+			button2Text: "Cancel",
 			button3Text: Zotero.getString('general_moreInfo'),
 			message: Zotero.getString('integration_googleDocs_orphanedCitations_alert', ZOTERO_CONFIG.CLIENT_NAME),
 		};
 		let result = await Zotero.Inject.confirm(options);
-		if (result.button == 3) {
+		if (result.button == 2) {
+			return false;
+		}
+		else if (result.button == 3) {
 			Zotero.Connector_Browser.openTab('https://www.zotero.org/support/kb/google_docs_citations_unlinked');
 			return false;
 		}
@@ -907,8 +911,8 @@ Zotero.GoogleDocs.UI.OrphanedCitations = React.forwardRef(function(props, ref) {
 		<div
 			role={"button"}
 			id={buttonID}
-			data-tooltip={Zotero.getString('integration_googleDocs_orphanedCitations_buttonTooltip')}
-			aria-label={Zotero.getString('integration_googleDocs_orphanedCitations_buttonTooltip')}
+			data-tooltip={Zotero.getString('integration_googleDocs_orphanedCitations_buttonTooltip', ZOTERO_CONFIG.CLIENT_NAME)}
+			aria-label={Zotero.getString('integration_googleDocs_orphanedCitations_buttonTooltip', ZOTERO_CONFIG.CLIENT_NAME)}
 			style={{
 				borderRadius: "50%",
 				cursor: "pointer",
