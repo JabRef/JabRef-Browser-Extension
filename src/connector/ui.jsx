@@ -936,10 +936,15 @@ Zotero.GoogleDocs.UI.OrphanedCitations = React.forwardRef(function(props, ref) {
 Zotero.GoogleDocs.UI.OrphanedCitationsList = function({ citations, open }) {
 	function renderCitation(citation) {
 		return (
-			<a className="zotero-orphaned-citation" href="#"
-				onClick={() => Zotero.GoogleDocs.UI.selectText(citation.text, citation.url)}>
-				{citation.text}
-			</a>
+			<li style={{
+				fontSize: "var(--docs-material-font-size-normal,13px)",
+				marginTop: ".6em"
+			}}>
+				<a className="zotero-orphaned-citation" href="#"
+					onClick={() => Zotero.GoogleDocs.UI.selectText(citation.text, citation.url)}>
+					{citation.text}
+				</a>
+			</li>
 		);
 	}
 
@@ -959,15 +964,19 @@ Zotero.GoogleDocs.UI.OrphanedCitationsList = function({ citations, open }) {
 					whiteSpace: 'normal',
 					fontSize: "1.2em",
 					color: "#333",
-					marginBottom: "1em"
+					marginBottom: ".4em"
 				}}
 				dangerouslySetInnerHTML={{
 					__html: Zotero.getString('integration_googleDocs_orphanedCitations_disclaimer', ZOTERO_CONFIG.CLIENT_NAME)
 				}}
 			/>
-			<div className="zotero-orphaned-citations-list" style={{ display: "flex", flexDirection: "column" }}>
+			<ul className="zotero-orphaned-citations-list" style={{
+				listStyle: "none",
+				marginBottom: ".4em",
+				padding: "0"
+			}}>
 				{citations.map(renderCitation)}
-			</div>
+			</ul>
 		</div>
 	);
 }
