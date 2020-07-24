@@ -571,6 +571,12 @@ Zotero.GoogleDocs.UI = {
 		// We add and remove a non-breaking-space to re-display the linkbubble in case it is not showing
 		// due to window blur or any other reasons.
 		if (!noAddRemove) {
+			var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.textContent;
+			if (selection.length) {
+				var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
+				textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));	
+				await Zotero.Promise.delay();
+			}
 			await this.sendKeyboardEvent({key: " ", keyCode: 160});
 			await this.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 		}
