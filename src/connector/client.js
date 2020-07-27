@@ -67,7 +67,7 @@ Zotero.GoogleDocs = {
 		});
 	},
 	
-	execCommand: async function(command, client) {
+	execCommand: async function(command, client, showOrphanedCitationAlert=true) {
 		if (Zotero.GoogleDocs.UI.isDocx) {
 			return Zotero.GoogleDocs.UI.displayDocxAlert();
 		}
@@ -80,7 +80,7 @@ Zotero.GoogleDocs = {
 			// Check if we're in a broken field and cancel operation if user
 			// wants clicks More Info
 			try {
-				await client.cursorInField(true);
+				await client.cursorInField(showOrphanedCitationAlert);
 			} catch (e) {
 				if (e.message != "Handled Error") {
 					Zotero.logError(e);
@@ -121,7 +121,7 @@ Zotero.GoogleDocs = {
 		if (field && field.code.indexOf("BIBL") == 0) {
 			return Zotero.GoogleDocs.execCommand("addEditBibliography", client);
 		} else {
-			return Zotero.GoogleDocs.execCommand("addEditCitation", client);
+			return Zotero.GoogleDocs.execCommand("addEditCitation", client, false);
 		}
 	},
 };
@@ -352,7 +352,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		}
 		if (selectedFieldID.startsWith("broken=")) {
 			this.isInOrphanedField = true;
-			if (showOrphanedCitationAlert && !this.orphanedCitationAlertShown) {
+			if (showOrphanedCitationAlert === true && !this.orphanedCitationAlertShown) {
 				let result = await Zotero.GoogleDocs.UI.displayOrphanedCitationAlert();
 				if (!result) {
 					throw new Error('Handled Error');
