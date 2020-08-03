@@ -19,7 +19,7 @@
 		"chai": "^4.2.0",
 		"chalk": "^4.1.0",
 		"chromedriver": "^84.0.1",
-		"geckodriver": "^1.19.1",
+		"geckodriver": "^1.20.0",
 		"gulp": "^4.0.2",
 		"gulp-jsbeautify": "^0.1.1",
 		"gulp-plumber": "^1.2.1",
