@@ -463,8 +463,7 @@ exposed.complete = function(options) {
 			fieldMap[field.id] = field;
 		});
 		var missingFields = [];
-		// Perform in reverse order to keep field link position indices intact during update
-		options.fields.reverse().forEach(function(fieldChange) {
+		options.fields.forEach(function(fieldChange) {
 			var field = fieldMap[fieldChange.id];
 			if (!field) {
 				missingFields.push(fieldChange.id);
