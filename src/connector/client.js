@@ -67,7 +67,7 @@ Zotero.GoogleDocs = {
 		});
 	},
 	
-	execCommand: async function(command, client, showOrphanedCitationAlert=true) {
+	execCommand: async (command, client, showOrphanedCitationAlert=true) => {
 		if (Zotero.GoogleDocs.UI.isDocx) {
 			return Zotero.GoogleDocs.UI.displayDocxAlert();
 		}
