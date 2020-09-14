@@ -33,7 +33,7 @@
 		"through2": "^4.0.2",
 		"web-ext": "^5.0.0",
 		"webextension-polyfill": "^0.6.0",
-		"yargs": "^15.4.1"
+		"yargs": "^16.0.3"
 	},
 	"babel": {
 		"presets": [
