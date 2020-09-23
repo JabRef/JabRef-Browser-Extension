@@ -436,16 +436,23 @@ Zotero.GoogleDocs.UI = {
 	 * @returns {Promise<void>}
 	 */
 	writeText: async function(text) {
-		var evt, pasteTarget;
+		var evt;
+		var pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.children[0];
 		if (!Zotero.isFirefox) {
 			var dt = new DataTransfer();
-			dt.setData('text/plain', text);
+			dt.setData('text/html', text);
 			evt = new ClipboardEvent('paste', {clipboardData: dt});
-			pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
 		} else {
-			evt = new ClipboardEvent('paste', {dataType: 'text/plain', data: text});
-			pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.children[0];
+			evt = new ClipboardEvent('paste', {dataType: 'text/html', data: text});
 		}
+		// After reading minified code for 2 days I figured out why a synthetic 'text/plain' paste works,
+		// but 'text/html' paste doesn't. Kix' code sets the paste target/input proxy to an empty string, then 
+		// receives the paste event into it and on the next event loop looks at the innerHTML of the paste target
+		// which is then inserted into the document proper. For some reason the synthetic paste event fails to
+		// trigger the browser to set the input proxy's inner HTML, so we do it manually.
+		// We set the pasteTarget.innerHTML in the next event loop callback which thankfully runs before
+		// Kix's own code and allows us to paste in proper HTML. Beautiful.
+		setTimeout(() => pasteTarget.innerHTML = text);
 		pasteTarget.dispatchEvent(evt);
 		await Zotero.Promise.delay();
 	},

@@ -451,7 +451,10 @@ exposed.complete = function(options) {
 	lockTheDoc();
 	try {
 		if (options.insert) {
-			exposed.insertField(options.insert);
+			if (!Array.isArray(options.insert)) {
+				options.insert = [options.insert];
+			}
+			options.insert.forEach(exposed.insertField);
 		}
 		if (options.documentData) {
 			exposed.setDocumentData(options.documentData);
@@ -471,6 +474,7 @@ exposed.complete = function(options) {
 			fieldMap[field.id] = field;
 		});
 		var missingFields = [];
+		var toUnlink = [];
 		options.fields.forEach(function(fieldChange) {
 			var field = fieldMap[fieldChange.id];
 			if (!field) {
@@ -487,10 +491,22 @@ exposed.complete = function(options) {
 			} else {
 				fieldMap[fieldChange.id].write(fieldChange);
 				if (fieldChange.removeCode) {
-					fieldMap[fieldChange.id].unlink();
+					toUnlink.push(fieldChange.id);
 				}
 			}
 		});
+		if (toUnlink.length) {
+			// After performing writes we need to reset field links
+			// before attempting to unlink fields (since text moves and links are invalidated)
+			links = [];
+			fields = getFields(config.fieldPrefix, options.deletePlaceholder);
+			fields.forEach(function(field) {
+				fieldMap[field.id] = field;
+			});
+			toUnlink.forEach(function(fieldId) {
+				fieldMap[fieldId].unlink();
+			});
+		}
 		
 		if (missingFields.length > 0) {
 			extraReturnData.error = "An error occurred while updating fields. " + JSON.stringify(missingFields);
@@ -767,8 +783,8 @@ Field.prototype = {
 	},
 	// Apps Script JS engine parses this as an illegal keyword
 	"delete": function() {
-		this.link.text.deleteText(this.link.startOffset, this.link.endOffsetInclusive);
 		this.unlink();
+		this.link.text.deleteText(this.link.startOffset, this.link.endOffsetInclusive);
 	},
 };
 
