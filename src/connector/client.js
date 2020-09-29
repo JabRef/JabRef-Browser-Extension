@@ -489,7 +489,7 @@ Zotero.GoogleDocs.Client.prototype = {
 			this.queued.insert.push(field);
 		});
 		// Returning inserted fields in the order of appearance of placeholder IDs
-		return Array.from(this.queued.insert).sort((a, b) => a.id.indexOf(placeholderIDs) - b.id.indexOf(placeholderIDs));
+		return Array.from(this.queued.insert).sort((a, b) => placeholderIDs.indexOf(a.id) - placeholderIDs.indexOf(b.id));
 	},
 
 	cursorInField: async function(showOrphanedCitationAlert=false) {
