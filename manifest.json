@@ -2,7 +2,6 @@
 	"browser_specific_settings": {
 		"gecko": {
 			"id": "@jabfox"
-			//"id": "browserextension@jabref.org"
 		}
 	},
 
