@@ -34,6 +34,7 @@ if (!isTopWindow) return;
 
 Zotero.GoogleDocs = {
 	config: {
+		noteInsertionPlaceholderURL: 'https://www.zotero.org/?',
 		fieldURL: 'https://www.zotero.org/google-docs/?',
 		brokenFieldURL: 'https://www.zotero.org/google-docs/?broken=',
 		fieldKeyLength: 6,
@@ -130,7 +131,6 @@ Zotero.GoogleDocs.Client = function() {
 	this.documentID = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
 	this.id = Zotero.Utilities.randomString();
 	this.fields = null;
-	this.queued = {fields: {}, insert: null, documentData: null, bibliographyStyle: null};
 	Zotero.GoogleDocs.clients[this.id] = this;
 };
 Zotero.GoogleDocs.Client.prototype = {
@@ -141,6 +141,13 @@ Zotero.GoogleDocs.Client.prototype = {
 		this.currentFieldID = await Zotero.GoogleDocs.UI.getSelectedFieldID();
 		this.isInLink = Zotero.GoogleDocs.UI.isInLink();
 		this.orphanedCitationAlertShown = false;
+		this.insertIdx = null;
+		this.queued = {
+			fields: {},
+			insert: null,
+			documentData: null,
+			bibliographyStyle: null
+		};
 	},
 	
 	call: async function(request) {
@@ -199,14 +206,21 @@ Zotero.GoogleDocs.Client.prototype = {
 	 */
 	setDocumentData: async function(data) {
 		this.queued.documentData = data;
+		
+		// Sorting keys in reverse field order
 		var keys = Object.keys(this.queued.fields); 
+		// Settings this.fields to the current fields since after the below calls to
+		// google docs the fields in the doc will correspond to this.getFields() result
+		// which includes fields to be inserted
+		// this.fields might later be used in editField() above
+		var fields = this.fields = await this.getFields();
+		var fieldIDs = fields.map(f => f.id);
+		keys.sort((a, b) => fieldIDs.indexOf(b) - fieldIDs.indexOf(a));
+		
 		let batchSize = Zotero.GoogleDocs.updateBatchSize;
 		let count = 0;
 		while (count < keys.length || this.queued.documentData) {
 			Zotero.debug(`GDocs: Updating doc. Batch ${batchSize}, numItems: ${keys.length - count}`);
-			if (this.queued.insert) {
-				await this._insertField(this.queued.insert, false);
-			}
 			let batch = keys.slice(count, count+batchSize);
 			try {
 				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
@@ -233,9 +247,6 @@ Zotero.GoogleDocs.Client.prototype = {
 					continue;
 				}
 				throw e;
-			}
-			if (this.queued.insert) {
-				this.fields.splice(this.insertIdx, 0, this.queued.insert);
 			}
 			this.queued.insert = null;
 			this.queued.documentData = null;
@@ -313,21 +324,28 @@ Zotero.GoogleDocs.Client.prototype = {
 			throw new Error ("#insertField() called multiple times in a transaction");
 		}
 		var id = Zotero.Utilities.randomString(Zotero.GoogleDocs.config.fieldKeyLength);
-		var field = {text: Zotero.GoogleDocs.config.citationPlaceholder, code: '{}', id, noteType};
+		var field = {
+			text: Zotero.GoogleDocs.config.citationPlaceholder,
+			code: '{}',
+			id,
+			noteIndex: noteType
+		};
+		
 		this.queued.insert = field;
+		await this._insertField(field, false);
 		return field;
 	},
 
 	/**
-	 * Insert a front-side link at selection with field ID in the url. The text and field code 
+	 * Insert a front-side link at selection with field ID in the url. The text and field code
 	 * should later be saved from the server-side AppsScript code.
-	 * 
+	 *
 	 * @param {Object} field
 	 */
-	_insertField: async function(field, waitForSave=true) {
+	_insertField: async function(field, waitForSave=true, ignoreNote=false) {
 		var url = Zotero.GoogleDocs.config.fieldURL + field.id;
 
-		if (field.noteType > 0) {
+		if (field.noteIndex > 0) {
 			await Zotero.GoogleDocs.UI.insertFootnote();
 		}
 		await Zotero.GoogleDocs.UI.insertLink(field.text, url);
@@ -449,9 +467,14 @@ Zotero.GoogleDocs.Client.prototype = {
 	
 	delete: async function(fieldID) {
 		if (this.queued.insert && this.queued.insert.id == fieldID) {
-			this.queued.insert = null;
 			delete this.queued.fields[fieldID];
-			this.queued.deletePlaceholder = true;
+			await Zotero.GoogleDocs.UI.undo();
+			if (this.queued.insert.noteIndex > 0) {
+				await Zotero.GoogleDocs.UI.undo();
+				await Zotero.GoogleDocs.UI.undo();
+				await Zotero.GoogleDocs.UI.undo();
+			}
+			delete this.queued.insert;
 			return;
 		}
 		if (!(fieldID in this.queued.fields)) {
