@@ -362,7 +362,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 	},
 
-	convertPlaceholdersToFields: async function(codes, placeholderIDs, noteType) {
+	convertPlaceholdersToFields: async function(placeholderIDs, noteType) {
 		let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID));
 		let links = document.getLinks();
 
@@ -375,12 +375,12 @@ Zotero.GoogleDocs.Client.prototype = {
 			if (index == -1) continue;
 			link.id = id;
 			link.index = index;
-			link.code = codes[index];
+			link.code = "TEMP";
 			placeholders.push(link);
 		}
 		// Sanity check
-		if (placeholders.length != codes.length){
-			throw new Error(`convertPlaceholdersToFields: number of placeholders (${placeholders.length}) do not match the number of provided codes (${codes.length})`);
+		if (placeholders.length != placeholderIDs.length){
+			throw new Error(`convertPlaceholdersToFields: number of placeholders (${placeholders.length}) do not match the number of provided placeholder IDs (${placeholderIDs.length})`);
 		}
 		let requestBody = { writeControl: { targetRevisionId: document.revisionId } };
 		let requests = [];
