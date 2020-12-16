@@ -599,7 +599,16 @@ Zotero.GoogleDocs.UI = {
 			// Ahh this used to be a pain but google added a sync indicator so now waiting to finalize
 			// an insertion is super reliable!
 			if (!document.querySelector('.docs-icon-sync')) {
-				return;
+				// Except that it isn't, since the sync is not triggered immediately (anymore?)
+				// so some waits to save insertion have been falling through and causing failed pastes.
+				await Zotero.Promise.delay(1000);
+				// We wait an extra second and if there's still no sync indicator then:
+				// - The action that we thought should trigger a sync doesn't actually do that
+				// - Or a full sync will have occurred in this second and we're clear to do whatever we need
+				//   in the backend
+				if (!document.querySelector('.docs-icon-sync')) {
+					return;
+				}
 			}
 			observer = new MutationObserver(() => {
 				if (!document.querySelector('.docs-icon-sync')) {
