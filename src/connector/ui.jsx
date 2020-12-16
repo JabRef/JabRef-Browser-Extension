@@ -208,19 +208,29 @@ Zotero.GoogleDocs.UI = {
 			// 	let result = await this.displayAlert(msg, 0, 2);
 			// 	if (!result) return true;
 			// }
-			let links = [], ranges = [];
+			let links = [], ranges = [], text = "";
 			for (let data of docSlices) {
 				for (let obj of data.dsl_styleslices) {
 					if (obj.stsl_type == 'named_range') ranges = ranges.concat(obj.stsl_styles);
 					else if (obj.stsl_type == 'link') links = links.concat(obj.stsl_styles);
 				}
+				text = text + data.dsl_spacers;
 			}
 			let linksToRanges = {};
 			for (let i = 0; i < links.length; i++) {
 				if (links[i] && links[i].lnks_link
 						&& links[i].lnks_link.ulnk_url.startsWith(Zotero.GoogleDocs.config.fieldURL)) {
-					let link = links[i].lnks_link.ulnk_url;
-					let linkRanges = ranges[i].nrs_ei.cv.opValue
+					let linkStart = i;
+					let linkEnd = i+1;
+					for (; i < links.length; i++) {
+						if (links[i] && links[i].lnks_link === null) {
+							linkEnd = i;
+							break;
+						}
+					}
+					let linkText = text.substring(linkStart, linkEnd);
+					let link = links[linkStart].lnks_link.ulnk_url;
+					let linkRanges = ranges[linkStart].nrs_ei.cv.opValue
 					// `&& key in keysToCode` is kinda strange
 					// since we have just grabbed all the named ranges above from doc slices
 					// but we get reports of copy pasting failing occassionally
@@ -229,7 +239,7 @@ Zotero.GoogleDocs.UI = {
 						.filter(key => !ignoreKeys.has(key) && key in keysToCodes)
 						.map(key => keysToCodes[key]);
 					if (linkRanges.some(code => code.includes('CSL_BIBLIOGRAPHY'))) continue;
-					linksToRanges[link] = linkRanges;
+					linksToRanges[link] = {text: linkText, codes: linkRanges};
 				}
 			}
 			if (!Object.keys(linksToRanges).length) {
@@ -239,7 +249,10 @@ Zotero.GoogleDocs.UI = {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
 				let documentID = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
 				await insertPromise;
-				await Zotero.GoogleDocs_API.run(documentID, 'addPastedRanges', [linksToRanges]);
+				let response = await Zotero.GoogleDocs_API.run(documentID, 'addPastedRanges', [linksToRanges]);
+				if (response.orphanedCitations && response.orphanedCitations.length) {
+					Zotero.GoogleDocs.UI.orphanedCitations.setCitations(response.orphanedCitations);
+				}
 			} catch (e) {
 				if (e.message == "Handled Error") {
 					Zotero.debug('Handled Error in interceptPaste()');

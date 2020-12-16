@@ -631,14 +631,29 @@ exposed.addPastedRanges = function(linksToCodes) {
 				copyNamedRanges(rangeFields[key], key, newKey, getRangeFromLinks([link]));
 			} else {
 				var range = getRangeFromLinks([link]);
-				linksToCodes[link.url].forEach(function(code) {
+				if (Array.isArray(linksToCodes[link.url])) {
+					linksToCodes[link.url] = { codes: linksToCodes[link.url] }
+				}
+				linksToCodes[link.url].codes.forEach(function(code) {
 					doc.addNamedRange(code, range);
 				});
 				linkedCitations++;
 			}
+			delete linksToCodes[link.url];
 		}
 	});
+	var urls = Object.keys(linksToCodes);
+	if (urls.length && !Array.isArray(linksToCodes[urls[0]])) {
+		urls.forEach(function (url) {
+			orphanedCitations.push({
+				url: url,
+				key: url.substr(config.fieldURL.length, config.fieldKeyLength),
+				text: linksToCodes[url].text
+			});
+		});
+	}
 	debug('Total linked citations: ' + linkedCitations);
+	return { orphanedCitations: orphanedCitations };
 }
 
 var Field = function(link, key, namedRanges, prefix) {
