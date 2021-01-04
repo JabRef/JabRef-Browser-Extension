@@ -23,8 +23,9 @@
 	***** END LICENSE BLOCK *****
 */
 
-(async function() {
+(function() {
 var isTopWindow = false;
+var isIntegrationEnabled = true;
 if(window.top) {
 	try {
 		isTopWindow = window.top == window;
@@ -41,34 +42,54 @@ var buttonAdded = false;
 var templateElem;
 
 function addMenuOption(menubar) {
-	var docsHelpMenu = document.getElementById('docs-help-menu');
-	templateElem = document.createElement('template');
-	templateElem.innerHTML = `<div id="docs-zotero-menubutton" class="menu-button goog-control goog-inline-block" role="menuitem" aria-haspopup="true" aria-disabled="false">Zotero</div>`;
-	menubar.insertBefore(templateElem.content.firstChild, docsHelpMenu);
+	if (isIntegrationEnabled) {
+		var docsHelpMenu = document.getElementById('docs-help-menu');
+		templateElem = document.createElement('template');
+		templateElem.innerHTML = `<div id="docs-zotero-menubutton" class="menu-button goog-control goog-inline-block" role="menuitem" aria-haspopup="true" aria-disabled="false">Zotero</div>`;
+		menubar.insertBefore(templateElem.content.firstChild, docsHelpMenu);
+	}
 	menuAdded = true;
 }
 
 function addToolbarButton(toolbar) {
-	var imageURL;
-	if (Zotero.isBrowserExt) {
-		imageURL = browser.extension.getURL('images/zotero-z-16px-offline.png');
-	} else {
-		imageURL = `${safari.extension.baseURI}safari/images/zotero-new-z-16px.png`;
+	if (isIntegrationEnabled) {
+		var imageURL;
+		if (Zotero.isBrowserExt) {
+			imageURL = browser.extension.getURL('images/zotero-z-16px-offline.png');
+		} else {
+			imageURL = `${safari.extension.baseURI}safari/images/zotero-new-z-16px.png`;
+		}
+		var shortcut = 'Ctrl+Alt+C';
+		if (Zotero.isMac) {
+			shortcut = 'Ctrl+⌘C';
+		}
+		var docsMoreButton = document.querySelector('#docs-primary-toolbars #docs-toolbar #moreButton');
+		templateElem = document.createElement('template');
+		templateElem.innerHTML = `<div id="zoteroAddEditCitation" class="goog-inline-block goog-toolbar-button" style="background-image: url(${imageURL}); background-repeat:no-repeat; background-position: center;" role="button" data-tooltip="Add/edit Zotero citation (${shortcut})"></div>`;
+		toolbar.insertBefore(templateElem.content.firstChild, docsMoreButton);
 	}
-	var shortcut = 'Ctrl+Alt+C';
-	if (Zotero.isMac) {
-		shortcut = 'Ctrl+⌘C';
-	}
-	var docsMoreButton = document.querySelector('#docs-primary-toolbars #docs-toolbar #moreButton');
-	templateElem = document.createElement('template');
-	templateElem.innerHTML = `<div id="zoteroAddEditCitation" class="goog-inline-block goog-toolbar-button" style="background-image: url(${imageURL}); background-repeat:no-repeat; background-position: center;" role="button" data-tooltip="Add/edit Zotero citation (${shortcut})"></div>`;
-	toolbar.insertBefore(templateElem.content.firstChild, docsMoreButton);
 	buttonAdded = true;
 }
 var menubar = document.querySelector('#docs-menubar');
 menubar && addMenuOption(menubar);
 var toolbar = document.querySelector('#docs-toolbar');
 toolbar && addToolbarButton(toolbar);
+
+// Need to kick this off asynchronously regardless of whether we've added the menu options synchronously here or not
+(async function() {
+	await Zotero.initDeferred.promise;
+	isIntegrationEnabled = await Zotero.Prefs.getAsync('integration.googleDocs.enabled');
+	if (!isIntegrationEnabled) {
+		if (menuAdded) {
+			let menubutton = document.querySelector('#docs-zotero-menubutton');
+			menubutton.parentNode.removeChild(menubutton);
+		}
+		if (buttonAdded) {
+			let button = document.querySelector('#zoteroAddEditCitation');
+			button.parentNode.removeChild(button);
+		}
+	}
+})();
 
 if (menuAdded && buttonAdded) {
 	return;
@@ -91,17 +112,5 @@ var observer = new MutationObserver(function(mutations) {
 });
 
 observer.observe(document.documentElement, {childList: true, subtree: true});
-
-await Zotero.initDeferred.promise;
-if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) {
-	if (menuAdded) {
-		let menubutton = document.querySelector('#docs-zotero-menubutton');
-		menubutton.parentNode.removeChild(menubutton);
-	}
-	if (buttonAdded) {
-		let button = document.querySelector('#zoteroAddEditCitation');
-		button.parentNode.removeChild(button);
-	}
-}
 
 })();
