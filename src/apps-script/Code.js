@@ -166,9 +166,17 @@ function getFields(prefix, removePlaceholder) {
  */
 function getFieldPlaceholders() {
 	var fields = [];
+	var fieldsByKey = {};
 	filterFieldLinks(getAllLinks()).forEach(function(link) {
 		var key = link.url.substr(config.fieldURL.length, config.fieldKeyLength);
-		fields.push(new Field(link, key, [], config.fieldPrefix));
+		if (fieldsByKey[key]) {
+			fieldsByKey[key].links.push(link);
+		}
+		else {
+			var field = new Field(link, key, [], config.fieldPrefix);
+			fields.push(field);
+			fieldsByKey[key] = field;
+		}
 	});
 	return fields;
 }
