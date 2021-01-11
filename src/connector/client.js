@@ -397,27 +397,74 @@ Zotero.GoogleDocs.Client.prototype = {
 		if (fieldMap[fieldIDs[0]].noteIndex != fieldNoteTypes[0]) {
 			// Note/intext conversions
 			if (fieldNoteTypes[0] > 0) {
-				// To footnote/endnote conversions are done client-side, because Apps Script has no
-				// API to insert footnotes (!)
-				// This will cause a properly big doc to go all jumpy and might scare users.
-				// Might have to think about shading the screen with a note like "Zotero is working"
-				// or something. On the other hand conversions should be relatively rare, so this is not a priority.
+				fieldIDs = new Set(fieldIDs);
+				let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID));
+				let links = document.getLinks()
+					.filter((link) => {
+						if (!link.url.startsWith(Zotero.GoogleDocs.config.fieldURL)) return false;
+						let id = link.url.substr(Zotero.GoogleDocs.config.fieldURL.length);
+						return fieldIDs.has(id) && !link.footnoteId;
+						
+					})
+					// Sort for update by reverse order of appearance to correctly update the doc
+					.reverse();
+				let requestBody = { writeControl: { targetRevisionId: document.revisionId } };
+				let requests = [];
 				
-				await Zotero.GoogleDocs.UI.activate(true, "Zotero will now update your document and " +
-					"needs the Google Docs tab to stay active. " +
-					"Please do not switch away from the browser until the operation is complete.");
-				
-				for (let i = 0; i < fieldIDs.length; i++) {
-					let noteType = fieldNoteTypes[i];
-					if (noteType > 0) {
-						let fieldID = fieldIDs[i];
-						// Select and remove the existing field text, which places the cursor in the correct position
-						await this.select(fieldID);
-						await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
-						await this._insertField({id: fieldID, text: fieldMap[fieldID].text, noteType}, false);
-					}
+				// Insert footnotes (and remove placeholders)
+				for (let link of links) {
+					requests.push({
+						createFootnote: {
+							location: {
+								index: link.endIndex,
+							}
+						}
+					});
+					requests.push({
+						deleteContentRange: {
+							range: {
+								startIndex: link.startIndex,
+								endIndex: link.endIndex,
+							}
+						}
+					});
 				}
-				await Zotero.GoogleDocs.UI.waitToSaveInsertion();
+				requestBody.requests = requests;
+				let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
+
+				// Reinsert placeholders in the inserted footnotes
+				requestBody = {};
+				requests = [];
+				links.forEach((link, index) => {
+					// Every second response is from createFootnote
+					let footnoteId = response.replies[index * 2].createFootnote.footnoteId;
+					requests.push({
+						insertText: {
+							text: link.text,
+							location: {
+								index: 1,
+								segmentId: footnoteId
+							}
+						}
+					});
+					requests.push({
+						updateTextStyle: {
+							textStyle: {
+								link: {
+									url: link.url
+								}
+							},
+							fields: 'link',
+							range: {
+								startIndex: 1,
+								endIndex: link.text.length+1,
+								segmentId: footnoteId
+							}
+						}
+					});
+				});
+				requestBody.requests = requests;
+				await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
 			} else {
 				// To in-text conversions client-side are impossible, because there is no obvious way
 				// to make the cursor jump from the footnote section to its corresponding footnote.

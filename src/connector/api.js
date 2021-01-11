@@ -204,6 +204,40 @@ Zotero.GoogleDocs.API = {
 			message
 		}, tab);
 		return result.button == 1;
+	},
+	
+	getDocument: async function (docId) {
+		var headers = await this.getAuthHeaders();
+		try {
+			var xhr = await Zotero.HTTP.request('GET', `https://docs.googleapis.com/v1/documents/${docId}`,
+				{headers, timeout: 60000});
+		} catch (e) {
+			if (e.status == 403) {
+					this.resetAuth();
+					throw new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
+				} else {
+					throw new Error(`${e.status}: Google Docs request failed.\n\n${e.responseText}`);
+				}
+		}
+
+		return JSON.parse(xhr.responseText);
+	},
+
+	batchUpdateDocument: async function (docId, body) {
+		var headers = await this.getAuthHeaders();
+		try {
+			var xhr = await Zotero.HTTP.request('POST', `https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`,
+				{headers, body, timeout: 60000});
+		} catch (e) {
+			if (e.status == 403) {
+				this.resetAuth();
+				throw new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
+			} else {
+				throw new Error(`${e.status}: Google Docs request failed.\n\n${e.responseText}`);
+			}
+		}
+
+		return JSON.parse(xhr.responseText);
 	}
 };
 
