@@ -87,7 +87,7 @@ Zotero.Translators = new function() {
 			Zotero.logError(new Error(`Only ${Object.keys(_translators).length} translators present in cache. Resetting`));
 			Zotero.Prefs.clear("connector.repo.lastCheck.repoTime");
 			Zotero.Prefs.clear("connector.repo.lastCheck.localTime");
-			return Zotero.Repo.init();
+			return Zotero.Repo.update(true);
 		}
 		
 		// Sort by priority
@@ -159,7 +159,8 @@ Zotero.Translators = new function() {
 	 * @return {Promise<Array[]>} - A promise for a 2-item array containing an array of translators and
 	 *     an array of functions for converting URLs from proper to proxied forms
 	 */
-	this.getWebTranslatorsForLocation = Zotero.Promise.method(function (URI, rootURI, callback) {
+	this.getWebTranslatorsForLocation = async function (URI, rootURI, callback) {
+		await Zotero.initDeferred.promise;
 		if (callback) {
 			// If callback is present then this call is coming from an injected frame,
 			// so we may as well treat it as if it's a root-frame
@@ -219,10 +220,9 @@ Zotero.Translators = new function() {
 		}
 		
 		var codeGetter = new Zotero.Translators.CodeGetter(potentialTranslators);
-		return codeGetter.getAll().then(function () {
-			return [potentialTranslators, proxies];
-		});
-	});
+		await codeGetter.getAll();
+		return [potentialTranslators, proxies];
+	};
 
 	/**
 	 * Converts translators to JSON-serializable objects

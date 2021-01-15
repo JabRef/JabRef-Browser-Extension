@@ -1,9 +1,9 @@
 /*
     ***** BEGIN LICENSE BLOCK *****
     
-    Copyright © 2011 Center for History and New Media
-                     George Mason University, Fairfax, Virginia, USA
-                     http://zotero.org
+    Copyright © 2020 Corporation for Digital Scholarship
+            Vienna, Virginia, USA
+            https://www.zotero.org
     
     This file is part of Zotero.
     
@@ -23,17 +23,21 @@
     ***** END LICENSE BLOCK *****
 */
 
-window.ZOTERO_CONFIG = {
-	REPOSITORY_URL: 'https://www.zotero.org/repo',
-	REPOSITORY_CHECK_INTERVAL: 86400, // 24 hours
-	REPOSITORY_RETRY_INTERVAL: 3600, // 1 hour
-	REPOSITORY_CHANNEL: 'trunk',
-	BASE_URI: 'http://zotero.org/',
-	WWW_BASE_URL: 'http://www.zotero.org/',
-	API_URL: 'https://www.zotero.org/api/',
-	LOGIN_URL: 'https://www.zotero.org/user/login?bm=1',
-	BOOKMARKLET_ORIGIN : 'https://www.zotero.org',
-	BOOKMARKLET_URL: 'https://www.zotero.org/bookmarklet/',
-	AUTH_COMPLETE_URL: 'https://www.zotero.org/bookmarklet/auth_complete.html',
-	S3_URL: 'https://zoterofilestorage.s3.amazonaws.com/'
+Zotero.SingleFile = {
+	retrievePageData: async function() {
+		try {
+			// Call to background script to inject SingleFile
+			await Zotero.Connector_Browser.injectSingleFile();
+
+			Zotero.debug("SingleFile: Retrieving page data");
+			let pageData = await singlefile.extension.getPageData(Zotero.SingleFile.CONFIG);
+			Zotero.debug("SingleFile: Done retrieving page data");
+
+			return pageData.content;
+		} catch (e) {
+			Zotero.debug("SingleFile: Error retrieving page data", 2);
+			Zotero.debug(e.stack, 2);
+			throw e;
+		}
+	}
 };
