@@ -563,37 +563,24 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	moveCursorToEndOfCitation: async function() {
-		let selectedFieldID = await this.getSelectedFieldID(true);
-		if (selectedFieldID) {
-			await this.waitToSaveInsertion();
-			selectedFieldID = await this.getSelectedFieldID(true);
-			if (!selectedFieldID) return;
-			await this.clickElement(document.getElementById('insertLinkButton'));
-			await Zotero.Promise.delay();
-			await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
-		}
+		return this.getSelectedFieldID();
 	},
 	
-	getSelectedFieldID: async function(noAddRemove) {
-		// We add and remove a non-breaking-space to re-display the linkbubble in case it is not showing
-		// due to window blur or any other reasons.
-		if (!noAddRemove) {
-			var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.textContent;
-			if (selection.length) {
-				var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
-				textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));	
-				await Zotero.Promise.delay();
-			}
-			await this.sendKeyboardEvent({key: " ", keyCode: 160});
-			await this.sendKeyboardEvent({key: "Backspace", keyCode: 8});
+	getSelectedFieldID: async function() {
+		await this.clickElement(document.getElementById('insertLinkButton'));
+		await Zotero.Promise.delay();
+		let isApplyEnabled = !document.querySelector('.docs-link-insertlinkbubble .docs-link-insertlinkbubble-buttonbar .jfk-button')
+			.classList.contains('jfk-button-disabled');
+		if (isApplyEnabled) {
+			var url = document.querySelector('.docs-link-insertlinkbubble .docs-link-urlinput-url').value;
+			await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
+		} else {
+			this.sendKeyboardEvent({key: "Escape", keyCode: 27});
+			return null;
 		}
-		let linkbubble = document.querySelector('#docs-link-bubble');
-		if (!linkbubble) return null;
-		let linkbubbleText = Zotero.Utilities.trim(linkbubble.children[0].innerText);
-		let isZoteroLink = linkbubbleText.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
-		let cursorInLink = this.isInLink();
-		if (!cursorInLink || !isZoteroLink) return null;
-		return linkbubbleText.substr(Zotero.GoogleDocs.config.fieldURL.length);
+		let isZoteroLink = url.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
+		if (!isZoteroLink) return null;
+		return url.substr(Zotero.GoogleDocs.config.fieldURL.length);
 	},
 
 	// Wait for google docs to save the text insertion
