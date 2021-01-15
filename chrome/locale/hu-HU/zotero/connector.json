@@ -14,6 +14,9 @@
   "general_cancel": {
     "message": "Mégse"
   },
+  "general_pleaseWait": {
+    "message": "Kérem várjon…"
+  },
   "progressWindow_savingTo": {
     "message": "Mentés"
   },
@@ -47,8 +50,14 @@
   "integration_error_clientUpgrade": {
     "message": "A webalapú hivatkozáshoz szükség van $1 vagy későbbire."
   },
+  "integration_googleDocs_unlinkBeforeSaving_warning": {
+    "message": "Ez a dokumentum aktív Zotero-hivatkozásokat tartalmaz, amelyek zotero.org linkként jelennek meg egy letöltött példányban."
+  },
   "integration_googleDocs_unlinkBeforeSaving_downloadAnyway": {
     "message": "Mindenképpen töltse le a hivatkozott verziót"
+  },
+  "integration_googleDocs_updating": {
+    "message": "$1 frissíti az ön dokumentumát"
   },
   "general_saveTo": {
     "message": "Mentés $1-ba(n)"

@@ -132,6 +132,17 @@ describe("Zotero.File", function () {
 			assert.isTrue(await OS.File.exists(destFile));
 		});
 		
+		// Only relevant on a case-insensitive filesystem
+		it("should rename a file with a case-only change (Mac)", async function () {
+			var tmpDir = await getTempDirectory();
+			var sourceFile = OS.Path.join(tmpDir, 'a');
+			var destFile = OS.Path.join(tmpDir, 'A');
+			await Zotero.File.putContentsAsync(sourceFile, 'foo');
+			var newFilename = await Zotero.File.rename(sourceFile, 'A');
+			assert.equal(newFilename, 'A');
+			assert.equal(await Zotero.File.getContentsAsync(destFile), 'foo');
+		});
+		
 		it("should overwrite an existing file if `overwrite` is true", async function () {
 			var tmpDir = await getTempDirectory();
 			var sourceFile = OS.Path.join(tmpDir, 'a');
@@ -226,7 +237,63 @@ describe("Zotero.File", function () {
 				"Test 2"
 			);
 		})
+		
+		it("should copy subfolders", async function () {
+			// file1
+			// subdir/file2
+			var tmpDir = await getTempDirectory()
+			var source = OS.Path.join(tmpDir, "1");
+			await OS.File.makeDir(OS.Path.join(source, 'subdir'), {
+				from: tmpDir
+			});
+			Zotero.File.putContents(Zotero.File.pathToFile(OS.Path.join(source, 'file1')), 'abc');
+			Zotero.File.putContents(Zotero.File.pathToFile(OS.Path.join(source, 'subdir', 'file2')), 'def');
+			
+			var target = OS.Path.join(tmpDir, "2");
+			await OS.File.makeDir(target);
+			
+			await Zotero.File.copyDirectory(source, target);
+			
+			var targetFile1 = OS.Path.join(target, 'file1');
+			var targetFile2 = OS.Path.join(target, 'subdir', 'file2');
+			assert.isTrue(await OS.File.exists(targetFile1));
+			assert.isTrue(await OS.File.exists(targetFile2));
+			assert.equal(Zotero.File.getContents(targetFile1), 'abc');
+			assert.equal(Zotero.File.getContents(targetFile2), 'def');
+		});
 	})
+	
+	describe("#createDirectoryIfMissing()", function () {
+		it("should throw error on broken symlink", async function () {
+			if (Zotero.isWin) {
+				this.skip();
+			};
+			
+			var tmpPath = await getTempDirectory();
+			var destPath = OS.Path.join(tmpPath, 'missing');
+			var linkPath = OS.Path.join(tmpPath, 'link');
+			await OS.File.unixSymLink(destPath, linkPath);
+			
+			assert.throws(() => Zotero.File.createDirectoryIfMissing(linkPath), /^Broken symlink/);
+		});
+	});
+	
+	describe("#createDirectoryIfMissingAsync()", function () {
+		it("should throw error on broken symlink", async function () {
+			if (Zotero.isWin) {
+				this.skip();
+			};
+			
+			var tmpPath = await getTempDirectory();
+			var destPath = OS.Path.join(tmpPath, 'missing');
+			var linkPath = OS.Path.join(tmpPath, 'link');
+			await OS.File.unixSymLink(destPath, linkPath);
+			
+			var e = await getPromiseError(Zotero.File.createDirectoryIfMissingAsync(linkPath));
+			assert.ok(e);
+			assert.match(e.message, /^Broken symlink/);
+		});
+	});
 	
 	describe("#zipDirectory()", function () {
 		it("should compress a directory recursively", function* () {

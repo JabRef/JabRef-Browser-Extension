@@ -303,6 +303,11 @@ label.zotero-text-link {
 	margin: 3px 0;
 }
 
+/* Constrain 2x collection/search icons */
+zoterosearch .menulist-icon {
+	height: 16px;
+}
+
 #zotero-attach-uri-container
 {
 	width: 30em;
@@ -326,6 +331,16 @@ label.zotero-text-link {
 
 #zotero-feed-settings grid hbox:first-child {
 	-moz-box-pack: end;
+}
+
+#zotero-feed-settings .html-input {
+	width: 50px;
+	text-align: right;
+}
+
+#zotero-feed-settings #advanced-options-togglable hbox {
+	display: flex;
+	align-items: center;
 }
 
 .zotero-spinner-14 {

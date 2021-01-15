@@ -310,6 +310,7 @@
 						}
 						
 						this.itemTypeMenu.parentNode.hidden = false;
+						this.itemTypeMenu.setAttribute('ztabindex', '0');
 					}
 					else {
 						this.itemTypeMenu.parentNode.hidden = true;
@@ -1439,8 +1440,8 @@
 						this._creatorCount--;
 						return;
 					}
-					this.item.removeCreator(index);
 					await this.blurOpenField();
+					this.item.removeCreator(index);
 					await this.item.saveTx();
 				}.bind(this))();
 				]]></body>
@@ -1768,6 +1769,10 @@
 								this._focusNextField(this._lastTabIndex, true);
 							}
 							else {
+								// If on the last field, allow default tab action
+								if (this._lastTabIndex == this._tabIndexMaxFields) {
+									return;
+								}
 								this._focusNextField(++this._lastTabIndex);
 							}
 							return false;
@@ -1814,11 +1819,13 @@
 					var tabindex = textbox.getAttribute('ztabindex');
 					
 					//var value = t.value;
-					var value = textbox.value;
+					var value = textbox.value.trim();
 					
 					var elem;
 					var [field, creatorIndex, creatorField] = fieldName.split('-');
 					var newVal;
+
+					creatorIndex = parseInt(creatorIndex);
 					
 					// Creator fields
 					if (field == 'creator') {
@@ -1828,9 +1835,9 @@
 						otherFields[creatorField] = value;
 						var lastName = otherFields.lastName.trim();
 						
-						//Handle \n\r and \n delimited entries
+						//Handle \n\r and \n delimited entries and a single line containing a tab
 						var rawNameArray = lastName.split(/\r\n?|\n/);
-						if (rawNameArray.length > 1) {
+						if (rawNameArray.length > 1 || rawNameArray[0].includes('\t')) {
 							//Save tab direction and add creator flags since they are reset in the 
 							//process of adding multiple authors
 							var tabDirectionBuffer = this._tabDirection;
@@ -2315,7 +2322,14 @@
 						return false;
 					}
 					
-					next.click();
+					// Drop-down needs to be focused
+					if (next.id == 'item-type-menu') {
+						next.focus();
+					}
+					// Fields need to be clicked
+					else {
+						next.click();
+					}
 					
 					// 1) next.parentNode is always null for some reason
 					// 2) For some reason it's necessary to scroll to the next element when
