@@ -98,7 +98,11 @@ var Scaffold = new function() {
 		_editors.import = importWin.editor;
 		_editors.code = codeWin.editor;
 		_editors.tests = testsWin.editor;
-
+		
+		for (let i in _editors) {
+			_editors[i].setTheme('ace/theme/monokai');
+		}
+		
 		_editors.code.getSession().setMode(new codeWin.JavaScriptMode);
 		_editors.code.getSession().setUseSoftTabs(false);
 		// The first code line is preceeded by some metadata lines, such that
@@ -424,7 +428,19 @@ var Scaffold = new function() {
 			yield Zotero.Translators.reinit();
 		}
 	});
-
+	
+	this.handleTabSelect = function (event) {
+		// Focus editor when switching to tab
+		var tab = event.target.selectedItem.id.match(/^tab-(.+)$/)[1];
+		switch (tab) {
+			case 'import':
+			case 'code':
+			case 'tests':
+				_editors[tab].focus();
+				break;
+		}
+	};
+	
 	/*
 	 * add template code
 	 */
@@ -514,6 +530,13 @@ var Scaffold = new function() {
 				return;
 			}
 			translate.setDocument(input);
+			
+			// Use cookies from browser pane
+			translate.setCookieSandbox(new Zotero.CookieSandbox(
+				null,
+				_getDocumentURL(input),
+				input.cookie
+			));
 		} else if (functionToRun == "detectImport" || functionToRun == "doImport") {
 			var translate = new Zotero.Translate.Import();
 			translate.setString(input);
@@ -763,7 +786,7 @@ var Scaffold = new function() {
 				_writeTests(JSON.stringify(testObject, null, "\t")); // Don't modify current tests
 				return testObject;
 			} catch (e) {
-				_logOutput("Exception parsing JSON");
+				_logOutput("Exception parsing test JSON:\n\n" + e);
 				return false;
 			}
 		} else {

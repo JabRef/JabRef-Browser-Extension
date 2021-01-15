@@ -86,8 +86,10 @@ Zotero.Translate.ItemSaver.prototype = {
 	 *     on failure or attachmentCallback(attachment, progressPercent) periodically during saving.
 	 * @param {Function} [itemsDoneCallback] A callback that is called once all top-level items are
 	 * done saving with a list of items. Will include saved notes, but exclude attachments.
+	 * @param {Function} [pendingAttachmentsCallback] A callback that is called for every
+	 * pending attachment to an item. pendingAttachmentsCallback(parentItemID, jsonAttachment)
 	 */
-	saveItems: async function (jsonItems, attachmentCallback, itemsDoneCallback) {
+	saveItems: async function (jsonItems, attachmentCallback, itemsDoneCallback, pendingAttachmentsCallback) {
 		var items = [];
 		var standaloneAttachments = [];
 		var childAttachments = [];
@@ -165,6 +167,14 @@ Zotero.Translate.ItemSaver.prototype = {
 							}
 							attachmentsToSave.push(jsonAttachment);
 							attachmentCallback(jsonAttachment, 0);
+							if (jsonAttachment.singleFile) {
+								// SingleFile attachments are saved in 'saveSingleFile'
+								// connector endpoint
+								if (pendingAttachmentsCallback) {
+									pendingAttachmentsCallback(itemID, jsonAttachment);
+								}
+								continue;
+							}
 							childAttachments.push([jsonAttachment, itemID]);
 						}
 						jsonItem.attachments = attachmentsToSave;
@@ -343,6 +353,28 @@ Zotero.Translate.ItemSaver.prototype = {
 		
 		return items;
 	},
+
+
+	/**
+	 * Save pending snapshot attachments to disk and library
+	 *
+	 * @param {Array} pendingAttachments - A list of snapshot attachments
+	 * @param {Object} content - Snapshot content from SingleFile
+	 * @param {Function} attachmentCallback - Callback with progress of attachments
+	 */
+	saveSnapshotAttachments: Zotero.Promise.coroutine(function* (pendingAttachments, snapshotContent, attachmentCallback) {
+		for (let [parentItemID, attachment] of pendingAttachments) {
+			Zotero.debug('Saving pending attachment: ' + JSON.stringify(attachment));
+			if (snapshotContent) {
+				attachment.snapshotContent = snapshotContent;
+			}
+			yield this._saveAttachment(
+				attachment,
+				parentItemID,
+				attachmentCallback
+			);
+		}
+	}),
 	
 	
 	_makeJSONAttachment: function (parentID, title) {
@@ -551,7 +583,8 @@ Zotero.Translate.ItemSaver.prototype = {
 					title: attachment.title,
 					contentType: attachment.mimeType,
 					parentItemID,
-					collections: !parentItemID ? this._collections : undefined
+					collections: !parentItemID ? this._collections : undefined,
+					saveOptions: this._saveOptions,
 				});
 			}
 			
@@ -605,7 +638,8 @@ Zotero.Translate.ItemSaver.prototype = {
 				parentItemID,
 				contentType: attachment.mimeType || undefined,
 				title: attachment.title || undefined,
-				collections: !parentItemID ? this._collections : undefined
+				collections: !parentItemID ? this._collections : undefined,
+				saveOptions: this._saveOptions,
 			});
 		}
 		else if (this._linkFiles
@@ -615,7 +649,8 @@ Zotero.Translate.ItemSaver.prototype = {
 			newItem = yield Zotero.Attachments.linkFromFile({
 				file,
 				parentItemID,
-				collections: !parentItemID ? this._collections : undefined
+				collections: !parentItemID ? this._collections : undefined,
+				saveOptions: this._saveOptions,
 			});
 			if (attachment.title) {
 				newItem.setField("title", attachment.title);
@@ -634,7 +669,8 @@ Zotero.Translate.ItemSaver.prototype = {
 					contentType: attachment.mimeType,
 					charset: attachment.charset,
 					parentItemID,
-					collections: !parentItemID ? this._collections : undefined
+					collections: !parentItemID ? this._collections : undefined,
+					saveOptions: this._saveOptions,
 				});
 			}
 			else {
@@ -642,7 +678,8 @@ Zotero.Translate.ItemSaver.prototype = {
 				newItem = yield Zotero.Attachments.importFromFile({
 					file: file,
 					parentItemID,
-					collections: !parentItemID ? this._collections : undefined
+					collections: !parentItemID ? this._collections : undefined,
+					saveOptions: this._saveOptions,
 				});
 				if (attachment.title) newItem.setField("title", attachment.title);
 			}
@@ -830,7 +867,8 @@ Zotero.Translate.ItemSaver.prototype = {
 				parentItemID,
 				contentType: mimeType,
 				title,
-				collections: !parentItemID ? this._collections : undefined
+				collections: !parentItemID ? this._collections : undefined,
+				saveOptions: this._saveOptions,
 			});
 		}
 		
@@ -846,11 +884,11 @@ Zotero.Translate.ItemSaver.prototype = {
 				document: attachment.document,
 				parentItemID,
 				title,
-				collections: !parentItemID ? this._collections : undefined
+				collections: !parentItemID ? this._collections : undefined,
+				saveOptions: this._saveOptions,
 			});
 		}
 		
-		// Import from URL
 		let mimeType = attachment.mimeType ? attachment.mimeType : null;
 		let fileBaseName;
 		if (parentItemID) {
@@ -858,11 +896,27 @@ Zotero.Translate.ItemSaver.prototype = {
 			fileBaseName = Zotero.Attachments.getFileBaseNameFromItem(parentItem);
 		}
 		
-		Zotero.debug('Importing attachment from URL');
 		attachment.linkMode = "imported_url";
 		
 		attachmentCallback(attachment, 0);
 		
+		// Import from SingleFile content
+		if (attachment.snapshotContent) {
+			Zotero.debug('Importing attachment from SingleFile');
+
+			return Zotero.Attachments.importFromSnapshotContent({
+				libraryID: this._libraryID,
+				title,
+				url: attachment.url,
+				parentItemID,
+				snapshotContent: attachment.snapshotContent,
+				collections: !parentItemID ? this._collections : undefined,
+				saveOptions: this._saveOptions
+			});
+		}
+
+		// Import from URL
+		Zotero.debug('Importing attachment from URL');
 		return Zotero.Attachments.importFromURL({
 			libraryID: this._libraryID,
 			url: attachment.url,
@@ -872,7 +926,8 @@ Zotero.Translate.ItemSaver.prototype = {
 			contentType: mimeType,
 			referrer: this._referrer,
 			cookieSandbox: this._cookieSandbox,
-			collections: !parentItemID ? this._collections : undefined
+			collections: !parentItemID ? this._collections : undefined,
+			saveOptions: this._saveOptions,
 		});
 	}),
 	

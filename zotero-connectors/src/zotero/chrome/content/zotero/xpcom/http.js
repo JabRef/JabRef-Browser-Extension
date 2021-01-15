@@ -417,13 +417,18 @@ Zotero.HTTP = new function() {
 					if (responseStatus >= 300 && responseStatus < 400) {
 						status = responseStatus;
 					}
-					// If an invalid HTTP response (e.g., NS_ERROR_INVALID_CONTENT_ENCODING) includes a
-					// 4xx or 5xx HTTP response code, swap it in, since it might be enough info to do
-					// what we need (e.g., verify a 404 from a WebDAV server)
+					// If an invalid HTTP response includes a 4xx or 5xx HTTP response code, swap it
+					// in, since it might be enough info to do what we need (e.g., verify a 404 from
+					// a WebDAV server)
 					else if (responseStatus >= 400) {
-						Zotero.warn(`Overriding status for invalid response for ${dispURL} `
-							+ `(${xmlhttp.channel.status})`);
-						status = responseStatus;
+						let statuses = [
+							2152398875, // NS_ERROR_INVALID_CONTENT_ENCODING
+						];
+						if (statuses.includes(xmlhttp.channel.status)) {
+							Zotero.warn(`Overriding status for invalid response for ${dispURL} `
+								+ `(${xmlhttp.channel.status})`);
+							status = responseStatus;
+						}
 					}
 				}
 			}
@@ -499,7 +504,7 @@ Zotero.HTTP = new function() {
 				deferred.resolve(xmlhttp);
 			} else {
 				let msg = "HTTP " + method + " " + dispURL + " failed with status code " + status;
-				if (!xmlhttp.responseType && xmlhttp.responseText) {
+				if ((!xmlhttp.responseType || xmlhttp.responseType == 'text') && xmlhttp.responseText) {
 					msg += ":\n\n" + xmlhttp.responseText;
 				}
 				Zotero.debug(msg, 1);
@@ -1203,9 +1208,33 @@ Zotero.HTTP = new function() {
 				return;
 			}
 			
-			Zotero.debug("Zotero.HTTP.loadDocuments: " + url + " loaded");
 			hiddenBrowser.removeEventListener("load", onLoad, true);
 			hiddenBrowser.zotero_loaded = true;
+
+			let channel = hiddenBrowser.docShell.currentDocumentChannel;
+			if (channel && (channel instanceof Components.interfaces.nsIHttpChannel)) {
+				if (channel.responseStatus < 200 || channel.responseStatus >= 400) {
+					let response = `${channel.responseStatus} ${channel.responseStatusText}`;
+					Zotero.debug(`Zotero.HTTP.loadDocuments: ${url} failed with ${response}`, 2);
+					let e = new Zotero.HTTP.UnexpectedStatusException(
+						{
+							status: channel.responseStatus,
+							channel
+						},
+						url,
+						`Invalid response ${response} for ${url}`
+					);
+					if (onError) {
+						onError(e);
+					}
+					else {
+						throw e;
+					}
+					return;
+				}
+			}
+			
+			Zotero.debug("Zotero.HTTP.loadDocuments: " + url + " loaded");
 			
 			var maybePromise;
 			var error;
@@ -1250,8 +1279,13 @@ Zotero.HTTP = new function() {
 		var hiddenBrowsers = [],
 			currentURL = 0;
 		for(var i=0; i<urls.length; i++) {
-			var hiddenBrowser = Zotero.Browser.createHiddenBrowser();
-			if(cookieSandbox) cookieSandbox.attachToBrowser(hiddenBrowser);
+			let hiddenBrowser = Zotero.Browser.createHiddenBrowser();
+			if (cookieSandbox) {
+				cookieSandbox.attachToBrowser(hiddenBrowser);
+			}
+			else {
+				new Zotero.CookieSandbox(hiddenBrowser, urls[i], "", "");
+			}
 			hiddenBrowser.addEventListener("load", onLoad, true);
 			hiddenBrowsers[i] = hiddenBrowser;
 		}

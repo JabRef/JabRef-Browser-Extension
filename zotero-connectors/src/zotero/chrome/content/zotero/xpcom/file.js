@@ -473,7 +473,8 @@ Zotero.File = new function(){
 	 * @param {Object} [options]
 	 * @param {Boolean} [options.overwrite=false] - Overwrite file if one exists
 	 * @param {Boolean} [options.unique=false] - Add suffix to create unique filename if necessary
-	 * @return {String|false} - New filename, or false if destination file exists and `overwrite` not set
+	 * @return {String|false} - New filename, or false if destination file exists and `overwrite`
+	 *     and `unique` not set
 	 */
 	this.rename = async function (file, newName, options = {}) {
 		var overwrite = options.overwrite || false;
@@ -487,6 +488,12 @@ Zotero.File = new function(){
 		if (origName === newName) {
 			Zotero.debug("Filename has not changed");
 			return origName;
+		}
+		
+		// If only the case changed, we need to overwrite so move() doesn't think the destination
+		// file already exists
+		if (origName.toLowerCase() === newName.toLowerCase()) {
+			overwrite = true;
 		}
 		
 		var parentDir = OS.Path.dirname(origPath);
@@ -969,32 +976,69 @@ Zotero.File = new function(){
 		});
 		
 		return this.iterateDirectory(source, function (entry) {
-			return OS.File.copy(entry.path, OS.Path.join(target, entry.name));
-		})
+			return entry.isDir
+				? this.copyDirectory(entry.path, OS.Path.join(target, entry.name))
+				: OS.File.copy(entry.path, OS.Path.join(target, entry.name));
+		}.bind(this))
 	});
 	
 	
 	this.createDirectoryIfMissing = function (dir) {
 		dir = this.pathToFile(dir);
 		if (!dir.exists() || !dir.isDirectory()) {
-			if (dir.exists() && !dir.isDirectory()) {
-				dir.remove(null);
+			if (dir.exists()) {
+				if (!dir.isDirectory()) {
+					dir.remove(null);
+				}
+			}
+			else {
+				let isSymlink = false;
+				// isSymlink() fails if the directory doesn't exist, but is true if it's a broken
+				// symlink, in which case exists() returns false
+				try {
+					isSymlink = dir.isSymlink();
+				}
+				catch (e) {}
+				if (isSymlink) {
+					throw new Error(`Broken symlink at ${dir.path}`);
+				}
 			}
 			dir.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0o755);
 		}
 	}
 	
 	
-	this.createDirectoryIfMissingAsync = function (path) {
-		return Zotero.Promise.resolve(
-			OS.File.makeDir(
+	this.createDirectoryIfMissingAsync = async function (path) {
+		try {
+			await OS.File.makeDir(
 				path,
 				{
-					ignoreExisting: true,
+					ignoreExisting: false,
 					unixMode: 0o755
 				}
 			)
-		);
+		}
+		catch (e) {
+			// If there's a broken symlink at the given path, makeDir() will throw becauseExists,
+			// but exists() will return false
+			if (e.becauseExists) {
+				if (await OS.File.exists(path)) {
+					return;
+				}
+				let isSymlink = false;
+				// Confirm with nsIFile that it's a symlink
+				try {
+					isSymlink = this.pathToFile(path).isSymlink();
+				}
+				catch (e) {
+					Zotero.logError(e);
+				}
+				if (isSymlink) {
+					throw new Error(`Broken symlink at ${path}`);
+				}
+			}
+			throw e;
+		}
 	}
 	
 	
@@ -1339,9 +1383,20 @@ Zotero.File = new function(){
 	};
 	
 	
-	this.isDropboxDirectory = function(path) {
-		return path.toLowerCase().indexOf('dropbox') != -1;
-	}
+	this.isCloudStorageFolder = function (path) {
+		// Dropbox
+		return path.toLowerCase().includes('dropbox')
+			// Google Drive
+			|| path.includes('Google Drive')
+			// OneDrive
+			|| path.toLowerCase().includes('onedrive')
+			// pCloud
+			|| path.toLowerCase().includes('pcloud')
+			// iCloud Drive (~/Library/Mobile Documents/com~apple~CloudDocs)
+			|| path.includes('Mobile Documents')
+			// Box
+			|| path.includes('Box');
+	};
 	
 	
 	this.reveal = Zotero.Promise.coroutine(function* (file) {

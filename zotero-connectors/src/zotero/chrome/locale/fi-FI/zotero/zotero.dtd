@@ -18,9 +18,9 @@
 <!ENTITY zotero.general.close "Sulje">
 <!ENTITY zotero.general.minimize "Pienennä">
 <!ENTITY zotero.general.other "Muu...">
-<!ENTITY zotero.general.bigger "Bigger">
-<!ENTITY zotero.general.smaller "Smaller">
-<!ENTITY zotero.general.reset "Reset">
+<!ENTITY zotero.general.bigger "Suurempi">
+<!ENTITY zotero.general.smaller "Pienempi">
+<!ENTITY zotero.general.reset "Palauta">
 
 
 <!ENTITY zotero.errorReport.title "Zoteron virheraportti">
@@ -175,6 +175,9 @@
 <!ENTITY zotero.lookup.description "Enter ISBNs, DOIs, PMIDs, or arXiv IDs to add to your library:">
 <!ENTITY zotero.lookup.button.search "Etsi">
 
+<!ENTITY zotero.createParent.title "Create Parent Item">
+<!ENTITY zotero.createParent.button.manual "Manual Entry">
+
 <!ENTITY zotero.selectitems.title "Valitse nimikkeet">
 <!ENTITY zotero.selectitems.intro.label "Valitse nimikkeet, jotka haluat lisätä kirjastoon">
 <!ENTITY zotero.selectitems.cancel.label "Peruuta">
@@ -207,7 +210,7 @@
 <!ENTITY zotero.import.lastModified "Viimeksi muokattu">
 <!ENTITY zotero.import.size "Koko">
 <!ENTITY zotero.import.createCollection "Place imported collections and items into new collection">
-<!ENTITY zotero.import.fileHandling "File Handling">
+<!ENTITY zotero.import.fileHandling "Tiedostojen käsittely">
 
 <!ENTITY zotero.exportOptions.title "Vie...">
 <!ENTITY zotero.exportOptions.format.label "Muoto:">
@@ -250,7 +253,7 @@
 <!ENTITY zotero.integration.prefs.automaticJournalAbbeviations.label "Käytä MEDLINEn lehtilyhenteitä">
 <!ENTITY zotero.integration.prefs.automaticJournalAbbeviations.caption "The “Journal Abbr” field will be ignored.">
 
-<!ENTITY zotero.integration.prefs.exportDocument "Switch to a Different Word Processor…">
+<!ENTITY zotero.integration.prefs.exportDocument "Vaihda eri tekstinkäsittelyohjelmaan…">
 
 <!ENTITY zotero.integration.showEditor.label "Näytä muokkain">
 <!ENTITY zotero.integration.classicView.label "Perinteinen näkymä">
