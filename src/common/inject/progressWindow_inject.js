@@ -59,6 +59,8 @@ if (isTopWindow || Zotero.isBookmarklet) {
 	var isReadOnly = false;
 	var syncDelayIntervalID;
 	var insideIframe = false;
+	var insideTags = false;
+	var blurred = false;
 	var frameSrc;
 	var frameIsHidden = false;
 	if (Zotero.isBookmarklet) {
@@ -220,6 +222,7 @@ if (isTopWindow || Zotero.isBookmarklet) {
 	
 	function handleMouseEnter() {
 		insideIframe = true;
+		blurred = false;
 		stopCloseTimer();
 		
 		// See scroll listener in initFrame()
@@ -235,8 +238,9 @@ if (isTopWindow || Zotero.isBookmarklet) {
 	}
 	
 	function startCloseTimer(delay) {
-		// Don't start the timer if the mouse is over the popup
+		// Don't start the timer if the mouse is over the popup or the tags box has focus
 		if (insideIframe) return;
+		if (insideTags) return;
 		
 		if (!delay) delay = 5000;
 		stopCloseTimer();
@@ -254,6 +258,7 @@ if (isTopWindow || Zotero.isBookmarklet) {
 		var iframe = document.createElement('iframe');
 		iframe.id = frameID;
 		iframe.src = frameSrc;
+		iframe.setAttribute('data-single-file-hidden-frame', '');
 		var style = {
 			position: 'fixed',
 			top: '15px',
@@ -301,6 +306,10 @@ if (isTopWindow || Zotero.isBookmarklet) {
 		
 		// Update the client or API with changes
 		var handleUpdated = async function (data) {
+			// If we're making changes, don't close the popup and keep delaying syncs
+			stopCloseTimer();
+			blurred = false;
+			
 			// If the session isn't yet registered or a session update is in progress,
 			// store the data to run after, overwriting any already-queued data
 			if (!createdSessions.has(currentSessionID) || updatingSession) {
@@ -357,10 +366,15 @@ if (isTopWindow || Zotero.isBookmarklet) {
 		// Keep track of when the mouse is over the popup, for various purposes
 		addMessageListener('progressWindowIframe.mouseenter', handleMouseEnter);
 		addMessageListener('progressWindowIframe.mouseleave', handleMouseLeave);
-
-		// Hide iframe if it loses focus and the user recently clicked on the main page
-		// (i.e., they didn't just switch to another window)
+		
+		addMessageListener('progressWindowIframe.tagsfocus', () => insideTags = true);
+		addMessageListener('progressWindowIframe.tagsblur', () => insideTags = false);
+		
 		addMessageListener('progressWindowIframe.blurred', async function() {
+			blurred = true;
+			
+			// Hide iframe if it loses focus and the user recently clicked on the main page
+			// (i.e., they didn't just switch to another window)
 			await Zotero.Promise.delay(150);
 			if (lastClick > new Date() - 500) {
 				hideFrame();
@@ -404,7 +418,7 @@ if (isTopWindow || Zotero.isBookmarklet) {
 		syncDelayIntervalID = setInterval(() => {
 			// Don't prevent syncing when read-only or when tab isn't visible.
 			// See note in ProgressWindow.jsx::handleVisibilityChange() for latter.
-			if (isReadOnly || document.hidden) return;
+			if (isReadOnly || document.hidden || blurred) return;
 			
 			Zotero.Connector.callMethod("delaySync", {});
 		}, 7500);

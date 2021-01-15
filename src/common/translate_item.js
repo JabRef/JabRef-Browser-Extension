@@ -98,13 +98,32 @@ Zotero.Translate.ItemSaver.prototype = {
 		var payload = {
 			items,
 			sessionID: this._sessionID,
-			uri: this._baseURI
+			uri: this._baseURI,
+			singleFile: true
 		};
 		if (Zotero.isSafari) {
 			// This is the best in terms of cookies we can do in Safari
 			payload.cookie = document.cookie;
 		}
 		payload.proxy = this._proxy && this._proxy.toJSON();
+		
+		// Add page data for snapshot
+		let singleFile = false;
+		for (let item of items) {
+			for (let attachment of item.attachments) {
+				if (attachment.mimeType !== 'text/html'
+					|| attachment.snapshot === false) {
+					continue;
+				}
+				if (attachment.url && !this._urlMatchesLocation(attachment.url)) {
+					continue;
+				}
+
+				attachment.singleFile = true;
+				singleFile = true;
+			}
+		}
+		
 		try {
 			var data = await Zotero.Connector.callMethodWithCookies("saveItems", payload)
 		}
@@ -131,9 +150,102 @@ Zotero.Translate.ItemSaver.prototype = {
 			}
 		}
 		this._pollForProgress(data.items, attachmentCallback);
+
+		// If we have a snapshot and the client supports SingleFile snapshots
+		if (singleFile && data && data.singleFile) {
+			// Do not wait for async function so we continue to update UI
+			this._executeSingleFile(payload);
+		}
+
 		return data.items;
 	},
+
+	_executeSingleFile: async function(payload) {
+		try {
+			payload.snapshotContent = await Zotero.SingleFile.retrievePageData();
+		}
+		catch (e) {
+			// We swallow this error and fall back to saving the
+			// page in the client
+		}
+
+		try {
+			await Zotero.Connector.callMethodWithCookies({
+					method: "saveSingleFile",
+					headers: {"Content-Type": "application/json"}
+				},
+				payload
+			);
+		}
+		catch (e) {
+			if (e.status === 400 && e.value === 'Endpoint does not support content-type\n') {
+				let snapshotContent = payload.snapshotContent;
+				delete payload.snapshotContent;
+
+				payload.pageData = {
+					content: snapshotContent,
+					resources: {}
+				};
+
+				// This means a Zotero client that expects SingleFileZ. We can just feed
+				// it a payload it is expecting with no resources.
+				await Zotero.Connector.callMethodWithCookies({
+						method: "saveSingleFile",
+						headers: {"Content-Type": "multipart/form-data"}
+					},
+					{
+						payload: JSON.stringify(payload)
+					}
+				);
+			}
+			else {
+				throw e;
+			}
+		}
+	},
 	
+	/**
+	 * Return true if the attachment URL fuzzy matches the window location
+	 *
+	 * @param {String} attachmentURL
+	 * @return {Boolean}
+	 */
+	_urlMatchesLocation: function(attachmentURL) {
+		// Complete match
+		if (attachmentURL === location.href) {
+			return true;
+		}
+		// Translators control the attachment URL and historically that URL was passed to
+		// the client to save a snapshot. Here we are trying to detect if the attachment URL
+		// has query params that are a subset of the current URL. So for example:
+		// 
+		// Attachment URL: /records?id=1234 would match the following:
+		// 
+		// Current URL: /records?id=1234#abstract
+		// Current URL: /records?id=1234&utm_source=search
+		// Current URL: /records?utm_source=search&id=1234
+		//
+		// But not match:
+		//
+		// Current URL: /records
+		// Current URL: /records?utm_source=search
+		// Current URL: /records?id=5678
+		const url = new URL (attachmentURL);
+		if (url.protocol + url.host + url.pathname === location.protocol + location.host
+				+ location.pathname) {
+			const locationURL = new URL(location.href);
+			for (const [param, value] of url.searchParams) {
+				if (locationURL.searchParams.get(param) !== value) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	},
+
 	_processItems: function(items) {
 		var saveOptions = !Zotero.isBookmarklet && Zotero.Inject.sessionDetails.saveOptions;
 		if (saveOptions && saveOptions.note && items.length == 1) {
@@ -365,29 +477,15 @@ Zotero.Translate.ItemSaver.prototype = {
 			} else if (Zotero.isBookmarklet && window.isSecureContext && attachment.url.indexOf('https') != 0) {
 				deferredAttachmentData.reject(new Error('Cannot load a HTTP attachment in a HTTPS page'));
 			} else {
-				let xhr = new XMLHttpRequest();
-				xhr.open((attachment.snapshot === false ? "HEAD" : "GET"), attachment.url, true);
-				xhr.responseType = (isSnapshot ? "document" : "arraybuffer");
-				xhr.onreadystatechange = function() {
-					if (xhr.readyState == 2) {
-						try {
-							deferredHeadersProcessed.resolve(this._processAttachmentHeaders(attachment, xhr, baseName));
-						} catch(e) {
-							deferredHeadersProcessed.reject(e);
-							xhr.abort();
-						}
-					}
-				}.bind(this);
-				xhr.onprogress = function(event) {
-					if(event.total && attachmentCallback) {
-						attachmentCallback(attachment, event.loaded/event.total*50);
-					}
-				};
-				xhr.onerror = e => deferredAttachmentData.reject(e.error);
-				xhr.onabort = () => deferredAttachmentData.reject(new Error('Attachment download aborted'));
-				xhr.onload = () => deferredAttachmentData.resolve(xhr.response);
-				xhr.send();
-			
+				let method = (attachment.snapshot === false ? "HEAD" : "GET");
+				let options = { responseType: (isSnapshot ? "document" : "arraybuffer"), timeout: 60000 };
+				Zotero.HTTP.request(method, attachment.url, options).then((xhr) => {
+					deferredHeadersProcessed.resolve(this._processAttachmentHeaders(attachment, xhr, baseName));
+					deferredAttachmentData.resolve(xhr.response);
+				}, (e) => {
+					deferredHeadersProcessed.reject(e);
+					deferredAttachmentData.reject(e);
+				});
 				if (attachmentCallback) attachmentCallback(attachment, 0);
 			}
 			
@@ -609,22 +707,10 @@ Zotero.Translate.ItemSaver.prototype = {
 		}
 		attachment.md5 = hash;
 		
-		if(Zotero.isBrowserExt && !Zotero.isBookmarklet) {
-			// N.B.
-			// In Chrome, we don't use messaging for Zotero.API.uploadAttachment, since
-			// we can't pass ArrayBuffers to the background page
-			// TODO: Technically we could switch to doing this from the background page
-			// by using https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
-			// but it's kinda complicated because you have to manually free resources or risk memory leaks
-			// let's not fix what's not broken
-			Zotero.API.uploadAttachment(attachment, attachmentCallback.bind(this, attachment));
-		} else {
-			// In Safari and the connectors, we can pass ArrayBuffers
-			Zotero.Translate.ItemSaver._attachmentCallbacks[attachment.id] = function(status, error) {
-				attachmentCallback(attachment, status, error);
-			};
-			Zotero.API.uploadAttachment(attachment);
-		}
+		Zotero.Translate.ItemSaver._attachmentCallbacks[attachment.id] = function(status, error) {
+			attachmentCallback(attachment, status, error);
+		};
+		Zotero.API.uploadAttachment(attachment);
 	},
 	
 	/**

@@ -105,12 +105,14 @@ Zotero.Connector = new function() {
 		var newCallback = function(req) {
 			try {
 				var isOnline = req.status !== 0 && req.status !== 403 && req.status !== 412;
-
-				Zotero.Connector.clientVersion = req.getResponseHeader('X-Zotero-Version');
-				if (Zotero.Connector.isOnline !== isOnline) {
-					Zotero.Connector.isOnline = isOnline;
-					if (Zotero.Connector_Browser && Zotero.Connector_Browser.onStateChange) {
-						Zotero.Connector_Browser.onStateChange(isOnline && Zotero.Connector.clientVersion);
+				
+				if (req.status != 0) {
+					Zotero.Connector.clientVersion = req.getResponseHeader('X-Zotero-Version');
+					if (Zotero.Connector.isOnline !== isOnline) {
+						Zotero.Connector.isOnline = isOnline;
+						if (Zotero.Connector_Browser && Zotero.Connector_Browser.onStateChange) {
+							Zotero.Connector_Browser.onStateChange(isOnline && Zotero.Connector.clientVersion);
+						}
 					}
 				}
 				var val = null;
@@ -148,6 +150,20 @@ Zotero.Connector = new function() {
 		var uri = Zotero.Prefs.get('connector.url') + "connector/" + method + queryString;
 		if (headers["Content-Type"] == 'application/json') {
 			data = JSON.stringify(data);
+		}
+		else if (headers["Content-Type"] == 'multipart/form-data') {
+			let formData = new FormData();
+			for (const entry in data) {
+				// For SingleFile binary arrays, convert them to blobs
+				if (entry.startsWith('binary-')) {
+					const int8array = new Uint8Array(Object.values(data[entry]));
+					formData.append(entry, new Blob([int8array]));
+				}
+				else {
+					formData.append(entry, data[entry]);
+				}
+			}
+			data = formData;
 		}
 		options = {body: data, headers, successCodes: false, timeout};
 		let httpMethod = data == null || data == undefined ? "GET" : "POST";
