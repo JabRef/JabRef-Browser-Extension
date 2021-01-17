@@ -916,4 +916,7 @@ Zotero.Connector_Browser = new function() {
 	*/
 }
 
+// CHANGED: Don't call init method of Zotero (because ??)
+// CHANGED: But at least pretend we did 
 //Zotero.initGlobal();
+Zotero.initDeferred.resolve();

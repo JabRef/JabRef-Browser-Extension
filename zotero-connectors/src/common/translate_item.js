@@ -148,8 +148,10 @@ Zotero.Translate.ItemSaver.prototype = {
 					}
 				}
 			}
+
+			// CHANGED: Moved this up in the if statement since data is sometimes undefined
+			this._pollForProgress(data.items, attachmentCallback);
 		}
-		this._pollForProgress(data.items, attachmentCallback);
 
 		// If we have a snapshot and the client supports SingleFile snapshots
 		if (singleFile && data && data.singleFile) {
@@ -157,7 +159,10 @@ Zotero.Translate.ItemSaver.prototype = {
 			this._executeSingleFile(payload);
 		}
 
-		return data.items;
+		// CHANGED: Added if check since data is sometimes undefined
+		if (data) {
+			return data.items;
+		}
 	},
 
 	_executeSingleFile: async function(payload) {

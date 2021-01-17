@@ -1900,11 +1900,25 @@ Zotero.Utilities = {
 		var isZoteroItem = !!item.setType,
 			zoteroType;
 
+		if (!cslItem.type) {
+			Zotero.debug(cslItem, 1);
+			throw new Error("No 'type' provided in CSL-JSON");
+		}
+
 		// Some special cases to help us map item types correctly
 		// This ensures that we don't lose data on import. The fields
 		// we check are incompatible with the alternative item types
 		if (cslItem.type == 'bill' && (cslItem.publisher || cslItem['number-of-volumes'])) {
 			zoteroType = 'hearing';
+		} else if (cslItem.type == 'broadcast' &&
+			(cslItem['archive'] ||
+				cslItem['archive_location'] ||
+				cslItem['container-title'] ||
+				cslItem['event-place'] ||
+				cslItem['publisher'] ||
+				cslItem['publisher-place'] ||
+				cslItem['source'])) {
+			zoteroType = 'tvBroadcast';
 		} else if (cslItem.type == 'book' && cslItem.version) {
 			zoteroType = 'computerProgram';
 		} else if (cslItem.type == 'song' && cslItem.number) {
@@ -1914,11 +1928,12 @@ Zotero.Utilities = {
 				cslItem['event-place'] || cslItem.volume ||
 				cslItem['number-of-volumes'] || cslItem.ISBN)) {
 			zoteroType = 'videoRecording';
+		} else if (Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE[cslItem.type]) {
+			zoteroType = Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE[cslItem.type][0];
 		} else {
-			zoteroType = Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE[cslItem.type];
+			Zotero.debug(`Unknown CSL type '${cslItem.type}' -- using 'document'`, 2);
+			zoteroType = "document"
 		}
-
-		if (!zoteroType) zoteroType = "document";
 
 		var itemTypeID = Zotero.ItemTypes.getID(zoteroType);
 		if (isZoteroItem) {

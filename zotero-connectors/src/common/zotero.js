@@ -63,7 +63,8 @@ var Zotero = window.Zotero = new function() {
 		} else {
 			/* this.isFirefox = SET IN BUILD SCRIPT */;
 			/* this.isSafari = SET IN BUILD SCRIPT */;
-			/* this.isBrowserExt = SET IN BUILD SCRIPT */;
+			// CHANGED: We are a browser extension, no question
+			this.isBrowserExt = true;
 			
 			this.isChrome = this.isEdge = false;
 			if (this.isBrowserExt && !this.isFirefox) {
