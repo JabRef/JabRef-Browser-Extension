@@ -133,6 +133,8 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		console.log(message[1]);
 	} else if (message[0] == 'Errors.log') {
 		console.log(message[1]);
+	} else if (message[0] == 'Prefs.getAll') {
+		// Ignore, this is handled by Zotero 
 	} else {
 		console.log("JabRef: other message in background.js: %o", JSON.parse(JSON.stringify(message)));
 	}
