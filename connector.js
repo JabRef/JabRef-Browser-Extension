@@ -97,8 +97,14 @@ Zotero.Connector = new function() {
 					browser.runtime.sendMessage({
 						"popupClose": "close"
 					});
+				} else {
+					console.error("JabRef: Error connecting to JabRef: %o with details %o", response.message, response.output);
+					browser.runtime.sendMessage({
+						"errorWhileSendingToJabRef": error.output
+					});
 				}
-			}, error => {
+			})
+			.catch(error => {
 				console.error("JabRef: Error connecting to JabRef: %o", error);
 				browser.runtime.sendMessage({
 					"errorWhileSendingToJabRef": error.message
