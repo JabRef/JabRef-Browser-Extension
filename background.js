@@ -9,7 +9,7 @@ Zotero.Translators.init();
 zsc.init();
 //wsClient.startClient(); // TODO: don't start websocket client, until JabRef's counterpart is integrated
 
-this.tabInfo = new Map()
+this.tabInfo = new Map();
 
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
@@ -37,7 +37,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			currentWindow: true
 		})
 		.then((tabs) => {
-			if (tabId == tabs[0].id) {
+			if (tabId === tabs[0].id) {
 				var tab = tabs[0];
 
 				// Clear old translator information
@@ -97,7 +97,7 @@ function installInTab(tab) {
 function lookForTranslators(tab) {
 	console.log("JabRef: Searching for translators for %o", tab);
 	Zotero.Translators.getWebTranslatorsForLocation(tab.url, tab.url).then((translators) => {
-		if (translators[0].length == 0) {
+		if (translators[0].length === 0) {
 			// No translators found, so hide button
 			console.log("JabRef: No translators found");
 			browser.pageAction.hide(tab.id);
@@ -119,10 +119,10 @@ function evalInTab(tabsId, code) {
 }
 
 savePdf = function(tab) {
-	var title = tab.title.replace(".pdf", "")
-	var url = tab.url
-	var urlEscaped = tab.url.replace(":","\\:")
-	var date = new Date().toISODate()
+	var title = tab.title.replace(".pdf", "");
+	var url = tab.url;
+	var urlEscaped = tab.url.replace(":","\\:");
+	var date = new Date().toISODate();
 
 	// Construct a manual Bibtex Entry for the PDF
 	var bibtexString =  `@misc{,\
@@ -130,16 +130,16 @@ savePdf = function(tab) {
 		file={:${urlEscaped}:PDF},\
 		url = {${url}},\
 		accessDate={${date}},\
-		}`
+		}`;
 	Zotero.Connector.sendBibTexToJabRef(bibtexString);
-}
+};
 
 /*
 	Is called after Zotero injected all scripts and checked if the potential translators can find something on the page.
 	We need to hide or show the page action accordingly.
 */
 onTranslators = function(translators, tabId, contentType) {
-	if (translators.length == 0) {
+	if (translators.length === 0) {
 		console.log("JabRef: Found no suitable translators for tab %o", JSON.parse(JSON.stringify(tabId)));
 		browser.pageAction.hide(tabId);
 	} else {
@@ -151,7 +151,7 @@ onTranslators = function(translators, tabId, contentType) {
 			title: "Import references into JabRef using " + translators[0].label
 		});
 	}
-}
+};
 
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (message.popupOpened) {
@@ -183,16 +183,16 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	} else if (message.eval) {
 		console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
 		return evalInTab(sender.tab.id, message.eval);
-	} else if (message[0] == 'Connector_Browser.onTranslators') {
+	} else if (message[0] === 'Connector_Browser.onTranslators') {
 		// Intercept message to Zotero background script
 		console.log("JabRef: Intercept message to Zotero background script", JSON.parse(JSON.stringify(message)));
 		message[1][1] = sender.tab.id;
 		onTranslators.apply(null, message[1]);
-	} else if (message[0] == 'Debug.log') {
+	} else if (message[0] === 'Debug.log') {
 		console.log(message[1]);
-	} else if (message[0] == 'Errors.log') {
+	} else if (message[0] === 'Errors.log') {
 		console.log(message[1]);
-	} else if (message[0] == 'Prefs.getAll') {
+	} else if (message[0] === 'Prefs.getAll') {
 		// Ignore, this is handled by Zotero 
 	} else {
 		console.log("JabRef: other message in background.js: %o", JSON.parse(JSON.stringify(message)));

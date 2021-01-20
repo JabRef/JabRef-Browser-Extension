@@ -20,7 +20,7 @@ convertToBibTex = function(items, conversionMode) {
 	});
 	translation.translate();
 	return deferred.promise;
-}
+};
 
 Zotero.Translate.ItemGetter = function() {
 	this._itemsLeft = [];
@@ -42,13 +42,13 @@ Zotero.Translate.ItemGetter.prototype = {
 	 * Retrieves the next available item
 	 */
 	"nextItem": function() {
-		if (this._itemsLeft.length != 0) {
+		if (this._itemsLeft.length !== 0) {
 			return this._itemsLeft.shift();
 		} else {
 			return false;
 		}
 	}
-}
+};
 
 // This information is needed for some translators
 // Taken from https://github.com/zotero/zotero-schema/blob/master/schema.json
@@ -233,7 +233,7 @@ Zotero.Schema = new function() {
 		"seriesEditor": "collection-editor",
 		"translator": "translator"
 	};
-}
+};
 
 browser.runtime.onMessage.addListener(message => {
 	if (message.convertToBibTex) {

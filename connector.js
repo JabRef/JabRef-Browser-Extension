@@ -123,7 +123,7 @@ Zotero.Connector = new function() {
 			})
 			.then(response => {
 				console.log("JabRef: Got response from JabRef: %o with details %o", response.message, response.output);
-				if (response.message == 'ok') {
+				if (response.message === 'ok') {
 					browser.runtime.sendMessage({
 						"popupClose": "close"
 					});
