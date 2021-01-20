@@ -14,7 +14,7 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 Normally, you simply install the extension from the browser store and are ready to go.
 > [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabref/?src=external-github) -  [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - [Edge](https://microsoftedge.microsoft.com/addons/detail/pgkajmkfgbehiomipedjhoddkejohfna) - [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
 
-Sometimes, a manual installation is necessary (e.g. if you use the portable version of JabRef). In this case, please follow the steps described [in the user manual](https://docs.jabref.org/import-export/import/jabref-browser-extension)
+Sometimes, a manual installation is necessary (e.g. if you use the portable version of JabRef). In this case, please follow the steps described [in the user manual](https://docs.jabref.org/import-export/import/jabref-browser-extension).
 
 ## Usage
 After the installation, you should be able to import bibliographic references into JabRef directly from your browser.
@@ -39,7 +39,9 @@ Preparation:
 1. Install [Node.js](https://nodejs.org) (e.g., `choco install nodejs`)
 2. Install [gulp](https://gulpjs.com/) and [web-ext](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext): `npm install --global gulp-cli web-ext`
 3. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
-4. Start browser with the add-on activated: 
+4. Checkout the repository.
+5. Install development dependencies via `npm install`.
+6. Start browser with the add-on activated:
    Firefox: `npm run dev:firefox`
    Chrome: `npm run dev:opera`
 

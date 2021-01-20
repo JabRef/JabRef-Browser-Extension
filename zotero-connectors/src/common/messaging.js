@@ -86,9 +86,9 @@ Zotero.Messaging = new function() {
 		if (typeof promise != "object" || typeof promise.then !== "function") promise = Zotero.Promise.resolve(promise);
 		var shouldRespond = messageConfig && messageConfig.response !== false;
 		if (shouldRespond) {
-			return promise.then(function(response) {
+			return promise.then(async function(response) {
 				if (messageConfig.background && messageConfig.background.preSend) {
-					response = messageConfig.background.preSend(response);
+					response = await messageConfig.background.preSend(response);
 				}
 				return response;
 			});
@@ -170,18 +170,22 @@ Zotero.Messaging = new function() {
 			}
 		} else if (Zotero.isBrowserExt) {
 			browser.runtime.onMessage.addListener(function(request, sender) {
-				if (typeof request[0] !== 'undefined') {
-					return Zotero.Messaging.receiveMessage(request[0], request[1], sender.tab, sender.frameId)
-						.catch(function(err) {
-							// Zotero.logError(err);
-							err = JSON.stringify(Object.assign({
-								name: err.name,
-								message: err.message,
-								stack: err.stack
-							}, err));
-							return ['error', err];
-						});
+				// All Zotero messages are arrays so we ignore everything else
+				// SingleFile will pass an object in the message so this ignores those.
+				if (!Array.isArray(request)) {
+					return;
 				}
+
+				return Zotero.Messaging.receiveMessage(request[0], request[1], sender.tab, sender.frameId)
+				.catch(function(err) {
+					// Zotero.logError(err);
+					err = JSON.stringify(Object.assign({
+						name: err.name,
+						message: err.message,
+						stack: err.stack
+					}, err));
+					return ['error', err];
+				});
 			});
 		} else if (Zotero.isSafari) {
 			// Safari handled in safari/messaging_global.js

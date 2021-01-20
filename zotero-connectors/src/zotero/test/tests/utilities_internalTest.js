@@ -59,6 +59,15 @@ describe("Zotero.Utilities.Internal", function () {
 	});
 	
 	
+	describe("#decodeUTF8()", function () {
+		it("should properly decode binary string", async function () {
+			let text = String.fromCharCode.apply(null, new Uint8Array([226, 130, 172]));
+			let utf8 = Zotero.Utilities.Internal.decodeUTF8(text);
+			assert.equal(utf8, "€");
+		});
+	});
+	
+	
 	describe("#delayGenerator", function () {
 		var spy;
 		
@@ -114,12 +123,17 @@ describe("Zotero.Utilities.Internal", function () {
 	
 	
 	describe("#extractExtraFields()", function () {
-		it("should extract a CSL type", function () {
-			var str = 'type: motion_picture';
+		it("should ignore 'type: note' and 'type: attachment'", function () {
+			var str = 'type: note';
+			var { itemType, extra } = Zotero.Utilities.Internal.extractExtraFields(str);
+			assert.isNull(itemType);
+			assert.equal(extra, 'type: note');
+		});
+		
+		it("should use the first mapped Zotero type for a CSL type", function () {
+			var str = 'type: personal_communication';
 			var { itemType, fields, extra } = Zotero.Utilities.Internal.extractExtraFields(str);
-			assert.equal(itemType, 'videoRecording');
-			assert.equal(fields.size, 0);
-			assert.strictEqual(extra, '');
+			assert.equal(itemType, 'letter');
 		});
 		
 		it("should extract a field", function () {
@@ -170,24 +184,24 @@ describe("Zotero.Utilities.Internal", function () {
 		});
 		
 		it("should extract a field with other fields, text, and whitespace", function () {
-			var place = 'New York';
+			var date = '2020-04-01';
 			var doi = '10.1234/abcdef';
-			var str = `Line 1\nPublisher Place: ${place}\nFoo: Bar\nDOI: ${doi}\n\nLine 2`;
+			var str = `Line 1\nDate: ${date}\nFoo: Bar\nDOI: ${doi}\n\nLine 2`;
 			var { fields, extra } = Zotero.Utilities.Internal.extractExtraFields(str);
 			assert.equal(fields.size, 2);
+			assert.equal(fields.get('date'), date);
 			assert.equal(fields.get('DOI'), doi);
-			assert.equal(fields.get('place'), place);
 			assert.equal(extra, 'Line 1\nFoo: Bar\n\nLine 2');
 		});
 		
 		it("should extract the first instance of a field", function () {
-			var place1 = 'New York';
-			var place2 = 'London';
-			var str = `Publisher Place: ${place1}\nPublisher Place: ${place2}`;
+			var date1 = '2020-04-01';
+			var date2 = '2020-04-02';
+			var str = `Date: ${date1}\nDate: ${date2}`;
 			var { fields, extra } = Zotero.Utilities.Internal.extractExtraFields(str);
 			assert.equal(fields.size, 1);
-			assert.equal(fields.get('place'), place1);
-			assert.equal(extra, "Publisher Place: " + place2);
+			assert.equal(fields.get('date'), date1);
+			assert.equal(extra, "Date: " + date2);
 		});
 		
 		it("shouldn't extract a field from a line that begins with a whitespace", function () {
@@ -224,7 +238,7 @@ describe("Zotero.Utilities.Internal", function () {
 		});
 		
 		it("should extract a CSL name", function () {
-			var str = 'container-author: First || Last';
+			var str = 'container-author: Last || First';
 			var { creators, extra } = Zotero.Utilities.Internal.extractExtraFields(str);
 			assert.lengthOf(creators, 1);
 			assert.propertyVal(creators[0], 'creatorType', 'bookAuthor');
@@ -235,7 +249,7 @@ describe("Zotero.Utilities.Internal", function () {
 		
 		it("should extract a CSL name that's valid for a given item type", function () {
 			var item = createUnsavedDataObject('item', { itemType: 'bookSection' });
-			var str = 'container-author: First || Last';
+			var str = 'container-author: Last || First';
 			var { creators, extra } = Zotero.Utilities.Internal.extractExtraFields(str, item);
 			assert.lengthOf(creators, 1);
 			assert.propertyVal(creators[0], 'creatorType', 'bookAuthor');
@@ -246,7 +260,7 @@ describe("Zotero.Utilities.Internal", function () {
 		
 		it("shouldn't extract a CSL name that's not valid for a given item type", function () {
 			var item = createUnsavedDataObject('item', { itemType: 'journalArticle' });
-			var str = 'container-author: First || Last';
+			var str = 'container-author: Last || First';
 			var { creators, extra } = Zotero.Utilities.Internal.extractExtraFields(str, item);
 			assert.lengthOf(creators, 0);
 			assert.strictEqual(extra, str);
@@ -259,6 +273,21 @@ describe("Zotero.Utilities.Internal", function () {
 			assert.equal(fields.get('numPages'), 11);
 			assert.equal(fields.get('date'), 2014);
 			assert.strictEqual(extra, '');
+		});
+		
+		it("should ignore empty creator in citeproc-js cheater syntax", function () {
+			var str = '{:author: }\n';
+			var { fields, extra } = Zotero.Utilities.Internal.extractExtraFields(str);
+			assert.equal(fields.size, 0);
+			assert.strictEqual(extra, str);
+		});
+		
+		it("should ignore both Event Place and Publisher Place (temporary)", function () {
+			var str = "Event Place: Foo\nPublisher Place: Bar";
+			var { fields, extra } = Zotero.Utilities.Internal.extractExtraFields(str);
+			Zotero.debug([...fields.entries()]);
+			assert.equal(fields.size, 0);
+			assert.equal(extra, "Event Place: Foo\nPublisher Place: Bar");
 		});
 	});
 	

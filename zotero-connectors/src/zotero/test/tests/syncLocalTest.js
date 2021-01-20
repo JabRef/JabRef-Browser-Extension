@@ -45,11 +45,12 @@ describe("Zotero.Sync.Data.Local", function() {
 			var handled = false;
 			waitForDialog(function (dialog) {
 				var text = dialog.document.documentElement.textContent;
-				var matches = text.match(/‘[^’]*’/g);
-				assert.equal(matches.length, 3);
-				assert.equal(matches[0], "‘A’");
-				assert.equal(matches[1], "‘B’");
-				assert.equal(matches[2], "‘A’");
+				var matches = text.match(/“[^”]*”/g);
+				assert.equal(matches.length, 4);
+				assert.equal(matches[0], "“A”");
+				assert.equal(matches[1], "“B”");
+				assert.equal(matches[2], "“A”");
+				assert.equal(matches[3], "“A”");
 				
 				dialog.document.getElementById('zotero-hardConfirmationDialog-checkbox').checked = true;
 				dialog.document.getElementById('zotero-hardConfirmationDialog-checkbox')
@@ -526,35 +527,54 @@ describe("Zotero.Sync.Data.Local", function() {
 			}
 		})
 		
-		it("should keep local item changes while applying non-conflicting remote changes", function* () {
+		it("should keep local item changes while applying non-conflicting remote changes", async function () {
 			var libraryID = Zotero.Libraries.userLibraryID;
 			
-			var type = 'item';
-			let obj = yield createDataObject(type, { version: 5 });
-			let data = obj.toJSON();
-			yield Zotero.Sync.Data.Local.saveCacheObjects(type, libraryID, [data]);
+			let item = await createDataObject('item', { version: 5 });
+			let data = item.toJSON();
+			await Zotero.Sync.Data.Local.saveCacheObjects('item', libraryID, [data]);
 			
 			// Change local title
-			yield modifyDataObject(obj)
-			var changedTitle = obj.getField('title');
+			await modifyDataObject(item)
+			item.setTags([
+				{ tag: 'A' }
+			]);
+			await item.saveTx();
+			var changedTitle = item.getField('title');
 			
 			// Create remote version without title but with changed place
-			data.key = obj.key;
+			data.key = item.key;
 			data.version = 10;
+			data.tags = [
+				{
+					tag: 'B'
+				}
+			]
 			var changedPlace = data.place = 'New York';
 			let json = {
-				key: obj.key,
+				key: item.key,
 				version: 10,
-				data: data
+				data
 			};
-			yield Zotero.Sync.Data.Local.processObjectsFromJSON(
-				type, libraryID, [json], { stopOnError: true }
+			var results = await Zotero.Sync.Data.Local.processObjectsFromJSON(
+				'item', libraryID, [json], { stopOnError: true }
 			);
-			assert.equal(obj.version, 10);
-			assert.equal(obj.getField('title'), changedTitle);
-			assert.equal(obj.getField('place'), changedPlace);
+			assert.isTrue(results[0].processed);
+			assert.isUndefined(results[0].changes);
+			assert.isUndefined(results[0].conflicts);
+			assert.equal(item.version, 10);
+			assert.equal(item.getField('title'), changedTitle);
+			assert.equal(item.getField('place'), changedPlace);
+			assert.sameDeepMembers(item.getTags(), [{ tag: 'A' }, { tag: 'B' }]);
 			// Item should be marked as unsynced so the local changes are uploaded
-			assert.isFalse(obj.synced);
+			assert.isFalse(item.synced);
+			// Sync cache should match remote
+			var cacheJSON = await Zotero.Sync.Data.Local.getCacheObject(
+				'item', libraryID, data.key, data.version
+			);
+			assert.notProperty(cacheJSON.data, 'title');
+			assert.equal(cacheJSON.data.place, data.place);
+			assert.sameDeepMembers(cacheJSON.data.tags, data.tags);
 		});
 		
 		it("should keep local item changes while ignoring matching remote changes", async function () {
@@ -653,6 +673,37 @@ describe("Zotero.Sync.Data.Local", function() {
 				assert.isTrue(obj.synced);
 				assert.isFalse(await Zotero.Sync.Data.Local.getDateDeleted(type, libraryID, data.key));
 			}
+		});
+		
+		it("should automatically resolve collection name conflict", async function () {
+			var libraryID = Zotero.Libraries.userLibraryID;
+			
+			var type = 'collection';
+			let obj = await createDataObject(type, { version: 5 });
+			let data = obj.toJSON();
+			await Zotero.Sync.Data.Local.saveCacheObjects(type, libraryID, [data]);
+			
+			// Change local name
+			await modifyDataObject(obj);
+			var changedName = Zotero.Utilities.randomString();
+			
+			// Create remote version with changed name
+			data.version = 10;
+			data.name = changedName;
+			let json = {
+				key: obj.key,
+				version: 10,
+				data
+			};
+			await Zotero.Sync.Data.Local.processObjectsFromJSON(
+				type, libraryID, [json], { stopOnError: true }
+			);
+			assert.equal(obj.version, 10);
+			assert.equal(obj.name, changedName);
+			assert.isTrue(obj.synced);
+			// Sync cache should match remote
+			var cacheJSON = await Zotero.Sync.Data.Local.getCacheObject(type, libraryID, data.key, data.version);
+			assert.propertyVal(cacheJSON.data, "name", changedName);
 		});
 		
 		it("should delete older versions in sync cache after processing", function* () {

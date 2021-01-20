@@ -13,7 +13,7 @@
 <!ENTITY zotero.preferences.downloadAssociatedFiles "Lagre tilknyttede PDF-filer og andre filer når du lagrer elementer">
 <!ENTITY zotero.preferences.autoRecognizeFiles "Hent metadata for PDF-er automatisk">
 <!ENTITY zotero.preferences.autoRenameFiles "Gi automatisk nytt navn til vedlegg ved å bruke metadata fra overordnet element">
-<!ENTITY zotero.preferences.autoRenameFiles.renameLinked "Gi nytt navn til koblede filer">
+<!ENTITY zotero.preferences.autoRenameFiles.renameLinked "Gi nytt navn til lenkede filer">
 <!ENTITY zotero.preferences.fileHandler.openPDFsUsing "Åpne PDF-er ved hjelp av">
 <!ENTITY zotero.preferences.fileHandler.systemDefault "Standardprogram">
 
@@ -54,7 +54,7 @@
 <!ENTITY zotero.preferences.sync.lostPassword "Glemt passord?">
 <!ENTITY zotero.preferences.sync.syncAutomatically "Synkroniser automatisk">
 <!ENTITY zotero.preferences.sync.syncFullTextContent "Synkroniser fulltekst innhold">
-<!ENTITY zotero.preferences.sync.syncFullTextContent.desc "Zotero kan synkronisere fulltekst innhold i filer i ditt Zotero bibliotek med zotero.org og andre koblede enheter, noe som gjør det mulig for deg å enkelt søke etter dine filer hvor enn du måtte være. Fulltekst innhold i filene dine vil ikke bli delt offentlig.">
+<!ENTITY zotero.preferences.sync.syncFullTextContent.desc "Zotero kan synkronisere fulltekstinnhold i filer i ditt Zotero bibliotek med zotero.org og andre tilknyttede enheter, noe som gjør det mulig for deg å søke etter tekst i dine filer hvor enn du måtte være. Fulltekstinnhold i filene dine vil ikke bli delt offentlig.">
 <!ENTITY zotero.preferences.sync.about "Om synkronisering">
 <!ENTITY zotero.preferences.sync.fileSyncing "Filsynkronisering">
 <!ENTITY zotero.preferences.sync.fileSyncing.url "URL:">
@@ -75,10 +75,10 @@
 <!ENTITY zotero.preferences.sync.reset.warning3 " for mer informasjon.">
 <!ENTITY zotero.preferences.sync.reset.resetDataSyncHistory "Tilbakestill synkroniseringshistorikk for data">
 <!ENTITY zotero.preferences.sync.reset.resetDataSyncHistory.desc "Slå sammen lokale data med eksterne data og ignorer synkroniseringshistorikk">
-<!ENTITY zotero.preferences.sync.reset.restoreFromServer "Gjenopprett fra nettbibliotek">
+<!ENTITY zotero.preferences.sync.reset.restoreFromServer "Gjenopprett fra nettbiblioteket">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer.desc "Skriv over lokale Zotero data med data fra nettbiblioteket">
-<!ENTITY zotero.preferences.sync.reset.restoreToServer "Erstatt nettbibliotek">
-<!ENTITY zotero.preferences.sync.reset.restoreToServer.desc "Overskriv nettbibliotek med lokale Zotero data">
+<!ENTITY zotero.preferences.sync.reset.restoreToServer "Erstatt nettbiblioteket">
+<!ENTITY zotero.preferences.sync.reset.restoreToServer.desc "Overskriv nettbiblioteket med lokale Zotero data">
 <!ENTITY zotero.preferences.sync.reset.resetFileSyncHistory "Tilbakestill filsynkroniseringshistorikk">
 <!ENTITY zotero.preferences.sync.reset.resetFileSyncHistory.desc "Sammenlign alle vedlegg med lagringstjeneste">
 <!ENTITY zotero.preferences.sync.reset "Tilbakestill">
@@ -113,7 +113,7 @@
 <!ENTITY zotero.preferences.quickCopy.siteEditor.locale "Språk">
 <!ENTITY zotero.preferences.quickCopy.dragLimit "Deaktiver hurtigkopi når du drar mer enn">
 
-<!ENTITY zotero.preferences.prefpane.cite "Henvisning">
+<!ENTITY zotero.preferences.prefpane.cite "Henvis">
 <!ENTITY zotero.preferences.cite.styles "Stiler">
 <!ENTITY zotero.preferences.cite.wordProcessors "Tekstbehandlere">
 <!ENTITY zotero.preferences.cite.wordProcessors.useClassicAddCitationDialog "Bruk klassisk dialogboks for Legg til henvisninger ">
@@ -134,7 +134,7 @@
 <!ENTITY zotero.preferences.keys.newNote "Opprett et nytt notat">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Merk alle nyhetsstrømelementene som lest/ikke lest">
 <!ENTITY zotero.preferences.keys.toggleTagSelector "Slå emneord av/på">
-<!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopier de valgte element-henvisningene til utklippstavla">
+<!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopier de valgte henvisningene til utklippstavla">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopier de valgte elementene til utklippstavla">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Importer fra utklippstavle">
 <!ENTITY zotero.preferences.keys.changesTakeEffect "Endringer trer i kraft etter omstart">
@@ -169,7 +169,7 @@
 <!ENTITY zotero.preferences.advanced.advancedConfiguration "Avansert oppsett">
 
 <!ENTITY zotero.preferences.prefpane.locate "Lokaliser">
-<!ENTITY zotero.preferences.locate.locateEngineManager "Artikkel søkemotor behandler">
+<!ENTITY zotero.preferences.locate.locateEngineManager "Søkemotorer for å finne artikler på nett">
 <!ENTITY zotero.preferences.locate.description "Beskrivelse">
 <!ENTITY zotero.preferences.locate.name "Navn">
 <!ENTITY zotero.preferences.locate.locateEnginedescription "En søkemotor utvider mulighetene i nedtrekksmenyen Lokaliser i Inforuten. Ved å aktivere søkemotorer i listen nedenfor vil de bli lagt til nedtrekksmenyen og kan bli brukt til å finne ressurser fra ditt bibliotek på nettet.">
@@ -188,8 +188,8 @@
 <!ENTITY zotero.preferences.dataDir.reveal "Vis datamappe">
 <!ENTITY zotero.preferences.dataDir.migrate "Migrer til ny standard plassering…">
 
-<!ENTITY zotero.preferences.attachmentBaseDir.caption "Koblet basismappe for vedlegg">
-<!ENTITY zotero.preferences.attachmentBaseDir.message "Zotero vil bruke relative stier for koblede vedlegg innenfor basismappen, noe som gir deg tilgang til filer på ulike komputere så lenge filstrukturen innenfor basismappen forblir den samme.">
+<!ENTITY zotero.preferences.attachmentBaseDir.caption "Basismappe for lenkede vedlegg">
+<!ENTITY zotero.preferences.attachmentBaseDir.message "Zotero vil bruke relative stier for lenkede vedlegg innenfor basismappen, noe som gir deg tilgang til filer på ulike komputere så lenge filstrukturen innenfor basismappen forblir den samme.">
 <!ENTITY zotero.preferences.attachmentBaseDir.basePath "Basismappe:">
 <!ENTITY zotero.preferences.attachmentBaseDir.selectBasePath "Velg...">
 <!ENTITY zotero.preferences.attachmentBaseDir.resetBasePath "Gå tilbake til absolutte stier…">

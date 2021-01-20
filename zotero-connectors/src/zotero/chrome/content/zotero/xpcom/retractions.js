@@ -50,7 +50,7 @@ Zotero.Retractions = {
 		
 		// TEMP: Until we can figure out why some schema updates aren't going through despite the
 		// version number being incremented, create table here if it's missing
-		await Zotero.DB.queryAsync("CREATE TABLE IF NOT EXISTS retractedItems (\n	itemID INTEGER PRIMARY KEY,\n	data TEXT,\n	FOREIGN KEY (itemID) REFERENCES items(itemID) ON DELETE CASCADE\n);");
+		await Zotero.DB.queryAsync("CREATE TABLE IF NOT EXISTS retractedItems (\n       itemID INTEGER PRIMARY KEY,\n   data TEXT,\n    FOREIGN KEY (itemID) REFERENCES items(itemID) ON DELETE CASCADE\n);");
 		try {
 			await Zotero.DB.queryAsync("ALTER TABLE retractedItems ADD COLUMN flag INT DEFAULT 0");
 		}
@@ -189,8 +189,8 @@ Zotero.Retractions = {
 			else if (json.extra) {
 				let { fields } = Zotero.Utilities.Internal.extractExtraFields(json.extra);
 				let extraField = fields.get('DOI');
-				if (extraField && extraField.value) {
-					doi = extraField.value;
+				if (extraField) {
+					doi = extraField;
 				}
 			}
 			if (doi) {
@@ -206,7 +206,7 @@ Zotero.Retractions = {
 			
 			// PMID
 			if (json.extra) {
-				let pmid = this._extractPMID(json.extra);
+				let pmid = this._extractExtraFields(json.extra).pmid;
 				if (pmid) {
 					valuesToCheck.push({
 						type: this.TYPE_PMID,
@@ -562,8 +562,6 @@ Zotero.Retractions = {
 		}
 		
 		if (prefixesToSend.size) {
-			// TODO: Diff list and remove existing retractions that are missing
-			
 			let possibleMatches = await this._downloadPossibleMatches([...prefixesToSend]);
 			await this._addPossibleMatches(possibleMatches, true);
 		}
@@ -675,7 +673,7 @@ Zotero.Retractions = {
 	},
 	
 	_getItemDOI: function (item) {
-		var itemDOI = item.getField('DOI') || item.getExtraField('doi');
+		var itemDOI = item.getField('DOI') || item.getExtraField('DOI');
 		if (itemDOI) {
 			itemDOI = Zotero.Utilities.cleanDOI(itemDOI);
 		}
@@ -683,14 +681,17 @@ Zotero.Retractions = {
 	},
 	
 	_getItemPMID: function (item) {
-		// TEMP
-		return this._extractPMID(item.getField('extra')) || null;
+		return this._extractExtraFields(item.getField('extra')).pmid;
 	},
 	
 	// TEMP
-	_extractPMID: function (str) {
+	_extractExtraFields: function (str) {
+		var fields = {
+			doi: null,
+			pmid: null
+		};
 		if (!str) {
-			return false;
+			return fields;
 		}
 		var lines = str.split(/\n+/g);
 		for (let line of lines) {
@@ -707,11 +708,18 @@ Zotero.Retractions = {
 				.replace(/{:([^:]+):([^}]+)}/);
 			value = value.trim();
 			
-			if (field == 'pmid' || field == 'pubmedid') {
-				return value;
+			if (field == 'doi' && !fields.doi) {
+				fields.doi = value;
+			}
+			else if ((field == 'pmid' || field == 'pubmedid') && !fields.pmid) {
+				fields.pmid = value;
+			}
+			
+			if (fields.doi && fields.pmid) {
+				break;
 			}
 		}
-		return false;
+		return fields;
 	},
 	
 	_valueToKey: function (type, value) {
@@ -749,54 +757,61 @@ Zotero.Retractions = {
 	},
 	
 	_cacheKeyMappings: async function () {
-		await this._cacheDOIMappings();
-		await this._cachePMIDMappings();
-	},
-	
-	_cacheDOIMappings: async function () {
 		this._keyItems[this.TYPE_DOI] = new Map();
 		this._itemKeys[this.TYPE_DOI] = new Map();
-		
-		var sql = "SELECT itemID AS id, value FROM itemData "
-			+ "JOIN itemDataValues USING (valueID) WHERE fieldID=?";
-		var rows = await Zotero.DB.queryAsync(sql, Zotero.ItemFields.getID('DOI'));
-		for (let row of rows) {
-			let value = Zotero.Utilities.cleanDOI(row.value);
-			if (!value) continue;
-			this._addItemKeyMapping(this.TYPE_DOI, value, row.id);
-		}
-		
-		// Extract from Extract field
-		sql = "SELECT itemID AS id, value FROM itemData "
-			+ "JOIN itemDataValues USING (valueID) WHERE fieldID=?";
-		rows = await Zotero.DB.queryAsync(sql, Zotero.ItemFields.getID('extra'));
-		for (let row of rows) {
-			let { fields } = Zotero.Utilities.Internal.extractExtraFields(row.value);
-			let doi = fields.get('doi');
-			if (!doi || !doi.value) continue;
-			let value = Zotero.Utilities.cleanDOI(doi.value);
-			if (!value) continue;
-			this._addItemKeyMapping(this.TYPE_DOI, value, row.id);
-		}
-	},
-	
-	_cachePMIDMappings: async function () {
 		this._keyItems[this.TYPE_PMID] = new Map();
 		this._itemKeys[this.TYPE_PMID] = new Map();
 		
-		var sql = "SELECT itemID AS id, value FROM itemData "
-			+ "JOIN itemDataValues USING (valueID) WHERE fieldID=?";
-		var rows = await Zotero.DB.queryAsync(sql, Zotero.ItemFields.getID('extra'));
+		var doiFieldID = Zotero.ItemFields.getID('DOI');
+		var extraFieldID = Zotero.ItemFields.getID('extra');
+		
+		var sql = "SELECT itemID AS id, fieldID, value FROM itemData "
+			+ "JOIN itemDataValues USING (valueID) WHERE fieldID IN (?, ?)";
+		var rows = await Zotero.DB.queryAsync(
+			sql,
+			[
+				doiFieldID,
+				extraFieldID
+			]
+		);
+		
 		for (let row of rows) {
-			/*
-			let { fields } = Zotero.Utilities.Internal.extractExtraFields(row.value);
-			let pmid = fields.get('pmid') || fields.get('pubmedID');
-			if (!pmid || !pmid.value) continue;
-			this._addItemKeyMapping(this.TYPE_PMID, pmid.value, row.id);
-			*/
-			let pmid = this._extractPMID(row.value);
-			if (!pmid) continue;
-			this._addItemKeyMapping(this.TYPE_PMID, pmid, row.id);
+			// DOI field
+			if (row.fieldID == doiFieldID) {
+				let value = Zotero.Utilities.cleanDOI(row.value);
+				if (value) {
+					this._addItemKeyMapping(this.TYPE_DOI, value, row.id);
+				}
+			}
+			// Extra field
+			else {
+				// DOI
+				/*
+				let { fields } = Zotero.Utilities.Internal.extractExtraFields(row.value);
+				let doi = fields.get('DOI');
+				if (!doi) continue;
+				*/
+				let { doi, pmid } = this._extractExtraFields(row.value);
+				
+				if (doi) {
+					let value = Zotero.Utilities.cleanDOI(doi);
+					if (value) {
+						this._addItemKeyMapping(this.TYPE_DOI, value, row.id);
+					}
+				}
+				
+				// PMID
+				/*
+				let { fields } = Zotero.Utilities.Internal.extractExtraFields(row.value);
+				let pmid = fields.get('pmid') || fields.get('pubmedID');
+				if (!pmid) continue;
+				this._addItemKeyMapping(this.TYPE_PMID, pmid, row.id);
+				*/
+				//let pmid = this._extractPMID(row.value);
+				if (pmid) {
+					this._addItemKeyMapping(this.TYPE_PMID, pmid, row.id);
+				}
+			}
 		}
 	},
 	

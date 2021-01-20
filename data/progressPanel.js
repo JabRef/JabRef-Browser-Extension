@@ -27,7 +27,6 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		document.getElementById("tooManyRequests").style.display = "block";
 	} else if (message.onConvertToBibtex) {
 		document.getElementById("status").innerHTML = 'Converting to BibTeX...';
-		// = "";
 	} else if (message.onSendToJabRef) {
 		document.getElementById("status").innerHTML = 'Sending to JabRef...';
 	} else if (message.errorWhileSendingToJabRef) {

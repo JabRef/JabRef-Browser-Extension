@@ -103,10 +103,14 @@ Services.scriptloader.loadSubScript("resource://zotero/polyfill.js");
 	});
 	
 	/**
+	 * @property {Boolean} crashed - True if the application needs to be restarted
+	 */
+	this.crashed = false;
+	
+	/**
 	 * @property	{Boolean}	closing		True if the application is closing.
 	 */
 	this.closing = false;
-	
 	
 	this.unlockDeferred;
 	this.unlockPromise;
@@ -231,10 +235,11 @@ Services.scriptloader.loadSubScript("resource://zotero/polyfill.js");
 			   .getService(Components.interfaces.nsIAppShellService)
 			   .hiddenDOMWindow;
 		this.platform = win.navigator.platform;
-		this.isMac = (this.platform.substr(0, 3) == "Mac");
+		this.isMac = this.platform.substr(0, 3) == "Mac";
 		this.isWin = (this.platform.substr(0, 3) == "Win");
 		this.isLinux = (this.platform.substr(0, 5) == "Linux");
 		this.oscpu = win.navigator.oscpu;
+		this.isBigSurOrLater = this.isMac && !/Mac OS X 10.([1-9]|1[0-5])/.test(win.navigator.oscpu);
 		
 		// Browser
 		Zotero.browser = "g";
@@ -716,10 +721,7 @@ Services.scriptloader.loadSubScript("resource://zotero/polyfill.js");
 			yield Zotero.Retractions.init();
 			
 			// Migrate fields from Extra that can be moved to item fields after a schema update
-			//
-			// Disabled for now
-			//
-			//yield Zotero.Schema.migrateExtraFields();
+			yield Zotero.Schema.migrateExtraFields();
 			
 			// Load all library data except for items, which are loaded when libraries are first
 			// clicked on or if otherwise necessary
@@ -894,7 +896,6 @@ Services.scriptloader.loadSubScript("resource://zotero/polyfill.js");
 			}
 		} catch(e) {
 			Zotero.logError(e);
-			throw e;
 		}
 	});
 	
@@ -1206,6 +1207,57 @@ Services.scriptloader.loadSubScript("resource://zotero/polyfill.js");
 			.getService(Components.interfaces.nsIPromptService);
 		ps.alert(window, title, msg);
 	}
+	
+	
+	/**
+	 * Display an error message saying that an error has occurred and Zotero needs to be restarted.
+	 *
+	 * If |popup| is TRUE, display in popup progress window; otherwise, display as items pane message
+	 */
+	this.crash = function (popup) {
+		this.crashed = true;
+		
+		// Check the database after restart
+		Zotero.Schema.setIntegrityCheckRequired(true).catch(e => this.logError(e));
+		
+		var reportErrorsStr = Zotero.getString('errorReport.reportErrors');
+		var reportInstructions = Zotero.getString('errorReport.reportInstructions', reportErrorsStr);
+		
+		var msg;
+		if (popup) {
+			msg = Zotero.getString('general.pleaseRestart', Zotero.appName) + ' '
+				+ reportInstructions;
+		}
+		else {
+			msg = Zotero.getString('general.errorHasOccurred') + ' '
+				+ Zotero.getString('general.pleaseRestart', Zotero.appName) + '\n\n'
+				+ reportInstructions;
+		}
+		Zotero.logError(msg);
+		Zotero.logError(new Error().stack);
+		
+		this.startupError = msg;
+		this.startupErrorHandler = null;
+		
+		var enumerator = Services.wm.getEnumerator("navigator:browser");
+		while (enumerator.hasMoreElements()) {
+			let win = enumerator.getNext();
+			if (!win.ZoteroPane) continue;
+			
+			// Display as popup progress window
+			if (popup) {
+				var pw = new Zotero.ProgressWindow();
+				pw.changeHeadline(Zotero.getString('general.errorHasOccurred'));
+				pw.addDescription(msg);
+				pw.show();
+				pw.startCloseTimer(8000);
+			}
+			// Display as items pane message
+			else {
+				win.ZoteroPane.setItemsPaneMessage(msg, true);
+			}
+		}
+	};
 	
 	
 	this.getErrors = function (asStrings) {
@@ -1754,7 +1806,7 @@ Services.scriptloader.loadSubScript("resource://zotero/polyfill.js");
 		if (Zotero.isMac && OS.Constants.Path.libDir.includes('AppTranslocation')) {
 			let ps = Services.prompt;
 			let buttonFlags = ps.BUTTON_POS_0 * ps.BUTTON_TITLE_IS_STRING;
-			let index = ps.confirmEx(
+			ps.confirmEx(
 				null,
 				Zotero.getString('general.error'),
 				Zotero.getString('startupError.startedFromDiskImage1', Zotero.clientName)

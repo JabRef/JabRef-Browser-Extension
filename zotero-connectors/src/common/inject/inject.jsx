@@ -245,7 +245,8 @@ Zotero.Inject = new function() {
 	this.loadReactComponents = async function(components=[]) {
 		if (Zotero.isSafari) return;
 		var toLoad = [];
-		if (typeof ReactDOM === "undefined") {
+		if (typeof ReactDOM === "undefined" || typeof React === "undefined"
+				|| !React.useState) {
 			toLoad = [
 				'lib/react.js',
 				'lib/react-dom.js',
@@ -465,7 +466,14 @@ Zotero.Inject = new function() {
 				} else {
 					// Clear session details on failure, so another save click tries again
 					this.sessionDetails = {};
+					// We delay opening the progressWindow for multiple items so we don't have to flash it
+					// for the select dialog. But it comes back to bite us in the butt if a translation
+					// error occurs immediately since the below command will execute before the progressWindow show,
+					// and then the delayed progressWindow.show will pop up another empty progress window.
+					// Cannot have that!
+					await Zotero.Promise.delay(500);
 					Zotero.Messaging.sendMessage("progressWindow.done", [false]);
+					return;
 				}
 			}
 		}
@@ -505,8 +513,10 @@ Zotero.Inject = new function() {
 			sessionID,
 			url: document.location.toString(),
 			cookie: document.cookie,
+			title: title,
 			html: document.documentElement.innerHTML,
-			skipSnapshot: !options.snapshot
+			skipSnapshot: !options.snapshot,
+			singleFile: true
 		};
 
 		var image;
@@ -522,11 +532,12 @@ Zotero.Inject = new function() {
 			"progressWindow.itemProgress",
 			{
 				sessionID,
-				id: title,
+				id: 1,
 				iconSrc: Zotero.ItemTypes.getImageSrc(image),
 				title: title
 			}
 		);
+
 		try {
 			var result = await Zotero.Connector.callMethodWithCookies("saveSnapshot", data);
 			Zotero.Messaging.sendMessage("progressWindow.sessionCreated", { sessionID });
@@ -534,13 +545,74 @@ Zotero.Inject = new function() {
 				"progressWindow.itemProgress",
 				{
 					sessionID,
-					id: title,
+					id: 1,
 					iconSrc: Zotero.ItemTypes.getImageSrc(image),
 					title,
 					parentItem: false,
 					progress: 100
 				}
 			);
+
+			// Once snapshot item is created, if requested, run SingleFile
+			if (result && result.saveSingleFile) {
+				let progressItem = {
+					sessionID,
+					id: 2,
+					iconSrc: Zotero.ItemTypes.getImageSrc("attachment-snapshot"),
+					title: "Snapshot",
+					parentItem: 1,
+					progress: 0
+				};
+
+				Zotero.Messaging.sendMessage("progressWindow.itemProgress", progressItem);
+
+				try {
+					data.snapshotContent = await Zotero.SingleFile.retrievePageData();
+				}
+				catch (e) {
+					// Swallow error, will fallback to save in client
+					Zotero.Messaging.sendMessage("progressWindow.itemProgress", { ...progressItem, ...{ progress: false } });
+				}
+
+				try {
+					result = await Zotero.Connector.callMethodWithCookies({
+							method: "saveSingleFile",
+							headers: {"Content-Type": "application/json"}
+						},
+						data
+					);
+
+					Zotero.Messaging.sendMessage("progressWindow.itemProgress", { ...progressItem, ...{ progress: 100 } });
+				}
+				catch (e) {
+					if (e.status === 400 && e.value === 'Endpoint does not support content-type\n') {
+						let snapshotContent = data.snapshotContent;
+						delete data.snapshotContent;
+
+						data.pageData = {
+							content: snapshotContent,
+							resources: {}
+						};
+
+						// This means a Zotero client that expects SingleFileZ. We can just feed
+						// it a payload it is expecting with no resources.
+						result = await Zotero.Connector.callMethodWithCookies({
+								method: "saveSingleFile",
+								headers: {"Content-Type": "multipart/form-data"}
+							},
+							{
+								payload: JSON.stringify(data)
+							}
+						);
+
+						Zotero.Messaging.sendMessage("progressWindow.itemProgress", { ...progressItem, ...{ progress: 100 } });
+					}
+					else {
+						throw e;
+					}
+				}
+			}
+
 			Zotero.Messaging.sendMessage("progressWindow.done", [true]);
 			Object.assign(this.sessionDetails, {
 				id: sessionID,
@@ -606,8 +678,8 @@ const isWeb = window.location.protocol === "http:" || window.location.protocol =
 const isTestPage = Zotero.isBrowserExt && window.location.href.startsWith(browser.extension.getURL('test'));
 // don't try to scrape on hidden frames
 if(!isHiddenIFrame) {
-	var doInject = function () {
-		Zotero.initInject();
+	var doInject = async function () {
+		await Zotero.initInject();
 
 		if (Zotero.isSafari && isTopWindow) {
 			Zotero.Connector_Browser.onPageLoad(document.location.href);
@@ -634,14 +706,18 @@ if(!isHiddenIFrame) {
 		Zotero.Messaging.addMessageListener("pageModified", function() {
 			Zotero.Inject.init(true);
 		});
+		Zotero.Messaging.addMessageListener('historyChanged', function() {
+			Zotero.Inject.init(true);
+		});
+		
 		Zotero.Messaging.addMessageListener("firstUse", function () {
 			return Zotero.Inject.firstUsePrompt();
 		});
 
 		if(document.readyState !== "complete") {
-			window.addEventListener("load", function(e) {
+			window.addEventListener("pageshow", function(e) {
 				if(e.target !== document) return;
-				Zotero.Inject.init();
+				Zotero.Inject.init(true);
 			}, false);
 		} else {	
 			Zotero.Inject.init();

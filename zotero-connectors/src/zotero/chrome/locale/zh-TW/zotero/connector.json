@@ -14,8 +14,14 @@
   "general_cancel": {
     "message": "取消"
   },
+  "general_pleaseWait": {
+    "message": "請等待…"
+  },
   "progressWindow_savingTo": {
     "message": "儲存至…"
+  },
+  "progressWindow_tagPlaceholder": {
+    "message": "標籤(可用逗號分隔)"
   },
   "progressWindow_error_troubleshootingTranslatorIssues": {
     "message": "找出轉譯器問題所在"
@@ -25,6 +31,12 @@
   },
   "upgradeApp": {
     "message": "升級 $1"
+  },
+  "error_connection_isAppRunning": {
+    "message": "$1 正在執行？"
+  },
+  "integration_googleDocs_updating": {
+    "message": "$1正在更新您的文件。"
   },
   "general_saveTo": {
     "message": "儲存至 $1"

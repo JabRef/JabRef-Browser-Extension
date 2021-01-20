@@ -26,12 +26,14 @@
 'use strict';
 
 const { watchBookmarklet, processBookmarkletScripts } = require('./scripts/gulpfile_bookmarklet');
+const replaceBrowser = require('./scripts/replace_browser');
 const exec = require('child_process').exec;
 const through = require('through2');
 const gulp = require('gulp');
 const plumber = require('gulp-plumber');
 const babel = require('@babel/core');
 const browserify = require('browserify');
+const schemaJSON = require('./src/zotero/resource/schema/global/schema.json');
 const argv = require('yargs')
 	.boolean('p')
 	.alias('p', 'production')
@@ -51,6 +53,7 @@ var injectInclude = [
 	'http.js',
 	'proxy.js',
 	'cachedTypes.js',
+	'schema.js',
 	'zotero/date.js',
 	'zotero/debug.js',
 	'zotero/openurl.js',
@@ -80,7 +83,8 @@ var injectInclude = [
 	'messaging_inject.js',
 	'inject/progressWindow_inject.js',
 	'inject/modalPrompt_inject.js',
-	'i18n.js'
+	'i18n.js',
+	'singlefile.js'
 ];
 var injectIncludeLast;
 if (argv.p) {
@@ -125,9 +129,16 @@ var backgroundInclude = [
 	'zotero/connectorTypeSchemaData.js',
 	'zotero/utilities.js',
 	'utilities.js',
-	'zotero-google-docs-integration/api.js',
+	'google-docs-plugin-manager.js',
 	'messages.js',
-	'messaging.js'
+	'messaging.js',
+	'lib/SingleFile/lib/single-file/index.js',
+	'lib/SingleFile/extension/lib/single-file/index.js',
+	'lib/SingleFile/extension/lib/single-file/browser-polyfill/chrome-browser-polyfill.js',
+	'lib/SingleFile/extension/lib/single-file/core/bg/scripts.js',
+	'lib/SingleFile/extension/lib/single-file/fetch/bg/fetch.js',
+	'lib/SingleFile/extension/lib/single-file/frame-tree/bg/frame-tree.js',
+	'lib/SingleFile/extension/lib/single-file/lazy/bg/lazy-timeout.js'
 ];
 
 
@@ -184,6 +195,9 @@ function processFile() {
 			}
 		}
 		var type = parts[i];
+
+		// Used to identify files by pathname from src to try and prevent conflicts
+		var sourcefile = parts.slice(i).join('/');
 		
 		// Transform react
 		if (ext == 'jsx') {
@@ -225,13 +239,24 @@ function processFile() {
 						process.env.ZOTERO_GOOGLE_DOCS_OAUTH_CLIENT_KEY
 					);
 				}
+				if (process.env.ZOTERO_REPOSITORY_URL) {
+					contents = contents.replace(/REPOSITORY_URL: [^,]*/,
+						`REPOSITORY_URL: "${process.env.ZOTERO_REPOSITORY_URL}"`);
+				}
 				file.contents = Buffer.from(contents);
 				break;
 			case 'zotero.js':
+				var contents = file.contents.toString();
 				if (!argv.p) {
-					file.contents = Buffer.from(file.contents.toString()
-						.replace('"debug.log": false', '"debug.log": true'));
+					contents = contents
+						.replace('"debug.log": false', '"debug.log": true')
+						// TODO: Replace with remote code repo URL once it is set up
+						.replace('"integration.googleDocs.codeRepositoryURL": ""',
+							'"integration.googleDocs.codeRepositoryURL": "http://127.0.0.1:8090/"');
 				}
+				contents = contents.replace(/\/\* this\.allowRepoTranslatorTester = SET IN BUILD SCRIPT \*\//,
+					`this.allowRepoTranslatorTester = ${!!process.env.ZOTERO_REPOSITORY_URL}`);
+				file.contents = Buffer.from(contents);
 				break;
 			case 'manifest.json':
 				file.contents = Buffer.from(file.contents.toString()
@@ -246,6 +271,55 @@ function processFile() {
 					.replace("/*INJECT SCRIPTS*/", 
 						injectIncludeBrowserExt.map((s) => `"${s}"`).join(',\n\t\t')));
 				break;
+			case 'schema.js': {
+				let Zotero = { Schema: {} };
+				let data = schemaJSON;
+				
+				//
+				// Keep in sync with the client's schema.js
+				//
+				Zotero.Schema.CSL_TYPE_MAPPINGS = {};
+				Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE = {};
+				for (let cslType in data.csl.types) {
+					for (let zoteroType of data.csl.types[cslType]) {
+						Zotero.Schema.CSL_TYPE_MAPPINGS[zoteroType] = cslType;
+					}
+					Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE[cslType] = [...data.csl.types[cslType]];
+				}
+				Zotero.Schema.CSL_TEXT_MAPPINGS = data.csl.fields.text;
+				Zotero.Schema.CSL_DATE_MAPPINGS = data.csl.fields.date;
+				Zotero.Schema.CSL_NAME_MAPPINGS = data.csl.names;
+				Zotero.Schema.CSL_FIELD_MAPPINGS_REVERSE = {};
+				for (let cslField in data.csl.fields.text) {
+					for (let zoteroField of data.csl.fields.text[cslField]) {
+						Zotero.Schema.CSL_FIELD_MAPPINGS_REVERSE[zoteroField] = cslField;
+					}
+				}
+				for (let cslField in data.csl.fields.date) {
+					let zoteroField = data.csl.fields.date[cslField];
+					Zotero.Schema.CSL_FIELD_MAPPINGS_REVERSE[zoteroField] = cslField;
+				}
+				
+				file.contents = Buffer.from(file.contents.toString()
+					.replace(
+						"/*CSL_MAPPINGS*/",
+						"CSL_TYPE_MAPPINGS: "
+							+ JSON.stringify(Zotero.Schema.CSL_TYPE_MAPPINGS)
+						+ ", CSL_TYPE_MAPPINGS_REVERSE: "
+							+ JSON.stringify(Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE)
+						+ ", CSL_TEXT_MAPPINGS: "
+							+ JSON.stringify(Zotero.Schema.CSL_TEXT_MAPPINGS)
+						+ ", CSL_TYPE_MAPPINGS_REVERSE: "
+							+ JSON.stringify(Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE)
+						+ ", CSL_DATE_MAPPINGS: "
+							+ JSON.stringify(Zotero.Schema.CSL_DATE_MAPPINGS)
+						+ ", CSL_NAME_MAPPINGS: "
+							+ JSON.stringify(Zotero.Schema.CSL_NAME_MAPPINGS)
+						+ ", CSL_FIELD_MAPPINGS_REVERSE: "
+							+ JSON.stringify(Zotero.Schema.CSL_FIELD_MAPPINGS_REVERSE)
+					));
+				break;
+			}
 			case 'preferences.html':
 			case 'progressWindow.html':
 			case 'modalPrompt.html':
@@ -264,6 +338,46 @@ function processFile() {
 				});
 				break;
 		}
+
+		// sourcefile is relative to the src/ directory
+		switch (sourcefile) {
+			case 'zotero/resource/SingleFile/extension/lib/single-file/core/bg/scripts.js':
+				// Change base path and add in the content scripts SingleFile recommends injecting
+				// via manifest.json
+				file.contents = Buffer.from(file.contents.toString()
+					.replace('const basePath = "../../../";', 'const basePath = "lib/SingleFile/";')
+				);
+
+				// Override the type so we include this file in firefox and chrome builds
+				type = 'browserExt';
+				// Switch from resource to lib sub-directory
+				parts[i+1] = 'lib';
+				break;
+			case 'zotero/resource/SingleFile/lib/single-file/processors/hooks/content/content-hooks-frames.js':
+				// Change the path to include our particular directory structure
+				file.contents = Buffer.from(file.contents.toString()
+					.replace('/lib/single-file/processors/hooks/content/content-hooks-frames-web.js',
+					'/lib/SingleFile/lib/single-file/processors/hooks/content/content-hooks-frames-web.js')
+				);
+
+				// Override the type so we include this file in firefox and chrome builds
+				type = 'browserExt';
+				// Switch from resource to lib sub-directory
+				parts[i+1] = 'lib';
+				break;
+			case 'zotero/resource/SingleFile/lib/single-file/processors/hooks/content/content-hooks.js':
+				// Change the path to include our particular directory structure
+				file.contents = Buffer.from(file.contents.toString()
+					.replace('/lib/single-file/processors/hooks/content/content-hooks-web.js',
+						'/lib/SingleFile/lib/single-file/processors/hooks/content/content-hooks-web.js')
+				);
+
+				// Override the type so we include this file in firefox and chrome builds
+				type = 'browserExt';
+				// Switch from resource to lib sub-directory
+				parts[i+1] = 'lib';
+				break;
+		}
 		
 		let f;
 		
@@ -275,6 +389,12 @@ function processFile() {
 			}
 			['chrome', 'firefox'].forEach((browser) => {
 				f = file.clone({contents: false});
+				if (basename == 'zotero.js') {
+					let contents = f.contents.toString()
+						.replace('this.version = [^;]*', `this.version = "${argv.version}";`);
+					contents = replaceBrowser(contents, { browserExt: true, firefox: browser == 'firefox' });
+					f.contents = Buffer.from(contents);
+				}
 				f.path = parts.slice(0, i-1).join('/') + `/build/${browser}/` + parts.slice(i+1).join('/');
 				console.log(`-> ${f.path.slice(f.cwd.length)}`);
 				this.push(f);
@@ -283,6 +403,12 @@ function processFile() {
 		if (type === 'common' || type === 'safari') {
 			f = file.clone({contents: false});
 			f.path = parts.slice(0, i-1).join('/') + '/build/safari/' + parts.slice(i+1).join('/');
+			if (basename == 'zotero.js') {
+				let contents = f.contents.toString()
+					.replace('this.version = [^;]*', `this.version = "${argv.version}";`);
+				contents = replaceBrowser(contents, { safari: true });
+				f.contents = Buffer.from(contents);
+			}
 			console.log(`-> ${f.path.slice(f.cwd.length)}`);
 			this.push(f);
 		}
@@ -314,7 +440,7 @@ gulp.task('watch', function () {
 			.pipe(processFile())
 			.pipe(gulp.dest((data) => data.base));
 	});
-});
+});  
 
 gulp.task('watch-chrome', function () {
 	var watcher = gulp.watch(['./src/browserExt/**', './src/common/**', './src/safari/**',
@@ -337,11 +463,15 @@ gulp.task('process-custom-scripts', function() {
 		'./src/common/preferences/preferences.html',
 		'./src/common/progressWindow/progressWindow.html',
 		'./src/common/modalPrompt/modalPrompt.html',
+		'./src/common/schema.js',
 		'./src/common/zotero.js',
 		'./src/common/zotero_config.js',
 		'./src/common/test/**/*',
 		'./src/**/*.jsx',
-		'./src/zotero-google-docs-integration/src/connector/**'
+		'./src/zotero-google-docs-integration/src/connector/**',
+		'./src/zotero/resource/SingleFile/extension/lib/single-file/core/bg/scripts.js',
+		'./src/zotero/resource/SingleFile/lib/single-file/processors/hooks/content/content-hooks.js',
+		'./src/zotero/resource/SingleFile/lib/single-file/processors/hooks/content/content-hooks-frames.js'
 	];
 	if (!argv.p) {
 		sources.push('./src/common/test/**/*.js');	
@@ -352,7 +482,7 @@ gulp.task('process-custom-scripts', function() {
 		.pipe(gulp.dest((data) => data.base));
 });
 
-gulp.task('watch-bookmarklet', watchBookmarklet(argv))
+gulp.task('watch-bookmarklet', watchBookmarklet(argv));
 
 gulp.task('process-bookmarklet-scripts', processBookmarkletScripts(argv));
 

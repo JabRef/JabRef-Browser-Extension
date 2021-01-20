@@ -126,13 +126,21 @@ Zotero.Sync.Data.Local = {
 				+ `last username '${lastUsername}', current username '${username}'`, 2);
 			var io = {
 				title: Zotero.getString('general.warning'),
-				text: [Zotero.getString('account.lastSyncWithDifferentAccount', [ZOTERO_CONFIG.CLIENT_NAME, lastUsername, username])],
-				checkboxLabel: Zotero.getString('account.confirmDelete'),
-				acceptLabel: Zotero.getString('account.confirmDelete.button')
+				text: Zotero.getString(
+						'account.lastSyncWithDifferentAccount',
+						[Zotero.appName, lastUsername, username]
+					) + '\n\n'
+					+ Zotero.getString(
+						'account.lastSyncWithDifferentAccount.beforeContinuing',
+						[lastUsername, Zotero.appName]
+					),
+				checkboxLabel: Zotero.getString('account.confirmDelete', lastUsername),
+				acceptLabel: Zotero.getString('account.confirmDelete.button'),
+				extra2Label: Zotero.getString('general.moreInformation')
 			};
 			win.openDialog("chrome://zotero/content/hardConfirmationDialog.xul", "",
-				"chrome, dialog, modal, centerscreen", io);
-					
+				"chrome,dialog,modal,centerscreen", io);
+			
 			if (io.accept) {
 				var resetDataDirFile = OS.Path.join(Zotero.DataDirectory.dir, 'reset-data-directory');
 				yield Zotero.File.putContentsAsync(resetDataDirFile, '');
@@ -149,6 +157,9 @@ Zotero.Sync.Data.Local = {
 				Zotero.Utilities.Internal.quitZotero(true);
 				
 				return true;
+			}
+			else if (io.extra2) {
+				Zotero.launchURL("https://www.zotero.org/support/kb/switching_accounts");
 			}
 			
 			return false;
@@ -390,11 +401,12 @@ Zotero.Sync.Data.Local = {
 		}
 		catch (e) {
 			Zotero.logError(e);
-			var msg = Zotero.getString('sync.error.loginManagerCorrupted1', Zotero.appName) + "\n\n"
-				+ Zotero.getString('sync.error.loginManagerCorrupted2', Zotero.appName);
-			var ps = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-				.getService(Components.interfaces.nsIPromptService);
-			ps.alert(null, Zotero.getString('general.error'), msg);
+			if (this._lastLoginManagerErrorTime > Date.now() - 60000) {
+				let msg = Zotero.getString('sync.error.loginManagerCorrupted1', Zotero.appName) + "\n\n"
+					+ Zotero.getString('sync.error.loginManagerCorrupted2', Zotero.appName);
+				Zotero.alert(null, Zotero.getString('general.error'), msg);
+				this._lastLoginManagerErrorTime = Date.now();
+			}
 			return false;
 		}
 		
@@ -944,21 +956,25 @@ Zotero.Sync.Data.Local = {
 								Zotero.debug(`Applying remote changes to ${objectType} `
 									+ obj.libraryKey);
 								Zotero.debug(result.changes);
+								// If there were local changes as well, keep object as unsynced and
+								// save the remote version to the sync cache rather than the merged
+								// version
+								if (result.localChanged) {
+									saveOptions.saveAsUnsynced = true;
+									saveOptions.cacheObject = jsonObject.data;
+								}
 								Zotero.DataObjectUtilities.applyChanges(
 									jsonDataLocal, result.changes
 								);
 								// Transfer properties that aren't in the changeset
 								['version', 'dateAdded', 'dateModified'].forEach(x => {
+									if (jsonData[x] === undefined) return;
 									if (jsonDataLocal[x] !== jsonData[x]) {
 										Zotero.debug(`Applying remote '${x}' value`);
 									}
 									jsonDataLocal[x] = jsonData[x];
 								})
 								jsonObject.data = jsonDataLocal;
-								// If there were additional local changes, keep as unsynced
-								if (result.localChanged) {
-									saveOptions.saveAsUnsynced = true;
-								}
 							}
 						}
 						// Object doesn't exist locally
@@ -1496,6 +1512,7 @@ Zotero.Sync.Data.Local = {
 		Zotero.debug("CHANGESET2");
 		Zotero.debug(changeset2);
 		
+		const isAutoMergeType = objectType != 'item';
 		var conflicts = [];
 		var matchedLocalChanges = new Set();
 		
@@ -1599,7 +1616,7 @@ Zotero.Sync.Data.Local = {
 				// Automatically apply remote changes if both items are in trash and for non-items,
 				// even if in conflict
 				if ((objectType == 'item' && currentJSON.deleted && newJSON.deleted)
-						|| objectType != 'item') {
+						|| isAutoMergeType) {
 					continue;
 				}
 				
@@ -1610,12 +1627,23 @@ Zotero.Sync.Data.Local = {
 			}
 		}
 		
+		// If there were local changes that weren't made remotely as well, the object needs to be
+		// kept as unsynced
+		var localChanged = changeset1.length > matchedLocalChanges.size;
+		
+		// If we're applying remote changes automatically, only consider the local object as changed
+		// if fields were changed that weren't changed remotely
+		if (isAutoMergeType && localChanged) {
+			let remoteFields = new Set(changeset2.map(x => x.field));
+			if (changeset1.every(x => remoteFields.has(x.field))) {
+				localChanged = false;
+			}
+		}
+		
 		return {
 			changes: changeset2,
 			conflicts,
-			// If there were local changes that weren't made remotely as well, the item needs to be
-			// kept as unsynced
-			localChanged: changeset1.length > matchedLocalChanges.size
+			localChanged
 		};
 	},
 	

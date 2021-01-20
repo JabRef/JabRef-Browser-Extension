@@ -11,6 +11,8 @@ describe("Retractions", function() {
 		win = await loadZoteroPane();
 		zp = win.ZoteroPane;
 		
+		await Zotero.Retractions.updateFromServer();
+		
 		// Remove debouncing on checkQueuedItems()
 		checkQueueItemsStub = sinon.stub(Zotero.Retractions, 'checkQueuedItems').callsFake(() => {
 			return Zotero.Retractions._checkQueuedItemsInternal();
@@ -46,7 +48,30 @@ describe("Retractions", function() {
 		Object.assign(o, options);
 		var item = createUnsavedDataObject('item', o);
 		item.setField('DOI', retractedDOI);
-		if (Zotero.DB.inTransaction) {
+		if (Zotero.DB.inTransaction()) {
+			await item.save();
+		}
+		else {
+			await item.saveTx();
+		}
+		
+		while (!checkQueueItemsStub.called) {
+			await Zotero.Promise.delay(50);
+		}
+		await checkQueueItemsStub.returnValues[0];
+		checkQueueItemsStub.resetHistory();
+		
+		return item;
+	}
+	
+	async function createRetractedItemWithExtraDOI(options = {}) {
+		var o = {
+			itemType: 'journalArticle'
+		};
+		Object.assign(o, options);
+		var item = createUnsavedDataObject('item', o);
+		item.setField('extra', 'DOI: ' + retractedDOI);
+		if (Zotero.DB.inTransaction()) {
 			await item.save();
 		}
 		else {
@@ -145,7 +170,11 @@ describe("Retractions", function() {
 								{
 									doi: hash,
 									retractionDOI: '10.1234/bcdef',
-									date: '2019-01-02'
+									date: '2019-01-02',
+									reasons: [
+										"Error in Data"
+									],
+									urls: []
 								}
 							])
 						);
@@ -217,6 +246,29 @@ describe("Retractions", function() {
 			
 			spy.restore();
 		});
+		
+		
+		it("should identify object with retracted DOI in Extra", async function () {
+			var json = [
+				{
+					extra: `DOI: ${retractedDOI}`
+				}
+			];
+			
+			var indexes = await Zotero.Retractions.getRetractionsFromJSON(json);
+			assert.sameMembers(indexes, [0]);
+		});
+		
+		it("should identify object with retracted DOI on subsequent line in Extra", async function () {
+			var json = [
+				{
+					extra: `Foo: Bar\nDOI: ${retractedDOI}`
+				}
+			];
+			
+			var indexes = await Zotero.Retractions.getRetractionsFromJSON(json);
+			assert.sameMembers(indexes, [0]);
+		});
 	});
 	
 	
@@ -226,6 +278,15 @@ describe("Retractions", function() {
 			assert.isFalse(bannerShown());
 			
 			await createRetractedItem();
+			
+			assert.isTrue(bannerShown());
+		});
+		
+		it("should show banner when retracted item with DOI in Extra is added", async function () {
+			var banner = win.document.getElementById('retracted-items-container');
+			assert.isFalse(bannerShown());
+			
+			await createRetractedItemWithExtraDOI();
 			
 			assert.isTrue(bannerShown());
 		});
