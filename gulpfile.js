@@ -15,7 +15,6 @@ function processJSX(file) {
 		}).code);
 	} catch (e) {
 		console.log(e.message);
-		return;
 	}
 }
 
@@ -26,7 +25,7 @@ function processFile() {
 		var basename = path.basename(file.path);
 		var ext = path.extname(file.path);
 
-		if (ext == '.jsx') {
+		if (ext === '.jsx') {
 			processJSX(file);
 		}
 
@@ -83,12 +82,12 @@ gulp.task('copy-external-scripts', function() {
 		.pipe(plumber())
 		.pipe(rename(function(path) {
 			// Rename common/utilities.js -> utilities-common.js
-			if (path.basename == 'utilities' && path.dirname.endsWith('common')) {
+			if (path.basename === 'utilities' && path.dirname.endsWith('common')) {
 				path.basename = 'utilities-common';
 			}
 
 			// Rename inject/http.js -> http_inject.js
-			if (path.basename == 'http' && path.dirname.endsWith('inject')) {
+			if (path.basename === 'http' && path.dirname.endsWith('inject')) {
 				path.basename = 'http_inject';
 			}
 
@@ -118,7 +117,7 @@ gulp.task('process-external-scripts', function() {
 		}))
 		.pipe(rename(function(path) {
 			// Rename jsx to js
-			if (path.extname == ".jsx") {
+			if (path.extname === ".jsx") {
 				path.extname = ".js";
 			}
 		}))
