@@ -13,12 +13,9 @@ Zotero.Connector = new function() {
 
 	this.callMethodWithCookies = function(options, data, tab) {
 		if (options === "saveItems") {
-			browser.storage.sync.get(['exportMode', 'takeSnapshots', 'retrieveCitationCounts'])
+			browser.storage.sync.get({'exportMode': 2, 'takeSnapshots': false, 'retrieveCitationCounts': false})
 				.then(configuration => {
 					// fetch current settings
-					configuration.exportMode = configuration.exportMode || 2;
-					configuration.takeSnapshots = configuration.takeSnapshots || false;
-					configuration.retrieveCitationCounts = configuration.retrieveCitationCounts || false;
 					console.debug("exportMode: " + configuration.exportMode);
 					console.debug("takeSnapshots: " + configuration.takeSnapshots);
 					console.debug("retrieveCitationCounts: " + configuration.retrieveCitationCounts);
