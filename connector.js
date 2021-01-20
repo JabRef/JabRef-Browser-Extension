@@ -92,8 +92,8 @@ Zotero.Connector = new function() {
 				"text": bibtex
 			})
 			.then(response => {
-				console.log("JabRef: Got response from JabRef: %o with details %o", response.message, response.output);
 				if (response.message == 'ok') {
+					console.log("JabRef: Got success response from JabRef with details %o", response.output);
 					browser.runtime.sendMessage({
 						"popupClose": "close"
 					});
