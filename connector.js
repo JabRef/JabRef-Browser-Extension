@@ -13,7 +13,7 @@ Zotero.Connector = new function() {
 
 	this.callMethodWithCookies = function(options, data, tab) {
 		if (options === "saveItems") {
-			browser.storage.sync.get({'exportMode': 2, 'takeSnapshots': false, 'retrieveCitationCounts': false})
+			browser.storage.sync.get({'exportMode': 'bibtex', 'takeSnapshots': false, 'retrieveCitationCounts': false})
 				.then(configuration => {
 					// fetch current settings
 					console.debug("exportMode: " + configuration.exportMode);

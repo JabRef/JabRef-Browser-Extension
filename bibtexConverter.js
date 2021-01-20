@@ -3,7 +3,7 @@ convertToBibTex = function(items, conversionMode) {
 	var translation = new Zotero.Translate.Export();
 
 	translation.setItems(items);
-	if (conversionMode === 1) {
+	if (conversionMode === "biblatex") {
 		console.log("JabRef: Converting item(s) to BibLaTeX: %o", items);
 		translation.setTranslator("b6e39b57-8942-4d11-8259-342c46ce395f"); // BibLaTeX
 	}

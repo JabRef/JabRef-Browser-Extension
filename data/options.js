@@ -1,10 +1,10 @@
 var ExportMode = Object.freeze({
-	BibLaTeX: 1,
-	BibTeX: 2
+	BibLaTeX: "biblatex",
+	BibTeX: "bibtex"
 });
 
 function checkConnections() {
-	var status = document.getElementById('connectionStatus');
+	let status = document.getElementById('connectionStatus');
 	browser.runtime.sendNativeMessage("org.jabref.jabref", {
 			"status": "validate"
 		})
@@ -83,7 +83,7 @@ function restoreOptions() {
 }
 
 function saveOptions() {
-	var exportMode;
+	let exportMode;
 	if (document.getElementById("exportBiblatex").checked) {
 		exportMode = ExportMode.BibLaTeX;
 	} else {
