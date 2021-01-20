@@ -59,25 +59,22 @@ function checkConnections() {
 }
 
 function restoreOptions() {
-	browser.storage.sync.get(['exportMode', 'takeSnapshots', 'retrieveCitationCounts'])
+	browser.storage.sync.get({'exportMode': ExportMode.BibTeX, 'takeSnapshots': false, 'retrieveCitationCounts': false})
 		.then(res => {
-			console.log(res.exportMode);
-			console.log(res.takeSnapshots);
-			console.log(res.retrieveCitationCounts);
-			let exportBiblatex = res.exportMode !== undefined ? res.exportMode === ExportMode.BibLaTeX : false;
-			let takeSnapshots = res.takeSnapshots || false;
-			let retrieveCitationCountsOn = res.retrieveCitationCounts || false;
-			if (exportBiblatex) {
+			console.log("exportMode = " + res.exportMode);
+			console.log("takeSnapshots = " + res.takeSnapshots);
+			console.log("retrieveCitationCounts = " + res.retrieveCitationCounts);
+			if (res.exportMode === ExportMode.BibLaTeX) {
 				document.getElementById("exportBiblatex").checked = true;
 			} else {
 				document.getElementById("exportBibtex").checked = true;
 			}
-			if (takeSnapshots) {
+			if (res.takeSnapshots) {
 				document.getElementById("snapshotsOn").checked = true;
 			} else {
 				document.getElementById("snapshotsOff").checked = true;
 			}
-			if (retrieveCitationCountsOn) {
+			if (res.retrieveCitationCounts) {
 				document.getElementById("retrieveCitationCountsOn").checked = true;
 			} else {
 				document.getElementById("retrieveCitationCountsOff").checked = true;
