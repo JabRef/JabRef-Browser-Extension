@@ -65,7 +65,7 @@ To update dependencies:
    ```
    updates the `zotero-connectors` submodule and the `zotero-scholar-citations` submodule  
 
- - `gulp update-zotero-scripts` copies and post-processes the scripts in the folders `zotero-connectors` and `zotero-scholar-citations` to the folder `external-scripts`
+ - `gulp update-external-scripts` copies and post-processes the scripts in the folders `zotero-connectors` and `zotero-scholar-citations` to the folder `external-scripts`
 
 ## Release of new version
 - Increase version number in `manifest.json`
