@@ -1,6 +1,6 @@
 convertToBibTex = function(items, conversionMode) {
-	var deferred = Zotero.Promise.defer();
-	var translation = new Zotero.Translate.Export();
+	let deferred = Zotero.Promise.defer();
+	let translation = new Zotero.Translate.Export();
 
 	translation.setItems(items);
 	if (conversionMode === "biblatex") {

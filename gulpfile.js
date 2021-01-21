@@ -1,11 +1,11 @@
 'use strict';
 
-var gulp = require('gulp');
+let gulp = require('gulp');
 const through = require('through2');
 const plumber = require('gulp-plumber');
 const path = require('path');
-var rename = require("gulp-rename");
-var beautify = require('gulp-jsbeautify');
+let rename = require("gulp-rename");
+let beautify = require('gulp-jsbeautify');
 const babel = require('babel-core');
 
 function processJSX(file) {
