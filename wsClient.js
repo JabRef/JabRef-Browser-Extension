@@ -312,7 +312,7 @@ let wsClient = {
             clearTimeout(wsClient.heartbeatTimeout);
         }
 
-        console.log("[ws] wsClient configuration has been synchronized with server configuration")
+        console.log("[ws] wsClient configuration has been synchronized with server configuration");
     },
 
     handlerInfoMessage: function (messagePayload) {
