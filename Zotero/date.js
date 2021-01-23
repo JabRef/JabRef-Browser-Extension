@@ -24,9 +24,6 @@
 */
 
 Zotero.Date = new function() {
-	this.isMultipart = isMultipart;
-	this.multipartToSQL = multipartToSQL;
-	this.multipartToStr = multipartToStr;
 	this.isSQLDate = isSQLDate;
 	this.isSQLDateTime = isSQLDateTime;
 	this.sqlHasYear = sqlHasYear;
@@ -115,7 +112,9 @@ Zotero.Date = new function() {
 	 **/
 	this.sqlToDate = function(sqldate, isUTC) {
 		try {
-			if (!this.isSQLDate(sqldate) && !this.isSQLDateTime(sqldate)) {
+			if (!this.isSQLDate(sqldate) &&
+				!this.isSQLDateTime(sqldate) &&
+				!this.isSQLDateTimeWithoutSeconds(sqldate)) {
 				throw new Error("Invalid date");
 			}
 
@@ -130,6 +129,10 @@ Zotero.Date = new function() {
 			// Invalid date part
 			if (dateparts.length == 1) {
 				throw new Error("Invalid date part");
+			}
+			// Allow missing seconds
+			if (timeparts.length == 2) {
+				timeparts[2] = '00';
 			}
 
 			if (isUTC) {
@@ -308,10 +311,12 @@ Zotero.Date = new function() {
 					date.order += m[4] ? 'm' : '';
 				}
 				date.year = m[6];
-				date.order += 'y';
+				if (m[6] !== undefined) {
+					date.order += 'y';
+				}
 			}
 
-			var zeroYear = date.year && date.year.toString().startsWith('0');
+			var longYear = date.year && date.year.toString().length > 2;
 			if (date.year) date.year = parseInt(date.year, 10);
 			if (date.day) date.day = parseInt(date.day, 10);
 			if (date.month) {
@@ -330,8 +335,8 @@ Zotero.Date = new function() {
 			}
 
 			if ((!date.month || date.month <= 12) && (!date.day || date.day <= 31)) {
-				// For two digit years, determine proper four-digit year
-				if (date.year && date.year < 100 && !zeroYear) {
+				// Parse pre-100 years with leading zeroes (001, 0001, 012, 0012, 0123, but not 08)
+				if (date.year && date.year < 100 && !longYear) {
 					var today = new Date();
 					var year = today.getFullYear();
 					var twoDigitYear = year % 100;
@@ -672,13 +677,14 @@ Zotero.Date = new function() {
 	var _sqldateRE = /^\-?[0-9]{4}\-(0[1-9]|10|11|12)\-(0[1-9]|[1-2][0-9]|30|31)$/;
 	var _sqldateWithZeroesRE = /^\-?[0-9]{4}\-(0[0-9]|10|11|12)\-(0[0-9]|[1-2][0-9]|30|31)$/;
 	var _sqldatetimeRE = /^\-?[0-9]{4}\-(0[1-9]|10|11|12)\-(0[1-9]|[1-2][0-9]|30|31) ([0-1][0-9]|[2][0-3]):([0-5][0-9]):([0-5][0-9])$/;
+	var _sqlDateTimeWithoutSecondsRE = /^\-?[0-9]{4}\-(0[1-9]|10|11|12)\-(0[1-9]|[1-2][0-9]|30|31) ([0-1][0-9]|[2][0-3]):([0-5][0-9])$/;
 
 	/**
 	 * Tests if a string is a multipart date string
 	 * e.g. '2006-11-03 November 3rd, 2006'
 	 */
-	function isMultipart(str) {
-		if (isSQLDateTime(str)) {
+	this.isMultipart = function(str) {
+		if (this.isSQLDateTime(str) || this.isSQLDateTimeWithoutSeconds(str)) {
 			return false;
 		}
 		return _multipartRE.test(str);
@@ -689,12 +695,12 @@ Zotero.Date = new function() {
 	 * Returns the SQL part of a multipart date string
 	 * (e.g. '2006-11-03 November 3rd, 2006' returns '2006-11-03')
 	 */
-	function multipartToSQL(multi) {
+	this.multipartToSQL = function(multi) {
 		if (!multi) {
 			return '';
 		}
 
-		if (!isMultipart(multi)) {
+		if (!this.isMultipart(multi)) {
 			return '0000-00-00';
 		}
 
@@ -706,12 +712,12 @@ Zotero.Date = new function() {
 	 * Returns the user part of a multipart date string
 	 * (e.g. '2006-11-03 November 3rd, 2006' returns 'November 3rd, 2006')
 	 */
-	function multipartToStr(multi) {
+	this.multipartToStr = function(multi) {
 		if (!multi) {
 			return '';
 		}
 
-		if (!isMultipart(multi)) {
+		if (!this.isMultipart(multi)) {
 			return multi;
 		}
 
@@ -750,6 +756,11 @@ Zotero.Date = new function() {
 
 	function isSQLDateTime(str) {
 		return _sqldatetimeRE.test(str);
+	}
+
+
+	this.isSQLDateTimeWithoutSeconds = function(str) {
+		return _sqlDateTimeWithoutSecondsRE.test(str);
 	}
 
 

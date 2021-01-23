@@ -41,7 +41,7 @@ Zotero.Schema = new function(){
 	
 	// If updating from this userdata version or later, don't show "Upgrading database…" and don't make
 	// DB backup first. This should be set to false when breaking compatibility or making major changes.
-	const minorUpdateFrom = false;
+	const minorUpdateFrom = 107;
 	
 	var _dbVersions = [];
 	var _schemaVersions = [];
@@ -139,9 +139,7 @@ Zotero.Schema = new function(){
 		}
 		
 		// Check if DB is coming from the DB Repair Tool and should be checked
-		var integrityCheck = await Zotero.DB.valueQueryAsync(
-			"SELECT value FROM settings WHERE setting='db' AND key='integrityCheck'"
-		);
+		var integrityCheck = await this.integrityCheckRequired();
 		
 		// Check whether bundled global schema file is newer than DB
 		var bundledGlobalSchema = await _readGlobalSchemaFromFile();
@@ -162,6 +160,13 @@ Zotero.Schema = new function(){
 			await Zotero.DB.backupDatabase(false, true);
 		}
 		
+		var logLines = [];
+		var listener = function (line) {
+			logLines.push(line);
+		}
+		Zotero.Debug.addListener(listener);
+		
+		var updated;
 		await Zotero.DB.queryAsync("PRAGMA foreign_keys = false");
 		try {
 			// If bundled global schema file is newer than DB, apply it
@@ -184,7 +189,7 @@ Zotero.Schema = new function(){
 				await _loadGlobalSchema(data, bundledGlobalSchema.version);
 			}
 			
-			var updated = await Zotero.DB.executeTransaction(async function (conn) {
+			updated = await Zotero.DB.executeTransaction(async function (conn) {
 				var updated = await _updateSchema('system');
 				
 				// Update custom tables if they exist so that changes are in
@@ -193,12 +198,10 @@ Zotero.Schema = new function(){
 					await _updateCustomTables();
 				}
 				
-				// Auto-repair databases coming from the DB Repair Tool
+				// Auto-repair databases flagged for repair or coming from the DB Repair Tool
 				if (integrityCheck) {
 					await this.integrityCheck(true);
-					await Zotero.DB.queryAsync(
-						"DELETE FROM settings WHERE setting='db' AND key='integrityCheck'"
-					);
+					options.skipIntegrityCheck = true;
 				}
 				
 				updated = await _migrateUserDataSchema(userdata, options);
@@ -214,6 +217,28 @@ Zotero.Schema = new function(){
 		}
 		finally {
 			await Zotero.DB.queryAsync("PRAGMA foreign_keys = true");
+			
+			Zotero.Debug.removeListener(listener);
+			
+			// If upgrade succeeded or failed (but not if there was nothing to do), save a log file
+			// in logs/upgrade.log in the data directory
+			if (updated || updated === undefined) {
+				Zotero.getSystemInfo()
+					.then(async function (sysInfo) {
+						var logDir = OS.Path.join(Zotero.DataDirectory.dir, 'logs');
+						Zotero.File.createDirectoryIfMissing(logDir)
+						
+						await OS.Path
+						var output = Zotero.getErrors(true).join('\n\n')
+							+ "\n\n" + sysInfo + "\n\n"
+							+ "=========================================================\n\n"
+							+ logLines.join('\n\n');
+						return Zotero.File.putContentsAsync(
+							OS.Path.join(logDir, 'upgrade.log'),
+							output
+						);
+					});
+			}
 		}
 		
 		if (updated) {
@@ -268,6 +293,12 @@ Zotero.Schema = new function(){
 					_schemaUpdateDeferred.resolve(true);
 				}
 				catch (e) {
+					// DB corruption already shows an alert
+					if (Zotero.DB.isCorruptionError(e)) {
+						_schemaUpdateDeferred.reject(e);
+						return;
+					}
+					
 					let kbURL = 'https://www.zotero.org/support/kb/unable_to_load_translators_and_styles';
 					let msg = Zotero.getString('startupError.bundledFileUpdateError', Zotero.clientName);
 					
@@ -574,6 +605,10 @@ Zotero.Schema = new function(){
 		Zotero.Schema.globalSchemaLocale = data.locales[locale];
 		Zotero.Schema.globalSchemaMeta = data.meta;
 		
+		//
+		// Keep in sync with the connector's gulpfile.js
+		//
+		
 		// CSL mappings
 		Zotero.Schema.CSL_TYPE_MAPPINGS = {};
 		Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE = {};
@@ -581,7 +616,8 @@ Zotero.Schema = new function(){
 			for (let zoteroType of data.csl.types[cslType]) {
 				Zotero.Schema.CSL_TYPE_MAPPINGS[zoteroType] = cslType;
 			}
-			Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE[cslType] = data.csl.types[cslType][0];
+			// Add the first mapped Zotero type
+			Zotero.Schema.CSL_TYPE_MAPPINGS_REVERSE[cslType] = [...data.csl.types[cslType]];
 		}
 		Zotero.Schema.CSL_TEXT_MAPPINGS = data.csl.fields.text;
 		Zotero.Schema.CSL_DATE_MAPPINGS = data.csl.fields.date;
@@ -633,7 +669,7 @@ Zotero.Schema = new function(){
 		}
 		
 		var items = await Zotero.Items.getAsync(itemIDs);
-		await Zotero.Items.loadDataTypes(items, ['itemData', 'creator']);
+		await Zotero.Items.loadDataTypes(items);
 		for (let item of items) {
 			let changed = item.migrateExtraFields();
 			if (!changed) continue;
@@ -1512,11 +1548,47 @@ Zotero.Schema = new function(){
 				url += '&m=' + mode;
 			}
 			
+			// TEMP: DB diagnostics
+			if (Zotero.isDevBuild) {
+				let badDB = false;
+				let exists = yield Zotero.DB.tableExists('transactionSets');
+				url += "&ts=" + (exists ? "1" : "0");
+				if (exists) {
+					Zotero.logError("DB table 'transactionSets' still exists");
+					badDB = true;
+				}
+				exists = yield Zotero.DB.tableExists('dbDebug1');
+				url += "&db1=" + (exists ? "1" : "0");
+				if (!exists) {
+					Zotero.logError("DB table 'dbDebug1' does not exist");
+					badDB = true;
+				}
+				if (badDB) {
+					let cloudDir = Zotero.File.isCloudStorageFolder(Zotero.DataDirectory.dir);
+					url += "&cd=" + (cloudDir ? "1" : "0");
+					
+					if (!this._debugDBIntegrityChecked) {
+						try {
+							let dbPath = Zotero.DataDirectory.getDatabase();
+							let dbInfo = yield OS.File.stat(dbPath);
+							if (dbInfo.size < 500000000) {
+								let ok = yield Zotero.DB.quickCheck();
+								url += "&qc=" + (ok ? "1" : "0");
+								this._debugDBIntegrityChecked = true;
+							}
+						}
+						catch (e) {
+							Zotero.logError(e);
+						}
+					}
+				}
+			}
+			
 			// Send list of installed styles
 			var styles = Zotero.Styles.getAll();
 			var styleTimestamps = [];
 			for (let id in styles) {
-				let styleUpdated = Zotero.Date.sqlToDate(styles[id].updated);
+				let styleUpdated = Zotero.Date.sqlToDate(styles[id].updated, true);
 				styleUpdated = styleUpdated ? styleUpdated.getTime() / 1000 : 0;
 				var selfLink = styles[id].url;
 				var data = {
@@ -1531,7 +1603,15 @@ Zotero.Schema = new function(){
 			var body = 'styles=' + encodeURIComponent(JSON.stringify(styleTimestamps));
 			
 			try {
-				var xmlhttp = yield Zotero.HTTP.request("POST", url, { body: body });
+				var xmlhttp = yield Zotero.HTTP.request(
+					"POST",
+					url,
+					{
+						body,
+						errorDelayMax: 5000,
+						errorDelayIntervals: [5000]
+					}
+				);
 				updated = yield _handleRepositoryResponse(xmlhttp, mode);
 			}
 			catch (e) {
@@ -1664,6 +1744,25 @@ Zotero.Schema = new function(){
 	});
 	
 	
+	this.integrityCheckRequired = async function () {
+		return !!await Zotero.DB.valueQueryAsync(
+			"SELECT value FROM settings WHERE setting='db' AND key='integrityCheck'"
+		);
+	};
+	
+	
+	this.setIntegrityCheckRequired = async function (required) {
+		var sql;
+		if (required) {
+			sql = "REPLACE INTO settings VALUES ('db', 'integrityCheck', 1)";
+		}
+		else {
+			sql = "DELETE FROM settings WHERE setting='db' AND key='integrityCheck'";
+		}
+		await Zotero.DB.queryAsync(sql);
+	};
+	
+	
 	this.integrityCheck = Zotero.Promise.coroutine(function* (fix) {
 		Zotero.debug("Checking database integrity");
 		
@@ -1671,25 +1770,8 @@ Zotero.Schema = new function(){
 		// so that we don't try to wipe out all data
 		if (!(yield Zotero.DB.valueQueryAsync("SELECT COUNT(*) FROM fieldsCombined"))
 				|| !(yield Zotero.DB.valueQueryAsync("SELECT COUNT(*) FROM itemTypeFieldsCombined"))) {
+			Zotero.logError("Combined field tables are empty -- skipping integrity check");
 			return false;
-		}
-		
-		// Check foreign keys
-		var rows = yield Zotero.DB.queryAsync("PRAGMA foreign_key_check");
-		if (rows.length && !fix) {
-			let suffix1 = rows.length == 1 ? '' : 's';
-			let suffix2 = rows.length == 1 ? 's' : '';
-			Zotero.debug(`Found ${rows.length} row${suffix1} that violate${suffix2} foreign key constraints`, 1);
-			return false;
-		}
-		// If fixing, delete rows that violate FK constraints
-		for (let row of rows) {
-			try {
-				yield Zotero.DB.queryAsync(`DELETE FROM ${row.table} WHERE ROWID=?`, row.rowid);
-			}
-			catch (e) {
-				Zotero.logError(e);
-			}
 		}
 		
 		var attachmentID = parseInt(yield Zotero.DB.valueQueryAsync(
@@ -1699,14 +1781,111 @@ Zotero.Schema = new function(){
 			"SELECT itemTypeID FROM itemTypes WHERE typeName='note'"
 		));
 		
-		
-		// Non-foreign key checks
-		//
 		// The first position is for testing and the second is for repairing. Can be either SQL
-		// statements or promise-returning functions. For statements, the repair entry can be either a
-		// string or an array with multiple statements. Functions should avoid assuming any global state
-		// (e.g., loaded data).
+		// statements or promise-returning functions. For statements, the repair entry can be either
+		// a string or an array with multiple statements. Check functions should return false if no
+		// error, and either true or data to pass to the repair function on error. Functions should
+		// avoid assuming any global state (e.g., loaded data).
 		var checks = [
+			/*
+			Currently disabled, because it can cause problems with schema update steps that don't
+			expect tables to exist.
+			
+			The test "should repair a missing userdata table" is also disabled.
+			
+			// Create any tables or indexes that are missing and delete any tables or triggers that
+			// still exist but should have been deleted
+			[
+				async function () {
+					var statementsToRun = [];
+					
+					// Get all existing tables, indexes, and triggers
+					var sql = "SELECT "
+						+ "CASE type "
+						+ "WHEN 'table' THEN 'table:' || tbl_name "
+						+ "WHEN 'index' THEN 'index:' || name "
+						+ "WHEN 'trigger' THEN 'trigger:' || name "
+						+ "END "
+						+ "FROM sqlite_master WHERE type IN ('table', 'index', 'trigger')";
+					var schema = new Set(await Zotero.DB.columnQueryAsync(sql));
+					
+					// Check for deleted tables and triggers that still exist
+					var deletedTables = [
+						"transactionSets",
+						"transactions",
+						"transactionLog",
+					];
+					var deletedTriggers = [
+						"insert_date_field",
+						"update_date_field",
+						"fki_itemAttachments",
+						"fku_itemAttachments",
+						"fki_itemNotes",
+						"fku_itemNotes",
+					];
+					for (let table of deletedTables) {
+						if (schema.has('table:' + table)) {
+							statementsToRun.push("DROP TABLE " + table);
+						}
+					}
+					for (let trigger of deletedTriggers) {
+						if (schema.has('trigger:' + trigger)) {
+							statementsToRun.push("DROP TRIGGER " + trigger);
+						}
+					}
+					
+					// Check for missing tables and indexes
+					var statements = await Zotero.DB.parseSQLFile(await _getSchemaSQL('userdata'));
+					for (let statement of statements) {
+						var matches = statement.match(/^CREATE TABLE\s+([^\s]+)/);
+						if (matches) {
+							let table = matches[1];
+							if (!schema.has('table:' + table)) {
+								Zotero.debug(`Table ${table} is missing`, 2);
+								statementsToRun.push(statement);
+							}
+							continue;
+						}
+						
+						matches = statement.match(/^CREATE INDEX\s+([^\s]+)/);
+						if (matches) {
+							let index = matches[1];
+							if (!schema.has('index:' + index)) {
+								Zotero.debug(`Index ${index} is missing`, 2);
+								statementsToRun.push(statement);
+							}
+							continue;
+						}
+					}
+					
+					return statementsToRun.length ? statementsToRun : false;
+				},
+				async function (statements) {
+					for (let statement of statements) {
+						await Zotero.DB.queryAsync(statement);
+					}
+				}
+			],
+			*/
+			
+			// Foreign key checks
+			[
+				async function () {
+					var rows = await Zotero.DB.queryAsync("PRAGMA foreign_key_check");
+					if (!rows.length) return false;
+					var suffix1 = rows.length == 1 ? '' : 's';
+					var suffix2 = rows.length == 1 ? 's' : '';
+					Zotero.debug(`Found ${rows.length} row${suffix1} that violate${suffix2} foreign key constraints`, 1);
+					return rows;
+				},
+				// If fixing, delete rows that violate FK constraints
+				async function (rows) {
+					for (let row of rows) {
+						await Zotero.DB.queryAsync(`DELETE FROM ${row.table} WHERE ROWID=?`, row.rowid);
+					}
+				}
+			],
+			
 			// Can't be a FK with itemTypesCombined
 			[
 				"SELECT COUNT(*) > 0 FROM items WHERE itemTypeID IS NULL",
@@ -1787,6 +1966,74 @@ Zotero.Schema = new function(){
 					let userID = await Zotero.DB.valueQueryAsync("SELECT value FROM settings WHERE setting='account' AND key='userID'");
 					await Zotero.DB.queryAsync("UPDATE settings SET value=? WHERE setting='account' AND key='userID'", parseInt(userID.trim()));
 				}
+			],
+			// Invalid collections nesting
+			[
+				async function () {
+					let rows = await Zotero.DB.queryAsync(
+						"SELECT collectionID, parentCollectionID FROM collections"
+					);
+					let map = new Map();
+					let ids = [];
+					for (let row of rows) {
+						map.set(row.collectionID, row.parentCollectionID);
+						ids.push(row.collectionID);
+					}
+					for (let id of ids) {
+						// Keep track of collections we've seen
+						let seen = new Set([id]);
+						while (true) {
+							let parent = map.get(id);
+							if (!parent) {
+								break;
+							}
+							if (seen.has(parent)) {
+								Zotero.debug(`Collection ${id} parent ${parent} was already seen`, 2);
+								return true;
+							}
+							seen.add(parent);
+							id = parent;
+						}
+					}
+					return false;
+				},
+				async function () {
+					let fix = async function () {
+						let rows = await Zotero.DB.queryAsync(
+							"SELECT collectionID, parentCollectionID FROM collections"
+						);
+						let map = new Map();
+						let ids = [];
+						for (let row of rows) {
+							map.set(row.collectionID, row.parentCollectionID);
+							ids.push(row.collectionID);
+						}
+						for (let id of ids) {
+							let seen = new Set([id]);
+							while (true) {
+								let parent = map.get(id);
+								if (!parent) {
+									break;
+								}
+								if (seen.has(parent)) {
+									await Zotero.DB.queryAsync(
+										"UPDATE collections SET parentCollectionID = NULL "
+											+ "WHERE collectionID = ?",
+										id
+									);
+									// Restart
+									return true;
+								}
+								seen.add(parent);
+								id = parent;
+							}
+						}
+						// Done
+						return false;
+					};
+					
+					while (await fix()) {}
+				}
 			]
 		];
 		
@@ -1820,16 +2067,26 @@ Zotero.Schema = new function(){
 					}
 					// Function
 					else {
-						yield check[1]();
+						// If data was provided by the check function, pass that to the fix function
+						let checkData = typeof errorsFound != 'boolean' ? errorsFound : null;
+						yield check[1](checkData);
 					}
 					continue;
 				}
 				catch (e) {
 					Zotero.logError(e);
+					// Clear flag on failure, to avoid showing an error on every startup if someone
+					// doesn't know how to deal with it
+					yield this.setIntegrityCheckRequired(false);
 				}
 			}
 			
 			return false;
+		}
+		
+		// Clear flag on success
+		if (fix) {
+			yield this.setIntegrityCheckRequired(false);
 		}
 		
 		return true;
@@ -2272,6 +2529,11 @@ Zotero.Schema = new function(){
 		
 		if (fromVersion >= toVersion) {
 			return false;
+		}
+		
+		if (!options.skipIntegrityCheck) {
+			// TEMP: Disabled
+			//yield Zotero.Schema.integrityCheck(true);
 		}
 		
 		Zotero.debug('Updating user data tables from version ' + fromVersion + ' to ' + toVersion);
@@ -2884,14 +3146,16 @@ Zotero.Schema = new function(){
 				}
 			}
 			
-			// Duplicated in retractions.js::init() due to undiagnosed schema update bug
 			else if (i == 105) {
 				// This was originally in 103 and then 104, but some schema update steps are being
 				// missed for some people, so run again with IF NOT EXISTS until we figure out
 				// what's going on.
 				yield Zotero.DB.queryAsync("CREATE TABLE IF NOT EXISTS retractedItems (\n	itemID INTEGER PRIMARY KEY,\n	data TEXT,\n	FOREIGN KEY (itemID) REFERENCES items(itemID) ON DELETE CASCADE\n);");
 				
-				yield Zotero.DB.queryAsync("ALTER TABLE retractedItems ADD COLUMN flag INT DEFAULT 0");
+				try {
+					yield Zotero.DB.queryAsync("ALTER TABLE retractedItems ADD COLUMN flag INT DEFAULT 0");
+				}
+				catch (e) {}
 			}
 			
 			else if (i == 106) {
@@ -2914,6 +3178,26 @@ Zotero.Schema = new function(){
 					let sql = yield _getSchemaSQL('system-107');
 					yield Zotero.DB.executeSQLFile(sql);
 				}
+			}
+			
+			else if (i == 108) {
+				yield Zotero.DB.queryAsync(`DELETE FROM itemRelations WHERE predicateID=(SELECT predicateID FROM relationPredicates WHERE predicate='owl:sameAs') AND object LIKE ?`, 'http://zotero.org/users/local/%');
+			}
+			
+			else if (i == 109) {
+				yield Zotero.DB.queryAsync("CREATE TABLE IF NOT EXISTS dbDebug1 (\n    a INTEGER PRIMARY KEY\n)");
+			}
+			
+			else if (i == 110) {
+				yield Zotero.DB.queryAsync("UPDATE itemAttachments SET parentItemID=NULL WHERE itemID=parentItemID");
+				yield Zotero.DB.queryAsync("UPDATE itemNotes SET parentItemID=NULL WHERE itemID=parentItemID");
+			}
+			
+			else if (i == 111) {
+				yield Zotero.DB.queryAsync("CREATE TABLE deletedCollections (\n    collectionID INTEGER PRIMARY KEY,\n    dateDeleted DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    FOREIGN KEY (collectionID) REFERENCES collections(collectionID) ON DELETE CASCADE\n)");
+				yield Zotero.DB.queryAsync("CREATE INDEX deletedCollections_dateDeleted ON deletedCollections(dateDeleted)");
+				yield Zotero.DB.queryAsync("CREATE TABLE deletedSearches (\n    savedSearchID INTEGER PRIMARY KEY,\n    dateDeleted DEFAULT CURRENT_TIMESTAMP NOT NULL,\n    FOREIGN KEY (savedSearchID) REFERENCES savedSearches(savedSearchID) ON DELETE CASCADE\n)");
+				yield Zotero.DB.queryAsync("CREATE INDEX deletedSearches_dateDeleted ON deletedSearches(dateDeleted)");
 			}
 			
 			// If breaking compatibility or doing anything dangerous, clear minorUpdateFrom

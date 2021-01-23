@@ -25,9 +25,13 @@
 
 Zotero.HTTP.request = async function(method, url, options={}) {
 	let args = {
-		method, url
+		method,
+		// Swift's URL class does not deal well with non-standard URL symbols
+		// Also this is a bit of a flaky solution here, but sometimes translators
+		// provide already URL encoded URLs, other times they do not, and there
+		// is no good way to check whether an URL is already encoded
+		url: url.includes('%') ? url : encodeURI(url)
 	};
-	options.url = url;
 	options.method = method;
 	
 	let logBody = '';

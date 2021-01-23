@@ -37,6 +37,18 @@ Zotero_Preferences.Advanced = {
 		if (Zotero.Prefs.get('debug.memoryInfo')) {
 			document.getElementById('memory-info').hidden = false;
 		}
+
+		// This might not work for checkboxes if we later need to create them
+		// with html
+		var inputs = document.querySelectorAll('input[data-preference]');
+		for (let input of inputs) {
+			let preferenceName = input.dataset.preference;
+			input.addEventListener('change', function () {
+				let value = input.value;
+				Zotero.Prefs.set(preferenceName, value);
+			});
+			input.value = Zotero.Prefs.get(preferenceName);
+		}
 		
 		this.onDataDirLoad();
 		this.refreshLocale();
@@ -367,7 +379,7 @@ Zotero_Preferences.Advanced = {
 		yield Zotero.DataDirectory.choose(
 			true,
 			!newUseDataDir,
-			() => Zotero_Preferences.openURL('https://zotero.org/support/zotero_data')
+			() => Zotero_Preferences.openURL('https://www.zotero.org/support/zotero_data')
 		);
 		radiogroup.selectedIndex = this._usingDefaultDataDir() ? 0 : 1;
 	}),
@@ -569,12 +581,27 @@ Zotero_Preferences.Attachment_Base_Directory = {
 			return false;
 		}
 		
-		return this.changePath(newPath);
+		try {
+			return await this.changePath(newPath);
+		}
+		catch (e) {
+			Zotero.logError(e);
+			Zotero.alert(null, Zotero.getString('general.error'), e.message);
+		}
 	},
 	
 	
 	changePath: Zotero.Promise.coroutine(function* (basePath) {
 		Zotero.debug(`New base directory is ${basePath}`);
+		
+		if (Zotero.File.directoryContains(Zotero.DataDirectory.dir, basePath)) {
+			throw new Error(
+				Zotero.getString(
+					'zotero.preferences.advanced.baseDirectory.withinDataDir',
+					Zotero.appName
+				)
+			);
+		}
 		
 		// Find all current attachments with relative attachment paths
 		var sql = "SELECT itemID FROM itemAttachments WHERE linkMode=? AND path LIKE ?";
@@ -693,7 +720,7 @@ Zotero_Preferences.Attachment_Base_Directory = {
 			return false;
 		}
 		
-		// Set new data directory
+		// Set new base directory
 		Zotero.debug("Setting base directory to " + basePath);
 		Zotero.Prefs.set('baseAttachmentPath', basePath);
 		Zotero.Prefs.set('saveRelativeAttachmentPath', true);

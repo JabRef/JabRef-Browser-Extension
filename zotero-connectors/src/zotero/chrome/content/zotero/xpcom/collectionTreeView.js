@@ -441,10 +441,13 @@ Zotero.CollectionTreeView.prototype.notify = Zotero.Promise.coroutine(function* 
 		let row;
 		let id = ids[0];
 		let rowID = "C" + id;
+		let selectedIndex = this.selection.count ? this.selection.currentIndex : 0;
 		
 		switch (type) {
 		case 'collection':
+			let collection = Zotero.Collections.get(id);
 			row = this.getRowIndexByID(rowID);
+			// If collection is visible
 			if (row !== false) {
 				// TODO: Only move if name changed
 				let reopen = this.isContainerOpen(row);
@@ -452,24 +455,52 @@ Zotero.CollectionTreeView.prototype.notify = Zotero.Promise.coroutine(function* 
 					this._closeContainer(row);
 				}
 				this._removeRow(row);
-				yield this._addSortedRow('collection', id);
-				yield this.selectByID(currentTreeRow.id);
-				if (reopen) {
-					let newRow = this.getRowIndexByID(rowID);
-					if (!this.isContainerOpen(newRow)) {
-						yield this.toggleOpenState(newRow);
+				
+				// Collection was moved to trash, so don't add it back
+				if (collection.deleted) {
+					this._refreshRowMap();
+					this.selectAfterRowRemoval(selectedIndex);
+				}
+				else {
+					yield this._addSortedRow('collection', id);
+					yield this.selectByID(currentTreeRow.id);
+					if (reopen) {
+						let newRow = this.getRowIndexByID(rowID);
+						if (!this.isContainerOpen(newRow)) {
+							yield this.toggleOpenState(newRow);
+						}
 					}
+				}
+			}
+			// If collection isn't currently visible and it isn't in the trash (because it was
+			// undeleted), add it (if possible without opening any containers)
+			else if (!collection.deleted) {
+				yield this._addSortedRow('collection', id);
+				// Invalidate parent in case it's become non-empty
+				let parentRow = this.getRowIndexByID("C" + collection.parentID);
+				if (parentRow !== false) {
+					this._treebox.invalidateRow(parentRow);
 				}
 			}
 			break;
 		
 		case 'search':
+			let search = Zotero.Searches.get(id);
 			row = this.getRowIndexByID("S" + id);
 			if (row !== false) {
 				// TODO: Only move if name changed
 				this._removeRow(row);
-				yield this._addSortedRow('search', id);
-				yield this.selectByID(currentTreeRow.id);
+				
+				// Search moved to trash
+				if (search.deleted) {
+					this._refreshRowMap();
+					this.selectAfterRowRemoval(selectedIndex);
+				}
+				// If search isn't in trash, add it back
+				else {
+					yield this._addSortedRow('search', id);
+					yield this.selectByID(currentTreeRow.id);
+				}
 			}
 			break;
 		
@@ -1039,7 +1070,15 @@ Zotero.CollectionTreeView.prototype.expandToCollection = Zotero.Promise.coroutin
 	}
 	var path = [];
 	var parentID;
+	var seen = new Set([col.id])
 	while (parentID = col.parentID) {
+		// Detect infinite loop due to invalid nesting in DB
+		if (seen.has(parentID)) {
+			yield Zotero.Schema.setIntegrityCheckRequired(true);
+			Zotero.crash();
+			return;
+		}
+		seen.add(parentID);
 		path.unshift(parentID);
 		col = yield Zotero.Collections.getAsync(parentID);
 	}
@@ -1373,6 +1412,9 @@ Zotero.CollectionTreeView.prototype._expandRow = Zotero.Promise.coroutine(functi
 	
 	// Add collections
 	for (var i = 0, len = collections.length; i < len; i++) {
+		// Skip collections in trash
+		if (collections[i].deleted) continue;
+		
 		let beforeRow = row + 1 + newRows;
 		this._addRowToArray(
 			rows,
@@ -2085,7 +2127,7 @@ Zotero.CollectionTreeView.prototype.drop = Zotero.Promise.coroutine(function* (r
 							var collectionID = yield newCollection.save();
 							
 							// Record link
-							yield c.addLinkedCollection(newCollection);
+							yield newCollection.addLinkedCollection(c);
 							
 							// Recursively copy subcollections
 							if (desc.children.length) {

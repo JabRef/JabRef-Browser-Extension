@@ -49,6 +49,7 @@ Zotero.DataObject = function () {
 	this._identified = false;
 	this._parentID = null;
 	this._parentKey = null;
+	this._deleted = null;
 	
 	this._relations = [];
 	
@@ -97,6 +98,33 @@ Zotero.defineProperty(Zotero.DataObject.prototype, 'parentID', {
 Zotero.defineProperty(Zotero.DataObject.prototype, '_canHaveParent', {
 	value: true
 });
+
+// Define boolean properties
+for (let name of ['deleted']) {
+	let prop = '_' + name;
+	Zotero.defineProperty(Zotero.DataObject.prototype, name, {
+			get: function() {
+				if (!this.id) {
+					return false;
+				}
+				var val = this._getLatestField(name);
+				if (this[prop] !== null) {
+					return this[prop];
+				}
+				this._requireData('primaryData');
+			},
+			set: function(val) {
+				val = !!val;
+				var oldVal = this._getLatestField(name);
+				if (oldVal == val) {
+					Zotero.debug(Zotero.Utilities.capitalize(name)
+						+ ` state hasn't changed for ${this._objectType} ${this.id}`);
+					return;
+				}
+				this._markFieldChange(name, val);
+			}
+	});
+}
 
 Zotero.defineProperty(Zotero.DataObject.prototype, 'ObjectsClass', {
 	get: function() { return this._ObjectsClass; }
@@ -495,7 +523,7 @@ Zotero.DataObject.prototype._getLinkedObject = Zotero.Promise.coroutine(function
 	// Then try relations with this as an object
 	if (bidirectional) {
 		var thisURI = Zotero.URI['get' + this._ObjectType + 'URI'](this);
-		var objects = Zotero.Relations.getByPredicateAndObject(
+		let objects = yield Zotero.Relations.getByPredicateAndObject(
 			this._objectType, predicate, thisURI
 		);
 		for (let i = 0; i < objects.length; i++) {
@@ -708,18 +736,25 @@ Zotero.DataObject.prototype._markAllDataTypeLoadStates = function (loaded) {
 }
 
 /**
+ * Get either the unsaved value of a field or the saved value if unchanged since the last save
+ */
+Zotero.DataObject.prototype._getLatestField = function (field) {
+        return this._changedData[field] !== undefined ? this._changedData[field] : this['_' + field];
+};
+
+/**
  * Save old version of data that's being changed, to pass to the notifier
  * @param {String} field
- * @param {} oldValue
+ * @param {} value - Old value for old-style 'changed' fields, and new value for 'changedData' fields
  */
-Zotero.DataObject.prototype._markFieldChange = function (field, oldValue) {
+Zotero.DataObject.prototype._markFieldChange = function (field, value) {
 	// New method (changedData)
-	if (field == 'tags') {
-		if (Array.isArray(oldValue)) {
-			this._changedData[field] = [...oldValue];
+	if (['deleted', 'tags'].includes(field)) {
+		if (Array.isArray(value)) {
+			this._changedData[field] = [...value];
 		}
 		else {
-			this._changedData[field] = oldValue;
+			this._changedData[field] = value;
 		}
 		return;
 	}
@@ -728,21 +763,19 @@ Zotero.DataObject.prototype._markFieldChange = function (field, oldValue) {
 	if (!this.id || this._previousData[field] !== undefined) {
 		return;
 	}
-	if (Array.isArray(oldValue)) {
+	if (Array.isArray(value)) {
 		this._previousData[field] = [];
-		Object.assign(this._previousData[field], oldValue)
+		Object.assign(this._previousData[field], value)
 	}
 	else {
-		this._previousData[field] = oldValue;
+		this._previousData[field] = value;
 	}
 }
 
 
 Zotero.DataObject.prototype.hasChanged = function() {
 	var changed = Object.keys(this._changed).filter(dataType => this._changed[dataType])
-		.concat(
-			Object.keys(this._changedData).filter(dataType => this._changedData[dataType])
-		);
+		.concat(Object.keys(this._changedData));
 	if (changed.length == 1
 			&& changed[0] == 'primaryData'
 			&& Object.keys(this._changed.primaryData).length == 1
@@ -1002,6 +1035,13 @@ Zotero.DataObject.prototype._saveData = function (env) {
 	if (env.isNew || !env.options.skipClientDateModifiedUpdate) {
 		env.sqlColumns.push('clientDateModified');
 		env.sqlValues.push(Zotero.DB.transactionDateTime);
+	}
+	
+	if (!env.options.skipNotifier && this._changedData.deleted !== undefined) {
+		Zotero.Notifier.queue('refresh', 'trash', this.libraryID, {}, env.options.notifierQueue);
+		if (!env.isNew && this._changedData.deleted) {
+			Zotero.Notifier.queue('trash', this._objectType, this.id, {}, env.options.notifierQueue);
+		}
 	}
 };
 
@@ -1286,6 +1326,11 @@ Zotero.DataObject.prototype._preToJSON = function (options) {
 }
 
 Zotero.DataObject.prototype._postToJSON = function (env) {
+	var deleted = this._getLatestField('deleted');
+	if (deleted || env.options.mode == 'full') {
+		env.obj.deleted = !!deleted;
+	}
+	
 	if (env.mode == 'patch') {
 		env.obj = Zotero.DataObjectUtilities.patch(env.options.patchBase, env.obj);
 	}

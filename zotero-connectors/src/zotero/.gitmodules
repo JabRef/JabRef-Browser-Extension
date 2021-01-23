@@ -26,3 +26,6 @@
 	path = resource/schema/global
 	url = git://github.com/zotero/zotero-schema.git
 	branch = master
+[submodule "resource/SingleFile"]
+	path = resource/SingleFile
+	url = https://github.com/gildas-lormeau/SingleFile.git

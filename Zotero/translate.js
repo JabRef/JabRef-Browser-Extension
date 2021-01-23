@@ -712,12 +712,15 @@ Zotero.Translate.Sandbox = {
 						delete attachment.path;
 					}
 
-					if (attachment.url && attachment.proxy !== false) {
+					if (attachment.url) {
 						// Remap attachment (but not link) URLs
 						// TODO: provide both proxied and un-proxied URLs (also for documents)
 						//   because whether the attachment is attached as link or file
 						//   depends on Zotero preferences as well.
-						attachment.url = translate.resolveURL(attachment.url, attachment.snapshot === false);
+						attachment.url = translate.resolveURL(
+							attachment.url,
+							attachment.proxy === false || attachment.snapshot === false
+						);
 					}
 				}
 			}
@@ -1368,6 +1371,7 @@ Zotero.Translate.Base.prototype = {
 				if (maybePromise) {
 					maybePromise
 						.then(() => this.decrementAsyncProcesses("Zotero.Translate#translate()"))
+						.catch(e => this.complete(false, e));
 					return;
 				}
 			} catch (e) {
@@ -1405,21 +1409,15 @@ Zotero.Translate.Base.prototype = {
 		var m = url.match(hostPortRe),
 			resolved;
 		if (!m) {
-			// Convert relative URLs to absolute
-			if (Zotero.isFx && this.location) {
-				resolved = Components.classes["@mozilla.org/network/io-service;1"].
-				getService(Components.interfaces.nsIIOService).
-				newURI(this.location, "", null).resolve(url);
-			} else if (Zotero.isNode && this.location) {
-				resolved = require('url').resolve(this.location, url);
-			} else if (this.document) {
-				var a = this.document.createElement('a');
-				a.href = url;
-				resolved = a.href;
-			} else if (url.indexOf('//') == 0) {
-				// Protocol-relative URL with no associated web page
-				// Use HTTP by default
-				resolved = 'http:' + url;
+			if (this.location) {
+				if (Zotero.isFx) {
+					resolved = Services.io.newURI(this.location, "", null).resolve(url);
+				} else {
+					resolved = new URL(url, this.location).toString();
+				}
+			} else if (url.startsWith('//')) {
+				// Use HTTPS by default for protocol-relative URL with no associated web page
+				resolved = 'https:' + url;
 			} else {
 				throw new Error('Cannot resolve relative URL without an associated web page: ' + url);
 			}
@@ -1790,30 +1788,34 @@ Zotero.Translate.Base.prototype = {
 		this._aborted = false;
 		this.saveQueue = [];
 
-		// Make parsing of translator wait for injected code
+		// CHANGED: Make parsing of translator wait for injected code
 		var parse = async function(code) {
 			Zotero.debug("Translate: Parsing code for " + translator.label + " " +
 				"(" + translator.translatorID + ", " + translator.lastUpdated + ")", 4);
-			if (this._entryFunctionSuffix == "Web") {
-				await this._sandboxManager.eval(
-					"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code,
-					[
-						"detect" + this._entryFunctionSuffix,
-						"do" + this._entryFunctionSuffix,
-						"exports",
-						"ZOTERO_TRANSLATOR_INFO"
-					],
-					(translator.file ? translator.file.path : translator.label)
-				);
-			} else {
-				await this._sandboxManager.eval(
-					"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
-						"do" + this._entryFunctionSuffix,
-						"exports",
-						"ZOTERO_TRANSLATOR_INFO"
-					],
-					(translator.file ? translator.file.path : translator.label)
-				);
+			try {
+				if (this._entryFunctionSuffix == "Web") {
+					await this._sandboxManager.eval(
+						"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code,
+						[
+							"detect" + this._entryFunctionSuffix,
+							"do" + this._entryFunctionSuffix,
+							"exports",
+							"ZOTERO_TRANSLATOR_INFO"
+						],
+						(translator.file ? translator.file.path : translator.label)
+					);
+				} else {
+					await this._sandboxManager.eval(
+						"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
+							"do" + this._entryFunctionSuffix,
+							"exports",
+							"ZOTERO_TRANSLATOR_INFO"
+						],
+						(translator.file ? translator.file.path : translator.label)
+					);
+				}
+			} catch (e) {
+				Zotero.logError(e);
 			}
 			this._translatorInfo = this._sandboxManager.sandbox.ZOTERO_TRANSLATOR_INFO;
 		}.bind(this);
@@ -1886,11 +1888,14 @@ Zotero.Translate.Base.prototype = {
 		if (this.type == 'web') {
 			this._sandboxManager.sandbox.attr = this._attr.bind(this);
 			this._sandboxManager.sandbox.text = this._text.bind(this);
+			this._sandboxManager.sandbox.innerText = this._innerText.bind(this);
 		}
 	},
 
 	/**
 	 * Helper function to extract HTML attribute text
+	 *
+	 * Text is automatically trimmed
 	 */
 	_attr: function(selector, attr, index) {
 		if (typeof arguments[0] == 'string') {
@@ -1898,18 +1903,19 @@ Zotero.Translate.Base.prototype = {
 		}
 		// Document or element passed as first argument
 		else {
-			// TODO: Warn if Document rather than Element is passed once we drop 4.0 translator
-			// support
 			[docOrElem, selector, attr, index] = arguments;
 		}
 		var elem = index ?
 			docOrElem.querySelectorAll(selector).item(index) :
 			docOrElem.querySelector(selector);
-		return elem ? elem.getAttribute(attr) : null;
+		if (!elem) return "";
+		return (elem.hasAttribute(attr) ? elem.getAttribute(attr) : "").trim();
 	},
 
 	/**
 	 * Helper function to extract HTML element text
+	 *
+	 * Text is extracted using textContent and is automatically trimmed
 	 */
 	_text: function(selector, index) {
 		if (typeof arguments[0] == 'string') {
@@ -1917,14 +1923,32 @@ Zotero.Translate.Base.prototype = {
 		}
 		// Document or element passed as first argument
 		else {
-			// TODO: Warn if Document rather than Element is passed once we drop 4.0 translator
-			// support
 			[docOrElem, selector, index] = arguments;
 		}
 		var elem = index ?
 			docOrElem.querySelectorAll(selector).item(index) :
 			docOrElem.querySelector(selector);
-		return elem ? elem.textContent : null;
+		return (elem ? elem.textContent : "").trim();
+	},
+
+	/**
+	 * Helper function to extract rendered HTML element text
+	 *
+	 * Text is extracted using innerText, not textContent, so it reflects the rendered content, and
+	 * is automatically trimmed
+	 */
+	_innerText: function(selector, index) {
+		if (typeof arguments[0] == 'string') {
+			var docOrElem = this.document;
+		}
+		// Document or element passed as first argument
+		else {
+			[docOrElem, selector, index] = arguments;
+		}
+		var elem = index ?
+			docOrElem.querySelectorAll(selector).item(index) :
+			docOrElem.querySelector(selector);
+		return (elem ? elem.innerText : "").trim();
 	},
 
 	/**

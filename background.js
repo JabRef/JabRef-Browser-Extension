@@ -7,6 +7,8 @@ Zotero.Messaging.init();
 Zotero.Connector_Types.init();
 Zotero.Translators.init();
 
+this.tabInfo = new Map()
+
 /*
 	Show/hide import button for all tabs (when add-on is loaded).
 */
@@ -16,7 +18,7 @@ browser.tabs.query({})
 		setTimeout(() => {
 			console.log("JabRef: Inject into open tabs %o", tabs);
 			for (let tab of tabs) {
-				lookForTranslators(tab);
+				installInTab(tab);
 			}
 		}, 1500);
 	});
@@ -39,7 +41,7 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 				// Clear old translator information
 				Zotero.Connector_Browser.onPageLoad(tab);
 
-				lookForTranslators(tab);
+				installInTab(tab);
 			}
 		});
 });
@@ -59,11 +61,38 @@ function isDisabledForURL(url) {
 /*
 	Searches for translators for the given tab and shows/hides the import button accordingly.
 */
-function lookForTranslators(tab) {
+function installInTab(tab) {
 	if (isDisabledForURL(tab.url)) {
 		return;
 	}
 
+	// Reset tab info
+	tabInfo.delete(tab.id);
+
+	// We cannot inject content scripts into PDF: https://bugzilla.mozilla.org/show_bug.cgi?id=1454760
+	// Thus, our detection algorithm silently fails in this case, as the Inject#init is never called
+	// Try to detect these situations by calling a content script; this fails
+	browser.tabs.executeScript(tab.id, {
+		code: "document.contentType"
+	  })
+	  .then(result => {
+		  lookForTranslators(tab);
+		  tabInfo.set(tab.id, {isPDF: false})
+	  })
+	  .catch(error => { 
+			console.debug(`JabRef: Error calling content script: ${error}`);
+
+			// Assume a PDF is displayed in this tab
+			browser.pageAction.show(tab.id);
+			browser.pageAction.setTitle({
+				tabId: tab.id,
+				title: "Import references into JabRef as PDF"
+			});
+			tabInfo.set(tab.id, {isPDF: true})
+	  }); 
+}
+
+function lookForTranslators(tab) {
 	console.log("JabRef: Searching for translators for %o", tab);
 	Zotero.Translators.getWebTranslatorsForLocation(tab.url, tab.url).then((translators) => {
 		if (translators[0].length == 0) {
@@ -85,6 +114,22 @@ function evalInTab(tabsId, code) {
 		.then(
 			result => console.log(`JabRef: code executed`),
 			error => console.log(`Error: ${error}`));
+}
+
+savePdf = function(tab) {
+	var title = tab.title.replace(".pdf", "")
+	var url = tab.url
+	var urlEscaped = tab.url.replace(":","\\:")
+	var date = new Date().toISODate()
+
+	// Construct a manual Bibtex Entry for the PDF
+	var bibtexString =  `@misc{,\
+		title={${title}},\
+		file={:${urlEscaped}:PDF},\
+		url = {${url}},\
+		accessDate={${date}},\
+		}`
+	Zotero.Connector.sendBibTexToJabRef(bibtexString);
 }
 
 /*
@@ -117,9 +162,15 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 			})
 			.then((tabs) => {
 				var tab = tabs[0];
+				var info = tabInfo.get(tab.id);
 
-				console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
-				Zotero.Connector_Browser.saveWithTranslator(tab, 0);
+				if (info && info.isPDF) {
+					console.log("JabRef: Export PDF in tab %o", JSON.parse(JSON.stringify(tab)));
+					savePdf(tab);
+				} else {
+					console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
+					Zotero.Connector_Browser.saveWithTranslator(tab, 0);
+				}
 			});
 	} else if (message.eval) {
 		console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
@@ -133,6 +184,8 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		console.log(message[1]);
 	} else if (message[0] == 'Errors.log') {
 		console.log(message[1]);
+	} else if (message[0] == 'Prefs.getAll') {
+		// Ignore, this is handled by Zotero 
 	} else {
 		console.log("JabRef: other message in background.js: %o", JSON.parse(JSON.stringify(message)));
 	}

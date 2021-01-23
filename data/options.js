@@ -19,7 +19,8 @@ function checkConnection() {
 				status.setAttribute('class', 'alert-error');
 				status.innerHTML = 'Unexpected response:<br>' + response.message;
 			}
-		}, error => {
+		})
+		.catch(error => {
 			status.setAttribute('class', 'alert-error');
 			status.textContent = error.message;
 		});

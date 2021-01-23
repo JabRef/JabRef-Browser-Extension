@@ -648,10 +648,7 @@ Zotero.Style = function (style, path) {
 		Zotero.Styles.ns).replace(/(.+)T([^\+]+)\+?.*/, "$1 $2");
 	this.locale = Zotero.Utilities.xpathText(doc, '/csl:style/@default-locale',
 		Zotero.Styles.ns) || null;
-	this._uppercaseSubtitles = false;
-	var uppercaseSubtitlesRE = /^apa($|-)|^(academy-of-management)/;
-	var shortIDMatches = this.styleID.match(/\/?([^/]+)$/);
-	this._uppercaseSubtitles = !!shortIDMatches && uppercaseSubtitlesRE.test(shortIDMatches[1]);
+	
 	this._class = doc.documentElement.getAttribute("class");
 	this._usesAbbreviation = !!Zotero.Utilities.xpath(doc,
 		'//csl:text[(@variable="container-title" and @form="short") or (@variable="container-title-short")][1]',
@@ -689,11 +686,16 @@ Zotero.Style = function (style, path) {
  */
 Zotero.Style.prototype.getCiteProc = function(locale, automaticJournalAbbreviations) {
 	if(!locale) {
-		var locale = Zotero.Prefs.get('export.lastLocale') || Zotero.locale;
+		var locale = Zotero.locale;
 		if(!locale) {
 			var locale = 'en-US';
 		}
 	}
+	
+	// APA and some similar styles capitalize the first word of subtitles
+	var uppercaseSubtitlesRE = /^apa($|-)|^academy-of-management($|-)|^(freshwater-science)/;
+	var shortIDMatches = this.styleID.match(/\/?([^/]+)$/);
+	var uppercaseSubtitles = !!shortIDMatches && uppercaseSubtitlesRE.test(shortIDMatches[1]);
 	
 	// determine version of parent style
 	var overrideLocale = false; // to force dependent style locale
@@ -714,7 +716,14 @@ Zotero.Style.prototype.getCiteProc = function(locale, automaticJournalAbbreviati
 			overrideLocale = true;
 			locale = this.locale;
 		}
-	} else {
+		
+		// Turn on uppercase subtitles if parent style matches
+		if (!uppercaseSubtitles) {
+			let shortIDMatches = parentStyle.styleID.match(/\/?([^/]+)$/);
+			uppercaseSubtitles = !!shortIDMatches && uppercaseSubtitlesRE.test(shortIDMatches[1]);
+		}
+	}
+	else {
 		var version = this._version;
 	}
 	
@@ -751,7 +760,7 @@ Zotero.Style.prototype.getCiteProc = function(locale, automaticJournalAbbreviati
 		var citeproc = new Zotero.CiteProc.CSL.Engine(
 			new Zotero.Cite.System({
 				automaticJournalAbbreviations,
-				uppercaseSubtitles: this._uppercaseSubtitles
+				uppercaseSubtitles
 			}),
 			xml,
 			locale,

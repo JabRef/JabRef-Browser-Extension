@@ -1,5 +1,3 @@
-var _this = this;
-
 /*
     ***** BEGIN LICENSE BLOCK *****
     
@@ -31,14 +29,14 @@ if (window.top) {
 		isTopWindow = window.top == window;
 	} catch (e) {};
 }
-var instanceID = isTopWindow ? 0 : new Date().getTime();
+var instanceID = isTopWindow ? 0 : (new Date()).getTime();
 
 if (isTopWindow) {
 	Zotero.Messaging.addMessageListener("confirm", function(props) {
 		return Zotero.Inject.confirm(props);
 	});
 
-	Zotero.Messaging.addMessageListener("notify", args => Zotero.Inject.notify.apply(_this, args));
+	Zotero.Messaging.addMessageListener("notify", (args) => Zotero.Inject.notify.apply(this, args));
 
 	Zotero.Messaging.addMessageListener("ping", function() {
 		// Respond to indicate that script is injected
@@ -70,7 +68,9 @@ Zotero.Inject = new function() {
 		// (monitorDOMChanges/ZoteroItemUpdated)
 		this.sessionDetails = {};
 
-		_noteImgSrc = Zotero.isSafari ? `${safari.extension.baseURI}safari/` + "images/treeitem-note.png" : browser.extension.getURL('images/treeitem-note.png');
+		_noteImgSrc = Zotero.isSafari ?
+			`${safari.extension.baseURI}safari/` + "images/treeitem-note.png" :
+			browser.extension.getURL('images/treeitem-note.png');
 
 		// wrap this in try/catch so that errors will reach logError
 		try {
@@ -106,7 +106,7 @@ Zotero.Inject = new function() {
 				this.translators = translators;
 
 				translators = translators.map(function(translator) {
-					return translator.serialize(TRANSLATOR_PASSING_PROPERTIES);
+					return translator.serialize(TRANSLATOR_PASSING_PROPERTIES)
 				});
 				Zotero.Connector_Browser.onTranslators(translators, instanceID, document.contentType);
 			}.bind(this));
@@ -128,95 +128,107 @@ Zotero.Inject = new function() {
 				(async function() {
 					// We don't want to show a select dialog -> always choose all items
 					/*
-     try {
-     	let response = await Zotero.Connector.callMethod("getSelectedCollection", {});
-     	if (response.libraryEditable === false) {
-     		return callback([]);
-     	}
-     } catch (e) {
-     	// Zotero is online but an error occured anyway, so let's log it and display
-     	// the dialog just in case
-     	if (e.status != 0) {
-     		Zotero.logError(e);
-     	}
-     }
-     
-     if (Zotero.isBrowserExt) {
-     	var returnItems = await Zotero.Connector_Browser.onSelect(items);
-     } else {
-     	returnItems = await Zotero.Inject.onSafariSelect(items);
-     }
-     
-     // If items were selected, reopen the save popup
-     if (returnItems && !Zotero.Utilities.isEmpty(returnItems)) {
-     	let sessionID = this.sessionDetails.id;
-     	Zotero.Messaging.sendMessage("progressWindow.show", [sessionID]);
-     }
-     */
+					try {
+						let response = await Zotero.Connector.callMethod("getSelectedCollection", {});
+						if (response.libraryEditable === false) {
+							return callback([]);
+						}
+					} catch (e) {
+						// Zotero is online but an error occured anyway, so let's log it and display
+						// the dialog just in case
+						if (e.status != 0) {
+							Zotero.logError(e);
+						}
+					}
+					
+					if (Zotero.isBrowserExt) {
+						var returnItems = await Zotero.Connector_Browser.onSelect(items);
+					} else {
+						returnItems = await Zotero.Inject.onSafariSelect(items);
+					}
+					
+					// If items were selected, reopen the save popup
+					if (returnItems && !Zotero.Utilities.isEmpty(returnItems)) {
+						let sessionID = this.sessionDetails.id;
+						Zotero.Messaging.sendMessage("progressWindow.show", [sessionID]);
+					}
+					*/
 					callback(items);
-				}).bind(this)();
+				}.bind(this))();
 			}.bind(this));
 			translate.setHandler("itemSaving", function(obj, item) {
 				// this relays an item from this tab to the top level of the window
-				Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
-					sessionID,
-					id: item.id,
-					iconSrc: Zotero.ItemTypes.getImageSrc(item.itemType),
-					title: item.title
-				});
+				Zotero.Messaging.sendMessage(
+					"progressWindow.itemProgress", {
+						sessionID,
+						id: item.id,
+						iconSrc: Zotero.ItemTypes.getImageSrc(item.itemType),
+						title: item.title
+					}
+				);
 			});
 			translate.setHandler("itemDone", function(obj, dbItem, item) {
 				// this relays an item from this tab to the top level of the window
-				Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
-					sessionID,
-					id: item.id,
-					iconSrc: Zotero.ItemTypes.getImageSrc(item.itemType),
-					title: item.title,
-					progress: 100
-				});
+				Zotero.Messaging.sendMessage(
+					"progressWindow.itemProgress", {
+						sessionID,
+						id: item.id,
+						iconSrc: Zotero.ItemTypes.getImageSrc(item.itemType),
+						title: item.title,
+						progress: 100
+					}
+				);
 				for (var i = 0; i < item.attachments.length; i++) {
 					var attachment = item.attachments[i];
-					Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
-						sessionID,
-						id: attachment.id,
-						iconSrc: determineAttachmentIcon(attachment),
-						title: attachment.title,
-						parentItem: item.id
-					});
+					Zotero.Messaging.sendMessage(
+						"progressWindow.itemProgress", {
+							sessionID,
+							id: attachment.id,
+							iconSrc: determineAttachmentIcon(attachment),
+							title: attachment.title,
+							parentItem: item.id
+						}
+					);
 				}
 				if (item.notes) {
 					for (let note of item.notes) {
-						Zotero.Messaging.sendMessage('progressWindow.itemProgress', {
-							sessionID,
-							id: null,
-							iconSrc: _noteImgSrc,
-							title: Zotero.Utilities.cleanTags(note.note),
-							parentItem: item.id,
-							progress: 100
-						});
+						Zotero.Messaging.sendMessage(
+							'progressWindow.itemProgress', {
+								sessionID,
+								id: null,
+								iconSrc: _noteImgSrc,
+								title: Zotero.Utilities.cleanTags(note.note),
+								parentItem: item.id,
+								progress: 100
+							}
+						)
 					}
 				}
 			});
 			translate.setHandler("attachmentProgress", function(obj, attachment, progress, err) {
-				Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
-					sessionID,
-					id: attachment.id,
-					iconSrc: determineAttachmentIcon(attachment),
-					title: attachment.title,
-					parentItem: attachment.parentItem,
-					progress
-				});
+				Zotero.Messaging.sendMessage(
+					"progressWindow.itemProgress", {
+						sessionID,
+						id: attachment.id,
+						iconSrc: determineAttachmentIcon(attachment),
+						title: attachment.title,
+						parentItem: attachment.parentItem,
+						progress
+					}
+				);
 			});
 		}
 		return translate;
-	};
+	}
 
 	function determineAttachmentIcon(attachment) {
 		if (attachment.linkMode === "linked_url") {
 			return Zotero.ItemTypes.getImageSrc("attachment-web-link");
 		}
 		var contentType = attachment.contentType || attachment.mimeType;
-		return Zotero.ItemTypes.getImageSrc(contentType === "application/pdf" ? "attachment-pdf" : "attachment-snapshot");
+		return Zotero.ItemTypes.getImageSrc(
+			contentType === "application/pdf" ? "attachment-pdf" : "attachment-snapshot"
+		);
 	}
 
 	/**
@@ -230,18 +242,23 @@ Zotero.Inject = new function() {
 	this.loadReactComponents = async function(components = []) {
 		if (Zotero.isSafari) return;
 		var toLoad = [];
-		if (typeof ReactDOM === "undefined") {
-			toLoad = ['lib/react.js', 'lib/react-dom.js', 'lib/prop-types.js'];
+		if (typeof ReactDOM === "undefined" || typeof React === "undefined" ||
+			!React.useState) {
+			toLoad = [
+				'lib/react.js',
+				'lib/react-dom.js',
+				'lib/prop-types.js'
+			];
 		}
 		for (let component of components) {
 			if (!Zotero.UI || !Zotero.UI[component]) {
-				toLoad.push(`ui/${component}.js`);
+				toLoad.push(`ui/${component}.js`)
 			}
 		}
 		if (toLoad.length) {
 			return Zotero.Connector_Browser.injectScripts(toLoad);
 		}
-	};
+	}
 
 	this.confirm = function(props) {
 		return Zotero.ModalPrompt.confirm(props);
@@ -278,8 +295,8 @@ Zotero.Inject = new function() {
 			// Sequentialize notification display
 			lastChainedPromise = lastChainedPromise.then(showNotificationPrompt);
 			return lastChainedPromise;
-		};
-	}();
+		}
+	};
 
 	this.firstUsePrompt = function() {
 		return this.confirm({
@@ -301,7 +318,16 @@ Zotero.Inject = new function() {
 			button2Text: Zotero.getString('general_cancel'),
 			button3Text: Zotero.getString('error_connection_enableSavingToOnlineLibrary'),
 			title: Zotero.getString('error_connection_isAppRunning', clientName),
-			message: Zotero.getString('error_connection_save', [Zotero.getString('appConnector', clientName), clientName, ZOTERO_CONFIG.DOMAIN_NAME]) + '<br /><br />' + Zotero.Inject.getConnectionErrorTroubleshootingString()
+			message: Zotero.getString(
+					'error_connection_save',
+					[
+						Zotero.getString('appConnector', clientName),
+						clientName,
+						ZOTERO_CONFIG.DOMAIN_NAME
+					]
+				) +
+				'<br /><br />' +
+				Zotero.Inject.getConnectionErrorTroubleshootingString()
 		});
 
 		switch (result.button) {
@@ -316,12 +342,16 @@ Zotero.Inject = new function() {
 		}
 	};
 
+
 	this.getConnectionErrorTroubleshootingString = function() {
 		var clientName = ZOTERO_CONFIG.CLIENT_NAME;
 		var connectorName = Zotero.getString('appConnector', ZOTERO_CONFIG.CLIENT_NAME);
 		var downloadLink = 'https://www.zotero.org/download/';
 		var troubleshootLink = 'https://www.zotero.org/support/kb/connector_zotero_unavailable';
-		return Zotero.getString('error_connection_downloadOrTroubleshoot', [downloadLink, clientName, troubleshootLink]);
+		return Zotero.getString(
+			'error_connection_downloadOrTroubleshoot',
+			[downloadLink, clientName, troubleshootLink]
+		);
 	};
 
 	/**
@@ -336,31 +366,31 @@ Zotero.Inject = new function() {
 		return true;
 
 		/*
-  var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([
-  	Zotero.Prefs.getAsync('firstSaveToServer'), 
-  	Zotero.Connector.checkIsOnline()
-  ]);
-  if (zoteroIsOnline || !firstSaveToServer) {
-  	return true;
-  }
-  var result = await this.firstSaveToServerPrompt();
-  if (result == 'server') {
-  	Zotero.Prefs.set('firstSaveToServer', false);
-  	return true;
-  } else if (result == 'retry') {
-  	// If we perform the retry immediately and Zotero is still unavailable the prompt returns instantly
-  	// making the user interaction confusing so we wait a bit first
-  	await Zotero.Promise.delay(500);
-  	return this.checkActionToServer();
-  }
-  return false;
-  */
+		var [firstSaveToServer, zoteroIsOnline] = await Zotero.Promise.all([
+			Zotero.Prefs.getAsync('firstSaveToServer'), 
+			Zotero.Connector.checkIsOnline()
+		]);
+		if (zoteroIsOnline || !firstSaveToServer) {
+			return true;
+		}
+		var result = await this.firstSaveToServerPrompt();
+		if (result == 'server') {
+			Zotero.Prefs.set('firstSaveToServer', false);
+			return true;
+		} else if (result == 'retry') {
+			// If we perform the retry immediately and Zotero is still unavailable the prompt returns instantly
+			// making the user interaction confusing so we wait a bit first
+			await Zotero.Promise.delay(500);
+			return this.checkActionToServer();
+		}
+		return false;
+		*/
 	};
 
 	this.translate = async function(translatorID, options = {}) {
 		let result = await Zotero.Inject.checkActionToServer();
 		if (!result) return;
-		var translator = this.translators.find(t => t.translatorID == translatorID);
+		var translator = this.translators.find((t) => t.translatorID == translatorID);
 
 		// We always want to save again
 		options.resave = true;
@@ -388,12 +418,18 @@ Zotero.Inject = new function() {
 		}
 
 		var sessionID = Zotero.Utilities.randomString();
-		Zotero.Messaging.sendMessage("progressWindow.show", [sessionID, null, false,
-			// If we're likely to show the Select Items window, delay the opening of the
-			// popup until we've had a chance to hide it (which happens in the 'select'
-			// callback in progressWindow_inject.js).
-			translator.itemType == 'multiple' ? 100 : null
-		]);
+		Zotero.Messaging.sendMessage(
+			"progressWindow.show",
+			[
+				sessionID,
+				null,
+				false,
+				// If we're likely to show the Select Items window, delay the opening of the
+				// popup until we've had a chance to hide it (which happens in the 'select'
+				// callback in progressWindow_inject.js).
+				translator.itemType == 'multiple' ? 100 : null
+			]
+		);
 
 		this.sessionDetails = {
 			id: sessionID,
@@ -436,7 +472,14 @@ Zotero.Inject = new function() {
 				} else {
 					// Clear session details on failure, so another save click tries again
 					this.sessionDetails = {};
+					// We delay opening the progressWindow for multiple items so we don't have to flash it
+					// for the select dialog. But it comes back to bite us in the butt if a translation
+					// error occurs immediately since the below command will execute before the progressWindow show,
+					// and then the delayed progressWindow.show will pop up another empty progress window.
+					// Cannot have that!
+					await Zotero.Promise.delay(500);
 					Zotero.Messaging.sendMessage("progressWindow.done", [false]);
+					return;
 				}
 			}
 		}
@@ -484,8 +527,10 @@ Zotero.Inject = new function() {
 			sessionID,
 			url: document.location.toString(),
 			cookie: document.cookie,
+			title: title,
 			html: document.documentElement.innerHTML,
-			skipSnapshot: !options.snapshot
+			skipSnapshot: !options.snapshot,
+			singleFile: true
 		};
 
 		var image;
@@ -497,25 +542,105 @@ Zotero.Inject = new function() {
 		}
 
 		Zotero.Messaging.sendMessage("progressWindow.show", [sessionID]);
-		Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
-			sessionID,
-			id: title,
-			iconSrc: Zotero.ItemTypes.getImageSrc(image),
-			title: title
-		});
+		Zotero.Messaging.sendMessage(
+			"progressWindow.itemProgress", {
+				sessionID,
+				id: 1,
+				iconSrc: Zotero.ItemTypes.getImageSrc(image),
+				title: title
+			}
+		);
+
 		try {
 			var result = await Zotero.Connector.callMethodWithCookies("saveSnapshot", data);
 			Zotero.Messaging.sendMessage("progressWindow.sessionCreated", {
 				sessionID
 			});
-			Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
-				sessionID,
-				id: title,
-				iconSrc: Zotero.ItemTypes.getImageSrc(image),
-				title,
-				parentItem: false,
-				progress: 100
-			});
+			Zotero.Messaging.sendMessage(
+				"progressWindow.itemProgress", {
+					sessionID,
+					id: 1,
+					iconSrc: Zotero.ItemTypes.getImageSrc(image),
+					title,
+					parentItem: false,
+					progress: 100
+				}
+			);
+
+			// Once snapshot item is created, if requested, run SingleFile
+			if (result && result.saveSingleFile) {
+				let progressItem = {
+					sessionID,
+					id: 2,
+					iconSrc: Zotero.ItemTypes.getImageSrc("attachment-snapshot"),
+					title: "Snapshot",
+					parentItem: 1,
+					progress: 0
+				};
+
+				Zotero.Messaging.sendMessage("progressWindow.itemProgress", progressItem);
+
+				try {
+					data.snapshotContent = await Zotero.SingleFile.retrievePageData();
+				} catch (e) {
+					// Swallow error, will fallback to save in client
+					Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
+						...progressItem,
+						...{
+							progress: false
+						}
+					});
+				}
+
+				try {
+					result = await Zotero.Connector.callMethodWithCookies({
+							method: "saveSingleFile",
+							headers: {
+								"Content-Type": "application/json"
+							}
+						},
+						data
+					);
+
+					Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
+						...progressItem,
+						...{
+							progress: 100
+						}
+					});
+				} catch (e) {
+					if (e.status === 400 && e.value === 'Endpoint does not support content-type\n') {
+						let snapshotContent = data.snapshotContent;
+						delete data.snapshotContent;
+
+						data.pageData = {
+							content: snapshotContent,
+							resources: {}
+						};
+
+						// This means a Zotero client that expects SingleFileZ. We can just feed
+						// it a payload it is expecting with no resources.
+						result = await Zotero.Connector.callMethodWithCookies({
+							method: "saveSingleFile",
+							headers: {
+								"Content-Type": "multipart/form-data"
+							}
+						}, {
+							payload: JSON.stringify(data)
+						});
+
+						Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
+							...progressItem,
+							...{
+								progress: 100
+							}
+						});
+					} else {
+						throw e;
+					}
+				}
+			}
+
 			Zotero.Messaging.sendMessage("progressWindow.done", [true]);
 			Object.assign(this.sessionDetails, {
 				id: sessionID,
@@ -531,13 +656,15 @@ Zotero.Inject = new function() {
 					let itemSaver = new Zotero.Translate.ItemSaver({});
 					let items = await itemSaver.saveAsWebpage();
 					if (items.length) {
-						Zotero.Messaging.sendMessage("progressWindow.itemProgress", {
-							id: title,
-							iconSrc: Zotero.ItemTypes.getImageSrc(image),
-							title,
-							parentItem: false,
-							progress: 100
-						});
+						Zotero.Messaging.sendMessage(
+							"progressWindow.itemProgress", {
+								id: title,
+								iconSrc: Zotero.ItemTypes.getImageSrc(image),
+								title,
+								parentItem: false,
+								progress: 100
+							}
+						);
 					}
 					Zotero.Messaging.sendMessage("progressWindow.done", [true]);
 					return;
@@ -553,7 +680,7 @@ Zotero.Inject = new function() {
 			}
 			throw e;
 		}
-	};
+	}
 
 	this.addKeyboardShortcut = function(eventDescriptor, fn, elem) {
 		elem = elem || document;
@@ -565,8 +692,8 @@ Zotero.Inject = new function() {
 			event.preventDefault();
 			fn();
 		});
-	};
-}();
+	}
+};
 
 // check whether this is a hidden browser window being used for scraping
 var isHiddenIFrame = false;
@@ -578,8 +705,8 @@ const isWeb = window.location.protocol === "http:" || window.location.protocol =
 const isTestPage = Zotero.isBrowserExt && window.location.href.startsWith(browser.extension.getURL('test'));
 // don't try to scrape on hidden frames
 if (!isHiddenIFrame) {
-	var doInject = function() {
-		Zotero.initInject();
+	var doInject = async function() {
+		await Zotero.initInject();
 
 		if (Zotero.isSafari && isTopWindow) {
 			Zotero.Connector_Browser.onPageLoad(document.location.href);
@@ -597,7 +724,7 @@ if (!isHiddenIFrame) {
 		Zotero.Messaging.addMessageListener("saveAsWebpage", function(data) {
 			if (Zotero.isSafari) {
 				if (data[0] !== instanceID) return;
-				Zotero.Inject.saveAsWebpage(data[1]);
+				Zotero.Inject.saveAsWebpage(data[1])
 			} else {
 				Zotero.Inject.saveAsWebpage(data);
 			}
@@ -606,14 +733,18 @@ if (!isHiddenIFrame) {
 		Zotero.Messaging.addMessageListener("pageModified", function() {
 			Zotero.Inject.init(true);
 		});
+		Zotero.Messaging.addMessageListener('historyChanged', function() {
+			Zotero.Inject.init(true);
+		});
+
 		Zotero.Messaging.addMessageListener("firstUse", function() {
 			return Zotero.Inject.firstUsePrompt();
 		});
 
 		if (document.readyState !== "complete") {
-			window.addEventListener("load", function(e) {
+			window.addEventListener("pageshow", function(e) {
 				if (e.target !== document) return;
-				Zotero.Inject.init();
+				Zotero.Inject.init(true);
 			}, false);
 		} else {
 			Zotero.Inject.init();

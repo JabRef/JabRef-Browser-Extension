@@ -25,17 +25,15 @@
 			"matches": ["http://*/*", "https://*/*"],
 			"run_at": "document_start",
 			"js": [/*INJECT SCRIPTS*/]
-		},{
-			"matches": ["https://docs.google.com/document/*"],
-			"run_at": "document_start",
-			"js": ["zotero-google-docs-integration/kixAddZoteroMenu.js", "zotero-google-docs-integration/client.js"]
 		}
 	],
 	"web_accessible_resources": [
 		"images/*",
 		"progressWindow/progressWindow.html",
 		"modalPrompt/modalPrompt.html",
-		"test/data/journalArticle-single.html"
+		"test/data/journalArticle-single.html",
+		"lib/SingleFile/lib/single-file/processors/hooks/content/content-hooks-web.js",
+		"lib/SingleFile/lib/single-file/processors/hooks/content/content-hooks-frames-web.js"
 	],
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 	"homepage_url": "https://www.zotero.org/",

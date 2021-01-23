@@ -263,6 +263,7 @@ Zotero.Attachments = new function(){
 	
 	/**
 	 * @param {Object} options - 'file', 'url', 'title', 'contentType', 'charset', 'parentItemID', 'singleFile'
+	 * @param {Object} [options.saveOptions] - Options to pass to Zotero.Item::save()
 	 * @return {Promise<Zotero.Item>}
 	 */
 	this.importSnapshotFromFile = Zotero.Promise.coroutine(function* (options) {
@@ -279,6 +280,7 @@ Zotero.Attachments = new function(){
 		var contentType = options.contentType;
 		var charset = options.charset;
 		var parentItemID = options.parentItemID;
+		var saveOptions = options.saveOptions;
 		
 		if (!parentItemID) {
 			throw new Error("parentItemID not provided");
@@ -302,7 +304,7 @@ Zotero.Attachments = new function(){
 				// DEBUG: this should probably insert access date too so as to
 				// create a proper item, but at the moment this is only called by
 				// translate.js, which sets the metadata fields itself
-				itemID = yield attachmentItem.save();
+				itemID = yield attachmentItem.save(saveOptions);
 				
 				var storageDir = Zotero.getStorageDirectory();
 				destDir = this.getStorageDirectory(attachmentItem);
@@ -347,8 +349,8 @@ Zotero.Attachments = new function(){
 		}
 		return attachmentItem;
 	});
-	
-	
+
+
 	/**
 	 * @param {Object} options
 	 * @param {Integer} options.libraryID
@@ -361,7 +363,7 @@ Zotero.Attachments = new function(){
 	 * @param {String} [options.contentType]
 	 * @param {String} [options.referrer]
 	 * @param {CookieSandbox} [options.cookieSandbox]
-	 * @param {Object} [options.saveOptions]
+	 * @param {Object} [options.saveOptions] - Options to pass to Zotero.Item::save()
 	 * @return {Promise<Zotero.Item>} - A promise for the created attachment item
 	 */
 	this.importFromURL = Zotero.Promise.coroutine(function* (options) {
@@ -398,14 +400,6 @@ Zotero.Attachments = new function(){
 				var browser = Zotero.HTTP.loadDocuments(
 					url,
 					Zotero.Promise.coroutine(function* () {
-						let channel = browser.docShell.currentDocumentChannel;
-						if (channel && (channel instanceof Components.interfaces.nsIHttpChannel)) {
-							if (channel.responseStatus < 200 || channel.responseStatus >= 400) {
-								reject(new Error("Invalid response " + channel.responseStatus + " "
-									+ channel.responseStatusText + " for '" + url + "'"));
-								return false;
-							}
-						}
 						try {
 							let attachmentItem = yield Zotero.Attachments.importFromDocument({
 								libraryID,
@@ -426,7 +420,9 @@ Zotero.Attachments = new function(){
 						}
 					}),
 					undefined,
-					undefined,
+					(e) => {
+						reject(e);
+					},
 					true,
 					cookieSandbox
 				);
@@ -531,7 +527,7 @@ Zotero.Attachments = new function(){
 	 * @param {String} [options.title]
 	 * @param {String} options.contentType
 	 * @param {String[]} [options.collections]
-	 * @param {Object} [options.saveOptions]
+	 * @param {Object} [options.saveOptions] - Options to pass to Zotero.Item::save()
 	 * @return {Zotero.Item}
 	 */
 	this.createURLAttachmentFromTemporaryStorageDirectory = async function (options) {
@@ -566,8 +562,8 @@ Zotero.Attachments = new function(){
 			attachmentItem.attachmentPath = 'storage:' + options.filename;
 			await attachmentItem.saveTx(
 				Object.assign(
-					options.saveOptions || {},
-					{ notifierQueue }
+					{ notifierQueue },
+					options.saveOptions || {}
 				)
 			);
 			
@@ -595,6 +591,7 @@ Zotero.Attachments = new function(){
 	 * Create a link attachment from a URL
 	 *
 	 * @param {Object} options - 'url', 'parentItemID', 'contentType', 'title', 'collections'
+	 * @param {Object} [options.saveOptions] - Options to pass to Zotero.Item::save()
 	 * @return {Promise<Zotero.Item>} - A promise for the created attachment item
 	 */
 	this.linkFromURL = Zotero.Promise.coroutine(function* (options) {
@@ -605,6 +602,7 @@ Zotero.Attachments = new function(){
 		var contentType = options.contentType;
 		var title = options.title;
 		var collections = options.collections;
+		var saveOptions = options.saveOptions;
 		
 		var schemeRE = /^([a-z][a-z0-9+.-]+):/;
 		var matches = url.match(schemeRE);
@@ -657,7 +655,8 @@ Zotero.Attachments = new function(){
 			linkMode: this.LINK_MODE_LINKED_URL,
 			contentType,
 			parentItemID,
-			collections
+			collections,
+			saveOptions,
 		});
 	});
 	
@@ -666,6 +665,7 @@ Zotero.Attachments = new function(){
 	 * TODO: what if called on file:// document?
 	 *
 	 * @param {Object} options - 'document', 'parentItemID', 'collections'
+	 * @param {Object} [options.saveOptions] - Options to pass to Zotero.Item::save()
 	 * @return {Promise<Zotero.Item>}
 	 */
 	this.linkFromDocument = Zotero.Promise.coroutine(function* (options) {
@@ -674,6 +674,7 @@ Zotero.Attachments = new function(){
 		var document = options.document;
 		var parentItemID = options.parentItemID;
 		var collections = options.collections;
+		var saveOptions = options.saveOptions;
 		
 		if (parentItemID && collections) {
 			throw new Error("parentItemID and collections cannot both be provided");
@@ -690,7 +691,8 @@ Zotero.Attachments = new function(){
 			contentType,
 			charset: document.characterSet,
 			parentItemID,
-			collections
+			collections,
+			saveOptions,
 		});
 		
 		if (Zotero.Fulltext.isCachedMIMEType(contentType)) {
@@ -709,6 +711,7 @@ Zotero.Attachments = new function(){
 	 * Save a snapshot from a Document
 	 *
 	 * @param {Object} options - 'libraryID', 'document', 'parentItemID', 'forceTitle', 'collections'
+	 * @param {Object} [options.saveOptions] - Options to pass to Zotero.Item::save()
 	 * @return {Promise<Zotero.Item>} - A promise for the created attachment item
 	 */
 	this.importFromDocument = Zotero.Promise.coroutine(function* (options) {
@@ -719,6 +722,7 @@ Zotero.Attachments = new function(){
 		var parentItemID = options.parentItemID;
 		var title = options.title;
 		var collections = options.collections;
+		var saveOptions = options.saveOptions;
 		
 		if (parentItemID && collections) {
 			throw new Error("parentItemID and parentCollectionIDs cannot both be provided");
@@ -752,8 +756,19 @@ Zotero.Attachments = new function(){
 			if ((contentType === 'text/html' || contentType === 'application/xhtml+xml')
 					// Documents from XHR don't work here
 					&& Zotero.Translate.DOMWrapper.unwrap(document) instanceof Ci.nsIDOMDocument) {
-				Zotero.debug('Saving document with saveDocument()');
-				yield Zotero.Utilities.Internal.saveDocument(document, tmpFile);
+				if (document.defaultView.window) {
+					// If we have a full hidden browser, use SingleFile
+					Zotero.debug('Getting snapshot with snapshotDocument()');
+					let snapshotContent = yield Zotero.Utilities.Internal.snapshotDocument(document);
+
+					// Write main HTML file to disk
+					yield Zotero.File.putContentsAsync(tmpFile, snapshotContent);
+				}
+				else {
+					// Fallback to nsIWebBrowserPersist
+					Zotero.debug('Saving document with saveDocument()');
+					yield Zotero.Utilities.Internal.saveDocument(document, tmpFile);
+				}
 			}
 			else {
 				Zotero.debug("Saving file with saveURI()");
@@ -796,11 +811,10 @@ Zotero.Attachments = new function(){
 					attachmentItem.setCollections(collections);
 				}
 				attachmentItem.attachmentPath = 'storage:' + fileName;
-				var itemID = yield attachmentItem.save();
+				var itemID = yield attachmentItem.save(saveOptions);
 				
 				Zotero.Fulltext.queueItem(attachmentItem);
 				
-				// DEBUG: Does this fail if 'storage' is symlinked to another drive?
 				destDir = this.getStorageDirectory(attachmentItem).path;
 				yield OS.File.move(tmpDir, destDir);
 			}.bind(this));
@@ -828,6 +842,102 @@ Zotero.Attachments = new function(){
 	});
 	
 	
+	/**
+	 * Save a snapshot from HTML page content given by SingleFile
+	 *
+	 * @param {Object} options
+	 * @param {String} options.url
+	 * @param {Object} options.snapshotContent - HTML content from SingleFile
+	 * @param {Integer} [options.parentItemID]
+	 * @param {Integer[]} [options.collections]
+	 * @param {String} [options.title]
+	 * @param {Object} [options.saveOptions] - Options to pass to Zotero.Item::save()
+	 * @return {Promise<Zotero.Item>} - A promise for the created attachment item
+	 */
+	this.importFromSnapshotContent = async (options) => {
+		Zotero.debug("Importing attachment item from Snapshot Content");
+
+		let url = options.url;
+		let snapshotContent = options.snapshotContent;
+		let parentItemID = options.parentItemID;
+		let collections = options.collections;
+		let title = options.title;
+		let saveOptions = options.saveOptions;
+
+		let contentType = "text/html";
+
+		if (parentItemID && collections) {
+			throw new Error("parentItemID and parentCollectionIDs cannot both be provided");
+		}
+
+		// If no title was provided, pull it from the document
+		if (!title) {
+			let parser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
+				.createInstance(Components.interfaces.nsIDOMParser);
+			parser.init(null, Services.io.newURI(url));
+			let doc = parser.parseFromString(snapshotContent, 'text/html');
+			title = doc.title;
+		}
+		
+		let tmpDirectory = (await this.createTemporaryStorageDirectory()).path;
+		let destDirectory;
+		let attachmentItem;
+		try {
+			let fileName = Zotero.File.truncateFileName(this._getFileNameFromURL(url, contentType), 100);
+			let tmpFile = OS.Path.join(tmpDirectory, fileName);
+			await Zotero.File.putContentsAsync(tmpFile, snapshotContent);
+
+			// If we're using the title from the document, make some adjustments
+			// Remove e.g. " - Scaled (-17%)" from end of images saved from links,
+			// though I'm not sure why it's getting added to begin with
+			if (contentType.indexOf('image/') === 0) {
+				title = title.replace(/(.+ \([^,]+, [0-9]+x[0-9]+[^\)]+\)) - .+/, "$1" );
+			}
+			// If not native type, strip mime type data in parens
+			else if (!Zotero.MIME.hasNativeHandler(contentType, this._getExtensionFromURL(url))) {
+				title = title.replace(/(.+) \([a-z]+\/[^\)]+\)/, "$1" );
+			}
+
+			attachmentItem = await _addToDB({
+				file: 'storage:' + fileName,
+				title,
+				url,
+				linkMode: Zotero.Attachments.LINK_MODE_IMPORTED_URL,
+				parentItemID,
+				charset: 'utf-8',
+				contentType,
+				collections,
+				saveOptions
+			});
+
+			Zotero.Fulltext.queueItem(attachmentItem);
+
+			destDirectory = this.getStorageDirectory(attachmentItem).path;
+			await OS.File.move(tmpDirectory, destDirectory);
+		}
+		catch (e) {
+			Zotero.debug(e, 1);
+			
+			// Clean up
+			try {
+				if (tmpDirectory) {
+					await OS.File.removeDir(tmpDirectory, { ignoreAbsent: true });
+				}
+				if (destDirectory) {
+					await OS.File.removeDir(destDirectory, { ignoreAbsent: true });
+				}
+			}
+			catch (e) {
+				Zotero.debug(e, 1);
+			}
+			
+			throw e;
+		}
+		
+		return attachmentItem;
+	};
+
+
 	/**
 	 * @param {String} url
 	 * @param {String} path
@@ -1877,9 +1987,14 @@ Zotero.Attachments = new function(){
 					break;
 			}
 			
+			var value;
 			switch (field) {
+				case 'title':
+					value = item.getField('title', false, true);
+					break;
+				
 				case 'year':
-					var value = item.getField('date', true, true);
+					value = item.getField('date', true, true);
 					if (value) {
 						value = Zotero.Date.multipartToSQL(value).substr(0, 4);
 						if (value == '0000') {
@@ -1889,7 +2004,7 @@ Zotero.Attachments = new function(){
 				break;
 				
 				default:
-					var value = '' + item.getField(field, false, true);
+					value = '' + item.getField(field, false, true);
 			}
 			
 			var re = new RegExp("\{?([^%\{\}]*)" + rpl + "(\{[0-9]+\})?" + "([^%\{\}]*)\}?");
@@ -1914,6 +2029,7 @@ Zotero.Attachments = new function(){
 		formatString = rpl('year');
 		formatString = rpl('title');
 		
+		formatString = Zotero.Utilities.cleanTags(formatString);
 		formatString = Zotero.File.getValidFileName(formatString);
 		return formatString;
 	}

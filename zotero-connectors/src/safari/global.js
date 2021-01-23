@@ -52,6 +52,7 @@ Zotero.Connector_Browser = new function() {
 	this.onPageLoad = function(title, url, tab) {
 		tab.title = title;
 		tab.url = url;
+		tab.instanceID = 0;
 		if (Zotero.Proxies.transparent) {
 			Zotero.Proxies.onPageLoadSafari(tab);
 		}
@@ -181,7 +182,7 @@ Zotero.Connector_Browser = new function() {
 		Zotero.Messaging.sendMessage('Swift.openTab', [url]);
 	};
 	
-	this.bringToFront = function() {
+	this.bringToFront = async function() {
 		// Unlikely to do anything
 		Zotero.Messaging.sendMessage('Swift.activate');
 	};

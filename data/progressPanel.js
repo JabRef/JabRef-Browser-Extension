@@ -17,7 +17,6 @@ browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		console.log("JabRef: Popup closed");
 	} else if (message.onConvertToBibtex) {
 		document.getElementById("status").innerHTML = 'Convert to BibTeX...';
-		// = "";
 	} else if (message.onSendToJabRef) {
 		document.getElementById("status").innerHTML = 'Send to JabRef...';
 	} else if (message.errorWhileSendingToJabRef) {

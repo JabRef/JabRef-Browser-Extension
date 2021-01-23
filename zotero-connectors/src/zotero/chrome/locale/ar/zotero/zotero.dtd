@@ -120,7 +120,7 @@
 <!ENTITY zotero.toolbar.import.label "استيراد...">
 <!ENTITY zotero.toolbar.importFromClipboard "استيراد من الحافظة">
 <!ENTITY zotero.toolbar.export.label "تصدير المكتبة...">
-<!ENTITY zotero.toolbar.rtfScan.label "RTF Scan">
+<!ENTITY zotero.toolbar.rtfScan.label "فحص ملف RTF">
 <!ENTITY zotero.toolbar.timeline.label "إنشاء خط زمني">
 <!ENTITY zotero.toolbar.preferences.label "التفضيلات...">
 <!ENTITY zotero.toolbar.supportAndDocumentation "الدعم و الوثائق">
@@ -174,6 +174,9 @@
 
 <!ENTITY zotero.lookup.description "أدخل ردمك أو معرف الوثيقة الرقمي أو  بميد أو معرف الأرشيف للإضافة لممكتبتك">
 <!ENTITY zotero.lookup.button.search "بحث">
+
+<!ENTITY zotero.createParent.title "Create Parent Item">
+<!ENTITY zotero.createParent.button.manual "Manual Entry">
 
 <!ENTITY zotero.selectitems.title "تحديد العناصر">
 <!ENTITY zotero.selectitems.intro.label "حدد العناصر التي تريد إضافتها لمكتبتك">
