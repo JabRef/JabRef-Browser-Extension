@@ -1,0 +1,586 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1B856E7725BC8A1D006159EA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B856E7625BC8A1D006159EA /* AppDelegate.swift */; };
+		1B856E7A25BC8A1D006159EA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E7825BC8A1D006159EA /* Main.storyboard */; };
+		1B856E7C25BC8A1D006159EA /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B856E7B25BC8A1D006159EA /* ViewController.swift */; };
+		1B856E7E25BC8A1F006159EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E7D25BC8A1F006159EA /* Assets.xcassets */; };
+		1B856E8525BC8A1F006159EA /* JabRef Browser Extension Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 1B856E8425BC8A1F006159EA /* JabRef Browser Extension Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1B856E8A25BC8A1F006159EA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B856E8925BC8A1F006159EA /* Cocoa.framework */; };
+		1B856E8D25BC8A1F006159EA /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B856E8C25BC8A1F006159EA /* SafariWebExtensionHandler.swift */; };
+		1B856EAF25BC8A20006159EA /* JabFox.sublime-project in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E9A25BC8A20006159EA /* JabFox.sublime-project */; };
+		1B856EB025BC8A20006159EA /* bibtexConverter.js in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E9B25BC8A20006159EA /* bibtexConverter.js */; };
+		1B856EB125BC8A20006159EA /* web-ext-config.js in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E9C25BC8A20006159EA /* web-ext-config.js */; };
+		1B856EB225BC8A20006159EA /* screenshots in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E9D25BC8A20006159EA /* screenshots */; };
+		1B856EB325BC8A20006159EA /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E9E25BC8A20006159EA /* LICENSE */; };
+		1B856EB425BC8A20006159EA /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 1B856E9F25BC8A20006159EA /* background.js */; };
+		1B856EB525BC8A20006159EA /* browser-polyfill.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA025BC8A20006159EA /* browser-polyfill.min.js */; };
+		1B856EB625BC8A20006159EA /* node_modules in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA125BC8A20006159EA /* node_modules */; };
+		1B856EB725BC8A20006159EA /* web-ext-artifacts in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA225BC8A20006159EA /* web-ext-artifacts */; };
+		1B856EB825BC8A20006159EA /* install_linux.sh in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA325BC8A20006159EA /* install_linux.sh */; };
+		1B856EB925BC8A20006159EA /* Zotero in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA425BC8A20006159EA /* Zotero */; };
+		1B856EBA25BC8A20006159EA /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA525BC8A20006159EA /* README.md */; };
+		1B856EBB25BC8A20006159EA /* zotero-connectors in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA625BC8A20006159EA /* zotero-connectors */; };
+		1B856EBC25BC8A20006159EA /* package-lock.json in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA725BC8A20006159EA /* package-lock.json */; };
+		1B856EBD25BC8A20006159EA /* package.json in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA825BC8A20006159EA /* package.json */; };
+		1B856EBE25BC8A20006159EA /* safari in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EA925BC8A20006159EA /* safari */; };
+		1B856EBF25BC8A20006159EA /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EAA25BC8A20006159EA /* manifest.json */; };
+		1B856EC025BC8A20006159EA /* gulpfile.js in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EAB25BC8A20006159EA /* gulpfile.js */; };
+		1B856EC125BC8A20006159EA /* PrivacyPolicy.md in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EAC25BC8A20006159EA /* PrivacyPolicy.md */; };
+		1B856EC225BC8A20006159EA /* data in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EAD25BC8A20006159EA /* data */; };
+		1B856EC325BC8A20006159EA /* connector.js in Resources */ = {isa = PBXBuildFile; fileRef = 1B856EAE25BC8A20006159EA /* connector.js */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1B856E8625BC8A1F006159EA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B856E6A25BC8A1D006159EA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1B856E8325BC8A1F006159EA;
+			remoteInfo = "JabRef Browser Extension Extension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1B856E9525BC8A1F006159EA /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1B856E8525BC8A1F006159EA /* JabRef Browser Extension Extension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1B856E7225BC8A1D006159EA /* JabRef Browser Extension.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "JabRef Browser Extension.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B856E7525BC8A1D006159EA /* JabRef_Browser_Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JabRef_Browser_Extension.entitlements; sourceTree = "<group>"; };
+		1B856E7625BC8A1D006159EA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		1B856E7925BC8A1D006159EA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		1B856E7B25BC8A1D006159EA /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		1B856E7D25BC8A1F006159EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1B856E7F25BC8A1F006159EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1B856E8425BC8A1F006159EA /* JabRef Browser Extension Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "JabRef Browser Extension Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B856E8925BC8A1F006159EA /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		1B856E8C25BC8A1F006159EA /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		1B856E8E25BC8A1F006159EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1B856E8F25BC8A1F006159EA /* JabRef_Browser_Extension_Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JabRef_Browser_Extension_Extension.entitlements; sourceTree = "<group>"; };
+		1B856E9A25BC8A20006159EA /* JabFox.sublime-project */ = {isa = PBXFileReference; lastKnownFileType = text; name = "JabFox.sublime-project"; path = "../../../JabFox.sublime-project"; sourceTree = "<group>"; };
+		1B856E9B25BC8A20006159EA /* bibtexConverter.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = bibtexConverter.js; path = ../../../bibtexConverter.js; sourceTree = "<group>"; };
+		1B856E9C25BC8A20006159EA /* web-ext-config.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "web-ext-config.js"; path = "../../../web-ext-config.js"; sourceTree = "<group>"; };
+		1B856E9D25BC8A20006159EA /* screenshots */ = {isa = PBXFileReference; lastKnownFileType = folder; name = screenshots; path = ../../../screenshots; sourceTree = "<group>"; };
+		1B856E9E25BC8A20006159EA /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = ../../../LICENSE; sourceTree = "<group>"; };
+		1B856E9F25BC8A20006159EA /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../background.js; sourceTree = "<group>"; };
+		1B856EA025BC8A20006159EA /* browser-polyfill.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "browser-polyfill.min.js"; path = "../../../browser-polyfill.min.js"; sourceTree = "<group>"; };
+		1B856EA125BC8A20006159EA /* node_modules */ = {isa = PBXFileReference; lastKnownFileType = folder; name = node_modules; path = ../../../node_modules; sourceTree = "<group>"; };
+		1B856EA225BC8A20006159EA /* web-ext-artifacts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "web-ext-artifacts"; path = "../../../web-ext-artifacts"; sourceTree = "<group>"; };
+		1B856EA325BC8A20006159EA /* install_linux.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = install_linux.sh; path = ../../../install_linux.sh; sourceTree = "<group>"; };
+		1B856EA425BC8A20006159EA /* Zotero */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Zotero; path = ../../../Zotero; sourceTree = "<group>"; };
+		1B856EA525BC8A20006159EA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../README.md; sourceTree = "<group>"; };
+		1B856EA625BC8A20006159EA /* zotero-connectors */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "zotero-connectors"; path = "../../../zotero-connectors"; sourceTree = "<group>"; };
+		1B856EA725BC8A20006159EA /* package-lock.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = "package-lock.json"; path = "../../../package-lock.json"; sourceTree = "<group>"; };
+		1B856EA825BC8A20006159EA /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = package.json; path = ../../../package.json; sourceTree = "<group>"; };
+		1B856EA925BC8A20006159EA /* safari */ = {isa = PBXFileReference; lastKnownFileType = folder; name = safari; path = ../..; sourceTree = "<group>"; };
+		1B856EAA25BC8A20006159EA /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../../manifest.json; sourceTree = "<group>"; };
+		1B856EAB25BC8A20006159EA /* gulpfile.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = gulpfile.js; path = ../../../gulpfile.js; sourceTree = "<group>"; };
+		1B856EAC25BC8A20006159EA /* PrivacyPolicy.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = PrivacyPolicy.md; path = ../../../PrivacyPolicy.md; sourceTree = "<group>"; };
+		1B856EAD25BC8A20006159EA /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = ../../../data; sourceTree = "<group>"; };
+		1B856EAE25BC8A20006159EA /* connector.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = connector.js; path = ../../../connector.js; sourceTree = "<group>"; };
+		1B8E8F0125BC8AD300072B18 /* JabRef Browser ExtensionDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "JabRef Browser ExtensionDebug.entitlements"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1B856E6F25BC8A1D006159EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B856E8125BC8A1F006159EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B856E8A25BC8A1F006159EA /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1B856E6925BC8A1D006159EA = {
+			isa = PBXGroup;
+			children = (
+				1B856E7425BC8A1D006159EA /* JabRef Browser Extension */,
+				1B856E8B25BC8A1F006159EA /* JabRef Browser Extension Extension */,
+				1B856E8825BC8A1F006159EA /* Frameworks */,
+				1B856E7325BC8A1D006159EA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1B856E7325BC8A1D006159EA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1B856E7225BC8A1D006159EA /* JabRef Browser Extension.app */,
+				1B856E8425BC8A1F006159EA /* JabRef Browser Extension Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1B856E7425BC8A1D006159EA /* JabRef Browser Extension */ = {
+			isa = PBXGroup;
+			children = (
+				1B8E8F0125BC8AD300072B18 /* JabRef Browser ExtensionDebug.entitlements */,
+				1B856E7525BC8A1D006159EA /* JabRef_Browser_Extension.entitlements */,
+				1B856E7625BC8A1D006159EA /* AppDelegate.swift */,
+				1B856E7825BC8A1D006159EA /* Main.storyboard */,
+				1B856E7B25BC8A1D006159EA /* ViewController.swift */,
+				1B856E7D25BC8A1F006159EA /* Assets.xcassets */,
+				1B856E7F25BC8A1F006159EA /* Info.plist */,
+			);
+			path = "JabRef Browser Extension";
+			sourceTree = "<group>";
+		};
+		1B856E8825BC8A1F006159EA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1B856E8925BC8A1F006159EA /* Cocoa.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		1B856E8B25BC8A1F006159EA /* JabRef Browser Extension Extension */ = {
+			isa = PBXGroup;
+			children = (
+				1B856E9925BC8A20006159EA /* Resources */,
+				1B856E8C25BC8A1F006159EA /* SafariWebExtensionHandler.swift */,
+				1B856E8E25BC8A1F006159EA /* Info.plist */,
+				1B856E8F25BC8A1F006159EA /* JabRef_Browser_Extension_Extension.entitlements */,
+			);
+			path = "JabRef Browser Extension Extension";
+			sourceTree = "<group>";
+		};
+		1B856E9925BC8A20006159EA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1B856E9A25BC8A20006159EA /* JabFox.sublime-project */,
+				1B856E9B25BC8A20006159EA /* bibtexConverter.js */,
+				1B856E9C25BC8A20006159EA /* web-ext-config.js */,
+				1B856E9D25BC8A20006159EA /* screenshots */,
+				1B856E9E25BC8A20006159EA /* LICENSE */,
+				1B856E9F25BC8A20006159EA /* background.js */,
+				1B856EA025BC8A20006159EA /* browser-polyfill.min.js */,
+				1B856EA125BC8A20006159EA /* node_modules */,
+				1B856EA225BC8A20006159EA /* web-ext-artifacts */,
+				1B856EA325BC8A20006159EA /* install_linux.sh */,
+				1B856EA425BC8A20006159EA /* Zotero */,
+				1B856EA525BC8A20006159EA /* README.md */,
+				1B856EA625BC8A20006159EA /* zotero-connectors */,
+				1B856EA725BC8A20006159EA /* package-lock.json */,
+				1B856EA825BC8A20006159EA /* package.json */,
+				1B856EA925BC8A20006159EA /* safari */,
+				1B856EAA25BC8A20006159EA /* manifest.json */,
+				1B856EAB25BC8A20006159EA /* gulpfile.js */,
+				1B856EAC25BC8A20006159EA /* PrivacyPolicy.md */,
+				1B856EAD25BC8A20006159EA /* data */,
+				1B856EAE25BC8A20006159EA /* connector.js */,
+			);
+			name = Resources;
+			path = "JabRef Browser Extension Extension";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1B856E7125BC8A1D006159EA /* JabRef Browser Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B856E9625BC8A1F006159EA /* Build configuration list for PBXNativeTarget "JabRef Browser Extension" */;
+			buildPhases = (
+				1B856E6E25BC8A1D006159EA /* Sources */,
+				1B856E6F25BC8A1D006159EA /* Frameworks */,
+				1B856E7025BC8A1D006159EA /* Resources */,
+				1B856E9525BC8A1F006159EA /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1B856E8725BC8A1F006159EA /* PBXTargetDependency */,
+			);
+			name = "JabRef Browser Extension";
+			productName = "JabRef Browser Extension";
+			productReference = 1B856E7225BC8A1D006159EA /* JabRef Browser Extension.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1B856E8325BC8A1F006159EA /* JabRef Browser Extension Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B856E9225BC8A1F006159EA /* Build configuration list for PBXNativeTarget "JabRef Browser Extension Extension" */;
+			buildPhases = (
+				1B856E8025BC8A1F006159EA /* Sources */,
+				1B856E8125BC8A1F006159EA /* Frameworks */,
+				1B856E8225BC8A1F006159EA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "JabRef Browser Extension Extension";
+			productName = "JabRef Browser Extension Extension";
+			productReference = 1B856E8425BC8A1F006159EA /* JabRef Browser Extension Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1B856E6A25BC8A1D006159EA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1230;
+				LastUpgradeCheck = 1230;
+				TargetAttributes = {
+					1B856E7125BC8A1D006159EA = {
+						CreatedOnToolsVersion = 12.3;
+					};
+					1B856E8325BC8A1F006159EA = {
+						CreatedOnToolsVersion = 12.3;
+					};
+				};
+			};
+			buildConfigurationList = 1B856E6D25BC8A1D006159EA /* Build configuration list for PBXProject "JabRef Browser Extension" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1B856E6925BC8A1D006159EA;
+			productRefGroup = 1B856E7325BC8A1D006159EA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1B856E7125BC8A1D006159EA /* JabRef Browser Extension */,
+				1B856E8325BC8A1F006159EA /* JabRef Browser Extension Extension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1B856E7025BC8A1D006159EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B856E7E25BC8A1F006159EA /* Assets.xcassets in Resources */,
+				1B856E7A25BC8A1D006159EA /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B856E8225BC8A1F006159EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B856EB525BC8A20006159EA /* browser-polyfill.min.js in Resources */,
+				1B856EB225BC8A20006159EA /* screenshots in Resources */,
+				1B856EB625BC8A20006159EA /* node_modules in Resources */,
+				1B856EB825BC8A20006159EA /* install_linux.sh in Resources */,
+				1B856EC125BC8A20006159EA /* PrivacyPolicy.md in Resources */,
+				1B856EB125BC8A20006159EA /* web-ext-config.js in Resources */,
+				1B856EAF25BC8A20006159EA /* JabFox.sublime-project in Resources */,
+				1B856EBA25BC8A20006159EA /* README.md in Resources */,
+				1B856EBC25BC8A20006159EA /* package-lock.json in Resources */,
+				1B856EC025BC8A20006159EA /* gulpfile.js in Resources */,
+				1B856EB725BC8A20006159EA /* web-ext-artifacts in Resources */,
+				1B856EBB25BC8A20006159EA /* zotero-connectors in Resources */,
+				1B856EB025BC8A20006159EA /* bibtexConverter.js in Resources */,
+				1B856EB425BC8A20006159EA /* background.js in Resources */,
+				1B856EC225BC8A20006159EA /* data in Resources */,
+				1B856EBE25BC8A20006159EA /* safari in Resources */,
+				1B856EC325BC8A20006159EA /* connector.js in Resources */,
+				1B856EBF25BC8A20006159EA /* manifest.json in Resources */,
+				1B856EB325BC8A20006159EA /* LICENSE in Resources */,
+				1B856EB925BC8A20006159EA /* Zotero in Resources */,
+				1B856EBD25BC8A20006159EA /* package.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1B856E6E25BC8A1D006159EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B856E7C25BC8A1D006159EA /* ViewController.swift in Sources */,
+				1B856E7725BC8A1D006159EA /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B856E8025BC8A1F006159EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B856E8D25BC8A1F006159EA /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1B856E8725BC8A1F006159EA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1B856E8325BC8A1F006159EA /* JabRef Browser Extension Extension */;
+			targetProxy = 1B856E8625BC8A1F006159EA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		1B856E7825BC8A1D006159EA /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1B856E7925BC8A1D006159EA /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1B856E9025BC8A1F006159EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1B856E9125BC8A1F006159EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		1B856E9325BC8A1F006159EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "JabRef Browser Extension Extension/JabRef_Browser_Extension_Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = "JabRef Browser Extension Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.jabref.JabRef-Browser-Extension.Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1B856E9425BC8A1F006159EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "JabRef Browser Extension Extension/JabRef_Browser_Extension_Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = "JabRef Browser Extension Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.jabref.JabRef-Browser-Extension.Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1B856E9725BC8A1F006159EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "JabRef Browser Extension/JabRef Browser ExtensionDebug.entitlements";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = RKF6XV5V78;
+				INFOPLIST_FILE = "JabRef Browser Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.jabref.JabRef-Browser-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1B856E9825BC8A1F006159EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "JabRef Browser Extension/JabRef_Browser_Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "JabRef Browser Extension/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.jabref.JabRef-Browser-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B856E6D25BC8A1D006159EA /* Build configuration list for PBXProject "JabRef Browser Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B856E9025BC8A1F006159EA /* Debug */,
+				1B856E9125BC8A1F006159EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1B856E9225BC8A1F006159EA /* Build configuration list for PBXNativeTarget "JabRef Browser Extension Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B856E9325BC8A1F006159EA /* Debug */,
+				1B856E9425BC8A1F006159EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1B856E9625BC8A1F006159EA /* Build configuration list for PBXNativeTarget "JabRef Browser Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B856E9725BC8A1F006159EA /* Debug */,
+				1B856E9825BC8A1F006159EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1B856E6A25BC8A1D006159EA /* Project object */;
+}

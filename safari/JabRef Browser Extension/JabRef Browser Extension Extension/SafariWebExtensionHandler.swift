@@ -2,7 +2,7 @@
 //  SafariWebExtensionHandler.swift
 //  JabRef Browser Extension Extension
 //
-//  Created by Christoph S on 08.10.20.
+//  Created by Christoph S on 23.01.21.
 //
 
 import SafariServices

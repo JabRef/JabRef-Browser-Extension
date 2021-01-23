@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  JabRef Browser Extension
 //
-//  Created by Christoph S on 08.10.20.
+//  Created by Christoph S on 23.01.21.
 //
 
 import Cocoa
@@ -10,7 +10,7 @@ import SafariServices.SFSafariApplication
 import SafariServices.SFSafariExtensionManager
 
 let appName = "JabRef Browser Extension"
-let extensionBundleIdentifier = "org.jabref.JabRef-Browser-Extension-Extension"
+let extensionBundleIdentifier = "org.jabref.JabRef-Browser-Extension.Extension"
 
 class ViewController: NSViewController {
 

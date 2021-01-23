@@ -24,63 +24,28 @@
 */
 
 /**
- * There's a limit of 5MB of locally stored data.
- * https://developer.chrome.com/extensions/storage#property-local
+ * Stored via Swift UserDefaults
  */
 Zotero.Prefs = Object.assign(Zotero.Prefs, {
 	init: async function() {
-		await this.migrate();
-		try {
-			this.syncStorage = await browser.storage.local.get(null);
-		} catch (e) {
-			Zotero.debug("Prefs initialization failed");
-			Zotero.logError(e);
-		}
+		let prefsJSON = await Zotero.Messaging.sendMessage('Swift.getPrefs');
+		let prefs = JSON.parse(prefsJSON);
+		this.syncStorage = Object.assign({}, prefs);
 	},
 
-	migrate: async function() {
-		try {
-			if (!localStorage.length) return;
-			let prefs = Object.assign({}, localStorage);
-			for (let k of Object.keys(prefs)) {
-				if (k.substr(0, 'pref-'.length) == 'pref-') {
-					prefs[k.substr('pref-'.length)] = JSON.parse(prefs[k]);
-				}
-				delete prefs[k];
-			}
-			// If translator metadata migration fails then we need the fetching from repo to
-			// fetch the full list
-			delete prefs["connector.repo.lastCheck.repoTime"];
-			delete prefs["connector.repo.lastCheck.localTime"];
-			await browser.storage.local.set(prefs);
-
-			if ('translatorMetadata' in localStorage) {
-				await browser.storage.local.set({
-					translatorMetadata: JSON.parse(localStorage['translatorMetadata'])
-				});
-			}
-			localStorage.clear()
-		} catch (e) {
-			Zotero.debug('Attempting to migrate prefs threw an error');
-			// Let's not, since this will log on every start for firefox people with
-			// dom.storage.enabled: false
-			// Zotero.logError(e);
-			Zotero.debug(e.message);
-		}
-	},
-
-	set: function(pref, value) {
-		Zotero.debug("Setting " + pref + " to " + JSON.stringify(value).substr(0, 100));
-		let prefs = {};
-		prefs[pref] = value;
-
+	set: async function(pref, value) {
+		Zotero.debug("Setting "+pref+" to "+JSON.stringify(value).substr(0, 100));
 		this.syncStorage[pref] = value;
-		return browser.storage.local.set(prefs);
+		await Zotero.Messaging.sendMessage('Swift.setPrefs', JSON.stringify(this.syncStorage));
 	},
 
-	clear: function(pref) {
-		if (Array.isArray(pref)) return Zotero.Promise.all(pref.map((p) => this.clear(p)));
-		delete this.syncStorage[pref];
-		return browser.storage.local.remove(pref);
+	clear: async function(pref) {
+		if (!Array.isArray(pref)) {
+			pref = [pref]
+		}
+		pref.forEach((p) => {
+			delete this.syncStorage[p];
+		});
+		await Zotero.Messaging.sendMessage('Swift.setPrefs', JSON.stringify(this.syncStorage));
 	}
 });

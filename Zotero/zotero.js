@@ -1,25 +1,25 @@
 /*
     ***** BEGIN LICENSE BLOCK *****
-    
+
     Copyright © 2011 Center for History and New Media
                      George Mason University, Fairfax, Virginia, USA
                      http://zotero.org
-    
+
     This file is part of Zotero.
-    
+
     Zotero is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-    
+
     Zotero is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
-    
+
     You should have received a copy of the GNU Affero General Public License
     along with Zotero.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     ***** END LICENSE BLOCK *****
 */
 
@@ -31,6 +31,9 @@ var Zotero = window.Zotero = new function() {
 	;
 	/* this.allowRepoTranslatorTester = SET IN BUILD SCRIPT */
 	;
+	this.isSafari = true;
+	this.isMac = true;
+	this.isBrowserExt = true;
 
 	this.initialized = false;
 	this.initDeferred = {};
@@ -39,54 +42,7 @@ var Zotero = window.Zotero = new function() {
 		this.initDeferred.reject = reject;
 	}.bind(this));
 
-	// Safari  global page detection
-	if (typeof globalThis != "undefined" && typeof browser == "undefined") {
-		this.isSafari = true;
-		this.isMac = true;
-	} else {
-		// Browser check adopted from:
-		// http://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
-		// Internet Explorer 6-11
-		this.isIE = /*@cc_on!@*/ false || !!document.documentMode;;
-		if (this.isBookmarklet) {
-			// Firefox 1.0+
-			this.isFirefox = typeof InstallTrigger !== 'undefined';
-			// Edge 20+
-			this.isEdge = !this.isIE && !!window.StyleMedia;
-			// Chrome and Chromium
-			this.isChrome = window.navigator.userAgent.indexOf("Chrome") !== -1 || window.navigator.userAgent.indexOf("Chromium") !== -1;
-			// At least Safari 10+
-			this.isSafari = window.navigator.userAgent.includes("Safari") && !this.isChrome;
-			this.isBrowserExt = this.isFirefox || this.isEdge || this.isChrome;
 
-			this.isMac = (window.navigator.platform.substr(0, 3) == "Mac");
-			this.isWin = (window.navigator.platform.substr(0, 3) == "Win");
-			this.isLinux = (window.navigator.platform.substr(0, 5) == "Linux");
-		} else {
-			/* this.isFirefox = SET IN BUILD SCRIPT */
-			;
-			/* this.isSafari = SET IN BUILD SCRIPT */
-			;
-			// CHANGED: We are a browser extension, no question
-			this.isBrowserExt = true;
-
-			this.isChrome = this.isEdge = false;
-			if (this.isBrowserExt && !this.isFirefox) {
-				if (window.navigator.userAgent.includes("Edg/")) {
-					this.isEdge = true;
-				} else {
-					// If browser ext is not fx or edge then treat it as Chrome
-					// since it's probably installed with compatible browsers such as Opera from the
-					// Chrome extension store
-					this.isChrome = true;
-				}
-			}
-		}
-
-		this.isMac = (window.navigator.platform.substr(0, 3) == "Mac");
-		this.isWin = (window.navigator.platform.substr(0, 3) == "Win");
-		this.isLinux = (window.navigator.platform.substr(0, 5) == "Linux");
-	}
 
 	if (this.isFirefox) {
 		this.browser = "g";
@@ -233,7 +189,7 @@ var Zotero = window.Zotero = new function() {
 			Zotero.WebRequestIntercept.init();
 		}
 		if (!Zotero.isBookmarklet) {
-			await Zotero.i18n.init();
+            await Zotero.i18n.init();
 			Zotero.Repo.init();
 			Zotero.Proxies.init();
 		}
@@ -253,7 +209,7 @@ var Zotero = window.Zotero = new function() {
 		Zotero.isInject = true;
 		Zotero.Messaging.init();
 		if (Zotero.isSafari) {
-			await Zotero.i18n.init();
+			//await Zotero.i18n.init();
 		}
 		if (!Zotero.isBookmarklet) {
 			//Zotero.ConnectorIntegration.init();

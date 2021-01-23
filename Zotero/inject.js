@@ -68,8 +68,7 @@ Zotero.Inject = new function() {
 		// (monitorDOMChanges/ZoteroItemUpdated)
 		this.sessionDetails = {};
 
-		_noteImgSrc = Zotero.isSafari ?
-			`${safari.extension.baseURI}safari/` + "images/treeitem-note.png" :
+		_noteImgSrc = 
 			browser.extension.getURL('images/treeitem-note.png');
 
 		// wrap this in try/catch so that errors will reach logError
