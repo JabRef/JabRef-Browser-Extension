@@ -173,7 +173,7 @@ var Zotero = window.Zotero = new function() {
 		}
 
 		Zotero.Messaging.init();
-		if (Zotero.isSafari) {
+		if (this.isSafari) {
 			this.version = await Zotero.Connector_Browser.getExtensionVersion();
 			window.safari = {
 				extension: {

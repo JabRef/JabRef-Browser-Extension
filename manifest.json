@@ -11,6 +11,7 @@
 		"scripts": [
 			"browser-polyfill.min.js",
 			"Zotero/init.js",
+            "Zotero/global.js",
 			"Zotero/zotero_config.js",
 			"Zotero/zotero.js",
 			"Zotero/promise.js",
@@ -122,6 +123,7 @@
 			"Zotero/utilities_translate.js",
 			"Zotero/utilities-common.js",
 			"Zotero/http_inject.js",
+            "Zotero/inject_safari.js",
 			"Zotero/progressWindow.js",
 			"Zotero/translate_inject.js",
 			"Zotero/messages.js",
