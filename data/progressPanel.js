@@ -13,12 +13,22 @@ window.addEventListener("load", function load(event) {
 browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if (message.popupClose) {
 		// The popup should be closed
-		window.close();
+		setTimeout(function() { window.close(); }, 3000);
 		console.log("JabRef: Popup closed");
+	} else if (message.onCitationCount) {
+		document.getElementById("citationCountNumber").innerHTML = '' + message.onCitationCount;
+		document.getElementById("citationCount").style.display = "block";
+	} else if (message.itemIncomplete) {
+		document.getElementById("itemIncomplete").style.display = "block";
+	} else if (message.onGoogleScholarCaptcha) {
+		document.getElementById("googleScholarCaptchaLink").href = message.onGoogleScholarCaptcha;
+		document.getElementById("googleScholarCaptcha").style.display = "block";
+	} else if (message.tooManyRequests) {
+		document.getElementById("tooManyRequests").style.display = "block";
 	} else if (message.onConvertToBibtex) {
-		document.getElementById("status").innerHTML = 'Convert to BibTeX...';
+		document.getElementById("status").innerHTML = 'Converting to BibTeX...';
 	} else if (message.onSendToJabRef) {
-		document.getElementById("status").innerHTML = 'Send to JabRef...';
+		document.getElementById("status").innerHTML = 'Sending to JabRef...';
 	} else if (message.errorWhileSendingToJabRef) {
 		document.getElementById("status").innerHTML = 'Error while sending to JabRef. <br>Please see the browsers error console for details.';
 	}

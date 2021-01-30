@@ -1,10 +1,16 @@
-convertToBibTex = function(items) {
-	console.log("JabRef: Convert items to BibTeX: %o", items);
-	var deferred = Zotero.Promise.defer();
+convertToBibTex = function(items, conversionMode) {
+	let deferred = Zotero.Promise.defer();
+	let translation = new Zotero.Translate.Export();
 
-	var translation = new Zotero.Translate.Export();
 	translation.setItems(items);
-	translation.setTranslator("9cb70025-a888-4a29-a210-93ec52da40d4"); // BibTeX
+	if (conversionMode === "biblatex") {
+		console.log("JabRef: Converting item(s) to BibLaTeX: %o", items);
+		translation.setTranslator("b6e39b57-8942-4d11-8259-342c46ce395f"); // BibLaTeX
+	}
+	else {
+		console.log("JabRef: Converting item(s) to BibTeX: %o", items);
+		translation.setTranslator("9cb70025-a888-4a29-a210-93ec52da40d4"); // BibTeX
+	}
 	translation.setHandler("done", function(obj, worked) {
 		if (worked) {
 			deferred.resolve(obj.string);
@@ -14,7 +20,7 @@ convertToBibTex = function(items) {
 	});
 	translation.translate();
 	return deferred.promise;
-}
+};
 
 Zotero.Translate.ItemGetter = function() {
 	this._itemsLeft = [];
@@ -36,13 +42,13 @@ Zotero.Translate.ItemGetter.prototype = {
 	 * Retrieves the next available item
 	 */
 	"nextItem": function() {
-		if (this._itemsLeft.length != 0) {
+		if (this._itemsLeft.length !== 0) {
 			return this._itemsLeft.shift();
 		} else {
 			return false;
 		}
 	}
-}
+};
 
 // This information is needed for some translators
 // Taken from https://github.com/zotero/zotero-schema/blob/master/schema.json
@@ -227,11 +233,11 @@ Zotero.Schema = new function() {
 		"seriesEditor": "collection-editor",
 		"translator": "translator"
 	};
-}
+};
 
 browser.runtime.onMessage.addListener(message => {
 	if (message.convertToBibTex) {
 		console.log("JabRef: Got task to convert %o to BibTeX", message.convertToBibTex);
-		return convertToBibTex(message.convertToBibTex);
+		return convertToBibTex(message.convertToBibTex, message.conversionMode);
 	}
 });

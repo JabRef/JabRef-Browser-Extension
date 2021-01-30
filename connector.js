@@ -9,29 +9,55 @@ if (!Date.prototype.toISODate) {
 Zotero.Connector = new function() {
 	this.callMethod = Zotero.Promise.method(function(options, data, cb, tab) {
 		throw new Error("JabRef: Tried to contact Zotero standalone: " + options);
-	})
+	});
 
 	this.callMethodWithCookies = function(options, data, tab) {
-		if (options == "saveItems") {
-			this.convertToBibTex(data.items)
-				.then((bibtex) => this.sendBibTexToJabRef(bibtex));
-		} else if (options == "saveSnapshot") {
+		if (options === "saveItems") {
+			browser.storage.sync.get({'exportMode': 'bibtex', 'takeSnapshots': false, 'retrieveCitationCounts': false})
+				.then(configuration => {
+					// fetch current settings
+					console.debug("exportMode: " + configuration.exportMode);
+					console.debug("takeSnapshots: " + configuration.takeSnapshots);
+					console.debug("retrieveCitationCounts: " + configuration.retrieveCitationCounts);
+
+					let items = [];
+
+					if (configuration.retrieveCitationCounts) {
+						console.log("[scholar-citations] fetching citation counts...");
+
+						// create zsc compatible items
+						for (let i = 0; i < data.items.length; i++) {
+							let item = new ZscItem(data.items[i]);
+							// add internal metadata
+							item.setField('_externalRequest', false); // false: triggered from browser; true: triggered from JabRef
+							item.setStatus(false, true, false, false); // init: no success, item complete (initial assumption), no captcha, not too many requests
+							items.push(item);
+						}
+
+						// get citations counts for all items
+						zsc.processItems(items);
+					} else {
+						items = data.items;
+					}
+
+					this.convertToBibTex(items, configuration.exportMode, configuration.takeSnapshots)
+						.then((bibtex) => this.sendBibTexToJabRef(bibtex));
+				});
+		} else if (options === "saveSnapshot") {
 			// Ignore this
 		} else {
 			throw new Error("JabRef: Tried to contact Zotero standalone: " + options);
 		}
-	}
+	};
 
 	this.checkIsOnline = Zotero.Promise.method(function() {
 		var deferred = Zotero.Promise.defer();
 		// Pretend that we are connected to Zotero standalone
 		deferred.resolve(true);
 		return deferred.promise;
-	})
+	});
 
-	this.prepareForExport = function(items) {
-		// TODO: Get value from preferences
-		var shouldTakeSnapshots;
+	this.prepareForExport = function(items, takeSnapshots) {
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			for (var j = 0; j < item.attachments.length; j++) {
@@ -40,7 +66,7 @@ Zotero.Connector = new function() {
 				var isLink = attachment.mimeType === 'text/html' || attachment.mimeType === 'application/xhtml+xml';
 				if (isLink && attachment.snapshot !== false) {
 					// Snapshot
-					if (shouldTakeSnapshots && attachment.url) {
+					if (takeSnapshots && attachment.url) {
 						attachment.localPath = attachment.url;
 					} else {
 						// Ignore
@@ -59,10 +85,10 @@ Zotero.Connector = new function() {
 				item.accessDate = new Date().toISODate();
 			}
 		}
-	}
+	};
 
-	this.convertToBibTex = function(items) {
-		this.prepareForExport(items);
+	this.convertToBibTex = function(items, conversionMode, takeSnapshots) {
+		this.prepareForExport(items, takeSnapshots);
 
 		browser.runtime.sendMessage({
 			"onConvertToBibtex": "convertStarted"
@@ -75,12 +101,13 @@ Zotero.Connector = new function() {
 			for (let tab of tabs) {
 				return browser.tabs.sendMessage(
 					tab.id, {
-						convertToBibTex: items
+						convertToBibTex: items,
+						conversionMode: conversionMode
 					}
 				);
 			}
 		})
-	}
+	};
 
 	this.sendBibTexToJabRef = function(bibtex) {
 		browser.runtime.sendMessage({
@@ -92,7 +119,7 @@ Zotero.Connector = new function() {
 				"text": bibtex
 			})
 			.then(response => {
-				if (response.message == 'ok') {
+				if (response.message === 'ok') {
 					console.log("JabRef: Got success response from JabRef with details %o", response.output);
 					browser.runtime.sendMessage({
 						"popupClose": "close"
@@ -111,4 +138,4 @@ Zotero.Connector = new function() {
 				});
 			});
 	}
-}
+};

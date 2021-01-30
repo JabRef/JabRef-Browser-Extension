@@ -1,11 +1,11 @@
 'use strict';
 
-var gulp = require('gulp');
+let gulp = require('gulp');
 const through = require('through2');
 const plumber = require('gulp-plumber');
 const path = require('path');
-var rename = require("gulp-rename");
-var beautify = require('gulp-jsbeautify');
+let rename = require("gulp-rename");
+let beautify = require('gulp-jsbeautify');
 const babel = require('babel-core');
 
 function processJSX(file) {
@@ -15,7 +15,6 @@ function processJSX(file) {
 		}).code);
 	} catch (e) {
 		console.log(e.message);
-		return;
 	}
 }
 
@@ -26,7 +25,7 @@ function processFile() {
 		var basename = path.basename(file.path);
 		var ext = path.extname(file.path);
 
-		if (ext == '.jsx') {
+		if (ext === '.jsx') {
 			processJSX(file);
 		}
 
@@ -35,7 +34,7 @@ function processFile() {
 	});
 }
 
-gulp.task('copy-zotero-scripts', function() {
+gulp.task('copy-external-scripts', function() {
 	let sources = [
 		'./zotero-connectors/src/browserExt/background.js',
 		'./zotero-connectors/src/common/cachedTypes.js',
@@ -72,7 +71,9 @@ gulp.task('copy-zotero-scripts', function() {
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/term.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/identity.js',
 		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/match.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/rdfparser.js'
+		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/rdfparser.js',
+
+		'./zotero-scholar-citations/chrome/content/zsc.js'
 	];
 
 	return gulp.src(sources, {
@@ -81,29 +82,30 @@ gulp.task('copy-zotero-scripts', function() {
 		.pipe(plumber())
 		.pipe(rename(function(path) {
 			// Rename common/utilities.js -> utilities-common.js
-			if (path.basename == 'utilities' && path.dirname.endsWith('common')) {
+			if (path.basename === 'utilities' && path.dirname.endsWith('common')) {
 				path.basename = 'utilities-common';
 			}
 
 			// Rename inject/http.js -> http_inject.js
-			if (path.basename == 'http' && path.dirname.endsWith('inject')) {
+			if (path.basename === 'http' && path.dirname.endsWith('inject')) {
 				path.basename = 'http_inject';
 			}
 
 			// Flatten directory structure
 			if (path.dirname.endsWith("rdf")) {
-				path.dirname = "rdf"
+				path.dirname = "rdf";
+			} else if (path.dirname.startsWith("zotero-scholar-citations")) {
+				path.dirname = "zsc";
 			} else {
 				path.dirname = "";
 			}
 		}))
-		.pipe(gulp.dest("./zotero"));
+		.pipe(gulp.dest("./external-scripts"));
 });
 
-
-gulp.task('process-zotero-scripts', function() {
+gulp.task('process-external-scripts', function() {
 	let sources = [
-		'./zotero/**/*'
+		'./external-scripts/**/*'
 	];
 
 	return gulp.src(sources)
@@ -115,11 +117,11 @@ gulp.task('process-zotero-scripts', function() {
 		}))
 		.pipe(rename(function(path) {
 			// Rename jsx to js
-			if (path.extname == ".jsx") {
+			if (path.extname === ".jsx") {
 				path.extname = ".js";
 			}
 		}))
 		.pipe(gulp.dest((data) => data.base));
 });
 
-gulp.task('update-zotero-scripts', gulp.series('copy-zotero-scripts', 'process-zotero-scripts'));
+gulp.task('update-external-scripts', gulp.series('copy-external-scripts', 'process-external-scripts'));
