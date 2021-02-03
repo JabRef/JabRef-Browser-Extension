@@ -569,8 +569,14 @@ Zotero.GoogleDocs.UI = {
 			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
 			await Zotero.Promise.delay();
 		}
-		await this.sendKeyboardEvent({key: " ", keyCode: 160});
-		await this.sendKeyboardEvent({key: "Backspace", keyCode: 8});
+		let event = {key: "b", keyCode: 66};
+		if (Zotero.isMac) {
+			event.metaKey = true
+		} else {
+			event.ctrlKey = true;
+		}
+		await this.sendKeyboardEvent(event);
+		await this.sendKeyboardEvent(event);
 		await this.waitToSaveInsertion();
 		return this.getSelectedFieldID();
 	},
