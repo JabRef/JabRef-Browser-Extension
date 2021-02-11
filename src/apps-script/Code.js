@@ -812,7 +812,7 @@ function getAllLinks(mergeAdjacent) {
 	var footnoteIndex = 0;
 
 	iterateSections(doc, function iterateSection(section, sectionIndex, isFirstPageSection, footnote) {
-		if (!("getParagraphs" in section)) {
+		if (typeof section.getParagraphs != 'function') {
 			// as we're using some undocumented API, adding this to avoid cryptic
 			// messages upon possible API changes.
 			throw new Error("An API change has caused this script to stop " + 
@@ -833,7 +833,7 @@ function getAllLinks(mergeAdjacent) {
 				if (el.getType() == DocumentApp.ElementType.FOOTNOTE) {
 					var sect = el.asFootnote().getFootnoteContents();
 					footnoteIndex++;
-					if (typeof sect != "object") {
+					if (!sect || typeof sect != "object") {
 						continue;
 					}
 					iterateSection(sect, -1, false, true);
