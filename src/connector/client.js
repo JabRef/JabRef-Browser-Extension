@@ -141,6 +141,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		this.currentFieldID = await Zotero.GoogleDocs.UI.getSelectedFieldID();
 		this.isInLink = Zotero.GoogleDocs.UI.isInLink();
 		this.orphanedCitationAlertShown = false;
+		this.insertingNote = false;
 		this.insertNoteIndex = 1;
 		this.insertIdx = null;
 		this.queued = {
@@ -256,7 +257,9 @@ Zotero.GoogleDocs.Client.prototype = {
 			this.queued.bibliographyStyle = null;
 			count += batchSize;
 		}
-		await Zotero.GoogleDocs.UI.moveCursorToEndOfCitation();
+		if (!this.insertingNote) {
+			await Zotero.GoogleDocs.UI.moveCursorToEndOfCitation();
+		}
 	},
 	
 	activate: async function(force) {
@@ -338,6 +341,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 
 	insertText: async function(text) {
+		this.insertingNote = true;
 		await Zotero.GoogleDocs.UI.writeText(text);
 		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 	},
