@@ -683,7 +683,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		super(props);
 		this.state = {
 			open: Zotero.GoogleDocs.UI.menubutton.classList.contains('goog-control-open'),
-			displayExportOption: false
+			displayAddNoteButton: false
 		}
 	}
 
@@ -723,11 +723,16 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 				}} />
 		);
 		
+		let addNoteMenuItem = "";
+		if (this.state.displayAddNoteButton) {
+			addNoteMenuItem = (<Zotero.GoogleDocs.UI.Menu.Item label="Add note..." handleClick={this.props.execCommand.bind(this, 'addNote', null)} />);
+		}
+		
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
 				style={style}>
 				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit citation..." handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={Zotero.GoogleDocs.UI.shortcut} />
-				<Zotero.GoogleDocs.UI.Menu.Item label="Add note..." handleClick={this.props.execCommand.bind(this, 'addNote', null)} />
+				{addNoteMenuItem}
 				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit bibliography" handleClick={this.props.execCommand.bind(this, 'addEditBibliography', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences..." handleClick={this.props.execCommand.bind(this, 'setDocPrefs', null)} />
 				<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" handleClick={this.props.execCommand.bind(this, 'refresh', null)} />
@@ -738,12 +743,13 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 	}
 
 	componentDidMount() {
-		this.observer = new MutationObserver(function(mutations) {
+		this.observer = new MutationObserver(async function(mutations) {
 			for (let mutation of mutations) {
 				if (mutation.attributeName != 'class' || 
 					mutation.target.classList.contains('goog-control-open') == this.state.open) continue;
 				let open = mutation.target.classList.contains('goog-control-open');
-				this.setState({open});
+				let displayAddNoteButton = await Zotero.Connector.getPref('googleDocsAddNoteEnabled');
+				this.setState({ open, displayAddNoteButton });
 			}
 		}.bind(this));
 		this.observer.observe(Zotero.GoogleDocs.UI.menubutton, {attributes: true});
