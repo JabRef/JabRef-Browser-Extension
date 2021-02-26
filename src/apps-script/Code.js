@@ -1023,6 +1023,7 @@ var HTMLConverter = {
 				// Insert formatted text
 				HTMLConverter.addElem(xmlDoc.getRootElement(), modifiers);
 			} catch (e) {
+				debug(e.message);
 				// Something's wrong. Just append.
 				HTMLConverter.addText(html, modifiers);
 			}
