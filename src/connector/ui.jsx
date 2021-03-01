@@ -544,10 +544,20 @@ Zotero.GoogleDocs.UI = {
 		await this.clickElement(document.getElementById('insertLinkButton'));
 		document.getElementsByClassName('docs-link-insertlinkbubble-text')[0].value = text;
 		var urlInput = document.getElementsByClassName('docs-link-urlinput-url')[0];
+		// New gdocs link input UI.
+		if (!urlInput) {
+			urlInput = document.getElementsByClassName('docs-link-searchinput-search')[0];
+		}
 		urlInput.value = url;
 		urlInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
 		await Zotero.Promise.delay();
-		await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
+		let applyButton = document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0];
+		// No "Apply" button in the new UI.
+		if (applyButton) {
+			await this.clickElement(applyButton);
+		} else {
+			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13});
+		}
 	},
 	
 	undo: async function() {
