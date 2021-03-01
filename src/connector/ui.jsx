@@ -551,10 +551,10 @@ Zotero.GoogleDocs.UI = {
 		urlInput.value = url;
 		urlInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
 		await Zotero.Promise.delay();
-		let applyButton = document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0];
+		let applyButton = document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar');
 		// No "Apply" button in the new UI.
 		if (applyButton) {
-			await this.clickElement(applyButton);
+			await this.clickElement(applyButton[0].children[0]);
 		} else {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13});
 		}
