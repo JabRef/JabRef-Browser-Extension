@@ -458,12 +458,14 @@ Zotero.GoogleDocs.UI = {
 		await Zotero.Promise.delay();
 	},
 	
-	sendKeyboardEvent: async function(eventDescription) {
-		var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
-		textEventTarget.dispatchEvent(new KeyboardEvent('keydown', eventDescription));
+	sendKeyboardEvent: async function(eventDescription, target) {
+		if (!target) {
+			target = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
+		}
+		target.dispatchEvent(new KeyboardEvent('keydown', eventDescription));
+		target.dispatchEvent(new KeyboardEvent('keypress', eventDescription));
 		await Zotero.Promise.delay();
-		textEventTarget.dispatchEvent(new KeyboardEvent('keyup', eventDescription));
-		textEventTarget.dispatchEvent(new KeyboardEvent('keypress', eventDescription));
+		target.dispatchEvent(new KeyboardEvent('keyup', eventDescription));
 		await Zotero.Promise.delay();
 	},
 
@@ -541,23 +543,20 @@ Zotero.GoogleDocs.UI = {
 		if (selection.length) {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 		}
-		await this.clickElement(document.getElementById('insertLinkButton'));
-		document.getElementsByClassName('docs-link-insertlinkbubble-text')[0].value = text;
+		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
+		let textInput = document.getElementsByClassName('docs-link-insertlinkbubble-text')[0];
+		textInput.value = text;
+		textInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
 		var urlInput = document.getElementsByClassName('docs-link-urlinput-url')[0];
 		// New gdocs link input UI.
 		if (!urlInput) {
 			urlInput = document.getElementsByClassName('docs-link-searchinput-search')[0];
 		}
 		urlInput.value = url;
-		urlInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
+		urlInput.dispatchEvent(new InputEvent('input', {data: url, bubbles: true}));
 		await Zotero.Promise.delay();
-		let applyButton = document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar');
-		// No "Apply" button in the new UI.
-		if (applyButton) {
-			await this.clickElement(applyButton[0].children[0]);
-		} else {
-			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13});
-		}
+
+		await Zotero.GoogleDocs.UI.closeInsertLinkPopup(true);
 	},
 	
 	undo: async function() {
@@ -591,18 +590,42 @@ Zotero.GoogleDocs.UI = {
 		return this.getSelectedFieldID();
 	},
 	
-	getSelectedFieldID: async function() {
+	openInsertLinkPopup: async function() {
 		await this.clickElement(document.getElementById('insertLinkButton'));
-		await Zotero.Promise.delay();
-		let isApplyEnabled = !document.querySelector('.docs-link-insertlinkbubble .docs-link-insertlinkbubble-buttonbar .jfk-button')
-			.classList.contains('jfk-button-disabled');
-		if (isApplyEnabled) {
-			var url = document.querySelector('.docs-link-insertlinkbubble .docs-link-urlinput-url').value;
-			await this.clickElement(document.getElementsByClassName('docs-link-insertlinkbubble-buttonbar')[0].children[0]);
-		} else {
-			this.sendKeyboardEvent({key: "Escape", keyCode: 27});
-			return null;
+		return await Zotero.Promise.delay();
+	},
+	
+	closeInsertLinkPopup: async function(confirm=true) {
+		urlInput = document.querySelector('.docs-link-insertlinkbubble .docs-link-urlinput-url');
+		if (!urlInput) {
+			urlInput = document.querySelector('.docs-link-searchinput-search');
+		}	
+		let eventTarget = document.querySelector('.docs-calloutbubble-bubble.docs-linkbubble-bubble').parentElement;
+		if (confirm) {
+			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
 		}
+		else {
+			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
+			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Escape", keyCode: 27});
+			if (urlInput.value) {
+				textEventTarget.contentDocument
+					.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
+			}
+			textEventTarget.focus();
+		}
+		await Zotero.Promise.delay();
+	},
+	
+	getSelectedFieldID: async function() {
+		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
+		urlInput = document.querySelector('.docs-link-insertlinkbubble .docs-link-urlinput-url');
+		if (!urlInput) {
+			urlInput = document.querySelector('.docs-link-searchinput-search');
+		}
+		url = urlInput.value;
+		
+		await Zotero.GoogleDocs.UI.closeInsertLinkPopup(false);
+		
 		let isZoteroLink = url.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
 		if (!isZoteroLink) return null;
 		return url.substr(Zotero.GoogleDocs.config.fieldURL.length);
