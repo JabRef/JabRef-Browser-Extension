@@ -461,7 +461,20 @@ Zotero.GoogleDocs.UI = {
 	sendKeyboardEvent: async function(eventDescription, target) {
 		if (!target) {
 			target = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
+			
+			// Keyboard events to texteventtarget (i.e. the pseudo-element in focus
+			// when the cursor is placed and blinking in a document) have to
+			// be issued in this specific order or it breaks on slower systems
+			target.dispatchEvent(new KeyboardEvent('keydown', eventDescription));
+			await Zotero.Promise.delay();
+			target.dispatchEvent(new KeyboardEvent('keyup', eventDescription));
+			target.dispatchEvent(new KeyboardEvent('keypress', eventDescription));
+			await Zotero.Promise.delay();
+			return;
 		}
+
+		// Keyboard events to dialogs (only tested for the link dialog) have to be
+		// issued in this order or they do not work
 		target.dispatchEvent(new KeyboardEvent('keydown', eventDescription));
 		target.dispatchEvent(new KeyboardEvent('keypress', eventDescription));
 		await Zotero.Promise.delay();
