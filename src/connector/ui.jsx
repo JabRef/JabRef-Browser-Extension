@@ -614,12 +614,29 @@ Zotero.GoogleDocs.UI = {
 			urlInput = document.querySelector('.docs-link-searchinput-search');
 		}	
 		let eventTarget = document.querySelector('.docs-calloutbubble-bubble.docs-linkbubble-bubble').parentElement;
-		if (confirm) {
+		if (confirm && urlInput.value) {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
 		}
 		else {
 			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
-			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Escape", keyCode: 27});
+			// Recently GDocs has made a change to footnote navigation where pressing [Escape]
+			// within the footnote jumps the cursor out of the footnote. This however has created
+			// an issue where issuing [Escape] to close the insert link popup also jumps out of a footnote
+			// which breaks citing if the cursor is already in the footnote (we open the insert link dialog
+			// to check whether we're in a Zotero link and then immediately close it).
+			// Unfortunately simply sending an [Escape] keyboard event to the insert link popup does nothing.
+			// After two days of reading minified code I have discovered that gdocs expects the active element
+			// to be outside of the insert link popup when the insert link popup
+			// receives the blur event triggered by either pressing [Escape] or clicking somewhere else on
+			// on the document.
+			// In real world this happens because the [Escape] keydown event switches the active element to
+			// the textEventTarget but the keyup event is then still issued on the originally active element
+			// -- the insert link popup, and the keyup event is used to close the actual dialog.
+			// The reason for the kix code being like this is probably so that switching windows (which issues
+			// the 'blur' event) wouldn't close the insert link popup.
+			// We skip issuing all the keyboard events and just refocus and issue a 'blur' event directly.
+			textEventTarget.contentDocument.querySelector('div').focus();
+			urlInput.dispatchEvent(new FocusEvent('blur', {bubbles: true}));
 			if (urlInput.value) {
 				textEventTarget.contentDocument
 					.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
