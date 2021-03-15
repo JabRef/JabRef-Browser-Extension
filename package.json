@@ -16,7 +16,7 @@
 		"babel-preset-env": "^1.7.0",
 		"bluebird": "^3.7.2",
 		"browserify": "^17.0.0",
-		"chai": "^4.3.3",
+		"chai": "^4.3.4",
 		"chalk": "^4.1.0",
 		"chromedriver": "^89.0.0",
 		"geckodriver": "^1.22.2",
