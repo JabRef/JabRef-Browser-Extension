@@ -179,6 +179,10 @@ Zotero.GoogleDocs.API = {
 			this.resetAuth();
 			throw new Error(docAccessError);
 		}
+		var genericError = responseJSON.response.result.error;
+		if (genericError) {
+			Zotero.logError(new Error(`Non-fatal Google Docs Error: ${genericError}`));
+		}
 	},
 
 	displayLockErrorPrompt: async function(error, tab) {
