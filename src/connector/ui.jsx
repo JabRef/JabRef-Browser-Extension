@@ -565,6 +565,10 @@ Zotero.GoogleDocs.UI = {
 		}
 		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
 		let textInput = document.getElementsByClassName('docs-link-insertlinkbubble-text')[0];
+		// Sudden 2021-05-03 change
+		if (!textInput) {
+			textInput = document.getElementsByClassName('docs-link-smartinsertlinkbubble-text')[0];
+		}
 		textInput.value = text;
 		textInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
 		var urlInput = document.getElementsByClassName('docs-link-urlinput-url')[0];
