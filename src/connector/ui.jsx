@@ -54,6 +54,10 @@ Zotero.GoogleDocs.UI = {
 
 	init: async function () {
 		await Zotero.Inject.loadReactComponents();
+		let haveEditAccess = !document.querySelector('.titlebar-request-access-button');
+		if (!haveEditAccess) {
+			return;
+		}
 		await this.addKeyboardShortcuts();
 		this.injectIntoDOM();
 		if (this.checkIsDocx()) {

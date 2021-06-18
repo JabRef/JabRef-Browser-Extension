@@ -39,6 +39,7 @@ if (typeof browser != 'undefined') {
 	script.textContent = injectedCode;
 	(document.head||document.documentElement).appendChild(script);
 }
+
 /**
  * Inject the Zotero menubutton ASAP so that kix attaches handlers for
  * hovering and clicking events when it initializes
@@ -82,10 +83,39 @@ menubar && addMenuOption(menubar);
 var toolbar = document.querySelector('#docs-toolbar');
 toolbar && addToolbarButton(toolbar);
 
+function removeUI() {
+	if (menuAdded) {
+		let menubutton = document.querySelector('#docs-zotero-menubutton');
+		menubutton.parentNode.removeChild(menubutton);
+	}
+	if (buttonAdded) {
+		let button = document.querySelector('#zoteroAddEditCitation');
+		button.parentNode.removeChild(button);
+	}
+}
+
+// We cannot identify whether we have edit access in the doc on load, so we inject UI so that
+// kix code attaches relevant event listeners, but later remove it if it's a view-only doc
+var editAccessObserver = new MutationObserver(function(mutations) {
+	for (let mutation of mutations) {
+		for (let node of mutation.addedNodes) {
+			if (node.classList && node.classList.contains('titlebar-request-access-button')) {
+				isIntegrationEnabled = false;
+				removeUI();
+			}
+		}
+	}
+	if (menuAdded && buttonAdded) {
+		editAccessObserver.disconnect();
+	}
+});
+
+editAccessObserver.observe(document.documentElement, {childList: true, subtree: true});
+
 // Need to kick this off asynchronously regardless of whether we've added the menu options synchronously here or not
 (async function() {
 	await Zotero.initDeferred.promise;
-	isIntegrationEnabled = await Zotero.Prefs.getAsync('integration.googleDocs.enabled');
+	isIntegrationEnabled = isIntegrationEnabled && await Zotero.Prefs.getAsync('integration.googleDocs.enabled');
 	if (!isIntegrationEnabled) {
 		if (menuAdded) {
 			let menubutton = document.querySelector('#docs-zotero-menubutton');
