@@ -326,7 +326,7 @@ Zotero.GoogleDocs.UI = {
 		});
 	
 		this.modeObserver = new MutationObserver(function(mutations) {
-			let inWritingMode = !!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img');
+			let inWritingMode = !!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit-blue700.docs-icon-img');
 			if (this.enabled != inWritingMode) {
 				this.toggleEnabled(inWritingMode);
 			}
