@@ -32,13 +32,6 @@ if(window.top) {
 	} catch(e) {};
 }	
 if (!isTopWindow) return;
-// Google Docs canvas rendering override
-if (typeof browser != 'undefined') {
-	const injectedCode = `(function() {window['_docs_force_html_by_ext'] = '${browser.runtime.id}';})();`;
-	const script = document.createElement('script');
-	script.textContent = injectedCode;
-	(document.head||document.documentElement).appendChild(script);
-}
 
 /**
  * Inject the Zotero menubutton ASAP so that kix attaches handlers for
