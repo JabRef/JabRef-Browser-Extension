@@ -1,6 +1,6 @@
 {
   "name": "google-docs-plugin",
-  "version": "5.0.17",
+  "version": "5.0.18",
   "devDependencies": {
     "@babel/cli": "^7.10.1",
     "@babel/core": "^7.10.2",
