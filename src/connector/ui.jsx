@@ -563,8 +563,8 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	insertLink: async function(text, url) {
-		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.textContent;
-		if (selection.length) {
+		var selectedText = this.getSelectedText();
+		if (selectedText.length) {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 		}
 		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
@@ -599,9 +599,17 @@ Zotero.GoogleDocs.UI = {
 		return this.inLink
 	},
 	
-	moveCursorToEndOfCitation: async function() {
+	getSelectedText: function() {
 		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.textContent;
-		if (selection.length) {
+		// on macOS a U+200B ZERO WIDTH SPACE is the text content when nothing is selected here
+		// so we remove and trim various unicode zero-width space characters here
+		selection = selection.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+		return selection;
+	},
+	
+	moveCursorToEndOfCitation: async function() {
+		var selectedText = this.getSelectedText();
+		if (selectedText.length) {
 			var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
 			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
 			await Zotero.Promise.delay();
