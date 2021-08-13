@@ -658,11 +658,11 @@ Zotero.GoogleDocs.UI = {
 			// The reason for the kix code being like this is probably so that switching windows (which issues
 			// the 'blur' event) wouldn't close the insert link popup.
 			// We skip issuing all the keyboard events and just refocus and issue a 'blur' event directly.
-			if (Zotero.isSafari) {
-				textEventTarget.contentDocument.body.focus();
-			} else {
-				textEventTarget.contentDocument.querySelector('div').focus();
+			let focusTarget = textEventTarget.contentDocument.querySelector('div');
+			if (!focusTarget) {
+				focusTarget = textEventTarget.contentDocument.body;
 			}
+			focusTarget.focus();
 			urlInput.dispatchEvent(new FocusEvent('blur', {bubbles: true}));
 			if (urlInput.value) {
 				textEventTarget.contentDocument
