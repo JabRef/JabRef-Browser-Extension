@@ -295,7 +295,7 @@ Zotero.GoogleDocs.Client.prototype = {
 					noteIndex = nextField.noteIndex == 0 ? 0 : nextField.noteIndex-1;
 				}
 				this.insertNoteIndex = noteIndex;
-				let insert = [Object.assign({noteIndex}, this.queued.insert[0])].concat(this.queued.insert.slice(1));
+				let insert = [Object.assign(this.queued.insert[0], {noteIndex})].concat(this.queued.insert.slice(1));
 				fields = fields.slice(0, this.insertIdx).concat(insert,
 					fields.slice(this.insertIdx));
 			}
