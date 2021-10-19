@@ -442,6 +442,10 @@ Zotero.GoogleDocs.UI = {
 	writeText: async function(text) {
 		var evt;
 		var pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.children[0];
+		if (!pasteTarget) {
+			// The body has no children on Safari
+			pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
+		}
 		if (!Zotero.isFirefox) {
 			var dt = new DataTransfer();
 			dt.setData('text/html', text);
