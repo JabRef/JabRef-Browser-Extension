@@ -132,9 +132,8 @@ Zotero.GoogleDocs.API = {
 		} catch (e) {
 			if (e.status >= 400 && e.status < 404) {
 				this.resetAuth();
-				let error = new Error(`${e.status}: Google Docs Authorization failed. Try again.\n${e.responseText}`);
-				error.type = "Alert";
-				throw error;
+				this.displayWrongAccountPrompt();
+				throw new Error('Handled Error');
 			} else {
 				throw new Error(`${e.status}: Google Docs request failed.\n\n${e.responseText}`);
 			}
@@ -177,7 +176,8 @@ Zotero.GoogleDocs.API = {
 		var docAccessError = responseJSON.response.result.docAccessError;
 		if (docAccessError) {
 			this.resetAuth();
-			throw new Error(docAccessError);
+			this.displayWrongAccountPrompt();
+			throw new Error('Handled Error');
 		}
 		var genericError = responseJSON.response.result.error;
 		if (genericError) {
@@ -186,30 +186,38 @@ Zotero.GoogleDocs.API = {
 	},
 
 	displayLockErrorPrompt: async function(error, tab) {
-		var message = 'The document citations are being edited by another Zotero user. Please try again later.';
+		var message = Zotero.getString('integration_googleDocs_documentLocked', ZOTERO_CONFIG.CLIENT_NAME);
 		var result = await Zotero.Messaging.sendMessage('confirm', {
-			title: "Zotero",
+			title: ZOTERO_CONFIG.CLIENT_NAME,
 			button2Text: "",
-			button3Text: "Need help?",
+			button3Text: Zotero.getString('general_needHelp'),
 			message
 		}, tab);
 		if (result.button != 3) return;
+
+		message = Zotero.getString('integration_googleDocs_documentLocked_moreInfo', ZOTERO_CONFIG.CLIENT_NAME);
 		
-		message = 'Zotero locks your document to prevent multiple users from editing citations at the same time. ' +
-			'Concurrent citation editing in the document may lead to citation or document corruption. ' +
-			'Certain unforeseeable circumstances, such as network failures, may lead to your document ' +
-			'becoming permanently locked. If you believe this has happened, you can override the lock.<br\><br\>' +
-			
-			'Would you like to override the document lock?';
 		var result = await Zotero.Messaging.sendMessage('confirm', {
-			title: "Zotero",
-			button1Text: "Yes",
-			button2Text: "No",
+			title: ZOTERO_CONFIG.CLIENT_NAME,
+			button1Text: Zotero.getString('general_yes'),
+			button2Text: Zotero.getString('general_no'),
 			message
 		}, tab);
 		return result.button == 1;
 	},
 	
+	displayWrongAccountPrompt: async function(error, tab) {
+		var message = Zotero.getString('integration_googleDocs_documentPermissionError', ZOTERO_CONFIG.CLIENT_NAME);
+		var result = await Zotero.Messaging.sendMessage('confirm', {
+			title: ZOTERO_CONFIG.CLIENT_NAME,
+			button2Text: "",
+			button3Text: Zotero.getString('general_moreInfo'),
+			message
+		}, tab);
+		if (result.button != 3) return;
+		Zotero.Connector_Browser.openTab('https://www.zotero.org/support/google_docs#authentication');
+	},
+
 	getDocument: async function (docId) {
 		var headers = await this.getAuthHeaders();
 		try {
