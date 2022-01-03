@@ -4,6 +4,8 @@ updates:
   directory: "/"
   schedule:
     interval: weekly
+    day: friday
+    time: "18:00"
   open-pull-requests-limit: 10
   labels:
   - type:dependency
@@ -11,5 +13,7 @@ updates:
   directory: "/"
   schedule:
     interval: weekly
+    day: friday
+    time: "18:00"
   labels:
   - type:dependency
