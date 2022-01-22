@@ -70,7 +70,7 @@ if (isTopWindow || Zotero.isBookmarklet) {
 		frameSrc = `${safari.extension.baseURI}safari/` + 'progressWindow/progressWindow.html';
 	}
 	else {
-		frameSrc = browser.extension.getURL('progressWindow/progressWindow.html');
+		frameSrc = browser.runtime.getURL('progressWindow/progressWindow.html');
 	}
 	var scrollX;
 	var scrollY;
@@ -498,7 +498,7 @@ if (isTopWindow || Zotero.isBookmarklet) {
 	Zotero.Messaging.addMessageListener("progressWindow.done", (returnValue) => {
 		closeOnLeave = true;
 		if (Zotero.isBrowserExt
-				&& document.location.href.startsWith(browser.extension.getURL('confirm.html'))) {
+				&& document.location.href.startsWith(browser.runtime.getURL('confirm.html'))) {
 			setTimeout(function() {
 				window.close();
 			}, 1000);
@@ -507,7 +507,10 @@ if (isTopWindow || Zotero.isBookmarklet) {
 			startCloseTimer(3000);
 		}
 		else {
-			addError(returnValue[1] || "translationError");
+			if (returnValue.length < 2) {
+				returnValue.push('translationError');
+			}
+			addError(returnValue[1], ...returnValue.slice(2));
 			startCloseTimer(8000);
 		}
 	});
