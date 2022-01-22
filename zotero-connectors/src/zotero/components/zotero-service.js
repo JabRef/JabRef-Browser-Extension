@@ -38,36 +38,39 @@ const xpcomFilesAll = [
 	'intl',
 	'prefs',
 	'dataDirectory',
-	'date',
 	'debug',
 	'error',
-	'utilities',
+	'utilities/date',
+	'utilities/utilities',
+	'utilities/utilities_item',
+	'utilities/openurl',
+	'utilities/xregexp-all',
+	'utilities/xregexp-unicode-zotero',
 	'utilities_internal',
+	'translate/src/utilities_translate',
 	'file',
 	'http',
 	'mimeTypeHandler',
-	'openurl',
+	'pdfWorker/manager',
 	'ipc',
 	'profile',
 	'progressWindow',
 	'proxy',
-	'translation/translate',
+	'translate/src/translation/translate',
+	'translate/src/translator',
+	'translate/src/tlds',
 	'translation/translate_firefox',
-	'translation/translator',
-	'translation/tlds',
 	'isbn',
-	'utilities_translate'
 ];
 
 /** XPCOM files to be loaded only for local translation and DB access **/
 const xpcomFilesLocal = [
-	'libraryTreeView',
-	'collectionTreeView',
 	'collectionTreeRow',
-	'annotate',
+	'annotations',
 	'api',
 	'attachments',
 	'cite',
+	'citeprocRsBridge',
 	'cookieSandbox',
 	'data/library',
 	'data/libraries',
@@ -94,17 +97,21 @@ const xpcomFilesLocal = [
 	'data/searches',
 	'data/tags',
 	'db',
+	'dictionaries',
 	'duplicates',
+	'editorInstance',
 	'feedReader',
+	'fileDragDataProvider',
 	'fulltext',
 	'id',
 	'integration',
-	'itemTreeView',
 	'locale',
 	'locateManager',
 	'mime',
+	'noteBackups',
 	'notifier',
 	'openPDF',
+	'reader',
 	'progressQueue',
 	'progressQueueDialog',
 	'quickCopy',
@@ -114,6 +121,7 @@ const xpcomFilesLocal = [
 	'router',
 	'schema',
 	'server',
+	'session',
 	'streamer',
 	'style',
 	'sync',
@@ -270,23 +278,11 @@ function makeZoteroContext(isConnector) {
 	// Load XRegExp object into Zotero.XRegExp
 	const xregexpFiles = [
 		/**Core functions**/
-		'xregexp',
-	
-		/**Addons**/
-		'addons/build',												//adds ability to "build regular expressions using named subpatterns, for readability and pattern reuse"
-		'addons/matchrecursive',							//adds ability to "match recursive constructs using XRegExp pattern strings as left and right delimiters"
-	
-		/**Unicode support**/
-		'addons/unicode/unicode-base',				//required for all other unicode packages. Adds \p{Letter} category
-	
-		//'addons/unicode/unicode-blocks',			//adds support for all Unicode blocks (e.g. InArabic, InCyrillic_Extended_A, etc.)
-		'addons/unicode/unicode-categories',	//adds support for all Unicode categories (e.g. Punctuation, Lowercase_Letter, etc.)
-		//'addons/unicode/unicode-properties',	//adds Level 1 Unicode properties (e.g. Uppercase, White_Space, etc.)
-		//'addons/unicode/unicode-scripts'			//adds support for all Unicode scripts (e.g. Gujarati, Cyrillic, etc.)
-		'addons/unicode/unicode-zotero'				//adds support for some Unicode categories used in Zotero
+		'xregexp-all',
+		'xregexp-unicode-zotero'				//adds support for some Unicode categories used in Zotero
 	];
 	for (var i=0; i<xregexpFiles.length; i++) {
-		subscriptLoader.loadSubScript("chrome://zotero/content/xpcom/xregexp/" + xregexpFiles[i] + ".js", zContext, 'utf-8');
+		subscriptLoader.loadSubScript("chrome://zotero/content/xpcom/utilities/" + xregexpFiles[i] + ".js", zContext, 'utf-8');
 	}
 	
 	// Load remaining xpcomFiles
@@ -319,14 +315,13 @@ function makeZoteroContext(isConnector) {
 		'rdf/uri',
 		'rdf/term',
 		'rdf/identity',
-		'rdf/match',
 		'rdf/n3parser',
 		'rdf/rdfparser',
 		'rdf/serialize'
 	];
 	zContext.Zotero.RDF = {Zotero:zContext.Zotero};
 	for (var i=0; i<rdfXpcomFiles.length; i++) {
-		subscriptLoader.loadSubScript("chrome://zotero/content/xpcom/" + rdfXpcomFiles[i] + ".js", zContext.Zotero.RDF, 'utf-8');
+		subscriptLoader.loadSubScript("chrome://zotero/content/xpcom/translate/src/" + rdfXpcomFiles[i] + ".js", zContext.Zotero.RDF, 'utf-8');
 	}
 	
 	if(isStandalone()) {
@@ -367,6 +362,13 @@ function ZoteroService() {
 							zContext.Zotero.startupErrorHandler();
 						}
 						else if (zContext.Zotero.startupError) {
+							// Try to repair the DB on the next startup, in case it helps resolve
+							// the error
+							try {
+								zContext.Zotero.Schema.setIntegrityCheckRequired(true);
+							}
+							catch (e) {}
+							
 							try {
 								zContext.Zotero.startupError =
 									zContext.Zotero.Utilities.Internal.filterStack(
@@ -524,8 +526,10 @@ ZoteroCommandLineHandler.prototype = {
 			
 			var command = cmdLine.handleFlagWithParam("ZoteroIntegrationCommand", false);
 			var docId = cmdLine.handleFlagWithParam("ZoteroIntegrationDocument", false);
+			var templateVersion = parseInt(cmdLine.handleFlagWithParam("ZoteroIntegrationTemplateVersion", false));
+			templateVersion = isNaN(templateVersion) ? 0 : templateVersion;
 			
-			zContext.Zotero.Integration.execCommand(agent, command, docId);
+			zContext.Zotero.Integration.execCommand(agent, command, docId, templateVersion);
 		}
 		
 		// handler for Windows IPC commands

@@ -61,6 +61,8 @@ To update dependencies:
    ```
     git subtree pull --prefix zotero-connectors https://github.com/zotero/zotero-connectors.git master --squash
     git subtree pull --prefix zotero-connectors/src/zotero https://github.com/zotero/zotero.git master --squash
+    git subtree pull --prefix zotero-connectors/src/translate https://github.com/zotero/translate.git master --squash
+    git subtree pull --prefix zotero-connectors/src/utilities https://github.com/zotero/utilities.git master --squash
     git subtree pull --prefix zotero-scholar-citations https://github.com/MaxKuehn/zotero-scholar-citations.git master --squash
    ```
    updates the `zotero-connectors` submodule and the `zotero-scholar-citations` submodule  

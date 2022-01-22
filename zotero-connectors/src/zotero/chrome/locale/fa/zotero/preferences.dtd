@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Oldest items first">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Feed Defaults">
 
-<!ENTITY zotero.preferences.openurl.search "گشتن به دنبال تشخیص‌دهنده‌ها (resolvers)">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Custom…">
 <!ENTITY zotero.preferences.openurl.server "تشخیص‌دهنده (resolver):">
 <!ENTITY zotero.preferences.openurl.version "نگارش:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "در صورت غیرفعال بودن این گزینه، زوترو در یادکرد مقالات روزنامه و مجله، فقط به شرطی URL را می‌گنجاند که شماره صفحات مقاله، مشخص نشده باشد.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "رونوشت سریع">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Default Format:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "رونوشت به صورت HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "تنظیمات اختصاصی وب‌گاه‌ها:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "دامنه/مسیر">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Get additional styles…">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "ذخیره در زوترو ( نماد نوار آدرس)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "فعال/غیرفعال کردن حالت تمام‌صفحه">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "تمرکز بر قاب کتابخانه">
 <!ENTITY zotero.preferences.keys.quicksearch "جستجوی سریع">
 <!ENTITY zotero.preferences.keys.newItem "ایجاد آیتم جدید">
 <!ENTITY zotero.preferences.keys.newNote "ایجاد یادداشت جدید">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Mark All Feed Items As Read/Unread">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "روشن/خاموش کردن انتخاب برچسب">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "رونوشت یادکرد آیتم‌های انتخاب شده به حافظه موقت">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "رونوشت آیتم‌های انتخاب شده به حافظه موقت">
 <!ENTITY zotero.preferences.keys.importFromClipboard "درون‌برد از حافظه موقت">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "سامان‌دهی مکان‌یاب مقالات">
 <!ENTITY zotero.preferences.locate.description "توضیح">
 <!ENTITY zotero.preferences.locate.name "نام">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "یک مکان‌یاب، قابلیت منوی مکان‌یابی در قسمت «اطلاعات» را افزایش می‌دهد. با فعال کردن مکان‌یاب‌های فهرست زیر، می‌توانید آنها را به منوی مذکور اضافه کنید و منابع را از کتابخانه خود روی وب مکان‌یابی کنید.">
 <!ENTITY zotero.preferences.locate.addDescription "To add a Lookup Engine that is not on the list, visit the desired search engine in your browser and select “Add” from Zotero’s Locate menu.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "بازگرداندن تنظیمات پیش‌فرض">
 

@@ -24,7 +24,7 @@
 <!ENTITY closeCmd.key "W">
 <!ENTITY closeCmd.accesskey "Z">
 <!ENTITY manageAttachments.label "Zarządzaj załącznikami">
-<!ENTITY convertToStored.label "Convert Linked Files to Stored Files…">
+<!ENTITY convertToStored.label "Przekształć pliki odnośników na zachowane pliki...">
 <!ENTITY importCmd.label "Importuj...">
 <!ENTITY importCmd.key "I">
 <!ENTITY importFromClipboardCmd.label "Importuj ze schowka">
@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "Kopiuj cytowanie">
 <!ENTITY copyBibliographyCmd.label "Kopiuj bibliografię">
+<!ENTITY copyNoteCmd.label "Kopiuj notatkę">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Przełącz kierunek strony">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "s">
 <!ENTITY bidiSwitchTextDirectionItem.label "Przełącz kierunek tekstu">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "t">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Rozpocznij">
 
 
 <!ENTITY viewMenu.label "Widok">

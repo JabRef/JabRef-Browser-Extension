@@ -6,6 +6,7 @@
 <!ENTITY zotero.general.deselectAll "取消全选">
 <!ENTITY zotero.general.edit "编辑">
 <!ENTITY zotero.general.delete "删除">
+<!ENTITY zotero.general.moveToTrash "移动到回收站">
 <!ENTITY zotero.general.ok "确定">
 <!ENTITY zotero.general.cancel "取消">
 <!ENTITY zotero.general.refresh "刷新">
@@ -99,7 +100,6 @@
 <!ENTITY zotero.items.menu.duplicateItem "创建条目副本">
 <!ENTITY zotero.items.menu.mergeItems "合并条目…">
 <!ENTITY zotero.items.menu.unrecognize "撤消检索元数据">
-<!ENTITY zotero.items.menu.reportMetadata "报告不正确的元数据">
 
 <!ENTITY zotero.duplicatesMerge.versionSelect "选择作为主条目的条目版本.">
 <!ENTITY zotero.duplicatesMerge.fieldSelect "选择需要保留的域, 防止被其它版本的域覆盖.">
@@ -155,6 +155,8 @@
 <!ENTITY zotero.toolbar.attachment.add "文件副本...">
 <!ENTITY zotero.toolbar.attachment.weblink "保存当前页链接">
 <!ENTITY zotero.toolbar.attachment.snapshot "生成当前页快照">
+<!ENTITY zotero.toolbar.context.item "条目">
+<!ENTITY zotero.toolbar.context.notes "笔记">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "无标签可显示">
 <!ENTITY zotero.tagSelector.loadingTags "加载标记…">
@@ -172,11 +174,11 @@
 <!ENTITY zotero.tagColorChooser.setColor "设置颜色">
 <!ENTITY zotero.tagColorChooser.removeColor "移除颜色">
 
-<!ENTITY zotero.lookup.description "输入 ISBN，DOI，PMID 或 arXiv ID 以 添加到您的文献库：">
+<!ENTITY zotero.lookup.description "输入ISBN、DOI、PMID、arXiv ID或ADS条码导入条目到文库中：">
 <!ENTITY zotero.lookup.button.search "搜索">
 
-<!ENTITY zotero.createParent.title "Create Parent Item">
-<!ENTITY zotero.createParent.button.manual "Manual Entry">
+<!ENTITY zotero.createParent.title "创建父条目">
+<!ENTITY zotero.createParent.button.manual "手动录入">
 
 <!ENTITY zotero.selectitems.title "选择条目">
 <!ENTITY zotero.selectitems.intro.label "选择您要添加到文献库的条目">
@@ -325,3 +327,29 @@
 <!ENTITY zotero.attachLink.title "将链接附加到 URI">
 <!ENTITY zotero.attachLink.label.link "链接:">
 <!ENTITY zotero.attachLink.label.title "标题:">
+
+<!ENTITY zotero.context.addChildNote "添加条目笔记">
+<!ENTITY zotero.context.addChildNoteFromAnnotations "通过注释添加条目笔记">
+<!ENTITY zotero.context.addStandaloneNote "添加独立注释">
+<!ENTITY zotero.context.addStandaloneNoteFromAnnotations "通过注释添加独立笔记">
+<!ENTITY zotero.context.editInWindow "在独立窗口编辑">
+
+<!ENTITY zotero.pdfReader.firstPage "首页">
+<!ENTITY zotero.pdfReader.lastPage "尾页">
+<!ENTITY zotero.pdfReader.back "后退">
+<!ENTITY zotero.pdfReader.forward "前进">
+<!ENTITY zotero.pdfReader.rotateClockwise "顺时针旋转">
+<!ENTITY zotero.pdfReader.rotateCounterclockwise "逆时针旋转">
+<!ENTITY zotero.pdfReader.handTool "手形工具">
+<!ENTITY zotero.pdfReader.verticalScrolling "垂直滚动">
+<!ENTITY zotero.pdfReader.horizontalScrolling "水平滚动">
+<!ENTITY zotero.pdfReader.wrappedScrolling "覆盖滚动">
+<!ENTITY zotero.pdfReader.noSpreads "无分布">
+<!ENTITY zotero.pdfReader.oddSpreads "奇数分布">
+<!ENTITY zotero.pdfReader.evenSpreads "偶数分布">
+<!ENTITY zotero.pdfReader.zoomIn "放大">
+<!ENTITY zotero.pdfReader.zoomOut "缩小">
+<!ENTITY zotero.pdfReader.zoomAuto "自动调整大小">
+<!ENTITY zotero.pdfReader.zoomPageWidth "适应宽度">
+<!ENTITY zotero.pdfReader.transferFromPDF "Import Annotations…">
+<!ENTITY zotero.pdfReader.transferToPDF "Store Annotations in File…">

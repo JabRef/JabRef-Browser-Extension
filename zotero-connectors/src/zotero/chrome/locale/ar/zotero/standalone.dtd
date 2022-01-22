@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "نسخ الاقتباس">
 <!ENTITY copyBibliographyCmd.label "نسخ قائمة المراجع">
+<!ENTITY copyNoteCmd.label "Copy Note">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "تغيير اتجاه الصفحة">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "تغيير اتجاه النص">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Go">
 
 
 <!ENTITY viewMenu.label "عرض">

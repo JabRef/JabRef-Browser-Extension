@@ -49,7 +49,7 @@ Zotero.Prefs = new function(){
 		if (!fromVersion) {
 			fromVersion = 0;
 		}
-		var toVersion = 2;
+		var toVersion = 3;
 		if (fromVersion < toVersion) {
 			for (var i = fromVersion + 1; i <= toVersion; i++) {
 				switch (i) {
@@ -73,6 +73,15 @@ Zotero.Prefs = new function(){
 						this.clear('firstRunGuidanceShown.saveIcon');
 						this.clear('firstRunGuidanceShown.saveButton');
 						break;
+					
+					case 3:
+						this.clear('note.fontSize');
+						break;
+					
+					// TEMP: Uncomment and set toVersion above to 3 when adding to prefs drop-down
+					//case 3:
+					//	this.clear('fileHandler.pdf');
+					//	break;
 				}
 			}
 			this.set('prefVersion', toVersion);
@@ -218,6 +227,11 @@ Zotero.Prefs = new function(){
 			Zotero.setFontSize(
 				Zotero.getActiveZoteroPane().document.getElementById('zotero-pane')
 			);
+			Zotero.getActiveZoteroPane().collectionsView && Zotero.getActiveZoteroPane().collectionsView.updateFontSize();
+			Zotero.getActiveZoteroPane().itemsView && Zotero.getActiveZoteroPane().itemsView.updateFontSize();
+		}],
+		["recursiveCollections", function() {
+			Zotero.getActiveZoteroPane().itemsView.refreshAndMaintainSelection();
 		}],
 		[ "layout", function(val) {
 			Zotero.getActiveZoteroPane().updateLayout();
@@ -457,4 +471,59 @@ Zotero.Prefs = new function(){
 			});
 		});
 	}
+	
+	this.getVirtualCollectionState = function (type) {
+		const prefKeys = {
+			duplicates: 'duplicateLibraries',
+			unfiled: 'unfiledLibraries',
+			retracted: 'retractedLibraries'
+		};
+		let prefKey = prefKeys[type];
+		if (!prefKey) {
+			throw new Error("Invalid virtual collection type '" + type + "'");
+		}
+		
+		var libraries;
+		try {
+			libraries = JSON.parse(Zotero.Prefs.get(prefKey) || '{}');
+			if (typeof libraries != 'object') {
+				throw true;
+			}
+		}
+		// Ignore old/incorrect formats
+		catch (e) {
+			Zotero.Prefs.clear(prefKey);
+			libraries = {};
+		}
+		
+		return libraries;
+	};
+	
+	
+	this.getVirtualCollectionStateForLibrary = function (libraryID, type) {
+		return this.getVirtualCollectionState(type)[libraryID] !== false;
+	};
+	
+	
+	this.setVirtualCollectionStateForLibrary = function (libraryID, type, show) {
+		const prefKeys = {
+			duplicates: 'duplicateLibraries',
+			unfiled: 'unfiledLibraries',
+			retracted: 'retractedLibraries'
+		};
+		let prefKey = prefKeys[type];
+		if (!prefKey) {
+			throw new Error("Invalid virtual collection type '" + type + "'");
+		}
+		
+		var libraries = this.getVirtualCollectionState(type);
+		
+		// Update current library
+		libraries[libraryID] = !!show;
+		// Remove libraries that don't exist or that are set to true
+		for (let id of Object.keys(libraries).filter(id => libraries[id] || !Zotero.Libraries.exists(id))) {
+			delete libraries[id];
+		}
+		Zotero.Prefs.set(prefKey, JSON.stringify(libraries));
+	};
 }

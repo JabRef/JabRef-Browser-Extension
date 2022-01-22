@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "最早的项目在前">
 <!ENTITY zotero.preferences.feeds.feedDefaults "订阅默认">
 
-<!ENTITY zotero.preferences.openurl.search "搜索解析器">
+<!ENTITY zotero.preferences.openurl.choose "选择解析器">
 <!ENTITY zotero.preferences.openurl.custom "自定义...">
 <!ENTITY zotero.preferences.openurl.server "解析器:">
 <!ENTITY zotero.preferences.openurl.version "版本:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "禁用此项后, Zotero 引用期刊, 杂志和报纸文章时仅当这些文章没有指定页码范围时才会包含 URL 链接.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "便捷复制">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "默认格式：">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "复制为 HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "网站专属性设置:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "域/路径">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "获取更多样式……">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "保存到Zotero (地址栏图标)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "切换全屏模式">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "聚焦文献库面板">
 <!ENTITY zotero.preferences.keys.quicksearch "快速搜索">
 <!ENTITY zotero.preferences.keys.newItem "新建条目">
 <!ENTITY zotero.preferences.keys.newNote "新建笔记">
 <!ENTITY zotero.preferences.keys.toggleAllRead "标记全部订阅项目为 读/未读">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "切换标签选择器">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "复制选定条目的引文到剪贴板">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "复制选定的条目到剪贴板">
 <!ENTITY zotero.preferences.keys.importFromClipboard "从剪贴板导入">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "文章检索引擎管理器">
 <!ENTITY zotero.preferences.locate.description "描述">
 <!ENTITY zotero.preferences.locate.name "名称">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "文章检索引擎可以扩展信息栏中“定位”下拉列表的功能. 启用下面列表中的检索引擎, 它们将添加到下拉列表中, 它们可以让您在 Web 中定位您的文献资源.">
 <!ENTITY zotero.preferences.locate.addDescription "若要添加一个列表中不存在的搜索引擎，请先在浏览器中访问该搜索引擎，然后在 Zotero 的菜单中点击“添加”。">
 <!ENTITY zotero.preferences.locate.restoreDefaults "恢复默认">
 

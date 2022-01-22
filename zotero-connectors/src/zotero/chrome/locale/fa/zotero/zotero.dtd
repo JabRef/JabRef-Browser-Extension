@@ -6,6 +6,7 @@
 <!ENTITY zotero.general.deselectAll "انتخاب هیچ‌کدام">
 <!ENTITY zotero.general.edit "ویرایش">
 <!ENTITY zotero.general.delete "حذف">
+<!ENTITY zotero.general.moveToTrash "Move to Trash">
 <!ENTITY zotero.general.ok "تایید">
 <!ENTITY zotero.general.cancel "انصراف">
 <!ENTITY zotero.general.refresh "Refresh">
@@ -99,7 +100,6 @@
 <!ENTITY zotero.items.menu.duplicateItem "ساخت رونوشت از این آیتم">
 <!ENTITY zotero.items.menu.mergeItems "ادغام آیتم‌ها">
 <!ENTITY zotero.items.menu.unrecognize "Undo Retrieve Metadata">
-<!ENTITY zotero.items.menu.reportMetadata "Report Incorrect Metadata">
 
 <!ENTITY zotero.duplicatesMerge.versionSelect "آن نسخه از آیتمی را که می‌خواهید به عنوان آیتم اصلی استفاده شود، انتخاب کنید.">
 <!ENTITY zotero.duplicatesMerge.fieldSelect "مواردی را که می‌خواهید از سایر نسخه‌ها نگه داشته شوند، انتخاب کنید.">
@@ -155,6 +155,8 @@
 <!ENTITY zotero.toolbar.attachment.add "ذخیره رونوشت از پرونده...">
 <!ENTITY zotero.toolbar.attachment.weblink "ذخیره پیوند به صفحه جاری">
 <!ENTITY zotero.toolbar.attachment.snapshot "گرفتن تصویر لحظه‌ای از صفحه جاری">
+<!ENTITY zotero.toolbar.context.item "Item">
+<!ENTITY zotero.toolbar.context.notes "Notes">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "هیچ برچسبی برای نمایش وجود ندارد">
 <!ENTITY zotero.tagSelector.loadingTags "Loading tags…">
@@ -172,7 +174,7 @@
 <!ENTITY zotero.tagColorChooser.setColor "تنظیم رنگ">
 <!ENTITY zotero.tagColorChooser.removeColor "حذف رنگ">
 
-<!ENTITY zotero.lookup.description "Enter ISBNs, DOIs, PMIDs, or arXiv IDs to add to your library:">
+<!ENTITY zotero.lookup.description "Enter ISBNs, DOIs, PMIDs, arXiv IDs, or ADS Bibcodes to add to your library:">
 <!ENTITY zotero.lookup.button.search "جستجو">
 
 <!ENTITY zotero.createParent.title "Create Parent Item">
@@ -325,3 +327,29 @@
 <!ENTITY zotero.attachLink.title "پیوست کردن پیوند به URI">
 <!ENTITY zotero.attachLink.label.link "پیوند:">
 <!ENTITY zotero.attachLink.label.title "عنوان:">
+
+<!ENTITY zotero.context.addChildNote "Add Item Note">
+<!ENTITY zotero.context.addChildNoteFromAnnotations "Add Item Note from Annotations">
+<!ENTITY zotero.context.addStandaloneNote "Add Standalone Note">
+<!ENTITY zotero.context.addStandaloneNoteFromAnnotations "Add Standalone Note from Annotations">
+<!ENTITY zotero.context.editInWindow "Edit in a Separate Window">
+
+<!ENTITY zotero.pdfReader.firstPage "First Page">
+<!ENTITY zotero.pdfReader.lastPage "Last Page">
+<!ENTITY zotero.pdfReader.back "Back">
+<!ENTITY zotero.pdfReader.forward "Forward">
+<!ENTITY zotero.pdfReader.rotateClockwise "Rotate Clockwise">
+<!ENTITY zotero.pdfReader.rotateCounterclockwise "Rotate Counterclockwise">
+<!ENTITY zotero.pdfReader.handTool "Hand Tool">
+<!ENTITY zotero.pdfReader.verticalScrolling "Vertical Scrolling">
+<!ENTITY zotero.pdfReader.horizontalScrolling "Horizontal Scrolling">
+<!ENTITY zotero.pdfReader.wrappedScrolling "Wrapped Scrolling">
+<!ENTITY zotero.pdfReader.noSpreads "No Spreads">
+<!ENTITY zotero.pdfReader.oddSpreads "Odd Spreads">
+<!ENTITY zotero.pdfReader.evenSpreads "Even Spreads">
+<!ENTITY zotero.pdfReader.zoomIn "Zoom In">
+<!ENTITY zotero.pdfReader.zoomOut "Zoom Out">
+<!ENTITY zotero.pdfReader.zoomAuto "Automatically Resize">
+<!ENTITY zotero.pdfReader.zoomPageWidth "Zoom to Page Width">
+<!ENTITY zotero.pdfReader.transferFromPDF "Import Annotations…">
+<!ENTITY zotero.pdfReader.transferToPDF "Store Annotations in File…">

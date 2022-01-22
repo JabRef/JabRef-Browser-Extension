@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Seniausi pradžioje">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Numatytosios kanalų parinktys">
 
-<!ENTITY zotero.preferences.openurl.search "Sprendiklių paieška">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Savitas...">
 <!ENTITY zotero.preferences.openurl.server "Sprendiklis:">
 <!ENTITY zotero.preferences.openurl.version "Versija:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Jei parinktis nepasirinkta, Zotero URL adresus įtrauks tik jei cituojamas žurnalo, laikraščio ar periodinio leidinio straipsnyje nenurodyti puslapiai.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Greitas kopijavimas">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Numatytasis formatas:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Kopijuoti HTML formatu">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Parinktys atskiroms svetainėms:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Sritis/kelias">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Parsisiųsti papildomų stilių...">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Įrašyti į Zotero (ženkliukas adreso juostoje)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Įjungti/išungti viso ekrano veikseną">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Aktyvuoti bibliotekos skydelį">
 <!ENTITY zotero.preferences.keys.quicksearch "Greita paieška">
 <!ENTITY zotero.preferences.keys.newItem "Sukurti naują įrašą">
 <!ENTITY zotero.preferences.keys.newNote "Sukurti naują pastabą">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Visus naujienų kanalo įrašus pažymėti skaitytais/neskaitytais">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Rodyti/slėpti gairių parinkiklį">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopijuoti pasirinktų įrašų citavimą į iškarpinę">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopijuoti pasirinktus įrašus į iškarpinę">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Importuoti iš iškarpinės">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Straipsnių paieškos variklių tvarkytuvė">
 <!ENTITY zotero.preferences.locate.description "Aprašas">
 <!ENTITY zotero.preferences.locate.name "Pavadinimas">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Paieškos variklis išplečia dokumentų suradimo galimybes, kuriomis galite pasinaudoti informaciniame skydelyje per išskleidžiamąjį meniu. Įgalindami žemiau pateiktus paieškos variklius, įtrauksite juos į išskleidžiamąjį meniu, tad savo bibliotekos šaltinių galėsite ieškoti internete. ">
 <!ENTITY zotero.preferences.locate.addDescription "Norėdami įtraukti paieškos variklį, kurio nėra sąraše, interneto naršyklėje atverkite tos paieškos sistemos svetainę ir nuspauskite Zotero meniu mygtuką „Pridėti“.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Naudoti numatytuosius">
 

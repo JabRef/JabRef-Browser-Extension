@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "Kopiera referens">
 <!ENTITY copyBibliographyCmd.label "Kopiera källförteckning">
+<!ENTITY copyNoteCmd.label "Copy Note">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Växla sidans läge">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "Växla textflöde">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Kör">
 
 
 <!ENTITY viewMenu.label "Visa">

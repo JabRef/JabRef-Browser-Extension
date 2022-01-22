@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Od najstarszych elementów">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Wartości domyślne kanału">
 
-<!ENTITY zotero.preferences.openurl.search "Szukaj resolwerów">
+<!ENTITY zotero.preferences.openurl.choose "Wybierz resolwer...">
 <!ENTITY zotero.preferences.openurl.custom "Dostosuj...">
 <!ENTITY zotero.preferences.openurl.server "Resolwer:">
 <!ENTITY zotero.preferences.openurl.version "Wersja:">
@@ -101,10 +101,11 @@
 
 <!ENTITY zotero.preferences.citationOptions.caption "Opcje cytowania">
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL "Dołącz adresy URL do pozycji bibliograficznych artykułów w wersji papierowej.">
-<!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Gdy ta opcja nie jest wybrana, Zotero dołącza adresy URL tylko wtedy, gdy cytowane są artykuły z czasopism, magazynów, gazet, w których nie ma podanych zakresów stron.">
+<!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Gdy ta opcja nie jest wybrana, Zotero dołącza adresy URL tylko wtedy, gdy cytowane są artykuły z czasopism, magazynów lub gazet, w których nie ma podanych zakresów stron.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Szybka kopia">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Format domyślny:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Format elementu:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Format notatki:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Kopiuj jako HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Ustawienia właściwe tylko dla danej strony:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Domena/Ścieżka dostępu">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Pobierz dodatkowe style...">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Zapisz w Zotero (ikona paska adresu)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Przełącz w tryb pełnoekranowy">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Przenieś fokus na panel bibliotek (lewy)">
 <!ENTITY zotero.preferences.keys.quicksearch "Szybkie wyszukiwanie">
 <!ENTITY zotero.preferences.keys.newItem "Utwórz nowy element">
 <!ENTITY zotero.preferences.keys.newNote "Utwórz nową notatkę">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Oznacz wszystkie elementy kanału jako przeczytane/nieprzeczytane">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Wyświetl/Ukryj wybór etykiet">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopiuj wybrane odnośniki bibliograficzne do schowka">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopiuj zaznaczone elementy do schowka">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Importuj ze schowka">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Zarządzanie silnikami wyszukiwania">
 <!ENTITY zotero.preferences.locate.description "Opis">
 <!ENTITY zotero.preferences.locate.name "Nazwa">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Silnik wyszukiwania rozszerza możliwości menu wyszukiwania w panelu informacji. Włączając silniki wyszukiwania na poniższej liście, zostaną one dodane do rozwijanego menu i mogą zostać użyte do wyszukiwania zasobów z twojej biblioteki w sieci internet.">
 <!ENTITY zotero.preferences.locate.addDescription "Aby dodać silnik wyszukiwania, którego nie ma na liście, odwiedź określony silnik wyszukiwania w przeglądarce i wybierz &quot;Dodaj&quot; w menu wyszukiwania Zotero.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Przywróć domyślne">
 

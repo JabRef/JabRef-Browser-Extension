@@ -6,6 +6,7 @@
 <!ENTITY zotero.general.deselectAll "Отменить выбор всего">
 <!ENTITY zotero.general.edit "Редактировать">
 <!ENTITY zotero.general.delete "Удалить">
+<!ENTITY zotero.general.moveToTrash "Поместить в Корзину">
 <!ENTITY zotero.general.ok "ОК">
 <!ENTITY zotero.general.cancel "Отменить">
 <!ENTITY zotero.general.refresh "Обновить">
@@ -99,7 +100,6 @@
 <!ENTITY zotero.items.menu.duplicateItem "Сделать дубликат выбранной записи">
 <!ENTITY zotero.items.menu.mergeItems "Объединить записи...">
 <!ENTITY zotero.items.menu.unrecognize "Отменить получение метаданных">
-<!ENTITY zotero.items.menu.reportMetadata "Сообщить о неправильных метаданных">
 
 <!ENTITY zotero.duplicatesMerge.versionSelect "Выберите версию записи для использования в качестве главной:">
 <!ENTITY zotero.duplicatesMerge.fieldSelect "Выберите поля для сохранения из других версий записи:">
@@ -155,6 +155,8 @@
 <!ENTITY zotero.toolbar.attachment.add "Сохранить копию файла…">
 <!ENTITY zotero.toolbar.attachment.weblink "Сохранить ссылку на текущую страницу">
 <!ENTITY zotero.toolbar.attachment.snapshot "Сделать снимок текущей страницы">
+<!ENTITY zotero.toolbar.context.item "Запись">
+<!ENTITY zotero.toolbar.context.notes "Заметки">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "Нет тегов для отображения">
 <!ENTITY zotero.tagSelector.loadingTags "Загрузка тегов...">
@@ -172,7 +174,7 @@
 <!ENTITY zotero.tagColorChooser.setColor "Задать цвет">
 <!ENTITY zotero.tagColorChooser.removeColor "Удалить цвет">
 
-<!ENTITY zotero.lookup.description "Введите идентификторы ISBN, DOI, PMID, или arXiv для добавления в вашу библиотеку:">
+<!ENTITY zotero.lookup.description "Введите ISBN, DOI, PMID, arXiv ID, или ADS Bibcode чтобы пополнить вашу ими библиотеку:">
 <!ENTITY zotero.lookup.button.search "Поиск">
 
 <!ENTITY zotero.createParent.title "Создать родительский элемент">
@@ -325,3 +327,29 @@
 <!ENTITY zotero.attachLink.title "Вложить ссылку на URI">
 <!ENTITY zotero.attachLink.label.link "Ссылка:">
 <!ENTITY zotero.attachLink.label.title "Заголовок:">
+
+<!ENTITY zotero.context.addChildNote "Добавить заметку">
+<!ENTITY zotero.context.addChildNoteFromAnnotations "Создать заметку из аннотаций">
+<!ENTITY zotero.context.addStandaloneNote "Создать отдельную заметку">
+<!ENTITY zotero.context.addStandaloneNoteFromAnnotations "Создать отдельную заметку из аннотаций">
+<!ENTITY zotero.context.editInWindow "Редактировать в отдельном окне">
+
+<!ENTITY zotero.pdfReader.firstPage "Первая страница">
+<!ENTITY zotero.pdfReader.lastPage "Последняя страница">
+<!ENTITY zotero.pdfReader.back "Назад">
+<!ENTITY zotero.pdfReader.forward "Вперед">
+<!ENTITY zotero.pdfReader.rotateClockwise "Повернуть по часовой стрелке">
+<!ENTITY zotero.pdfReader.rotateCounterclockwise "Повернуть против часовой стрелки">
+<!ENTITY zotero.pdfReader.handTool "Курсор-«рука»">
+<!ENTITY zotero.pdfReader.verticalScrolling "Страницы по вертикали">
+<!ENTITY zotero.pdfReader.horizontalScrolling "Страницы по горизонтали">
+<!ENTITY zotero.pdfReader.wrappedScrolling "Страницы парами">
+<!ENTITY zotero.pdfReader.noSpreads "Не показывать развороты">
+<!ENTITY zotero.pdfReader.oddSpreads "Развороты с нечетных номеров">
+<!ENTITY zotero.pdfReader.evenSpreads "Развороты с четных номеров">
+<!ENTITY zotero.pdfReader.zoomIn "Увеличить">
+<!ENTITY zotero.pdfReader.zoomOut "Уменьшить">
+<!ENTITY zotero.pdfReader.zoomAuto "Масштабировать автоматически">
+<!ENTITY zotero.pdfReader.zoomPageWidth "По ширине страницы">
+<!ENTITY zotero.pdfReader.transferFromPDF "Импортировать аннотации…">
+<!ENTITY zotero.pdfReader.transferToPDF "Сохранить аннотации в файл…">

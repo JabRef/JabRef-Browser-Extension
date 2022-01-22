@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Oldest items first">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Feed Defaults">
 
-<!ENTITY zotero.preferences.openurl.search "ค้นหาตัวแก้ปัญหา">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Custom…">
 <!ENTITY zotero.preferences.openurl.server "ตัวแก้ปัญหา: ">
 <!ENTITY zotero.preferences.openurl.version "รุ่น:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "เมื่อไม่ใช้งานตัวเลือกนี้ Zotero จะรวม URLs เมื่ออ้างถึงวารสาร นิตยสารและหนังสือพิมพ์เฉพาะกรณีที่บทความนั้นไม่มีเลขหน้าเท่านั้น">
 
 <!ENTITY zotero.preferences.quickCopy.caption "ทำสำเนาอย่างเร็ว">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Default Format:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "ทำสำเนาเป็น HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "ตั้งค่าที่ตั้งเฉพาะ:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "โดเมน/พาธ">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Get additional styles…">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Save to Zotero (address bar icon)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "เปลี่ยนสู่แบบเต็มจอ">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "โฟกัสที่ช่องไลบรารี">
 <!ENTITY zotero.preferences.keys.quicksearch "ค้นหาแบบเร็ว">
 <!ENTITY zotero.preferences.keys.newItem "Create a New Item">
 <!ENTITY zotero.preferences.keys.newNote "Create a New Note">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Mark All Feed Items As Read/Unread">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "เปลี่ยนตัวเลือกแท็ก">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "ทำสำเนารายการอ้างอิงที่เลือกไว้ไปยังคลิปบอร์ด">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "ทำสำเนารายการที่เลือกไปยังคลิปบอร์ด">
 <!ENTITY zotero.preferences.keys.importFromClipboard "นำเข้าจากคลิปบอร์ด">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "ตัวจัดการเครื่องมือค้นหาบทความ">
 <!ENTITY zotero.preferences.locate.description "รายละเอียด">
 <!ENTITY zotero.preferences.locate.name "ชื่อ">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "เครื่องมือค้นหาขยายความสามารถของดร็อปดาวน์ &quot;หาที่ตั้ง&quot; ในแผงข้อมูล หากเลือกใช้เครื่องมือค้นหาตามรายการข้างล่างมันจะถูกเพิ่มเข้าไปในดร็อปดาวน์และสามารถใช้กำหนดแหล่งข้อมูลจากไลบรารีของคุณบนเว็บ">
 <!ENTITY zotero.preferences.locate.addDescription "To add a Lookup Engine that is not on the list, visit the desired search engine in your browser and select “Add” from Zotero’s Locate menu.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "ใช้ค่าโดยปริยาย">
 

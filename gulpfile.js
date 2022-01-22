@@ -7,6 +7,7 @@ const path = require('path');
 let rename = require("gulp-rename");
 let beautify = require('gulp-jsbeautify');
 const babel = require('babel-core');
+const del = require('del');
 
 function processJSX(file) {
 	try {
@@ -34,44 +35,59 @@ function processFile() {
 	});
 }
 
+gulp.task('clean-external-scripts', function() {
+	del('./utilities/resource/**', {force: true});
+	return del('./external-scripts/**', {force: true});
+})
+
 gulp.task('copy-external-scripts', function() {
+	// Zotero expects this to be in this particular location
+	gulp.src('./zotero-connectors/src/utilities/resource/dateFormats.json')
+		.pipe(gulp.dest('utilities/resource/'));
+	
 	let sources = [
-		'./zotero-connectors/src/browserExt/background.js',
-		'./zotero-connectors/src/common/cachedTypes.js',
-		//'./zotero-connectors/src/common/connector.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/date.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/debug.js',
-		'./zotero-connectors/src/common/errors_webkit.js',
-		'./zotero-connectors/src/common/http.js',
-		'./zotero-connectors/src/common/inject/http.js',
-		'./zotero-connectors/src/common/inject/inject.jsx',
-		'./zotero-connectors/src/common/messages.js',
-		'./zotero-connectors/src/common/messaging.js',
-		'./zotero-connectors/src/browserExt/messaging_inject.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/openurl.js',
-		'./zotero-connectors/src/browserExt/prefs.js',
-		'./zotero-connectors/src/common/promise.js',
-		'./zotero-connectors/src/common/proxy.js',
-		'./zotero-connectors/src/common/repo.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/translation/translate.js',
-		'./zotero-connectors/src/common/inject/translate_inject.js',
-		'./zotero-connectors/src/common/translate_item.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/translation/translator.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/translation/tlds.js',
-		'./zotero-connectors/src/common/translators.js',
-		'./zotero-connectors/src/zotero/resource/schema/connectorTypeSchemaData.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/xregexp/addons/unicode/unicode-zotero.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/utilities.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/utilities_translate.js',
-		'./zotero-connectors/src/common/utilities.js',
-		'./zotero-connectors/src/common/zotero.js',
+		// These are mostly coming from injectInclude in zotero-connectors/gulpfile.js if not otherwise noted
+		// './zotero-connectors/src/common/node_modules.js', // not needed
 		'./zotero-connectors/src/common/zotero_config.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/init.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/uri.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/term.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/identity.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/match.js',
-		'./zotero-connectors/src/zotero/chrome/content/zotero/xpcom/rdf/rdfparser.js',
+		'./zotero-connectors/src/common/zotero.js',
+		'./zotero-connectors/src/common/http.js',
+		'./zotero-connectors/src/common/proxy.js',
+		// './zotero-connectors/src/common/connector.js', // backgroundInclude, we override this in our own connector.js file
+		'./zotero-connectors/src/common/repo.js', // backgroundInclude
+		'./zotero-connectors/src/common/utilities.js',
+		'./zotero-connectors/src/common/translate_item.js',
+		'./zotero-connectors/src/common/translators.js', // backgroundInclude
+		'./zotero-connectors/src/common/inject/http.js',
+		'./zotero-connectors/src/common/inject/inject.jsx', // injectIncludeLast
+		'./zotero-connectors/src/common/inject/translate_inject.js',
+		'./zotero-connectors/src/common/cachedTypes.js',
+		'./zotero-connectors/src/common/errors_webkit.js', // backgroundInclude
+		'./zotero-connectors/src/common/schema.js', // not needed?
+		'./zotero-connectors/src/common/messages.js',
+		'./zotero-connectors/src/common/messaging.js',		
+		'./zotero-connectors/src/browserExt/background.js', // process-custom-scripts
+		'./zotero-connectors/src/browserExt/messaging_inject.js',
+		'./zotero-connectors/src/browserExt/prefs.js',
+		'./zotero-connectors/src/zotero/resource/schema/connectorTypeSchemaData.js',
+		'./zotero-connectors/src/utilities/openurl.js',
+		'./zotero-connectors/src/utilities/date.js',
+		'./zotero-connectors/src/utilities/xregexp-all.js',
+		'./zotero-connectors/src/utilities/xregexp-unicode-zotero.js',
+		'./zotero-connectors/src/utilities/resource/zoteroTypeSchemaData.js',
+		'./zotero-connectors/src/utilities/utilities.js',
+		'./zotero-connectors/src/utilities/utilities_item.js',
+		'./zotero-connectors/src/utilities/schema.js',
+		'./zotero-connectors/src/translate/src/promise.js',
+		'./zotero-connectors/src/translate/src/debug.js',
+		'./zotero-connectors/src/translate/src/rdf/init.js',
+		'./zotero-connectors/src/translate/src/rdf/uri.js',
+		'./zotero-connectors/src/translate/src/rdf/term.js',
+		'./zotero-connectors/src/translate/src/rdf/identity.js',
+		'./zotero-connectors/src/translate/src/rdf/rdfparser.js',
+		'./zotero-connectors/src/translate/src/translation/translate.js',
+		'./zotero-connectors/src/translate/src/translator.js',
+		'./zotero-connectors/src/translate/src/utilities_translate.js',
+		'./zotero-connectors/src/translate/src/tlds.js',
 
 		'./zotero-scholar-citations/chrome/content/zsc.js'
 	];
@@ -84,6 +100,11 @@ gulp.task('copy-external-scripts', function() {
 			// Rename common/utilities.js -> utilities-common.js
 			if (path.basename === 'utilities' && path.dirname.endsWith('common')) {
 				path.basename = 'utilities-common';
+			}
+
+			// Rename utilities/schema.js -> utilities-schema.js
+			if (path.basename === 'schema' && path.dirname.endsWith('utilities')) {
+				path.basename = 'utilities-schema';
 			}
 
 			// Rename inject/http.js -> http_inject.js
@@ -108,7 +129,9 @@ gulp.task('process-external-scripts', function() {
 		'./external-scripts/**/*'
 	];
 
-	return gulp.src(sources)
+	return gulp.src(sources, {
+			base: process.cwd()
+		})
 		.pipe(plumber())
 		.pipe(processFile())
 		.pipe(beautify({
@@ -124,4 +147,4 @@ gulp.task('process-external-scripts', function() {
 		.pipe(gulp.dest((data) => data.base));
 });
 
-gulp.task('update-external-scripts', gulp.series('copy-external-scripts', 'process-external-scripts'));
+gulp.task('update-external-scripts', gulp.series('clean-external-scripts', 'copy-external-scripts', 'process-external-scripts'));

@@ -26,7 +26,33 @@
 /* eslint-disable array-element-newline */
 
 Zotero.OpenPDF = {
-	openToPage: async function (path, page) {
+	openToPage: async function (pathOrItem, page, annotationKey) {
+		var path;
+		if (pathOrItem == 'string') {
+			Zotero.logError("Zotero.OpenPDF.openToPage() now takes a Zotero.Item rather than a path "
+				+ "-- please update your code");
+			path = pathOrItem;
+		}
+		else {
+			let item = pathOrItem;
+			let library = Zotero.Libraries.get(item.libraryID);
+			// TEMP
+			if (Zotero.isPDFBuild && (library.libraryType == 'user' || Zotero.enablePDFBuildForGroups)) {
+				let location = {
+					annotationKey,
+					pageIndex: page && page - 1
+				};
+				await Zotero.Reader.open(item.id, location);
+				return true;
+			}
+			
+			path = await item.getFilePathAsync();
+			if (!path) {
+				Zotero.warn(`${path} not found`);
+				return false;
+			}
+		}
+		
 		var handler = Zotero.Prefs.get("fileHandler.pdf");
 		var opened = false;
 		

@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Els elements més antics primer">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Paràmetres per defecte dels canals">
 
-<!ENTITY zotero.preferences.openurl.search "Cerca resolutors">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Personalitza…">
 <!ENTITY zotero.preferences.openurl.server "Resolutor:">
 <!ENTITY zotero.preferences.openurl.version "Versió:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Quan aquesta opció està deshabilitada, el Zotero inclou les URL quan se citen articles de premsa, revistes i revistes acadèmiques només si l'article no té un ran dge pàgines assignat.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Còpia ràpida">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Format per defecte:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Copia com a HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Configuració específica per a llocs web:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Domini/Ruta">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Aconsegueix estils addicionals…">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Desa al Zotero (icona de la barra d'adreces)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Commuta a pantalla completa">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Enfoca la subfinestra de les biblioteques">
 <!ENTITY zotero.preferences.keys.quicksearch "Cerca ràpida">
 <!ENTITY zotero.preferences.keys.newItem "Crea un element nou">
 <!ENTITY zotero.preferences.keys.newNote "Crea una nota nova">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Marca tots els elements del canal com a llegits / no llegits">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Canvia el selector d&apos;etiquetes">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Copia les cites dels elements seleccionats al porta-retalls">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Copia els elements seleccionats al porta-retalls">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Importa des del porta-retalls">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Gestor del motor de cerca d'articles">
 <!ENTITY zotero.preferences.locate.description "Descripció">
 <!ENTITY zotero.preferences.locate.name "Nom">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Un motor de cerca estén la capacitat del desplegable de localització en el panell d'informació. Quan habiliteu els motors de cerca a la llista, s'afegiran a la llista desplegable i es podran fer servir per localitzar els recursos de la vostra biblioteca al web.">
 <!ENTITY zotero.preferences.locate.addDescription "Per a afegir un motor de consulta que no és a la llista, visiteu el motor de cerca desitjat al vostre navegador i seleccioneu «Afegeix» des del menú de Cerca.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Restaura els valors predeterminats">
 

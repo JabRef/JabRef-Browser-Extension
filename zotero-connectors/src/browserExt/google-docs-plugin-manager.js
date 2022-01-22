@@ -98,7 +98,7 @@ Zotero.GoogleDocsPluginManager = {
 				
 				let xhr = await Zotero.HTTP.request('GET', serverURL + "package.json");
 				let serverVersion = JSON.parse(xhr.responseText).version;
-				let serverHasNewerVersion = Zotero.Utilities.Internal.semverCompare(this.version, serverVersion) < 0;
+				let serverHasNewerVersion = Zotero.Utilities.semverCompare(this.version, serverVersion) < 0;
 				if (!serverHasNewerVersion) {
 					Zotero.debug("Google Docs scripts are up to date");
 					return;
@@ -133,6 +133,7 @@ Zotero.GoogleDocsPluginManager = {
 	},
 	
 	loadBackgroundScripts: async function() {
+		if (Zotero.version === '4.999.0') return;
 		Zotero.debug(`Loading Google Docs background scripts: ${JSON.stringify(this.backgroundScriptPaths)}`);
 		for (let path of this.backgroundScriptPaths) {
 			try {

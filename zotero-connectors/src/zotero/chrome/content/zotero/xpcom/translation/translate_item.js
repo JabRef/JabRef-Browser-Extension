@@ -552,8 +552,8 @@ Zotero.Translate.ItemSaver.prototype = {
 			if (attachment.accessDate) newAttachment.setField("accessDate", attachment.accessDate);
 			if (attachment.tags) newAttachment.setTags(this._cleanTags(attachment.tags));
 			if (attachment.note) newAttachment.setNote(attachment.note);
-			this._handleRelated(attachment, newAttachment);
 			yield newAttachment.saveTx(this._saveOptions);
+			this._handleRelated(attachment, newAttachment);
 
 			Zotero.debug("Translate: Created attachment; id is " + newAttachment.id, 4);
 			attachmentCallback(attachment, 100);
@@ -941,7 +941,6 @@ Zotero.Translate.ItemSaver.prototype = {
 		if(typeof note == "object") {
 			myNote.setNote(note.note);
 			if(note.tags) myNote.setTags(this._cleanTags(note.tags));
-			this._handleRelated(note, myNote);
 		} else {
 			myNote.setNote(note);
 		}
@@ -949,6 +948,9 @@ Zotero.Translate.ItemSaver.prototype = {
 			myNote.setCollections(this._collections);
 		}
 		yield myNote.save(this._saveOptions);
+		if (typeof note == "object") {
+			this._handleRelated(note, myNote);
+		}
 		return myNote;
 	}),
 	
@@ -976,6 +978,9 @@ Zotero.Translate.ItemSaver.prototype = {
 			// Convert raw string to object with 'tag' property
 			if (typeof tag == 'string') {
 				tag = { tag };
+			}
+			if (!tag.tag.trim()) {
+				continue;
 			}
 			tag.type = this._forceTagType || tag.type || 0;
 			newTags.push(tag);
@@ -1010,46 +1015,63 @@ Zotero.Translate.ItemGetter = function() {
 };
 
 Zotero.Translate.ItemGetter.prototype = {
-	"setItems":function(items) {
+	setItems: function (items) {
 		this._itemsLeft = items;
-		this._itemsLeft.sort(function(a, b) { return a.id - b.id; });
+		// Don't sort items if doing notes export
+		if (!items.every(item => item.isNote() || item.isAttachment())) {
+			this._itemsLeft.sort((a, b) => a.id - b.id);
+		}
 		this.numItems = this._itemsLeft.length;
 	},
 	
-	"setCollection": function (collection, getChildCollections) {
+	setCollection: function (collection, getChildCollections) {
 		// get items in this collection
 		var items = new Set(collection.getChildItems());
 		
-		if(getChildCollections) {
-			// get child collections
-			this._collectionsLeft = Zotero.Collections.getByParent(collection.id, true);
+		if (getChildCollections) {
+			// Get child collections
+			this._collectionsLeft = Zotero.Collections.getByParent(collection.id);
 			
-			// get items in child collections
-			for (let collection of this._collectionsLeft) {
-				var childItems = collection.getChildItems();
+			// Get items in all descendant collections
+			let descendantCollections = Zotero.Collections.getByParent(collection.id, true);
+			for (let collection of descendantCollections) {
+				let childItems = collection.getChildItems();
 				childItems.forEach(item => items.add(item));
 			}
 		}
 		
 		this._itemsLeft = Array.from(items.values());
-		this._itemsLeft.sort(function(a, b) { return a.id - b.id; });
+		this._itemsLeft.sort((a, b) => a.id - b.id);
 		this.numItems = this._itemsLeft.length;
 	},
 	
-	"setAll": Zotero.Promise.coroutine(function* (libraryID, getChildCollections) {
-		this._itemsLeft = yield Zotero.Items.getAll(libraryID, true);
+	/**
+	 * NOTE: This function should use the Zotero.Promise.method wrapper which adds a
+	 * isResolved property to the returned promise for noWait translation.
+	 */
+	setAll: Zotero.Promise.method(async function (libraryID, getChildCollections) {
+		this._itemsLeft = (await Zotero.Items.getAll(libraryID, true))
+			.filter((item) => {
+				// Don't export annotations
+				switch (item.itemType) {
+					case 'annotation':
+						return false;
+				}
+				return true;
+			});
 		
-		if(getChildCollections) {
-			this._collectionsLeft = Zotero.Collections.getByLibrary(libraryID, true);
+		if (getChildCollections) {
+			this._collectionsLeft = Zotero.Collections.getByLibrary(libraryID);
 		}
-		
-		this._itemsLeft.sort(function(a, b) { return a.id - b.id; });
+
+		this._itemsLeft.sort((a, b) => a.id - b.id);
 		this.numItems = this._itemsLeft.length;
 	}),
 	
-	"exportFiles":function(dir, extension) {
+	exportFiles: function (dir, extension, { includeAnnotations }) {
 		// generate directory
 		this._exportFileDirectory = dir.parent.clone();
+		this._includeAnnotations = includeAnnotations;
 		
 		// delete this file if it exists
 		if(dir.exists()) {
@@ -1078,6 +1100,7 @@ Zotero.Translate.ItemGetter.prototype = {
 		var attachmentArray = Zotero.Utilities.Internal.itemToExportFormat(attachment, this.legacy);
 		var linkMode = attachment.attachmentLinkMode;
 		if(linkMode != Zotero.Attachments.LINK_MODE_LINKED_URL) {
+			let includeAnnotations = attachment.isPDFAttachment() && this._includeAnnotations;
 			attachmentArray.localPath = attachment.getFilePath();
 			
 			if(this._exportFileDirectory) {
@@ -1113,7 +1136,7 @@ Zotero.Translate.ItemGetter.prototype = {
 					 *    file to be overwritten. If true, the file will be silently overwritten.
 					 *    defaults to false if not provided. 
 					 */
-					attachmentArray.saveFile = function(attachPath, overwriteExisting) {
+					attachmentArray.saveFile = async function (attachPath, overwriteExisting) {
 						// Ensure a valid path is specified
 						if(attachPath === undefined || attachPath == "") {
 							throw new Error("ERROR_EMPTY_PATH");
@@ -1161,18 +1184,13 @@ Zotero.Translate.ItemGetter.prototype = {
 						
 						var directory = targetFile.parent;
 						
-						// The only attachments that can have multiple supporting files are imported
-						// attachments of mime type text/html
+						// For snapshots with supporting files, check if any of the supporting
+						// files would cause a name conflict, and build a list of transfers
+						// that should be performed
 						//
-						// TEMP: This used to check getNumFiles() here, but that's now async.
-						// It could be restored (using hasMultipleFiles()) when this is made
-						// async, but it's probably not necessary. (The below can also be changed
-						// to use OS.File.DirectoryIterator.)
-						if(attachment.attachmentContentType == "text/html"
-								&& linkMode != Zotero.Attachments.LINK_MODE_LINKED_FILE) {
-							// Attachment is a snapshot with supporting files. Check if any of the
-							// supporting files would cause a name conflict, and build a list of transfers
-							// that should be performed
+						// TODO: Change the below to use OS.File.DirectoryIterator?
+						if (linkMode != Zotero.Attachments.LINK_MODE_LINKED_FILE
+								&& await Zotero.Attachments.hasMultipleFiles(attachment)) {
 							var copySrcs = [];
 							var files = attachment.getFile().parent.directoryEntries;
 							while (files.hasMoreElements()) {
@@ -1203,10 +1221,22 @@ Zotero.Translate.ItemGetter.prototype = {
 							for(var i = 0; i < copySrcs.length; i++) {
 								copySrcs[i].copyTo(directory, copySrcs[i].leafName);
 							}
-						} else {
-							// Attachment is a single file
-							// Copy the file to the specified location
-							attachFile.copyTo(directory, targetFile.leafName);
+						}
+						// For single files, just copy to the specified location
+						else {
+							if (includeAnnotations) {
+								// TODO: Make export async
+								try {
+								await Zotero.PDFWorker.export(attachment.id, targetFile.path);
+								}
+								catch (e) {
+									Zotero.logError(e);
+									throw e;
+								}
+							}
+							else {
+								attachFile.copyTo(directory, targetFile.leafName);
+							}
 						}
 						
 						attachmentArray.path = targetFile.path;

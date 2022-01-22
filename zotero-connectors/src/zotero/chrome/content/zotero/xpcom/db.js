@@ -119,6 +119,12 @@ Zotero.DBConnection = function(dbNameOrPath) {
 // Public methods
 //
 /////////////////////////////////////////////////////////////////
+Zotero.defineProperty(Zotero.DBConnection.prototype, 'path', {
+	get: function () {
+		return this._dbPath;
+	}
+});
+
 
 /**
  * Test a read-only connection to the database, throwing any errors that occur
@@ -418,6 +424,9 @@ Zotero.DBConnection.prototype.getNextName = Zotero.Promise.coroutine(function* (
 /**
  * @param {Function} func - Generator function that yields promises,
  *                          generally from queryAsync() and similar
+ * @param {Object} [options]
+ * @param {Boolean} [options.disableForeignKeys] - Disable foreign key constraints before
+ *    transaction and re-enable after. (`PRAGMA foreign_keys=0|1` is a no-op during a transaction.)
  * @return {Promise} - Promise for result of generator function
  */
 Zotero.DBConnection.prototype.executeTransaction = Zotero.Promise.coroutine(function* (func, options) {
@@ -458,6 +467,11 @@ Zotero.DBConnection.prototype.executeTransaction = Zotero.Promise.coroutine(func
 				this._callbacks.begin[i](id);
 			}
 		}
+		
+		if (options.disableForeignKeys) {
+			yield this.queryAsync("PRAGMA foreign_keys = 0");
+		}
+		
 		var conn = this._getConnection(options) || (yield this._getConnectionAsync(options));
 		var result = yield conn.executeTransaction(func);
 		Zotero.debug(`Committed DB transaction ${id}`, 4);
@@ -532,6 +546,10 @@ Zotero.DBConnection.prototype.executeTransaction = Zotero.Promise.coroutine(func
 		throw e;
 	}
 	finally {
+		if (options.disableForeignKeys) {
+			yield this.queryAsync("PRAGMA foreign_keys = 1");
+		}
+		
 		// Reset options back to their previous values
 		if (options) {
 			for (let option in options) {
@@ -704,7 +722,13 @@ Zotero.DBConnection.prototype.valueQueryAsync = Zotero.Promise.coroutine(functio
 		if (Zotero.Debug.enabled) {
 			this.logQuery(sql, params, options);
 		}
-		let rows = yield conn.executeCached(sql, params);
+		let rows;
+		if (options && options.noCache) {
+			rows = yield conn.execute(sql, params);
+		}
+		else {
+			rows = yield conn.executeCached(sql, params);
+		}
 		return rows.length ? rows[0].getResultByIndex(0) : false;
 	}
 	catch (e) {
@@ -747,7 +771,13 @@ Zotero.DBConnection.prototype.columnQueryAsync = Zotero.Promise.coroutine(functi
 		if (Zotero.Debug.enabled) {
 			this.logQuery(sql, params, options);
 		}
-		let rows = yield conn.executeCached(sql, params);
+		let rows;
+		if (options && options.noCache) {
+			rows = yield conn.execute(sql, params);
+		}
+		else {
+			rows = yield conn.executeCached(sql, params);
+		}
 		var column = [];
 		for (let i=0, len=rows.length; i<len; i++) {
 			column.push(rows[i].getResultByIndex(0));
@@ -847,7 +877,7 @@ Zotero.DBConnection.prototype.executeSQLFile = async function (sql) {
 	var statements = this.parseSQLFile(sql);
 	var statement;
 	while (statement = statements.shift()) {
-		await this.queryAsync(statement);
+		await this.queryAsync(statement, false, { noCache: true });
 	}
 };
 
@@ -862,6 +892,16 @@ Zotero.DBConnection.prototype.observe = function(subject, topic, data) {
 			break;
 	}
 }
+
+
+Zotero.DBConnection.prototype.numCachedStatements = function () {
+	return this._connection._connectionData._cachedStatements.size;
+};
+
+
+Zotero.DBConnection.prototype.getCachedStatements = function () {
+	return [...this._connection._connectionData._cachedStatements].map(x => x[0]);
+};
 
 
 // TEMP
@@ -905,6 +945,17 @@ Zotero.DBConnection.prototype.isCorruptionError = function (e) {
  */
 Zotero.DBConnection.prototype.closeDatabase = Zotero.Promise.coroutine(function* (permanent) {
 	if (this._connection) {
+		// TODO: Replace with automatic detection of likely improperly cached statements
+		// (multiple similar statements, "tmp_", embedded ids)
+		if (Zotero.isSourceBuild) {
+			try {
+				Zotero.debug("Cached DB statements: " + this.numCachedStatements());
+			}
+			catch (e) {
+				Zotero.logError(e, 1);
+			}
+		}
+		
 		Zotero.debug("Closing database");
 		this.closed = true;
 		yield this._connection.close();
@@ -1287,7 +1338,7 @@ Zotero.DBConnection.prototype._handleCorruptionMarker = async function () {
 		
 		Zotero.alert(
 			null,
-			Zotero.getString('startupError'),
+			Zotero.getString('startupError', Zotero.appName),
 			Zotero.getString(
 				'db.dbCorruptedNoBackup',
 				[Zotero.appName, fileName, OS.Path.basename(damagedFile)]

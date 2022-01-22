@@ -14,6 +14,11 @@
 // 
 /*jsl:option explicit*/
 // Turn on JavaScriptLint variable declaration checking
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	this.$rdf = require('./init');
+}
+
 $rdf.IndexedFormula = function() {
 
 	var owl_ns = "http://www.w3.org/2002/07/owl#";
@@ -69,7 +74,7 @@ $rdf.IndexedFormula = function() {
 		if ($rdf.Util.ArrayIndexOf(features, "sameAs") >= 0)
 			this.propertyActions['<http://www.w3.org/2002/07/owl#sameAs>'] = [
 				function(formula, subj, pred, obj, why) {
-					// tabulator.log.warn("Equating "+subj.uri+" sameAs "+obj.uri);  //@@
+					// $rdf.log("Equating "+subj.uri+" sameAs "+obj.uri);  //@@
 					formula.equate(subj, obj);
 					return true; // true if statement given is NOT needed in the store
 				}
@@ -89,14 +94,14 @@ $rdf.IndexedFormula = function() {
 		function handle_IFP(formula, subj, pred, obj) {
 			var s1 = formula.any(undefined, pred, obj);
 			if (s1 == undefined) return false; // First time with this value
-			// tabulator.log.warn("Equating "+s1.uri+" and "+subj.uri + " because IFP "+pred.uri);  //@@
+			// $rdf.log("Equating "+s1.uri+" and "+subj.uri + " because IFP "+pred.uri);  //@@
 			formula.equate(s1, subj);
 			return true;
 		} //handle_IFP
 		function handle_FP(formula, subj, pred, obj) {
 			var o1 = formula.any(subj, pred, undefined);
 			if (o1 == undefined) return false; // First time with this value
-			// tabulator.log.warn("Equating "+o1.uri+" and "+obj.uri + " because FP "+pred.uri);  //@@
+			// $rdf.log("Equating "+o1.uri+" and "+obj.uri + " because FP "+pred.uri);  //@@
 			formula.equate(o1, obj);
 			return true;
 		} //handle_FP
@@ -107,7 +112,7 @@ $rdf.IndexedFormula = function() {
 	$rdf.IndexedFormula.SuperClass = $rdf.Formula;
 
 	$rdf.IndexedFormula.prototype.newPropertyAction = function newPropertyAction(pred, action) {
-		//$rdf.log.debug("newPropertyAction:  "+pred);
+		//$rdf.log("newPropertyAction:  "+pred);
 		var hash = pred.hashString();
 		if (this.propertyActions[hash] == undefined)
 			this.propertyActions[hash] = [];
@@ -142,7 +147,7 @@ We replace the bigger with the smaller.
 
 */
 	$rdf.IndexedFormula.prototype.equate = function(u1, u2) {
-		// tabulator.log.warn("Equating "+u1+" and "+u2); // @@
+		// $rdf.log("Equating "+u1+" and "+u2); // @@
 		//@@JAMBO Must canonicalize the uris to prevent errors from a=b=c
 		//03-21-2010
 		u1 = this.canon(u1);
@@ -160,7 +165,7 @@ We replace the bigger with the smaller.
 	// Replace big with small, obsoleted with obsoleting.
 	//
 	$rdf.IndexedFormula.prototype.replaceWith = function(big, small) {
-		//$rdf.log.debug("Replacing "+big+" with "+small) // @@
+		//$rdf.log("Replacing "+big+" with "+small) // @@
 		var oldhash = big.hashString();
 		var newhash = small.hashString();
 
@@ -205,7 +210,7 @@ We replace the bigger with the smaller.
 		moveIndex(this.classActions);
 		moveIndex(this.propertyActions);
 
-		$rdf.log.debug("Equate done. " + big + " now links to " + small)
+		$rdf.log("Equate done. " + big + " now links to " + small)
 		return true; // true means the statement does not need to be put in
 	};
 
@@ -221,10 +226,10 @@ We replace the bigger with the smaller.
 	$rdf.IndexedFormula.prototype.sameThings = function(x, y) {
 		if (x.sameTerm(y)) return true;
 		var x1 = this.canon(x);
-		//    alert('x1='+x1);
+		//    $rdf.log('x1='+x1);
 		if (x1 == undefined) return false;
 		var y1 = this.canon(y);
-		//    alert('y1='+y1); //@@
+		//    $rdf.log('y1='+y1); //@@
 		if (y1 == undefined) return false;
 		return (x1.uri == y1.uri);
 	}
@@ -256,7 +261,7 @@ We replace the bigger with the smaller.
 			if (typeof val == 'undefined')
 				return undefined;
 			else // @@ add converting of dates and numbers
-				throw new Error("Can't make Term from " + val + " of type " + typeof val);
+				throw "Can't make Term from " + val + " of type " + typeof val;
 		}
 		return val;
 	}
@@ -282,7 +287,7 @@ We replace the bigger with the smaller.
 		var actions = this.propertyActions[this.canon(pred).hashString()];
 		var done = false;
 		if (actions) {
-			// alert('type: '+typeof actions +' @@ actions='+actions);
+			// $rdf.log('type: '+typeof actions +' @@ actions='+actions);
 			for (var i = 0; i < actions.length; i++) {
 				done = done || actions[i](this, subj, pred, obj, why);
 			}
@@ -302,7 +307,7 @@ We replace the bigger with the smaller.
 			ix[h].push(st); // Set of things with this as subject, etc
 		}
 
-		//tabulator.log.debug("ADDING    {"+subj+" "+pred+" "+obj+"} "+why);
+		//$rdf.log("ADDING    {"+subj+" "+pred+" "+obj+"} "+why);
 		this.statements.push(st);
 		return st;
 	}; //add
@@ -334,7 +339,7 @@ We replace the bigger with the smaller.
 	// Return statements matching a pattern
 	// ALL CONVENIENCE LOOKUP FUNCTIONS RELY ON THIS!
 	$rdf.IndexedFormula.prototype.statementsMatching = function(subj, pred, obj, why, justOne) {
-		//$rdf.log.debug("Matching {"+subj+" "+pred+" "+obj+"}");
+		//$rdf.log("Matching {"+subj+" "+pred+" "+obj+"}");
 		var pat = [subj, pred, obj, why];
 		var pattern = [];
 		var hash = [];
@@ -402,13 +407,13 @@ We replace the bigger with the smaller.
 	}; // statementsMatching
 	/** remove a particular statement from the bank **/
 	$rdf.IndexedFormula.prototype.remove = function(st) {
-		//$rdf.log.debug("entering remove w/ st=" + st);
+		//$rdf.log("entering remove w/ st=" + st);
 		var term = [st.subject, st.predicate, st.object, st.why];
 		for (var p = 0; p < 4; p++) {
 			var c = this.canon(term[p]);
 			var h = c.hashString();
 			if (this.index[p][h] == undefined) {
-				//$rdf.log.warn ("Statement removal: no index '+p+': "+st);
+				//$rdf.log ("Statement removal: no index '+p+': "+st);
 			} else {
 				$rdf.Util.RDFArrayRemove(this.index[p][h], st);
 			}
@@ -417,7 +422,7 @@ We replace the bigger with the smaller.
 	}; //remove
 	/** remove all statements matching args (within limit) **/
 	$rdf.IndexedFormula.prototype.removeMany = function(subj, pred, obj, why, limit) {
-		//$rdf.log.debug("entering removeMany w/ subj,pred,obj,why,limit = " + subj +", "+ pred+", " + obj+", " + why+", " + limit);
+		//$rdf.log("entering removeMany w/ subj,pred,obj,why,limit = " + subj +", "+ pred+", " + obj+", " + why+", " + limit);
 		var sts = this.statementsMatching(subj, pred, obj, why, false);
 		//This is a subtle bug that occcured in updateCenter.js too.
 		//The fact is, this.statementsMatching returns this.whyIndex instead of a copy of it
@@ -496,4 +501,7 @@ We replace the bigger with the smaller.
 	return $rdf.IndexedFormula;
 
 }();
-// ends
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = $rdf.IndexedFormula;
+}

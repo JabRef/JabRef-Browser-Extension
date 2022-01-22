@@ -43,10 +43,11 @@ Zotero.Connector = new function() {
 		}
 
 		return this.ping({}).catch(function(e) {
-			if (e.status == 0) {
-				return false;
+			if (e.status != 0) {
+				Zotero.debug("Checking if Zotero is online returned a non-zero HTTP status.");
+				Zotero.logError(e);
 			}
-			throw e;
+			return false;
 		});
 	};
 
@@ -57,11 +58,17 @@ Zotero.Connector = new function() {
 		this.ping(payload);
 	}
 	
+	// For use in injected pages
+	this.getPref = function(pref) {
+		return Zotero.Connector[pref];
+	}
+	
 	this.ping = function(payload={}) {
 		return Zotero.Connector.callMethod("ping", payload).then(function(response) {
 			if (response && 'prefs' in response) {
 				Zotero.Connector.shouldReportActiveURL = !!response.prefs.reportActiveURL;
 				Zotero.Connector.automaticSnapshots = !!response.prefs.automaticSnapshots;
+				Zotero.Connector.googleDocsAddNoteEnabled = !!response.prefs.googleDocsAddNoteEnabled;
 			}
 			return response || {};
 		});

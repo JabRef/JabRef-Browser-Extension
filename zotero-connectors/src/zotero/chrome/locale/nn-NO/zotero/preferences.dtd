@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Eldste element først">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Standardar for nyheitskjelder">
 
-<!ENTITY zotero.preferences.openurl.search "Leit etter &quot;resolvers&quot;">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Custom…">
 <!ENTITY zotero.preferences.openurl.server "Resolver:">
 <!ENTITY zotero.preferences.openurl.version "Versjon:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Når dette alternativet ikkje er valt, vil Zotero berre oppgje URL til tidsskriftet, magasinet eller avisa, dersom artikkelen er registrert utan sidetal.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Snøgg-kopi">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Default Format:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Kopier som HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Innstillingar">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Domene/stig">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Get additional styles…">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Save to Zotero (address bar icon)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Fullskjerm av/på">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Focus Libraries Pane">
 <!ENTITY zotero.preferences.keys.quicksearch "Hurtigsøk">
 <!ENTITY zotero.preferences.keys.newItem "Create a New Item">
 <!ENTITY zotero.preferences.keys.newNote "Create a New Note">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Mark All Feed Items As Read/Unread">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Slå merkeveljaren av/på">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopier dei valde siteringane til utklipptavla.">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopier dei valde elementa til utklipptavla.">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Import from Clipboard">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Article Lookup Engine Manager">
 <!ENTITY zotero.preferences.locate.description "Skildring">
 <!ENTITY zotero.preferences.locate.name "Name">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "A Lookup Engine extends the capability of the Locate drop down in the Info pane. By enabling Lookup Engines in the list below they will be added to the drop down and can be used to locate resources from your library on the web.">
 <!ENTITY zotero.preferences.locate.addDescription "To add a Lookup Engine that is not on the list, visit the desired search engine in your browser and select “Add” from Zotero’s Locate menu.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Restore Defaults">
 

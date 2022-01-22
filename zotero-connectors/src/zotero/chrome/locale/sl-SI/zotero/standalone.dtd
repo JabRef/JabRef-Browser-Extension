@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "Kopiraj citat">
 <!ENTITY copyBibliographyCmd.label "Kopiraj bibliografijo">
+<!ENTITY copyNoteCmd.label "Kopiraj opombo">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Preklopi smer strani">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "t">
 <!ENTITY bidiSwitchTextDirectionItem.label "Preklopi smer besedila">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "b">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "b">
+
+
+<!ENTITY goMenu.label "Pojdi">
 
 
 <!ENTITY viewMenu.label "Pogled">

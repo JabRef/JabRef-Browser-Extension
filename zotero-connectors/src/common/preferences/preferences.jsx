@@ -212,7 +212,7 @@ Zotero_Preferences.General = {
 		if(Zotero.isSafari) {
 			window.open(`${safari.extension.baseURI}safari/`+"tools/testTranslators/testTranslators.html", "translatorTester");
 		} else if(Zotero.isBrowserExt) {
-			window.open(browser.extension.getURL("tools/testTranslators/testTranslators.html"), "translatorTester");
+			window.open(browser.runtime.getURL("tools/testTranslators/testTranslators.html"), "translatorTester");
 		}
 	}
 };
@@ -257,11 +257,14 @@ Zotero_Preferences.Advanced = {
 			if (Zotero.isSafari) {
 				Zotero.Connector_Browser.openTab(`${safari.extension.baseURI}safari/` + "test/test.html");
 			} else {
-				Zotero.Connector_Browser.openTab(browser.extension.getURL(`test/test.html`));
+				Zotero.Connector_Browser.openTab(browser.runtime.getURL(`test/test.html`));
 			}
 		};
 		document.getElementById("advanced-button-config-editor").onclick = function() {
-			if (confirm("Changing these advanced settings can be harmful to the stability, security, and performance of the browser and the Zotero Connector. \nYou should only proceed if you are sure of what you are doing.")) {
+			let msg = "Changing these advanced settings can be harmful to the stability, security, "
+				+ "and performance of the browser and the Zotero Connector. You should only "
+				+ "proceed if you are sure of what you are doing.";
+			if (confirm(msg)) {
 				Zotero.Connector_Browser.openConfigEditor();
 			}
 		};

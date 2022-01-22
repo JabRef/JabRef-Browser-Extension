@@ -52,6 +52,11 @@
  * associated documentation will at all times remain with copyright
  * holders.
  */
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	var $rdf = require('./init');
+}
+
 /**
  * @class Class defining an RDFParser resource object tied to an RDFStore
  *  
@@ -274,7 +279,7 @@ $rdf.RDFParser = function(store) {
 	 * @param {Object} why The context to which this resource belongs
 	 */
 	this['parse'] = function(document, base, why) {
-		// alert('parse base:'+base);
+		// $rdf.log('parse base:'+base);
 		var children = document['childNodes']
 
 		// clean up for the next run
@@ -556,14 +561,18 @@ $rdf.RDFParser = function(store) {
 			if (attrs[x]['nodeName']['substr'](0, 3) == "xml") {
 				if (attrs[x].name.slice(0, 6) == 'xmlns:') {
 					var uri = attrs[x].nodeValue;
-					// alert('base for namespac attr:'+this.base);
+					// $rdf.log('base for namespac attr:'+this.base);
 					if (this.base) uri = $rdf.Util.uri.join(uri, this.base);
 					this.store.setPrefixForURI(attrs[x].name.slice(6), uri);
 				}
-				//		alert('rdfparser: xml atribute: '+attrs[x].name) //@@
+				//		$rdf.log('rdfparser: xml atribute: '+attrs[x].name) //@@
 				element['removeAttributeNode'](attrs[x])
 			}
 		}
 		return frame
 	}
+}
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = $rdf.RDFParser;
 }

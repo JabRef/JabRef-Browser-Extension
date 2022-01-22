@@ -106,6 +106,22 @@ var MESSAGES = {
 					return [data[0], data[1]];
 				}
 			}
+		},
+		getCodeForTranslator: {
+			inject: {
+				preSend: async function(args) {
+					const translator = args[0];
+					return [{
+						translatorID: translator.translatorID
+					}];
+				}
+			},
+			background: {
+				postReceive: async function(args) {
+					let translatorInfo = args[0]
+					return [await Zotero.Translators.getWithoutCode(translatorInfo.translatorID)];
+				}
+			}
 		}
 	},
 	Debug: {
@@ -125,6 +141,7 @@ var MESSAGES = {
 		callMethodWithCookies: true,
 		getClientVersion: true,
 		reportActiveURL: false,
+		getPref: true
 	},
 	Connector_Browser: {
 		onSelect: true,
@@ -252,7 +269,7 @@ MESSAGES.COHTTP = {
 					let match = xhr.responseHeaders.match(new RegExp(`^${name}: (.*)$`, 'mi'));
 					return match ? match[1] : null;
 				};
-				if (xhr.response.startsWith('blob:')) {
+				if (xhr.response.startsWith && xhr.response.startsWith('blob:')) {
 					xhr.response = await unpackArrayBuffer(xhr.response);
 				} else {
 					xhr.responseText = xhr.response;
