@@ -108,7 +108,8 @@ DISTDIR="$CWD/dist"
 NODE_MODULES_DIR="$CWD/node_modules"
 LOG="$CWD/build.log"
 
-EXTENSION_XPCOM_DIR="$SRCDIR/zotero/chrome/content/zotero/xpcom"
+EXTENSION_TRANSLATE_DIR="$SRCDIR/translate"
+EXTENSION_UTILITIES_DIR="$SRCDIR/utilities"
 EXTENSION_SKIN_DIR="$SRCDIR/zotero/chrome/skin/default/zotero"
 
 SAFARI_EXT="$DISTDIR/Zotero_Connector-$VERSION.safariextz"
@@ -179,22 +180,9 @@ function copyResources {
 	# Set version
 	perl -pi -e 's/^(\s*this.version\s*=\s*)"[^"]*"/$1"'"$VERSION"'"/' "$browser_builddir/zotero.js"
 	
-	# Copy extension pieces
-	mkdir "$browser_builddir/zotero"
-	cp -r "$EXTENSION_XPCOM_DIR/utilities.js" \
-		"$EXTENSION_XPCOM_DIR/utilities_translate.js" \
-		"$EXTENSION_XPCOM_DIR/date.js" \
-		"$EXTENSION_XPCOM_DIR/debug.js" \
-		"$EXTENSION_XPCOM_DIR/openurl.js" \
-		"$EXTENSION_XPCOM_DIR/rdf" \
-		"$SRCDIR/zotero/resource/schema/connectorTypeSchemaData.js" \
-		"$EXTENSION_XPCOM_DIR/xregexp" \
-		"$browser_builddir/zotero"
-	mkdir "$browser_builddir/zotero/translation"
-	cp "$EXTENSION_XPCOM_DIR/translation/translate.js" \
-		"$EXTENSION_XPCOM_DIR/translation/translator.js" \
-		"$EXTENSION_XPCOM_DIR/translation/tlds.js" \
-		"$browser_builddir/zotero/translation"
+	# Copy translation pieces
+	cp -r "$EXTENSION_TRANSLATE_DIR/src" "$browser_builddir/translate"
+	cp -r "$EXTENSION_UTILITIES_DIR" "$browser_builddir/utilities"
 	
 	# Make sure an empty browser-polyfill.js exists in Safari, since it's included in iframe
 	# HTML pages
@@ -251,16 +239,20 @@ function copyResources {
 	find "$browser_builddir" -type f -name "*.jsx" -delete
 
 	# Copy SingleFile submodule code
-	mkdir -p "$browser_builddir/lib/SingleFile/extension/lib"
-	cp -r "$SRCDIR/zotero/resource/SingleFile/extension/lib/single-file" \
-		"$browser_builddir/lib/SingleFile/extension/lib/single-file"
-	cp -r "$SRCDIR/zotero/resource/SingleFile/lib" "$browser_builddir/lib/SingleFile/lib"
+	mkdir -p "$browser_builddir/lib/SingleFile/dist"
+	cp -r "$SRCDIR/zotero/resource/SingleFile/dist/extension-core.js" \
+	  "$SRCDIR/zotero/resource/SingleFile/dist/single-file-background.js" \
+	  "$SRCDIR/zotero/resource/SingleFile/dist/single-file.js" \
+	  "$SRCDIR/zotero/resource/SingleFile/dist/single-file-frames.js" \
+	  "$SRCDIR/zotero/resource/SingleFile/dist/chrome-browser-polyfill.js" \
+	  "$SRCDIR/zotero/resource/SingleFile/dist/web/hooks" \
+		"$browser_builddir/lib/SingleFile/dist"
 	# Copy SingleFile config object from client code
 	cp "$SRCDIR/zotero/chrome/content/zotero/xpcom/singlefile.js" "$browser_builddir/singlefile-config.js"
 	
 	if [ ! -z $DEBUG ]; then
-		cp "$SRCDIR/zotero/chrome/content/zotero/tools/testTranslators"/*.js \
-			"$SRCDIR/zotero/chrome/content/zotero/tools/testTranslators"/*.css \
+		cp "$EXTENSION_TRANSLATE_DIR/testTranslators"/*.js \
+			"$EXTENSION_TRANSLATE_DIR/testTranslators"/*.css \
 			"$browser_builddir/tools/testTranslators"
 	else
 		rm -rf "$browser_builddir/tools"

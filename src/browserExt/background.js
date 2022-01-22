@@ -81,7 +81,7 @@ Zotero.Connector_Browser = new function() {
 	 */
 	this.onSelect = async function(items, tab) {
 		await Zotero.Connector_Browser.openWindow(
-			browser.extension.getURL("itemSelector/itemSelector.html")
+			browser.runtime.getURL("itemSelector/itemSelector.html")
 				+ "#" + encodeURIComponent(JSON.stringify([tab.id, items]))
 				// Remove once https://bugzilla.mozilla.org/show_bug.cgi?id=719905 is fixed
 				.replace(/%3A/g, 'ZOTEROCOLON'),
@@ -331,7 +331,7 @@ Zotero.Connector_Browser = new function() {
 
 	this.injectSingleFile = async function(tab, frameId) {
 		Zotero.debug("SingleFile: injecting SingleFile into page");
-		await singlefile.extension.injectScript(tab.id, {});
+		await extension.injectScript(tab.id, Zotero.SingleFile.CONFIG);
 		// Also insert the config object
 		await this.injectScripts('singlefile-config.js', tab, frameId);
 	};
@@ -404,11 +404,11 @@ Zotero.Connector_Browser = new function() {
 	};
 	
 	this.openPreferences = function(paneID, tab) {
-		this.openTab(browser.extension.getURL(`preferences/preferences.html#${paneID}`), tab);
+		this.openTab(browser.runtime.getURL(`preferences/preferences.html#${paneID}`), tab);
 	};
 	
 	this.openConfigEditor = function(tab) {
-		this.openTab(browser.extension.getURL(`preferences/config.html`), tab);
+		this.openTab(browser.runtime.getURL(`preferences/config.html`), tab);
 	};
 
 	/**
@@ -456,7 +456,7 @@ Zotero.Connector_Browser = new function() {
 			return chrome.tabs.query( { lastFocusedWindow: true, active: true },
 				(tabs) => tabs.length && this._updateExtensionUI(tabs[0]));
 		}	
-		if (Zotero.Prefs.get('firstUse') && Zotero.isFirefox) return _showFirstUseUI(tab);
+		if (Zotero.Prefs.get('firstUse')) return _showFirstUseUI(tab);
 		if (!tab.active) return;
 		browser.contextMenus.removeAll();
 
@@ -617,7 +617,7 @@ Zotero.Connector_Browser = new function() {
 	this._showPDFIcon = function(tab) {
 		browser.browserAction.setIcon({
 			tabId: tab.id,
-			path: browser.extension.getURL('images/pdf.png')
+			path: browser.runtime.getURL('images/pdf.png')
 		});
 		browser.browserAction.setTitle({
 			tabId: tab.id,
@@ -735,14 +735,14 @@ Zotero.Connector_Browser = new function() {
 			id: "zotero-context-menu-preferences",
 			title: "Preferences",
 			onclick: function () {
-				browser.tabs.create({url: browser.extension.getURL('preferences/preferences.html')});
+				browser.tabs.create({url: browser.runtime.getURL('preferences/preferences.html')});
 			},
 			contexts: ['all']
 		});
 	}
 	
 	function _browserAction(tab) {
-		if (Zotero.Prefs.get('firstUse') && Zotero.isFirefox) {
+		if (Zotero.Prefs.get('firstUse')) {
 			Zotero.Messaging.sendMessage("firstUse", null, tab)
 			.then(function () {
 				Zotero.Prefs.set('firstUse', false);
@@ -843,7 +843,7 @@ Zotero.Connector_Browser = new function() {
 	async function onNavigation(details, historyChange=false) {
 		// Ignore developer tools, item selector
 		if (details.tabId < 0 || _isDisabledForURL(details.url, true)
-			|| details.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html")) === 0) return;
+			|| details.url.indexOf(browser.runtime.getURL("itemSelector/itemSelector.html")) === 0) return;
 		
 		// Don't process again if URL hasn't changed
 		if (_tabInfo[details.tabId] && _tabInfo[details.tabId].url == details.url) {
@@ -876,9 +876,23 @@ Zotero.Connector_Browser = new function() {
 	browser.tabs.onRemoved.addListener(logListenerErrors(_clearInfoForTab));
 	
 	browser.tabs.onActivated.addListener(logListenerErrors(async function(details) {
-		var tab = await browser.tabs.get(details.tabId);
+		// Chrome 91 has started throwing
+		// "Tabs cannot be edited right now (user may be dragging a tab)."
+		// when attempting to retrieve the tab on event here when user is clicking on a tab
+		// Follow https://bugs.chromium.org/p/chromium/issues/detail?id=1213925
+		// for progress.
+		let attemptsLeft = 10;
+		while (!tab && attemptsLeft > 0) {
+			try {
+					var tab = await browser.tabs.get(details.tabId);
+			}
+			catch (e) {
+				attemptsLeft--;
+				await Zotero.Promise.delay(100 * (10 - attemptsLeft));
+			}
+		}
 		// Ignore item selector
-		if (tab.url.indexOf(browser.extension.getURL("itemSelector/itemSelector.html")) === 0) return;
+		if (tab.url.indexOf(browser.runtime.getURL("itemSelector/itemSelector.html")) === 0) return;
 		Zotero.debug("Connector_Browser: onActivated for " + tab.url);
 		Zotero.Connector_Browser.onTabActivated(tab);
 		Zotero.Connector.reportActiveURL(tab.url);

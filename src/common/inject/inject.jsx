@@ -50,6 +50,11 @@ if (isTopWindow) {
 Zotero.Inject = new function() {
 	var _translate;
 	var _noteImgSrc;
+	// Used to display a different message for failing translations on pages
+	// with site-access limits
+	const siteAccessLimitsTranslators = new Set([
+		"57a00950-f0d1-4b41-b6ba-44ff0fc30289" // GoogleScholar
+	]);
 	this.sessionDetails = {};
 	this.translators = [];
 		
@@ -70,7 +75,7 @@ Zotero.Inject = new function() {
 		
 		_noteImgSrc = Zotero.isSafari
 			? `${safari.extension.baseURI}safari/`+"images/treeitem-note.png"
-			: browser.extension.getURL('images/treeitem-note.png');
+			: browser.runtime.getURL('images/treeitem-note.png');
 		
 		// wrap this in try/catch so that errors will reach logError
 		try {
@@ -299,14 +304,27 @@ Zotero.Inject = new function() {
 	};
 
 	this.firstUsePrompt = function () {
+		var clientName = ZOTERO_CONFIG.CLIENT_NAME;
 		return this.confirm({
-			title: "You’ve installed the Zotero Connector!",
-			button1Text: "Got it",
+			title: Zotero.getString('firstRun_title', clientName),
+			button1Text: Zotero.getString('firstRun_acceptButton'),
 			button2Text: "",
-			message: `
-				The Zotero Connector enables you to save references to Zotero from your web browser in a single click.<br><br>
-				<strong>Looking for your Zotero data?</strong> We’ve made some <a href="https://www.zotero.org/blog/a-unified-zotero-experience/">important changes</a> to how Zotero works in Firefox. If you were previously using Zotero for Firefox, you’ll need to <a href="https://www.zotero.org/download/">download</a> the standalone Zotero application to access your local Zotero data going forward.
-			`
+			message: Zotero.getString(
+					'firstRun_text1',
+					[
+						clientName,
+						"https://www.zotero.org/support/adding_items_to_zotero"
+					]
+				)
+				+ '<br><br>'
+				+ Zotero.getString(
+					'firstRun_text2',
+					[
+						clientName,
+						// TODO: Make download URL configurable (instead of just base URL + "download")
+						ZOTERO_CONFIG.WWW_BASE_URL + "download/"
+					]
+				)
 		});
 	};
 	
@@ -452,7 +470,8 @@ Zotero.Inject = new function() {
 						Zotero.Messaging.sendMessage("progressWindow.error", ['fallback', translator.label, "Save as Webpage"]);
 						return await this._saveAsWebpage({sessionID, snapshot: true});
 					}
-				} else {
+				}
+				else {
 					// Clear session details on failure, so another save click tries again
 					this.sessionDetails = {};
 					// We delay opening the progressWindow for multiple items so we don't have to flash it
@@ -461,7 +480,18 @@ Zotero.Inject = new function() {
 					// and then the delayed progressWindow.show will pop up another empty progress window.
 					// Cannot have that!
 					await Zotero.Promise.delay(500);
-					Zotero.Messaging.sendMessage("progressWindow.done", [false]);
+					const isAccessLimitingTranslator = siteAccessLimitsTranslators.has(translator.translatorID);
+					try {
+						var statusCode = typeof e == 'string' && e.match(/status code ([0-9]{3})/)[1];
+					} catch (e) {}
+					const isHTTPErrorForbidden = statusCode == '403';
+					const isHTTPErrorTooManyRequests = statusCode == '429';
+					if ((isAccessLimitingTranslator && isHTTPErrorForbidden) || isHTTPErrorTooManyRequests) {
+						Zotero.Messaging.sendMessage("progressWindow.done", [false, 'siteAccessLimits', translator.label]);
+					}
+					else {
+						Zotero.Messaging.sendMessage("progressWindow.done", [false]);
+					}
 					return;
 				}
 			}
@@ -543,7 +573,7 @@ Zotero.Inject = new function() {
 			);
 
 			// Once snapshot item is created, if requested, run SingleFile
-			if (result && result.saveSingleFile) {
+			if (!data.pdf && result && result.saveSingleFile) {
 				let progressItem = {
 					sessionID,
 					id: 2,
@@ -664,7 +694,7 @@ try {
 } catch(e) {}
 
 const isWeb = window.location.protocol === "http:" || window.location.protocol === "https:";
-const isTestPage = Zotero.isBrowserExt && window.location.href.startsWith(browser.extension.getURL('test'));
+const isTestPage = Zotero.isBrowserExt && window.location.href.startsWith(browser.runtime.getURL('test'));
 // don't try to scrape on hidden frames
 if(!isHiddenIFrame) {
 	var doInject = async function () {
