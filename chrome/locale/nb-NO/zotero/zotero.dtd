@@ -6,6 +6,7 @@
 <!ENTITY zotero.general.deselectAll "Fjern markeringen">
 <!ENTITY zotero.general.edit "Rediger">
 <!ENTITY zotero.general.delete "Slett">
+<!ENTITY zotero.general.moveToTrash "Flytt til søppelkorg">
 <!ENTITY zotero.general.ok "OK">
 <!ENTITY zotero.general.cancel "Avbryt">
 <!ENTITY zotero.general.refresh "Oppdater">
@@ -99,7 +100,6 @@
 <!ENTITY zotero.items.menu.duplicateItem "Dupliser det valgte elementet">
 <!ENTITY zotero.items.menu.mergeItems "Slå sammen elementer…">
 <!ENTITY zotero.items.menu.unrecognize "Gjør om hent metadat">
-<!ENTITY zotero.items.menu.reportMetadata "Rapporter inkorrekte metadata">
 
 <!ENTITY zotero.duplicatesMerge.versionSelect "Velg versjon av element til bruk som hovedelement:">
 <!ENTITY zotero.duplicatesMerge.fieldSelect "Velg felt å bevare fra andre versjoner av elementet:">
@@ -155,12 +155,14 @@
 <!ENTITY zotero.toolbar.attachment.add "Lagre kopi av fil...">
 <!ENTITY zotero.toolbar.attachment.weblink "Lagre kobling til gjeldende side">
 <!ENTITY zotero.toolbar.attachment.snapshot "Lag øyeblikksbilde av gjeldende side">
+<!ENTITY zotero.toolbar.context.item "Element">
+<!ENTITY zotero.toolbar.context.notes "Notater">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "Ingen emneord å vise">
 <!ENTITY zotero.tagSelector.loadingTags "Laster emneord…">
 <!ENTITY zotero.tagSelector.showAutomatic "Vis automatisk">
 <!ENTITY zotero.tagSelector.displayAllInLibrary "Vis alle emneord i dette biblioteket">
-<!ENTITY zotero.tagSelector.deleteAutomaticInLibrary "Slett automatisk emneord i dette biblioteket…">
+<!ENTITY zotero.tagSelector.deleteAutomaticInLibrary "Slett automatiske emneord i dette biblioteket…">
 <!ENTITY zotero.tagSelector.clearAll "Fravelg alle">
 <!ENTITY zotero.tagSelector.assignColor "Tildel farge…">
 <!ENTITY zotero.tagSelector.renameTag "Gi emneord nytt navn...">
@@ -172,7 +174,7 @@
 <!ENTITY zotero.tagColorChooser.setColor "Bruk farge">
 <!ENTITY zotero.tagColorChooser.removeColor "Fjern farge">
 
-<!ENTITY zotero.lookup.description "Skriv inn ISBN, DOI, PMID eller arXiv ID-er for elementer du vil legge til biblioteket ditt:">
+<!ENTITY zotero.lookup.description "Skriv inn ISBN-er, DOI-er, PMID-er, arXiv ID-er eller ADS bibliografiske koder for elementer du vil legge til biblioteket ditt:">
 <!ENTITY zotero.lookup.button.search "Søk">
 
 <!ENTITY zotero.createParent.title "Opprett overordnet element">
@@ -195,7 +197,7 @@
 <!ENTITY zotero.bibliography.copyToClipboard.label "Kopier til utklippstavle">
 <!ENTITY zotero.bibliography.print.label "Skriv ut">
 
-<!ENTITY zotero.integration.docPrefs.title "Dokumentegenskaper">
+<!ENTITY zotero.integration.docPrefs.title "Innstillinger for dokument">
 <!ENTITY zotero.integration.addEditCitation.title "Legg til/endre henvisning">
 <!ENTITY zotero.integration.editBibliography.title "Rediger bibliografi">
 <!ENTITY zotero.integration.quickFormatDialog.title "Hurtigformater henvisning">
@@ -232,9 +234,9 @@
 <!ENTITY zotero.richText.superscript.label "Hevet skrift">
 <!ENTITY zotero.richText.subscript.label "Senket skrift">
 
-<!ENTITY zotero.annotate.toolbar.add.label "Legg til kommentar">
-<!ENTITY zotero.annotate.toolbar.collapse.label "Skjul alle kommentarer">
-<!ENTITY zotero.annotate.toolbar.expand.label "Vis alle kommentarer">
+<!ENTITY zotero.annotate.toolbar.add.label "Legg til merknad">
+<!ENTITY zotero.annotate.toolbar.collapse.label "Skjul alle merknader">
+<!ENTITY zotero.annotate.toolbar.expand.label "Vis alle merknader">
 <!ENTITY zotero.annotate.toolbar.highlight.label "Merk tekst">
 <!ENTITY zotero.annotate.toolbar.unhighlight.label "Fjern merking av tekst">
 
@@ -281,9 +283,9 @@
 <!ENTITY zotero.merge.deleted "Slettet">
 
 <!ENTITY zotero.proxy.recognized.title "Mellomtjener gjenkjent">
-<!ENTITY zotero.proxy.recognized.warning "Legg kun til proxier som er lenket fra nettsted til ditt bibliotek, din skole eller bedrift">
-<!ENTITY zotero.proxy.recognized.warning.secondary "Det å legge til andre proxier tillater skadelige nettsteder å gi seg ut for å være nettsteder du stoler på.">
-<!ENTITY zotero.proxy.recognized.disable.label "Ikke automatisk omdiriger forespørsler gjennom tidligere kjente proxier">
+<!ENTITY zotero.proxy.recognized.warning "Legg kun til mellomtjenere som er lenket fra nettsted til ditt bibliotek, din skole eller bedrift">
+<!ENTITY zotero.proxy.recognized.warning.secondary "Det å legge til andre mellomtjenere tillater skadelige nettsteder å gi seg ut for å være nettsteder du stoler på.">
+<!ENTITY zotero.proxy.recognized.disable.label "Ikke omdiriger forespørsler automatisk gjennom tidligere kjente mellomtjenere">
 <!ENTITY zotero.proxy.recognized.ignore.label "Ignorer">
 
 <!ENTITY zotero.feedSettings.title "Innstillinger for nyhetsstrøm">
@@ -325,3 +327,29 @@
 <!ENTITY zotero.attachLink.title "Legg til kobling til URI">
 <!ENTITY zotero.attachLink.label.link "Kobling:">
 <!ENTITY zotero.attachLink.label.title "Tittel:">
+
+<!ENTITY zotero.context.addChildNote "Legg til notat til element">
+<!ENTITY zotero.context.addChildNoteFromAnnotations "Legg til notat til element fra merknader">
+<!ENTITY zotero.context.addStandaloneNote "Legg til enkeltstående notat">
+<!ENTITY zotero.context.addStandaloneNoteFromAnnotations "Legg til enkeltstående notat fra merknader">
+<!ENTITY zotero.context.editInWindow "Rediger i separat vindu">
+
+<!ENTITY zotero.pdfReader.firstPage "Første side">
+<!ENTITY zotero.pdfReader.lastPage "Siste side">
+<!ENTITY zotero.pdfReader.back "Tilbake">
+<!ENTITY zotero.pdfReader.forward "Fremover">
+<!ENTITY zotero.pdfReader.rotateClockwise "Roter med klokken">
+<!ENTITY zotero.pdfReader.rotateCounterclockwise "Roter mot klokken">
+<!ENTITY zotero.pdfReader.handTool "Håndverktøy">
+<!ENTITY zotero.pdfReader.verticalScrolling "Vertikal rulling">
+<!ENTITY zotero.pdfReader.horizontalScrolling "Horisontal rulling">
+<!ENTITY zotero.pdfReader.wrappedScrolling "Sammenhengende rulling">
+<!ENTITY zotero.pdfReader.noSpreads "Ingen tosidig visning">
+<!ENTITY zotero.pdfReader.oddSpreads "Oddetallssider mot hverandre">
+<!ENTITY zotero.pdfReader.evenSpreads "Partallssider mot hverandre">
+<!ENTITY zotero.pdfReader.zoomIn "Zoom inn">
+<!ENTITY zotero.pdfReader.zoomOut "Zoom ut">
+<!ENTITY zotero.pdfReader.zoomAuto "Endre størrelse automatisk">
+<!ENTITY zotero.pdfReader.zoomPageWidth "Zoom til sidebredde">
+<!ENTITY zotero.pdfReader.transferFromPDF "Importer merknader…">
+<!ENTITY zotero.pdfReader.transferToPDF "Lagre merknader i fil…">

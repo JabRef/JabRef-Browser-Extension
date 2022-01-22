@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Първо най-старите записи">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Настройки по подразбиране на емисиите">
 
-<!ENTITY zotero.preferences.openurl.search "Търсене на разрешаващи сървъри - &quot;резолвъри&quot;">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Персонализирани...">
 <!ENTITY zotero.preferences.openurl.server "Разрешаващ сървър - &quot;резолвър&quot; :">
 <!ENTITY zotero.preferences.openurl.version "Версия:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Когато тази опция е изключена, Зотеро включва интернет адреса на цитираната статия от списание или вестник, само ако номерата на страниците не са указани.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Бързо копиране">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Формат по подразбиране:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Копиране в HTML формат">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Настройки, специфични за страницата:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Домейн/Пътека">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Изтегляне на допълнителни стилове">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Запазване в Зотеро (икона в адресната лента)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Превключване в режим на цял екран">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Фокусиране на панел Библиотеки">
 <!ENTITY zotero.preferences.keys.quicksearch "Бързо Търсене">
 <!ENTITY zotero.preferences.keys.newItem "Създаване на нов запис">
 <!ENTITY zotero.preferences.keys.newNote "Създаване на нова бележка">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Отбелязване на всички емисии като прочетени/непрочетени">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Избиране на маркери">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Копиране на избраните цитирания в клипборда">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Копиране на избраните записи в клипборда">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Внасяне от клипборда">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Мениджър на услугата за откриване на статии">
 <!ENTITY zotero.preferences.locate.description "Описание">
 <!ENTITY zotero.preferences.locate.name "Име">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Услугата за откриване увеличава възможностите на падащото меню Откриване в панел Информация. При включване на различни услуги за откриване те ще бъдат добавени в падащото меню и могат да бъдат използвани за откриване на ресурси от Вашата Библиотека онлайн.">
 <!ENTITY zotero.preferences.locate.addDescription "За да добавите услуга за откриване, която не е налична в списъка, посетете желаната от Вас търсеща машина във Вашия браузър и изберете &quot;Добавяне&quot; от менюто на Зотеро &quot;Локализиране&quot;.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Възстановяване на настройките по подразбиране">
 

@@ -6,6 +6,7 @@
 <!ENTITY zotero.general.deselectAll "모두 선택 해제">
 <!ENTITY zotero.general.edit "편집">
 <!ENTITY zotero.general.delete "삭제">
+<!ENTITY zotero.general.moveToTrash "Move to Trash">
 <!ENTITY zotero.general.ok "확인">
 <!ENTITY zotero.general.cancel "취소">
 <!ENTITY zotero.general.refresh "새로고침">
@@ -48,7 +49,7 @@
 <!ENTITY zotero.tabs.notes.label "노트">
 <!ENTITY zotero.tabs.attachments.label "첨부">
 <!ENTITY zotero.tabs.tags.label "태그">
-<!ENTITY zotero.tabs.related.label "관련 페이지">
+<!ENTITY zotero.tabs.related.label "연관">
 <!ENTITY zotero.notes.separate "새 창에서 편집">
 
 <!ENTITY zotero.toolbar.duplicate.label "중복 보기">
@@ -60,7 +61,7 @@
 <!ENTITY zotero.items.title_column "제목">
 <!ENTITY zotero.items.creator_column "창작자">
 <!ENTITY zotero.items.date_column "날짜">
-<!ENTITY zotero.items.year_column "년">
+<!ENTITY zotero.items.year_column "연도">
 <!ENTITY zotero.items.publisher_column "출판사">
 <!ENTITY zotero.items.publication_column "출판">
 <!ENTITY zotero.items.journalAbbr_column "저널 약어">
@@ -99,7 +100,6 @@
 <!ENTITY zotero.items.menu.duplicateItem "선택된 항목 복제">
 <!ENTITY zotero.items.menu.mergeItems "항목 병합...">
 <!ENTITY zotero.items.menu.unrecognize "메타데이터 검색 실행취소">
-<!ENTITY zotero.items.menu.reportMetadata "잘못된 메타데이터 보고">
 
 <!ENTITY zotero.duplicatesMerge.versionSelect "원본 항목으로 사용할 항목의 버전 선택:">
 <!ENTITY zotero.duplicatesMerge.fieldSelect "항목의 다른 버전과 무관하게 유지할 필드 선택:">
@@ -155,6 +155,8 @@
 <!ENTITY zotero.toolbar.attachment.add "파일의 사본을 보존...">
 <!ENTITY zotero.toolbar.attachment.weblink "현재 페이지로 링크 저장">
 <!ENTITY zotero.toolbar.attachment.snapshot "현재 페이지의 스냅샷을 촬영">
+<!ENTITY zotero.toolbar.context.item "Item">
+<!ENTITY zotero.toolbar.context.notes "Notes">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "표시할 태그가 없음">
 <!ENTITY zotero.tagSelector.loadingTags "태그 불러오는 중...">
@@ -172,10 +174,10 @@
 <!ENTITY zotero.tagColorChooser.setColor "색상 설정">
 <!ENTITY zotero.tagColorChooser.removeColor "색상 제거">
 
-<!ENTITY zotero.lookup.description "라이브러리에 추가할 ISBN, DOI, PMID 또는 arXiv ID를 입력하세요:">
+<!ENTITY zotero.lookup.description "Enter ISBNs, DOIs, PMIDs, arXiv IDs, or ADS Bibcodes to add to your library:">
 <!ENTITY zotero.lookup.button.search "검색">
 
-<!ENTITY zotero.createParent.title "Create Parent Item">
+<!ENTITY zotero.createParent.title "상위 항목 생성">
 <!ENTITY zotero.createParent.button.manual "Manual Entry">
 
 <!ENTITY zotero.selectitems.title "항목 선택">
@@ -325,3 +327,29 @@
 <!ENTITY zotero.attachLink.title "URI로 링크 걸기">
 <!ENTITY zotero.attachLink.label.link "링크:">
 <!ENTITY zotero.attachLink.label.title "제목:">
+
+<!ENTITY zotero.context.addChildNote "Add Item Note">
+<!ENTITY zotero.context.addChildNoteFromAnnotations "Add Item Note from Annotations">
+<!ENTITY zotero.context.addStandaloneNote "Add Standalone Note">
+<!ENTITY zotero.context.addStandaloneNoteFromAnnotations "Add Standalone Note from Annotations">
+<!ENTITY zotero.context.editInWindow "Edit in a Separate Window">
+
+<!ENTITY zotero.pdfReader.firstPage "First Page">
+<!ENTITY zotero.pdfReader.lastPage "Last Page">
+<!ENTITY zotero.pdfReader.back "Back">
+<!ENTITY zotero.pdfReader.forward "Forward">
+<!ENTITY zotero.pdfReader.rotateClockwise "Rotate Clockwise">
+<!ENTITY zotero.pdfReader.rotateCounterclockwise "Rotate Counterclockwise">
+<!ENTITY zotero.pdfReader.handTool "Hand Tool">
+<!ENTITY zotero.pdfReader.verticalScrolling "Vertical Scrolling">
+<!ENTITY zotero.pdfReader.horizontalScrolling "Horizontal Scrolling">
+<!ENTITY zotero.pdfReader.wrappedScrolling "Wrapped Scrolling">
+<!ENTITY zotero.pdfReader.noSpreads "No Spreads">
+<!ENTITY zotero.pdfReader.oddSpreads "Odd Spreads">
+<!ENTITY zotero.pdfReader.evenSpreads "Even Spreads">
+<!ENTITY zotero.pdfReader.zoomIn "Zoom In">
+<!ENTITY zotero.pdfReader.zoomOut "Zoom Out">
+<!ENTITY zotero.pdfReader.zoomAuto "Automatically Resize">
+<!ENTITY zotero.pdfReader.zoomPageWidth "Zoom to Page Width">
+<!ENTITY zotero.pdfReader.transferFromPDF "Import Annotations…">
+<!ENTITY zotero.pdfReader.transferToPDF "Store Annotations in File…">

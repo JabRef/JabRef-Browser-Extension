@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "複製成引用文獻條">
 <!ENTITY copyBibliographyCmd.label "複製參考文獻表">
+<!ENTITY copyNoteCmd.label "Copy Note">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "切換頁面方向 (G)">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "G">
 <!ENTITY bidiSwitchTextDirectionItem.label "切換文字方向 (W)">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "W">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Go">
 
 
 <!ENTITY viewMenu.label "檢視">

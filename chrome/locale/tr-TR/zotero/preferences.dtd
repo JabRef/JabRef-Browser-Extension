@@ -9,12 +9,12 @@
 <!ENTITY zotero.preferences.prefpane.general "Genel">
 
 <!ENTITY zotero.preferences.fileHandling "Dosya Kullanımı">
-<!ENTITY zotero.preferences.automaticSnapshots "Web sayfalarından eserler yaratılırken sayfa görünümü otomatik olarak kaydet">
-<!ENTITY zotero.preferences.downloadAssociatedFiles "Eserleri kaydederken ilişkilendirilen PDF ve diğer dosyaları da otomatik olarak ekle">
+<!ENTITY zotero.preferences.automaticSnapshots "Web sayfalarından eserler yaratırken sayfanın anlık görüntüsünü otomatik olarak kaydet">
+<!ENTITY zotero.preferences.downloadAssociatedFiles "Eserleri kaydederken ilişkili PDF ve diğer dosyaları da otomatik olarak ekle">
 <!ENTITY zotero.preferences.autoRecognizeFiles "PDF'ler için otomatik olarak üstveri al ">
 <!ENTITY zotero.preferences.autoRenameFiles "Ana üstverileri kullanarak ve otomatik olarak ek dosyaları yeniden adlandır">
 <!ENTITY zotero.preferences.autoRenameFiles.renameLinked "Bağlantılanmış dosyaları yeniden adlandır">
-<!ENTITY zotero.preferences.fileHandler.openPDFsUsing "PDF'leri bu ile Aç:">
+<!ENTITY zotero.preferences.fileHandler.openPDFsUsing "PDF dosyalarını bu ile Aç:">
 <!ENTITY zotero.preferences.fileHandler.systemDefault "Sistem Varsayılanı">
 
 <!ENTITY zotero.preferences.miscellaneous "Diğer Ayarlar">
@@ -29,7 +29,7 @@
 <!ENTITY zotero.preferences.groups "Gruplar">
 <!ENTITY zotero.preferences.groups.whenCopyingInclude "Kitaplıklar arası eserler kopyalanırken, bunları ekle:">
 <!ENTITY zotero.preferences.groups.childNotes "alt notlar">
-<!ENTITY zotero.preferences.groups.childFiles "alt görüntüler ve içeri aktarılan dosyalar">
+<!ENTITY zotero.preferences.groups.childFiles "alt anlık görüntüler ve içeri aktarılan dosyalar">
 <!ENTITY zotero.preferences.groups.childLinks "alt bağlantılar">
 <!ENTITY zotero.preferences.groups.tags "etiketler">
 
@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "En eski eserler ilk">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Besleme Varsayılanları">
 
-<!ENTITY zotero.preferences.openurl.search "Çözücü ara">
+<!ENTITY zotero.preferences.openurl.choose "Bir çözümleyici seç...">
 <!ENTITY zotero.preferences.openurl.custom "Özel...">
 <!ENTITY zotero.preferences.openurl.server "Çözücü:">
 <!ENTITY zotero.preferences.openurl.version "Sürüm:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Bu seçenek devre dışı bırakıldığında, Zotero, bilimsel dergi, magazin ve gazete makalelerine olan alıntılara URL'leri, yalnızca bir sayfa aralığı belirtilmediği halde ekleyecektir.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Çabuk Kopyala">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Varsayılan Biçim:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Eser Biçimi:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Not Biçimi:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "HTML olarak kopyala">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Siteye Özgü Ayarlar:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Etki alanı/Yol">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Ek stiller indir...">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Zotero'ya Kaydet (adres çubuğu ikonu)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Tam Ekran Moduna Geç">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Dermeler Bölmesine Odaklan">
 <!ENTITY zotero.preferences.keys.quicksearch "Çabuk Arama">
 <!ENTITY zotero.preferences.keys.newItem "Yeni Eser Oluştur">
 <!ENTITY zotero.preferences.keys.newNote "Yeni Not Oluştur">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Tüm Besleme Eserlerini Okunmuş/Okunmamış İşaretle">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Etiket Seçiciyi Aç">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Seçili Eserin Alıntılarını Panoya Kopyala">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Seçilen Eserleri Panoya Kopyala">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Panodan İçeri Aktar">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Makale Bakma Motoru Yöneticisi">
 <!ENTITY zotero.preferences.locate.description "Tanım">
 <!ENTITY zotero.preferences.locate.name "Ad">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Bir Bakma Motoru, Bilgi bölmesindeki Yerini Bul açılırının yeteneklerini genişletir. Bakma Motorlarını aşağıdaki listede etkinleştirerek bu açılıra ekleyebilir ve onları kitaplığınızdaki kaynakların yerlerini bulmak amacıyla webde kullanabilirsiniz.">
 <!ENTITY zotero.preferences.locate.addDescription "Listede olmayan bir Bakma Motoru eklemek için, tarayıcınızda istediğiniz arama moturunu ziyaret edip Zotero'nun Yerini Bul menüsünden &quot;Ekle&quot;yi seçiniz.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Varsayılanları Geri Yükle">
 

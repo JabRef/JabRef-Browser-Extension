@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "Alıntı Kopyala">
 <!ENTITY copyBibliographyCmd.label "Kaynakça Kopyala">
+<!ENTITY copyNoteCmd.label "Notu Kopyala">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Sayfa Yönünü Değiştir">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "Yazım Yönünü Değiştir">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Git">
 
 
 <!ENTITY viewMenu.label "Görünüm">

@@ -303,10 +303,8 @@ Zotero.RecognizePDF = new function () {
 		
 		try {
 			zp = Zotero.getActiveZoteroPane();
-			if (zp) {
-				if (selectParent) {
-					await zp.selectItem(parentItem.id);
-				}
+			if (selectParent && zp && zp.Zotero_Tabs.selectedID != 'zotero-pane') {
+				await zp.selectItem(parentItem.id);
 			}
 		}
 		catch (e) {
@@ -419,6 +417,7 @@ Zotero.RecognizePDF = new function () {
 		if (!filePath || !await OS.File.exists(filePath)) throw new Zotero.Exception.Alert('recognizePDF.fileNotFound');
 
 		let json = await extractJSON(filePath, MAX_PAGES);
+		json.fileName = OS.Path.basename(filePath);
 		
 		let containingTextPages = 0;
 		

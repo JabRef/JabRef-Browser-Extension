@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "Αντιγραφή παραπομπής/παράθεσης">
 <!ENTITY copyBibliographyCmd.label "Αντιγραφή βιβλιογραφίας">
+<!ENTITY copyNoteCmd.label "Copy Note">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Αλλαγή κατεύθυνσης σελίδας">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "Αλλαγή κατεύθυνσης κειμένου">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Go">
 
 
 <!ENTITY viewMenu.label "Προβολή">

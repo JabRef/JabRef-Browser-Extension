@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Najstaršie záznamy ako prvé">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Predvolené RSS správy">
 
-<!ENTITY zotero.preferences.openurl.search "Hľadať resolvery">
+<!ENTITY zotero.preferences.openurl.choose "Zvoľte resolver...">
 <!ENTITY zotero.preferences.openurl.custom "Vlastné...">
 <!ENTITY zotero.preferences.openurl.server "Resolver:">
 <!ENTITY zotero.preferences.openurl.version "Verzia:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Keď táto voľba nie je vybraná, Zotero vloží URL adresy pri citovaní článkov (z odborných a populárnych časopisov alebo novín) iba v prípade, ak článok nemá špecifikovaný rozsah strán.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Rýchle kopírovanie">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Predvolený formát:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Kopírovať ako HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Nastavenia pre jednotlivé sídla:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "doména/cesta">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Získať ďalšie štýly...">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Uložiť do Zotera (ikona v lište pre adresu)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Prepnúť Zotero do celého okna">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Tabla knižníc Focus">
 <!ENTITY zotero.preferences.keys.quicksearch "Rýchle vyhľadávanie">
 <!ENTITY zotero.preferences.keys.newItem "Vytvoriť nový záznam">
 <!ENTITY zotero.preferences.keys.newNote "Vytvoriť novú poznámku">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Označiť všetky RSS správy ako prečítané/neprečítané">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Prepnúť výber značiek">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopírovať vybrané citácie do schránky">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopírovať vybrané záznamy do schránky">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Importovať zo schránky">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Správca motora vyhľadávania článkov">
 <!ENTITY zotero.preferences.locate.description "Popis">
 <!ENTITY zotero.preferences.locate.name "Meno">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Vyhľadávací motor rozširuje schopnosť rozbaľovacej ponuky lokalizácie v table informácií. Aktivované vyhľadávacie motory v zozname dole sa pridajú do rozbaľovacej ponuky a použijú sa na lokalizáciu zdrojov z vašej knižnice na webe.">
 <!ENTITY zotero.preferences.locate.addDescription "Na pridanie vyhľadávacieho motora, ktorý nie je v zozname, navštívte želaný vyhľadávací motor vo svojom prehliadači a vyberte &quot;Pridať&quot; z ponuky Zotera Nájsť.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Obnoviť predvolené">
 

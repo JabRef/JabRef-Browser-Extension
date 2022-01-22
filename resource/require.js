@@ -1,7 +1,7 @@
 'use strict';
 
 var require = (function() {
-	var win, Zotero;
+	var win, cons, Zotero;
 	Components.utils.import('resource://zotero/loader.jsm');
 	var requirer = Module('/', '/');
 	var _runningTimers = {};
@@ -61,16 +61,17 @@ var require = (function() {
 	}
 	
 	function getZotero() {
+		if (win.Zotero) Zotero = win.Zotero;
+		
 		if (typeof Zotero === 'undefined') {
 			try {
 				Zotero = Components.classes["@zotero.org/Zotero;1"]
 					.getService(Components.interfaces.nsISupports).wrappedJSObject;
 			} catch (e) {}
 		}
-		return Zotero || {};	
+		return Zotero || {};
 	}
 
-	var cons;
 	if (typeof win.console !== 'undefined') {
 		cons = console;
 	}
@@ -80,6 +81,9 @@ var require = (function() {
 			cons[key] = text => {getZotero(); typeof Zotero !== 'undefined' && false && Zotero.debug(`console.${key}: ${text}`)};
 		}
 	}
+	if (!win.console) {
+		win.console = cons;
+	}
 	let globals = {
 		window: win,
 		document: typeof win.document !== 'undefined' && win.document || {},
@@ -87,6 +91,10 @@ var require = (function() {
 		navigator: typeof win.navigator !== 'undefined' && win.navigator || {},
 		setTimeout: win.setTimeout,
 		clearTimeout: win.clearTimeout,
+		requestAnimationFrame: win.setTimeout,
+		cancelAnimationFrame: win.clearTimeout,
+		TextEncoder: TextEncoder,
+		TextDecoder: TextDecoder,
 	};
 	Object.defineProperty(globals, 'Zotero', { get: getZotero });
 	var loader = Loader({
@@ -95,11 +103,13 @@ var require = (function() {
 			'': 'resource://zotero/',
 			'containers/': 'chrome://zotero/content/containers/',
 			'components/': 'chrome://zotero/content/components/',
-			'zotero/': 'chrome://zotero/content/modules/',
-			'@zotero/': 'chrome://zotero/content/modules/'
+			'zotero/': 'chrome://zotero/content/',
+			// TEMP until plugins updated
+			// TODO: Possible to show a deprecation warning?
+			'zotero/filePicker': 'chrome://zotero/content/modules/filePicker',
 		},
 		globals
 	});
 	let require = Require(loader, requirer);
-	return require
+	return require;
 })();

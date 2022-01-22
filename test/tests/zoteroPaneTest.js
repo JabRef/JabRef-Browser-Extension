@@ -443,6 +443,8 @@ describe("ZoteroPane", function() {
 	
 	
 	describe("#deleteSelectedItems()", function () {
+		const DELETE_KEY_CODE = 46;
+		
 		it("should remove an item from My Publications", function* () {
 			var item = createUnsavedDataObject('item');
 			item.inPublications = true;
@@ -455,7 +457,7 @@ describe("ZoteroPane", function() {
 			var selected = iv.selectItem(item.id);
 			assert.ok(selected);
 			
-			var tree = doc.getElementById('zotero-items-tree');
+			var tree = doc.getElementById(iv.id);
 			tree.focus();
 			
 			yield Zotero.Promise.delay(1);
@@ -464,7 +466,18 @@ describe("ZoteroPane", function() {
 			var modifyPromise = waitForItemEvent('modify');
 			
 			var event = doc.createEvent("KeyboardEvent");
-			event.initKeyEvent("keypress", true, true, window, false, false, false, false, 46, 0);
+			event.initKeyEvent(
+				"keypress",
+				true,
+				true,
+				window,
+				false,
+				false,
+				false,
+				false,
+				DELETE_KEY_CODE,
+				0
+			);
 			tree.dispatchEvent(event);
 			yield promise;
 			yield modifyPromise;
@@ -473,7 +486,7 @@ describe("ZoteroPane", function() {
 			assert.isFalse(item.deleted);
 		});
 		
-		it("should move an item to trash from My Publications", function* () {
+		it("should move My Publications item to trash with prompt for modified Delete", function* () {
 			var item = createUnsavedDataObject('item');
 			item.inPublications = true;
 			yield item.saveTx();
@@ -485,7 +498,7 @@ describe("ZoteroPane", function() {
 			var selected = iv.selectItem(item.id);
 			assert.ok(selected);
 			
-			var tree = doc.getElementById('zotero-items-tree');
+			var tree = doc.getElementById(iv.id);
 			tree.focus();
 			
 			yield Zotero.Promise.delay(1);
@@ -503,7 +516,7 @@ describe("ZoteroPane", function() {
 				false,
 				!Zotero.isMac, // shift
 				Zotero.isMac, // meta
-				46,
+				DELETE_KEY_CODE,
 				0
 			);
 			tree.dispatchEvent(event);
@@ -511,6 +524,80 @@ describe("ZoteroPane", function() {
 			yield modifyPromise;
 			
 			assert.isTrue(item.inPublications);
+			assert.isTrue(item.deleted);
+		});
+		
+		it("should move saved search item to trash with prompt for unmodified Delete", async function () {
+			var search = await createDataObject('search');
+			var title = [...Object.values(search.conditions)]
+				.filter(x => x.condition == 'title' && x.operator == 'contains')[0].value;
+			var item = await createDataObject('item', { title });
+			
+			await waitForItemsLoad(win);
+			var iv = zp.itemsView;
+			
+			var selected = iv.selectItem(item.id);
+			assert.ok(selected);
+			
+			var tree = doc.getElementById(iv.id);
+			tree.focus();
+			
+			await Zotero.Promise.delay(1);
+			
+			var promise = waitForDialog();
+			var modifyPromise = waitForItemEvent('modify');
+			
+			var event = new KeyboardEvent(
+				"keypress",
+				{
+					key: 'Delete',
+					code: 'Delete',
+					keyCode: DELETE_KEY_CODE,
+					bubbles: true,
+					cancelable: true
+				}
+			);
+			tree.dispatchEvent(event);
+			await promise;
+			await modifyPromise;
+			
+			assert.isTrue(item.deleted);
+		});
+		
+		it("should move saved search trash without prompt for modified Delete", async function () {
+			var search = await createDataObject('search');
+			var title = [...Object.values(search.conditions)]
+				.filter(x => x.condition == 'title' && x.operator == 'contains')[0].value;
+			var item = await createDataObject('item', { title });
+			
+			await waitForItemsLoad(win);
+			var iv = zp.itemsView;
+			
+			var selected = iv.selectItem(item.id);
+			assert.ok(selected);
+			
+			var tree = doc.getElementById(iv.id);
+			tree.focus();
+			
+			await Zotero.Promise.delay(1);
+			
+			var modifyPromise = waitForItemEvent('modify');
+			
+			var event = new KeyboardEvent(
+				"keypress",
+				{
+					key: 'Delete',
+					code: 'Delete',
+					metaKey: Zotero.isMac,
+					shiftKey: !Zotero.isMac,
+					keyCode: DELETE_KEY_CODE,
+					bubbles: true,
+					cancelable: true
+				}
+			);
+			tree.dispatchEvent(event);
+			await modifyPromise;
+			
 			assert.isTrue(item.deleted);
 		});
 	});
@@ -566,27 +653,29 @@ describe("ZoteroPane", function() {
 			assert.isFalse(cv.getRowIndexByID(id));
 			yield zp.setVirtual(userLibraryID, 'duplicates', true, true);
 			// Duplicate Items should be selected
-			assert.equal(cv.selectedTreeRow.id, id);
+			assert.equal(zp.getCollectionTreeRow().id, id);
 			// Should be missing from pref
 			assert.isUndefined(JSON.parse(Zotero.Prefs.get('duplicateLibraries'))[userLibraryID])
 			
 			// Clicking should select both items
 			var row = cv.getRowIndexByID(id);
 			assert.ok(row);
-			assert.equal(cv.selection.currentIndex, row);
+			assert.equal(cv.selection.pivot, row);
 			yield waitForItemsLoad(win);
 			var iv = zp.itemsView;
 			row = iv.getRowIndexByID(item1.id);
 			assert.isNumber(row);
-			clickOnItemsRow(iv, row);
+			var promise = iv.waitForSelect();
+			clickOnItemsRow(win, iv, row);
 			assert.equal(iv.selection.count, 2);
+			yield promise;
 			
 			// Show Unfiled Items
 			id = "U" + userLibraryID;
 			assert.isFalse(cv.getRowIndexByID(id));
 			yield zp.setVirtual(userLibraryID, 'unfiled', true, true);
 			// Unfiled Items should be selected
-			assert.equal(cv.selectedTreeRow.id, id);
+			assert.equal(zp.getCollectionTreeRow().id, id);
 			// Should be missing from pref
 			assert.isUndefined(JSON.parse(Zotero.Prefs.get('unfiledLibraries'))[userLibraryID])
 		});
@@ -608,7 +697,7 @@ describe("ZoteroPane", function() {
 			
 			// Library should have been expanded and Duplicate Items selected
 			assert.ok(cv.getRowIndexByID(id));
-			assert.equal(cv.selectedTreeRow.id, id);
+			assert.equal(zp.getCollectionTreeRow().id, id);
 		});
 		
 		it("should hide a virtual collection in My Library", function* () {
@@ -634,7 +723,7 @@ describe("ZoteroPane", function() {
 			
 			var group = yield createGroup();
 			var groupRow = cv.getRowIndexByID(group.treeViewID);
-			var rowCount = cv.rowCount;
+			var rowCount = cv._rows.length;
 			
 			// Make sure group is open
 			if (!cv.isContainerOpen(groupRow)) {
@@ -658,7 +747,7 @@ describe("ZoteroPane", function() {
 			// Group should remain open
 			assert.isTrue(cv.isContainerOpen(groupRow));
 			// Row count should be 1 less
-			assert.equal(cv.rowCount, --rowCount);
+			assert.equal(cv._rows.length, --rowCount);
 			
 			// Hide Unfiled Items
 			id = "U" + group.libraryID;
@@ -674,7 +763,7 @@ describe("ZoteroPane", function() {
 			// Group should remain open
 			assert.isTrue(cv.isContainerOpen(groupRow));
 			// Row count should be 1 less
-			assert.equal(cv.rowCount, --rowCount);
+			assert.equal(cv._rows.length, --rowCount);
 		});
 	});
 	
@@ -713,46 +802,35 @@ describe("ZoteroPane", function() {
 		});
 	});
 	
-	describe("#onCollectionSelected()", function() {
-		var cv;
-		
-		beforeEach(function* () {
-			cv = zp.collectionsView;
-			yield cv.selectLibrary(Zotero.Libraries.userLibraryID);
-			Zotero.Prefs.clear('itemsView.columnVisibility');
-			yield clearFeeds();
-		});
-		
-		it("should store column visibility settings when switching from default to feeds", function* () {
-			doc.getElementById('zotero-items-column-dateAdded').setAttribute('hidden', false);
-			var feed = yield createFeed();
-			yield cv.selectLibrary(feed.libraryID);
-			var settings = JSON.parse(Zotero.Prefs.get('itemsView.columnVisibility'));
-			assert.isOk(settings.default.dateAdded);
-		});
-		
-		it("should restore column visibility when switching between default and feeds", function* () {
-			doc.getElementById('zotero-items-column-dateAdded').setAttribute('hidden', false);
-			var feed = yield createFeed();
-			yield cv.selectLibrary(feed.libraryID);
-			assert.equal(doc.getElementById('zotero-items-column-dateAdded').getAttribute('hidden'), 'true');
-			doc.getElementById('zotero-items-column-firstCreator').setAttribute('hidden', true);
-			yield cv.selectLibrary(Zotero.Libraries.userLibraryID);
-			assert.equal(doc.getElementById('zotero-items-column-dateAdded').getAttribute('hidden'), 'false');
-			yield cv.selectLibrary(feed.libraryID);
-			assert.equal(doc.getElementById('zotero-items-column-firstCreator').getAttribute('hidden'), 'true');
-		});
-		
-		it("should restore column visibility settings on restart", function* () {
-			doc.getElementById('zotero-items-column-dateAdded').setAttribute('hidden', false);
-			assert.equal(doc.getElementById('zotero-items-column-dateAdded').getAttribute('hidden'), 'false');
+	describe("#buildItemContextMenu()", function () {
+		it("shouldn't show export or bib options for multiple standalone file attachments without notes", async function () {
+			var item1 = await importFileAttachment('test.png');
+			var item2 = await importFileAttachment('test.png');
 			
-			win.close();
-			win = yield loadZoteroPane();
-			doc = win.document;
-			zp = win.ZoteroPane;
+			await zp.selectItems([item1.id, item2.id]);
+			await zp.buildItemContextMenu();
 			
-			assert.equal(doc.getElementById('zotero-items-column-dateAdded').getAttribute('hidden'), 'false');
+			var menu = win.document.getElementById('zotero-itemmenu');
+			assert.isTrue(menu.querySelector('.zotero-menuitem-export').hidden);
+			assert.isTrue(menu.querySelector('.zotero-menuitem-create-bibliography').hidden);
+		});
+		
+		it("should show “Export Note…” for standalone file attachment with note", async function () {
+			var item1 = await importFileAttachment('test.png');
+			item1.setNote('<p>Foo</p>');
+			await item1.saveTx();
+			var item2 = await importFileAttachment('test.png');
+			
+			await zp.selectItems([item1.id, item2.id]);
+			await zp.buildItemContextMenu();
+			
+			var menu = win.document.getElementById('zotero-itemmenu');
+			var exportMenuItem = menu.querySelector('.zotero-menuitem-export');
+			assert.isFalse(exportMenuItem.hidden);
+			assert.equal(
+				exportMenuItem.getAttribute('label'),
+				Zotero.getString('pane.items.menu.exportNote.multiple')
+			);
 		});
 	});
 })

@@ -2,8 +2,20 @@
   "general_more": {
     "message": "Więcej..."
   },
+  "general_moreInfo": {
+    "message": "Więcej informacji..."
+  },
+  "general_needHelp": {
+    "message": "Czy potrzebujesz pomocy?"
+  },
   "general_done": {
     "message": "Zrobione"
+  },
+  "general_yes": {
+    "message": "Tak"
+  },
+  "general_no": {
+    "message": "Nie"
   },
   "general_tryAgain": {
     "message": "Spróbuj ponownie"
@@ -17,6 +29,9 @@
   "general_pleaseWait": {
     "message": "Proszę czekać..."
   },
+  "general_copyToClipboard": {
+    "message": "Kopiuj do schowka"
+  },
   "progressWindow_savingTo": {
     "message": "Zapisywanie do"
   },
@@ -26,8 +41,14 @@
   "progressWindow_error_translation": {
     "message": "Podczas zapisu tego elementu wystąpił błąd. Aby uzyskać więcej informacji zobacz $1."
   },
+  "progressWindow_error_siteAccessLimitsError": {
+    "message": "W trakcie zapisu tego elementu wystąpił błąd. $1 może ograniczać liczbę elementów, które możesz zapisać jednocześnie. Zobacz $2 aby uzyskać więcej informacji."
+  },
   "progressWindow_error_troubleshootingTranslatorIssues": {
     "message": "Znane błędy translacji"
+  },
+  "progressWindow_error_siteAccessLimits": {
+    "message": "Limit dostępu do witryny"
   },
   "progressWindow_error_fallback": {
     "message": "Podczas zapisywania za pomocą $1 wystąpił błąd. Próba zapisu za pomocą $2."
@@ -44,6 +65,12 @@
   "upgradeApp": {
     "message": "Aktualizuj $1"
   },
+  "firstRun_title": {
+    "message": "$1 Connector został zainstalowany!"
+  },
+  "firstRun_text1": {
+    "message": "$1 Connector umożliwia ci <a href=\"$2\">zapisywanie elementów do $1</a> z twojej przeglądarki tylko jednym kliknięciem."
+  },
   "error_connection_isAppRunning": {
     "message": "Czy $1 jest uruchomiony?"
   },
@@ -55,6 +82,15 @@
   },
   "error_connection_enableSavingToOnlineLibrary": {
     "message": "Włącz zapisywanie do zdalnej biblioteki"
+  },
+  "reports_report_submitted": {
+    "message": "Twój raport o błędzie został przesłany.\n\nID raportu: $1\n\nProszę wyślij wiadomość na Forum Zotero z tym ID raportu, opisem problemu i krokami niezbędnymi do powtórzenia błędu.\n\nRaporty błędów nie są weryfikowane, jeśli nie są przesłane na forum."
+  },
+  "reports_debug_output_submitted": {
+    "message": "Informacja debugowania została wysłana.\n\nIdentyfikator informacji to $1."
+  },
+  "reports_submission_failed": {
+    "message": "Błąd podczas przesyłania raportu.\n\n$1\n\nProszę, sprawdź swoje połączenie internetowe. Jeśli problem wciąż istnieje, wyślij wiadomość na Forum Zotero."
   },
   "integration_error_clientUpgrade": {
     "message": "Cytowanie oparte na stronach internetowych wymaga $1 lub nowszego."
@@ -76,6 +112,12 @@
   },
   "integration_googleDocs_docxAlert": {
     "message": "Integracja z $1 nie jest dostępna podczas edycji plików .docx Microsoft Word bezpośrednio w Dokumentach Google. Wybierz Plik → Zapisz jako plik Dokumentów Google, aby włączyć tę funkcję.<br/><br/> Jeśli chcesz przesłać dokument Word z cytowaniami $1 do Dokumentów Google, zobacz intrukcję <a href=\"https://www.zotero.org/support/kb/moving_documents_between_word_processors\">Moving Documents Between Word Processors</a>."
+  },
+  "integration_googleDocs_documentLocked": {
+    "message": "Cytowania w dokumencie są właśnie edytowane przez innego użytkownika $1. Proszę spróbuj ponownie później."
+  },
+  "integration_googleDocs_documentPermissionError": {
+    "message": "Konto Google, które zostało wybrane, nie ma dostępu do edycji tego dokumentu. Proszę, spróbuj ponownie i upewnij się, że wybrano konto z dostępem do edycji."
   },
   "general_saveTo": {
     "message": "Zapisz w $1"

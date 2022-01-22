@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "出典表記をコピー">
 <!ENTITY copyBibliographyCmd.label "参考文献目録をコピー">
+<!ENTITY copyNoteCmd.label "Copy Note">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "ページの方向を切り替える">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "文字列の方向を切り替える">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Go">
 
 
 <!ENTITY viewMenu.label "表示">

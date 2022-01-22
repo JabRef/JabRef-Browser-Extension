@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "Копировать цитату">
 <!ENTITY copyBibliographyCmd.label "Копировать библиографию">
+<!ENTITY copyNoteCmd.label "Скопировать заметку">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Сменить направление страницы">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "Сменить направление текста">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Перейти">
 
 
 <!ENTITY viewMenu.label "Вид">

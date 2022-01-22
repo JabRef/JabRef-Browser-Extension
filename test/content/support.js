@@ -257,6 +257,11 @@ var waitForTagSelector = function (win, numUpdates = 1) {
 	return deferred.promise;
 };
 
+var waitForCollectionTree = function(win) {
+	let cv = win.ZoteroPane.collectionsView;
+	return cv._waitForEvent('refresh');
+}
+
 /**
  * Waits for a single item event. Returns a promise for the item ID(s).
  */
@@ -324,29 +329,10 @@ function waitForCallback(cb, interval, timeout) {
 }
 
 
-function clickOnItemsRow(itemsView, row, button = 0) {
-	var x = {};
-	var y = {};
-	var width = {};
-	var height = {};
-	itemsView._treebox.getCoordsForCellItem(
-		row,
-		itemsView._treebox.columns.getNamedColumn('zotero-items-column-title'),
-		'text',
-		x, y, width, height
-	);
-	
-	// Select row to trigger multi-select
-	var tree = itemsView._treebox.treeBody;
-	var rect = tree.getBoundingClientRect();
-	var x = rect.left + x.value;
-	var y = rect.top + y.value;
-	tree.dispatchEvent(new MouseEvent("mousedown", {
-		clientX: x,
-		clientY: y,
-		button,
-		detail: 1
-	}));
+function clickOnItemsRow(win, itemsView, row) {
+	itemsView._treebox.scrollToRow(row);
+	let elem = win.document.querySelector(`#${itemsView.id}-row-${row}`);
+	elem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
 }
 
 
@@ -623,10 +609,22 @@ async function resetDB(options = {}) {
 	}
 	var db = Zotero.DataDirectory.getDatabase();
 	await Zotero.reinit(
-		Zotero.Promise.coroutine(function* () {
-			yield OS.File.remove(db);
+		async function () {
+			// Extract a zipped DB file into place as the initial DB
+			if (options.dbFile && options.dbFile.endsWith('.zip')) {
+				let zipReader = Components.classes['@mozilla.org/libjar/zip-reader;1']
+					.createInstance(Components.interfaces.nsIZipReader);
+				zipReader.open(Zotero.File.pathToFile(options.dbFile));
+				zipReader.extract('zotero.sqlite', Zotero.File.pathToFile(db));
+				zipReader.close();
+			}
+			// Otherwise swap in the initial copy we made of the DB, or an alternative non-zip file
+			// if given
+			else {
+				await OS.File.copy(options.dbFile || db + '-test-template', db);
+			}
 			_defaultGroup = null;
-		}),
+		},
 		false,
 		options
 	);
@@ -689,7 +687,7 @@ function generateAllTypesAndFieldsData() {
 	};
 	
 	// Item types that should not be included in sample data
-	let excludeItemTypes = ['note', 'attachment'];
+	let excludeItemTypes = ['note', 'attachment', 'annotation'];
 	
 	for (let i = 0; i < itemTypes.length; i++) {
 		if (excludeItemTypes.indexOf(itemTypes[i].name) != -1) continue;
@@ -904,7 +902,8 @@ function importFileAttachment(filename, options = {}) {
 	filename.split('/').forEach((part) => file.append(part));
 	let importOptions = {
 		file,
-		parentItemID: options.parentID
+		parentItemID: options.parentID,
+		title: options.title
 	};
 	Object.assign(importOptions, options);
 	return Zotero.Attachments.importFromFile(importOptions);
@@ -918,6 +917,81 @@ function importTextAttachment() {
 
 function importHTMLAttachment() {
 	return importFileAttachment('test.html', { contentType: 'text/html', charset: 'utf-8' });
+}
+
+
+async function importPDFAttachment(parentItem, options = {}) {
+	var attachment = await importFileAttachment(
+		'test.pdf',
+		{
+			contentType: 'application/pdf',
+			parentID: parentItem ? parentItem.id : null,
+			title: options.title
+		}
+	);
+	return attachment;
+}
+
+
+async function createAnnotation(type, parentItem, options = {}) {
+	var annotation = new Zotero.Item('annotation');
+	annotation.parentID = parentItem.id;
+	annotation.annotationType = type;
+	if (type == 'highlight') {
+		annotation.annotationText = Zotero.Utilities.randomString();
+	}
+	if (options.comment !== undefined) {
+		annotation.annotationComment = options.comment;
+	}
+	else {
+		annotation.annotationComment = Zotero.Utilities.randomString();
+	}
+	annotation.annotationColor = '#ffd400';
+	var page = Zotero.Utilities.rand(1, 100);
+	annotation.annotationPageLabel = `${page}`;
+	page = page.toString().padStart(5, '0');
+	var pos = Zotero.Utilities.rand(1, 10000).toString().padStart(6, '0');
+	annotation.annotationSortIndex = `${page}|${pos}|00000`;
+	annotation.annotationPosition = JSON.stringify({
+		pageIndex: 123,
+		rects: [
+			[314.4, 412.8, 556.2, 609.6]
+		]
+	});
+	if (options.isExternal) {
+		annotation.annotationIsExternal = options.isExternal;
+	}
+	if (options.tags) {
+		annotation.setTags(options.tags);
+	}
+	await annotation.saveTx();
+	return annotation;
+}
+
+
+async function createEmbeddedImage(parentItem, options = {}) {
+	var attachment = await Zotero.Attachments.importEmbeddedImage({
+		blob: await File.createFromFileName(
+			OS.Path.join(getTestDataDirectory().path, 'test.png')
+		),
+		parentItemID: parentItem.id
+	});
+	if (options.tags) {
+		attachment.setTags(options.tags);
+		await attachment.saveTx();
+	}
+	return attachment;
+}
+
+
+async function getImageBlob() {
+	var path = OS.Path.join(getTestDataDirectory().path, 'test.png');
+	var imageData = await Zotero.File.getBinaryContentsAsync(path);
+	var array = new Uint8Array(imageData.length);
+	for (let i = 0; i < imageData.length; i++) {
+		array[i] = imageData.charCodeAt(i);
+	}
+	return new Blob([array], { type: 'image/png' });
 }
 
 

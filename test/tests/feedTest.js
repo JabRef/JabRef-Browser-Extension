@@ -311,8 +311,11 @@ describe("Zotero.Feed", function() {
 		var feed, scheduleNextFeedCheck;
 		var feedUrl = getTestDataUrl("feed.rss");
 		var modifiedFeedUrl = getTestDataUrl("feedModified.rss");
+		var win;
 		
-		before(function() {
+		before(async function() {
+			// Browser window is needed as parent window to load the feed reader scripts.
+			win = await loadBrowserWindow();
 			scheduleNextFeedCheck = sinon.stub(Zotero.Feeds, 'scheduleNextFeedCheck').resolves();
 		});
 		
@@ -328,6 +331,9 @@ describe("Zotero.Feed", function() {
 		});
 		
 		after(function() {
+			if (win) {
+				win.close();
+			}
 			scheduleNextFeedCheck.restore();
 		});
 		
@@ -356,7 +362,7 @@ describe("Zotero.Feed", function() {
 			assert.isTrue(feed.lastCheck > Zotero.Date.dateToSQL(new Date(Date.now() - 1000*60), true), 'feed.lastCheck updated');
 			assert.isTrue(feed.lastUpdate > Zotero.Date.dateToSQL(new Date(Date.now() - 1000*60), true), 'feed.lastUpdate updated');
 		});
-		it('should update modified items and set unread', function* () {
+		it('should update modified items, preserving isRead', function* () {
 			let feedItem = yield Zotero.FeedItems.getAsyncByGUID("http://liftoff.msfc.nasa.gov/2003/06/03.html#item573");
 			feedItem.isRead = true;
 			yield feedItem.saveTx();
@@ -371,7 +377,7 @@ describe("Zotero.Feed", function() {
 			feedItem = yield Zotero.FeedItems.getAsyncByGUID("http://liftoff.msfc.nasa.gov/2003/06/03.html#item573");
 			
 			assert.notEqual(oldDateModified, feedItem.getField('date'));
-			assert.isFalse(feedItem.isRead)
+			assert.isTrue(feedItem.isRead);
 		});
 		it('should skip items that are not modified', function* () {
 			let save = sinon.spy(Zotero.FeedItem.prototype, 'save');
@@ -394,7 +400,7 @@ describe("Zotero.Feed", function() {
 			feed._feedUrl = modifiedFeedUrl;
 			yield feed.updateFeed();
 			
-			assert.equal(feed.unreadCount, 2);
+			assert.equal(feed.unreadCount, 1);
 		});
 		it('should add a link to enclosed pdfs from <enclosure/> elements', function* () {
 			let feedItem = yield Zotero.FeedItems.getAsyncByGUID("http://liftoff.msfc.nasa.gov/2003/06/03.html#item573");

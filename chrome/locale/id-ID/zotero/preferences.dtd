@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Oldest items first">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Feed Defaults">
 
-<!ENTITY zotero.preferences.openurl.search "Cari resolver">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Custom…">
 <!ENTITY zotero.preferences.openurl.server "Resolver:">
 <!ENTITY zotero.preferences.openurl.version "Versi:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Ketika opsi ini dimatikan, Zotero hanya akan memasukkan URL pada saat mengutip artikel  jurnal, majalah, dan koran yang tidak memiliki rentang halaman spesifik.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Salin Cepat">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Default Format:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Salin sebagai HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Pengaturan Spesifik-Situs">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Domain/Rute">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Get additional styles…">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Save to Zotero (address bar icon)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Hidupkan/Matikan Mode Layar Penuh">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Fokus Jendela Pustaka">
 <!ENTITY zotero.preferences.keys.quicksearch "Pencarian Cepat">
 <!ENTITY zotero.preferences.keys.newItem "Create a New Item">
 <!ENTITY zotero.preferences.keys.newNote "Create a New Note">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Mark All Feed Items As Read/Unread">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Munculkan/Sembunyikan Selektor Tag">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Salin Sitasi Item Terpilih ke Clipboard">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Salin Item Terpilih ke Clipboard">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Impor dari Clipboard">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Pengelola Mesin Pencarian Artikel">
 <!ENTITY zotero.preferences.locate.description "Deskripsi">
 <!ENTITY zotero.preferences.locate.name "Nama">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Mesin Pencarian memperluas kapabilitas menu drop down Temukan dalam jendela Info. Dengan mengaktifkan Mesin Pencarian yang terdapat dalam daftar di bawah ini, mereka akan ditambahkan pada menu drop down dan dapat digunakan untuk menemukan referensi-referensi dari perpustakaan Anda di web.">
 <!ENTITY zotero.preferences.locate.addDescription "To add a Lookup Engine that is not on the list, visit the desired search engine in your browser and select “Add” from Zotero’s Locate menu.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Kembalikan Default">
 

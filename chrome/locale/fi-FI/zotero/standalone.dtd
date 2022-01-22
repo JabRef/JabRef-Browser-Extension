@@ -24,7 +24,7 @@
 <!ENTITY closeCmd.key "W">
 <!ENTITY closeCmd.accesskey "C">
 <!ENTITY manageAttachments.label "Hallitse liitteitä">
-<!ENTITY convertToStored.label "Convert Linked Files to Stored Files…">
+<!ENTITY convertToStored.label "Muuta linkitetyt tiedostot tallennetuiksi tiedostoiksi...">
 <!ENTITY importCmd.label "Tuo...">
 <!ENTITY importCmd.key "I">
 <!ENTITY importFromClipboardCmd.label "Tuo leikepöydältä">
@@ -36,6 +36,7 @@
 
 <!ENTITY copyCitationCmd.label "Kopioi viite">
 <!ENTITY copyBibliographyCmd.label "Kopioi kirjallisuusluettelo">
+<!ENTITY copyNoteCmd.label "Kopioi muistiinpano">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Vaihda sivun suuntaa">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
@@ -44,16 +45,19 @@
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
 
 
+<!ENTITY goMenu.label "Mene">
+
+
 <!ENTITY viewMenu.label "Näytä">
 <!ENTITY layout.label "Asettelu">
 <!ENTITY standardView.label "Vakionäkymä">
 <!ENTITY stackedView.label "Pinottu näkymä">
-<!ENTITY collectionsPane.label "Collections Pane">
-<!ENTITY itemPane.label "Item Pane">
-<!ENTITY tagSelector.label "Tag Selector">
-<!ENTITY recursiveCollections.label "Show Items from Subcollections">
+<!ENTITY collectionsPane.label "Kokoelmapalkki">
+<!ENTITY itemPane.label "Nimikenäkymä">
+<!ENTITY tagSelector.label "Aiheenvalitsin">
+<!ENTITY recursiveCollections.label "Näytä alakokoelmien nimikkeet">
 <!ENTITY fontSize.label "Fonttikoko">
-<!ENTITY noteFontSize.label "Note Font Size">
+<!ENTITY noteFontSize.label "Muistiinpanojen fonttikoko">
 
 
 <!ENTITY toolsMenu.label "Työkalut">
@@ -61,7 +65,7 @@
 <!ENTITY installConnector.label "Asenna selainlisäosa">
 <!ENTITY installConnector.accesskey "C">
 <!ENTITY addons.label "Lisäosat">
-<!ENTITY developer.label "Developer">
+<!ENTITY developer.label "Kehittäjätyökalut">
 
 
 <!ENTITY minimizeWindow.key "m">
