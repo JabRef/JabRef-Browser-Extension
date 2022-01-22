@@ -258,7 +258,7 @@ Zotero.Translate.Sandbox = {
 		 * Gets a hidden preference that can be defined by hiddenPrefs in translator header
 		 *
 		 * @param {Zotero.Translate} translate
-		 * @param {String} pref Prefernce to be retrieved
+		 * @param {String} pref Preference to be retrieved
 		 */
 		"getHiddenPref": function(translate, pref) {
 			if (typeof(pref) != "string") {
@@ -356,7 +356,7 @@ Zotero.Translate.Sandbox = {
 			};
 
 			var translatorsHandlerSet = false;
-			safeTranslator.getTranslators = function() {
+			safeTranslator.getTranslators = async function() {
 				if (!translation._handlers["translators"] || !translation._handlers["translators"].length) {
 					throw new Error('Translator must register a "translators" handler to ' +
 						'call getTranslators() in this translation environment.');
@@ -371,7 +371,7 @@ Zotero.Translate.Sandbox = {
 			};
 
 			var doneHandlerSet = false;
-			safeTranslator.translate = function() {
+			safeTranslator.translate = async function() {
 				translate.incrementAsyncProcesses("safeTranslator#translate()");
 				setDefaultHandlers(translate, translation);
 				if (!doneHandlerSet) {
@@ -386,7 +386,7 @@ Zotero.Translate.Sandbox = {
 						translate.complete(false, error)
 					});
 				}
-				translation.translate(false);
+				return translation.translate(false);
 			};
 
 			safeTranslator.getTranslatorObject = function(callback) {
@@ -1366,8 +1366,7 @@ Zotero.Translate.Base.prototype = {
 					null,
 					this._getParameters()
 				);
-				// doImport can return a promise to allow for incremental saves (via promise-returning
-				// item.complete() calls)
+
 				if (maybePromise) {
 					maybePromise
 						.then(() => this.decrementAsyncProcesses("Zotero.Translate#translate()"))
@@ -1461,7 +1460,7 @@ Zotero.Translate.Base.prototype = {
 	 * done() from an asynchronous scraper. Finishes things up and calls callback function(s).
 	 * @param {Boolean|String} returnValue An item type or a boolean true or false
 	 * @param {String|Exception} [error] An error that occurred during translation.
-	 * @returm {String|NULL} The exception serialized to a string, or null if translation
+	 * @return {String|NULL} The exception serialized to a string, or null if translation
 	 *     completed successfully.
 	 */
 	"complete": function(returnValue, error) {
@@ -1725,17 +1724,18 @@ Zotero.Translate.Base.prototype = {
 	/**
 	 * Runs detect code for a translator
 	 */
-	"_detectTranslatorLoaded": function() {
+	_detectTranslatorLoaded: async function() {
 		this._prepareDetection();
 
 		this.incrementAsyncProcesses("Zotero.Translate#getTranslators");
 
-		try {
-			var returnValue = Function.prototype.apply.call(this._sandboxManager.sandbox["detect" + this._entryFunctionSuffix], null, this._getParameters());
-		} catch (e) {
-			this.complete(false, e);
-			return;
-		}
+		var maybePromise = Function.prototype.apply.call(
+			this._sandboxManager.sandbox["detect" + this._entryFunctionSuffix],
+			null,
+			this._getParameters()
+		);
+		// If detect* returns a promise, wait for it
+		var returnValue = (maybePromise && maybePromise.then) ? await maybePromise : maybePromise;
 
 		if (returnValue !== undefined) this._returnValue = returnValue;
 		this.decrementAsyncProcesses("Zotero.Translate#getTranslators");
@@ -1766,9 +1766,9 @@ Zotero.Translate.Base.prototype = {
 	/**
 	 * Loads the translator into its sandbox
 	 * @param {Zotero.Translator} translator
-	 * @return {Promise<Boolean>} Whether the translator could be successfully loaded
+	 * @return {Promise}
 	 */
-	"_loadTranslator": Zotero.Promise.method(function(translator) {
+	_loadTranslator: Zotero.Promise.method(function(translator) {
 		var sandboxLocation = this._getSandboxLocation();
 		if (!this._sandboxLocation || sandboxLocation !== this._sandboxLocation) {
 			this._sandboxLocation = sandboxLocation;
@@ -1777,11 +1777,16 @@ Zotero.Translate.Base.prototype = {
 
 		this._currentTranslator = translator;
 
-		// Pass on the proxy of the parent translate
-		if (this._parentTranslator) {
-			this._proxy = this._parentTranslator._proxy;
+		if (this.type == 'web') {
+			// Pass on the proxy of the parent translate
+			if (this._parentTranslator) {
+				this._proxy = this._parentTranslator._proxy;
+			} else {
+				this._proxy = translator.proxy;
+			}
 		} else {
-			this._proxy = translator.proxy;
+			// Use proxy only for web translators
+			this._proxy = null;
 		}
 		this._runningAsyncProcesses = 0;
 		this._returnValue = undefined;
@@ -1793,7 +1798,9 @@ Zotero.Translate.Base.prototype = {
 			Zotero.debug("Translate: Parsing code for " + translator.label + " " +
 				"(" + translator.translatorID + ", " + translator.lastUpdated + ")", 4);
 			try {
+				// CHANGED: Exports do not have a detectExport function, so don't try to export this
 				if (this._entryFunctionSuffix == "Web") {
+					// CHANGED: Make parsing of translator wait for injected code
 					await this._sandboxManager.eval(
 						"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code,
 						[
@@ -1805,6 +1812,7 @@ Zotero.Translate.Base.prototype = {
 						(translator.file ? translator.file.path : translator.label)
 					);
 				} else {
+					// CHANGED: Exports do not have a detectExport function, so don't try to export this
 					await this._sandboxManager.eval(
 						"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code, [
 							"do" + this._entryFunctionSuffix,
@@ -1821,21 +1829,13 @@ Zotero.Translate.Base.prototype = {
 		}.bind(this);
 
 		if (this.noWait) {
-			try {
-				let codePromise = translator.getCode();
-				if (!codePromise.isResolved()) {
-					throw new Error("Code promise is not resolved in noWait mode");
-				}
-				parse(codePromise.value());
-			} catch (e) {
-				this.complete(false, e);
+			let codePromise = Zotero.Translators.getCodeForTranslator(translator);
+			if (!codePromise.isResolved()) {
+				throw new Error("Code promise is not resolved in noWait mode");
 			}
+			parse(codePromise.value());
 		} else {
-			return translator.getCode()
-				.then(parse)
-				.catch(function(e) {
-					this.complete(false, e);
-				}.bind(this));
+			return Zotero.Translators.getCodeForTranslator(translator).then(parse);
 		}
 	}),
 
@@ -1884,11 +1884,15 @@ Zotero.Translate.Base.prototype = {
 		this._sandboxManager.sandbox.ZU = this._sandboxZotero.Utilities;
 		this._transferItem = this._sandboxZotero._transferItem;
 
-		// Add web helper functions
-		if (this.type == 'web') {
+		// Add helper functions
+		if (this.type == 'web' || this.type == 'search') {
 			this._sandboxManager.sandbox.attr = this._attr.bind(this);
 			this._sandboxManager.sandbox.text = this._text.bind(this);
 			this._sandboxManager.sandbox.innerText = this._innerText.bind(this);
+			this._sandboxManager.sandbox.request = this._sandboxZotero.Utilities.request.bind(this._sandboxZotero.Utilities);
+			this._sandboxManager.sandbox.requestText = this._sandboxZotero.Utilities.requestText.bind(this._sandboxZotero.Utilities);
+			this._sandboxManager.sandbox.requestJSON = this._sandboxZotero.Utilities.requestJSON.bind(this._sandboxZotero.Utilities);
+			this._sandboxManager.sandbox.requestDocument = this._sandboxZotero.Utilities.requestDocument.bind(this._sandboxZotero.Utilities);
 		}
 	},
 
@@ -2281,7 +2285,7 @@ Zotero.Translate.Web.prototype.complete = async function(returnValue, error) {
 	var errorString = Zotero.Translate.Base.prototype.complete.apply(this, [returnValue, error]);
 
 	/*
-	// Never report translation errors to Zotero
+	// CHANGED: Never report translation errors to Zotero
 	var promise;
 	if (Zotero.Prefs.getAsync) {
 		promise = Zotero.Prefs.getAsync('reportTranslationFailure');
@@ -2554,7 +2558,7 @@ Zotero.Translate.Export.prototype._prepareTranslation = Zotero.Promise.method(fu
 	this._itemGetter = new Zotero.Translate.ItemGetter();
 
 	// Toggle legacy mode for translators pre-4.0.27
-	// BibTeX exporter is no legacy exporter, so we don't need this check
+	// CHANGED: BibTeX exporter is no legacy exporter, so we don't need this check
 	this._itemGetter.legacy = false;
 
 	var configOptions = this._translatorInfo.configOptions || {},
@@ -2587,8 +2591,13 @@ Zotero.Translate.Export.prototype._prepareTranslation = Zotero.Promise.method(fu
 
 	function rest() {
 		// export file data, if requested
-		if (this._displayOptions["exportFileData"]) {
-			this.location = this._itemGetter.exportFiles(this.location, this.translator[0].target);
+		if (this._displayOptions.exportFileData) {
+			this.location = this._itemGetter.exportFiles(
+				this.location,
+				this.translator[0].target, {
+					includeAnnotations: this._displayOptions.includeAnnotations
+				}
+			);
 		}
 
 		// initialize IO
@@ -2604,6 +2613,15 @@ Zotero.Translate.Export.prototype._prepareTranslation = Zotero.Promise.method(fu
 			this._io.init(configOptions["dataMode"],
 				this._displayOptions["exportCharset"] ? this._displayOptions["exportCharset"] : null,
 				function() {});
+
+			// For the Note Markdown translator, replace the zotero:// URI scheme in the output if
+			// not the official Zotero app
+			if (this.translator.translatorID == '1412e9e2-51e1-42ec-aa35-e036a895534b' &&
+				ZOTERO_CONFIG.ID != 'zotero') {
+				this._io.setDataProcessor((data) => {
+					return data.replace(/zotero:\/\//g, ZOTERO_CONFIG.ID + '://');
+				});
+			}
 		}
 
 		this._sandboxManager.importObject(this._io);
@@ -2688,6 +2706,11 @@ Zotero.Translate.Search.prototype.setIdentifier = function(identifier) {
 		search = {
 			itemType: "journalArticle",
 			arXiv: identifier.arXiv
+		};
+	} else if (identifier.adsBibcode) {
+		search = {
+			itemType: "journalArticle",
+			adsBibcode: identifier.adsBibcode
 		};
 	} else {
 		throw new Error("Unrecognized identifier");
@@ -3123,13 +3146,14 @@ Zotero.Translate.IO._RDFSandbox.prototype = {
 	"getResourceURI": function(resource) {
 		if (typeof(resource) == "string") return resource;
 
+		if (resource.uri) return resource.uri;
+
 		const rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 		var values = this.getStatementsMatching(resource, rdf + 'value');
 		if (values && values.length) {
 			return values[0][2];
 		}
 
-		if (resource.uri) return resource.uri;
 		if (resource.toNT == undefined) throw new Error("Zotero.RDF: getResourceURI called on invalid resource");
 		return resource.toNT();
 	},

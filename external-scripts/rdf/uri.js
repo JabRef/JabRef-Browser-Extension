@@ -11,12 +11,17 @@
 //
 //  See also http://www.w3.org/2000/10/swap/uripath.py
 //
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	var $rdf = require('./init');
+}
+
 if (typeof $rdf.Util.uri == "undefined") {
 	$rdf.Util.uri = {};
 };
 
 $rdf.Util.uri.join = function(given, base) {
-	// if (typeof $rdf.log.debug != 'undefined') $rdf.log.debug("   URI given="+given+" base="+base)
+	// if (typeof $rdf.log != 'undefined') $rdf.log("   URI given="+given+" base="+base)
 	var baseHash = base.indexOf('#')
 	if (baseHash > 0) base = base.slice(0, baseHash)
 	if (given.length == 0) return base // before chopping its filename off
@@ -26,7 +31,7 @@ $rdf.Util.uri.join = function(given, base) {
 	var baseColon = base.indexOf(':')
 	if (base == "") return given;
 	if (baseColon < 0) {
-		alert("Invalid base: " + base + ' in join with ' + given);
+		$rdf.log("Invalid base: " + base + ' in join with ' + given);
 		return given
 	}
 	var baseScheme = base.slice(0, baseColon + 1) // eg http:
@@ -68,17 +73,6 @@ $rdf.Util.uri.join = function(given, base) {
 	path = path.replace(/\/\.$/, '/')
 	return base.slice(0, baseSingle) + path
 }
-
-if (typeof tabulator != 'undefined' && tabulator.isExtension) {
-	$rdf.Util.uri.join2 = function(given, base) {
-		var tIOService = Components.classes['@mozilla.org/network/io-service;1']
-			.getService(Components.interfaces.nsIIOService);
-
-		var baseURI = tIOService.newURI(base, null, null);
-		return tIOService.newURI(baseURI.resolve(given), null, null).spec;
-	}
-} else
-	$rdf.Util.uri.join2 = $rdf.Util.uri.join;
 
 //  refTo:    Make a URI relative to a given base
 //
@@ -148,3 +142,7 @@ $rdf.Util.uri.protocol = function(uri) {
 	else return null;
 } //protocol
 //ends
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = $rdf.Util;
+}

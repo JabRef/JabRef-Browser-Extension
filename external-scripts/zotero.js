@@ -25,6 +25,7 @@
 
 var Zotero = window.Zotero = new function() {
 	this.version = "5.0";
+	this.locale = navigator.languages[0];
 	this.isConnector = true;
 	this.isFx = false; // Old flag for 4.0 connector, probably not used anymore
 	/* this.isBookmarklet = SET IN BUILD SCRIPT */
@@ -181,6 +182,10 @@ var Zotero = window.Zotero = new function() {
 			}
 			Zotero.Proxies.storeProxies();
 		}
+		// Skip first-use dialog for existing users when enabled for non-Firefox browsers
+		if (major == 5 && minor == 0 && patch < 87 && !this.isFirefox) {
+			Zotero.Prefs.set('firstUse', false);
+		}
 	};
 
 	/**
@@ -240,6 +245,10 @@ var Zotero = window.Zotero = new function() {
 		if (Zotero.isBrowserExt) {
 			await Zotero.GoogleDocsPluginManager.init();
 		}
+		let xhr = await Zotero.HTTP.request('GET', Zotero.getExtensionURL('utilities/resource/dateFormats.json'), {
+			responseType: 'json'
+		});
+		Zotero.Date.init(xhr.response);
 		Zotero.initDeferred.resolve();
 		Zotero.initialized = true;
 
@@ -259,6 +268,11 @@ var Zotero = window.Zotero = new function() {
 			//Zotero.ConnectorIntegration.init();
 		}
 		Zotero.Connector_Types.init();
+		Zotero.Schema.init();
+		let xhr = await Zotero.HTTP.request('GET', Zotero.getExtensionURL('utilities/resource/dateFormats.json'), {
+			responseType: 'json'
+		});
+		Zotero.Date.init(xhr.response);
 		Zotero.Prefs.loadNamespace(['translators.', 'downloadAssociatedFiles', 'automaticSnapshots',
 			'reportTranslationFailure', 'capitalizeTitles'
 		]);
@@ -379,6 +393,18 @@ var Zotero = window.Zotero = new function() {
 	this.getString = function() {
 		return Zotero.i18n.getString(...arguments);
 	};
+
+	this.getExtensionURL = function(path) {
+		let url;
+		if (Zotero.isBookmarklet) {
+			url = ZOTERO_CONFIG.BOOKMARKLET_URL + path;
+		} else if (Zotero.isSafari) {
+			url = `${safari.extension.baseURI}safari/` + path;
+		} else {
+			url = browser.runtime.getURL(path);
+		}
+		return url;
+	}
 }
 
 Zotero.Prefs = new function() {

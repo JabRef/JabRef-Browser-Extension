@@ -41,8 +41,11 @@ var TRANSLATOR_OPTIONAL_PROPERTIES = ["targetAll", "browserSupport", "minVersion
 	"hiddenPrefs", "itemType"
 ];
 // Properties that are passed from background to inject page in connector
-var TRANSLATOR_PASSING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES.
-concat(["targetAll", "browserSupport", "code", "runMode", "itemType", "inRepository"]);
+var TRANSLATOR_PASSING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES
+	.concat(["targetAll", "browserSupport", "code", "runMode", "itemType", "inRepository"]);
+
+var TRANSLATOR_CACHING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES
+	.concat(["browserSupport", "targetAll"]);
 
 /**
  * @class Represents an individual translator
@@ -114,9 +117,10 @@ Zotero.Translator.prototype.init = function(info) {
 		delete this.importRegexp;
 	}
 
+	// Always cache in the connector. Cache if property is set
 	this.cacheCode = Zotero.isConnector || info.cacheCode;
 	if (this.translatorType & TRANSLATOR_TYPES["web"]) {
-		// compile web regexp
+		// Also cache if there is no regexp target -- generic translator
 		this.cacheCode |= !this.target;
 		this.webRegexp = {
 			root: this.target ? new RegExp(this.target, "i") : null,
@@ -131,7 +135,7 @@ Zotero.Translator.prototype.init = function(info) {
 		this.fileName = OS.Path.basename(info.path);
 	}
 	if (info.code && this.cacheCode) {
-		this.code = Zotero.Translator.replaceDeprecatedStatements(info.code);
+		this.code = info.code;
 	} else if (this.hasOwnProperty("code")) {
 		delete this.code;
 	}
@@ -140,41 +144,7 @@ Zotero.Translator.prototype.init = function(info) {
 	delete info.code;
 	this.metadata = info;
 
-}
-
-/**
- * Load code for a translator
- */
-Zotero.Translator.prototype.getCode = Zotero.Promise.method(function() {
-	if (this.code) return this.code;
-
-	if (Zotero.isConnector) {
-		return Zotero.Repo.getTranslatorCode(this.translatorID)
-			.then(function(args) {
-				var code = args[0];
-				var source = args[1];
-				if (!code) {
-					throw new Error("Code for " + this.label + " could not be retrieved");
-				}
-				// Cache any translators for session, since retrieving via
-				// HTTP may be expensive
-				this.code = code;
-				this.codeSource = source;
-				return code;
-			}.bind(this));
-	} else {
-		var promise = Zotero.File.getContentsAsync(this.path);
-		if (this.cacheCode) {
-			// Cache target-less web translators for session, since we
-			// will use them a lot
-			return promise.then(function(code) {
-				this.code = code;
-				return code;
-			}.bind(this));
-		}
-		return promise;
-	}
-});
+};
 
 /**
  * Get metadata block for a translator
@@ -209,20 +179,15 @@ Zotero.Translator.prototype.logError = function(message, type, line, lineNumber,
 	}
 }
 
-/**
- * Replace deprecated ES5 statements
- */
-Zotero.Translator.replaceDeprecatedStatements = function(code) {
-	const foreach = /^(\s*)for each\s*\((var )?([^ ]+) in (.*?)\)(\s*){/gm;
-	code = code.replace(foreach, "$1var $3_zForEachSubject = $4; " +
-		"for(var $3_zForEachIndex in $3_zForEachSubject)$5{ " +
-		"$2$3 = $3_zForEachSubject[$3_zForEachIndex];");
-	return code;
-}
-
 Zotero.Translator.RUN_MODE_IN_BROWSER = 1;
 Zotero.Translator.RUN_MODE_ZOTERO_STANDALONE = 2;
 Zotero.Translator.RUN_MODE_ZOTERO_SERVER = 4;
 Zotero.Translator.TRANSLATOR_TYPES = TRANSLATOR_TYPES;
-Zotero.Translator.TRANSLATOR_OPTIONAL_PROPERTIES = TRANSLATOR_OPTIONAL_PROPERTIES;
 Zotero.Translator.TRANSLATOR_REQUIRED_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES;
+Zotero.Translator.TRANSLATOR_OPTIONAL_PROPERTIES = TRANSLATOR_OPTIONAL_PROPERTIES;
+Zotero.Translator.TRANSLATOR_PASSING_PROPERTIES = TRANSLATOR_PASSING_PROPERTIES;
+Zotero.Translator.TRANSLATOR_CACHING_PROPERTIES = TRANSLATOR_CACHING_PROPERTIES;
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = Zotero.Translator;
+}

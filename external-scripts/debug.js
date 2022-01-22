@@ -23,64 +23,16 @@
     ***** END LICENSE BLOCK *****
 */
 
-
 Zotero.Debug = new function() {
-	var _console, _stackTrace, _store, _level, _lastTime, _output = [];
+	var _console, _store, _level, _lastTime, _output = [];
 	var _slowTime = false;
-	var _colorOutput = false;
 	var _consoleViewer = false;
-	var _consoleViewerQueue = [];
-	var _consoleViewerListener;
-	var _listeners = [];
 
 	/**
 	 * Initialize debug logging
-	 *
-	 * Debug logging can be set in several different ways:
-	 *
-	 *   - via the debug.log pref in the client or connector
-	 *   - by enabling debug output logging from the Help menu
-	 *   - by passing -ZoteroDebug or -ZoteroDebugText on the command line
-	 *
-	 * In the client, debug.log and -ZoteroDebugText enable logging via the terminal, while -ZoteroDebug
-	 * enables logging via an in-app HTML-based window.
-	 *
-	 * @param {Integer} [forceDebugLog = 0] - Force output even if pref disabled
-	 *    2: window (-ZoteroDebug)
-	 *    1: text console (-ZoteroDebugText)
-	 *    0: disabled
 	 */
-	this.init = function(forceDebugLog = 0) {
-		_console = Zotero.Prefs.get('debug.log') || forceDebugLog == 1;
-		_consoleViewer = forceDebugLog == 2;
-		// When logging to the text console from the client on Mac/Linux, colorize output
-		if (_console && Zotero.isFx && !Zotero.isBookmarklet) {
-			_colorOutput = true;
-
-			// Time threshold in ms above which intervals should be colored red in terminal output
-			_slowTime = Zotero.Prefs.get('debug.log.slowTime');
-		}
-		_store = Zotero.Prefs.get('debug.store');
-		if (_store) {
-			Zotero.Prefs.set('debug.store', false);
-		}
-		_level = Zotero.Prefs.get('debug.level');
-		_stackTrace = Zotero.Prefs.get('debug.stackTrace');
-
-		this.storing = _store;
-		this.updateEnabled();
-
-		if (Zotero.isStandalone) {
-			// Enable dump() from window (non-XPCOM) scopes when terminal or viewer logging is enabled.
-			// (These will always go to the terminal, even in viewer mode.)
-			Zotero.Prefs.set('browser.dom.window.dump.enabled', _console || _consoleViewer, true);
-
-			if (_consoleViewer) {
-				setTimeout(function() {
-					Zotero.openInViewer("chrome://zotero/content/debugViewer.html");
-				}, 1000);
-			}
-		}
+	this.init = function(enabled = true) {
+		this.enabled = enabled;
 	}
 
 	this.log = function(message, level, maxDepth, stack) {
@@ -116,7 +68,7 @@ Zotero.Debug = new function() {
 			slowSuffix = "\x1b[0m";
 		}
 
-		delta = ("" + delta).padStart(7, "0")
+		delta = ("" + delta).padStart(7, "0");
 
 		deltaStr = "(" + slowPrefix + "+" + delta + slowSuffix + ")";
 		if (_store) {
@@ -124,62 +76,16 @@ Zotero.Debug = new function() {
 		}
 
 		if (stack === true) {
-			// Display stack starting from where this was called
-			stack = Components.stack.caller;
-		} else if (stack >= 0) {
-			let i = stack;
-			stack = Components.stack.caller;
-			while (stack && i--) {
-				stack = stack.caller;
-			}
-		} else if (_stackTrace) {
-			// Stack trace enabled globally
-			stack = Components.stack.caller;
-		} else {
-			stack = undefined;
+			stack = new Error().stack.substr('Error'.length);
 		}
 
 		if (stack) {
 			message += '\n' + this.stackToString(stack);
 		}
 
-		if (_console || _consoleViewer || _listeners.length) {
-			var output = '(' + level + ')' + deltaStr + ': ' + message;
-			if (Zotero.isFx && !Zotero.isBookmarklet) {
-				// Text console
-				if (_console) {
-					dump("zotero" + output + "\n\n");
-				}
+		var output = '(' + level + ')' + deltaStr + ': ' + message;
+		console.log(output + "\n");
 
-				// Remove ANSI color codes for the viewer and listeners. We could replace this with
-				// HTML for the viewer, but it's probably unnecessarily distracting/alarming to show
-				// the red. Devs who care about times should just use a terminal.
-				if (slowPrefix) {
-					output = output.replace(slowPrefix, '').replace(slowSuffix, '');
-				}
-
-				// Console window
-				if (_consoleViewer) {
-					// If there's a listener, pass line immediately
-					if (_consoleViewerListener) {
-						_consoleViewerListener(output);
-					}
-					// Otherwise add to queue
-					else {
-						_consoleViewerQueue.push(output);
-					}
-				}
-
-				// Other listeners
-				if (_listeners.length) {
-					for (let listener of _listeners) {
-						listener(output);
-					}
-				}
-			} else if (window.console) {
-				window.console.log(output);
-			}
-		}
 		if (_store) {
 			if (Math.random() < 1 / 1000) {
 				// Remove initial lines if over limit
@@ -220,58 +126,8 @@ Zotero.Debug = new function() {
 			}
 		}
 
-		return Zotero.getSystemInfo().then(function(sysInfo) {
-			if (Zotero.isConnector) {
-				return Zotero.Errors.getErrors().then(function(errors) {
-					return errors.join('\n\n') +
-						"\n\n" + sysInfo + "\n\n" +
-						"=========================================================\n\n" +
-						output;
-				});
-			} else {
-				return Zotero.getErrors(true).join('\n\n') +
-					"\n\n" + sysInfo + "\n\n" +
-					"=========================================================\n\n" +
-					output;
-			}
-		});
+		return output;
 	});
-
-
-	this.addListener = function(listener) {
-		this.enabled = true;
-		_listeners.push(listener);
-	};
-
-
-	this.removeListener = function(listener) {
-		var pos = _listeners.indexOf(listener);
-		if (pos != -1) {
-			_listeners.splice(pos, 1);
-		}
-		this.updateEnabled();
-	};
-
-
-	this.getConsoleViewerOutput = function() {
-		var queue = _output.concat(_consoleViewerQueue);
-		_consoleViewerQueue = [];
-		return queue;
-	}
-
-
-	this.addConsoleViewerListener = function(listener) {
-		this.enabled = _consoleViewer = true;
-		_consoleViewerListener = listener;
-	};
-
-
-	this.removeConsoleViewerListener = function() {
-		_consoleViewerListener = null;
-		// At least for now, stop logging once console viewer is closed
-		_consoleViewer = false;
-		this.updateEnabled();
-	};
 
 
 	this.setStore = function(enable) {
@@ -285,7 +141,7 @@ Zotero.Debug = new function() {
 
 
 	this.updateEnabled = function() {
-		this.enabled = _console || _consoleViewer || _store || _listeners.length;
+		this.enabled = _console || _consoleViewer || _store;
 	};
 
 
@@ -323,4 +179,8 @@ Zotero.Debug = new function() {
 	this.filterStack = function(stack) {
 		return stack.split(/\n/).filter(line => line.indexOf('zotero/bluebird') == -1).join('\n');
 	}
+}
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = Zotero.Debug;
 }

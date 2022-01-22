@@ -4651,7 +4651,8 @@
 			XRegExp.addToken(
 				/\\(\d+)/,
 				function(match, scope) {
-					if (!(
+					if (
+						!(
 							scope === defaultScope &&
 							/^[1-9]/.test(match[1]) &&
 							+match[1] <= this.captureNames.length

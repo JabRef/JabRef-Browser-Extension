@@ -28,15 +28,25 @@
  * translator code.
  */
 
+Zotero.Promise = Promise;
+
 Zotero.Promise.method = function(fn) {
 	return function() {
 		try {
 			var val = fn.apply(this, arguments);
+			var promise;
+			let isResolved = false;
 			if (val && val.then) {
-				return val;
+				promise = val;
 			} else {
-				return Promise.resolve(val);
+				promise = Promise.resolve(val);
+				isResolved = true;
 			}
+			if (typeof promise.isResolved === 'undefined') {
+				promise.then(() => isResolved = true);
+				promise.isResolved = () => isResolved;
+			}
+			return promise;
 		} catch (e) {
 			return Promise.reject(e);
 		}
@@ -56,4 +66,8 @@ Zotero.Promise.delay = function(timeout) {
 	return new Promise(function(resolve) {
 		setTimeout(resolve, timeout);
 	});
+}
+
+if (typeof process === 'object' && process + '' === '[object process]') {
+	module.exports = Zotero.Promise;
 }

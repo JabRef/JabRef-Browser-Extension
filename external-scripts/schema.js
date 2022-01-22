@@ -2,16 +2,14 @@
 // TODO: Might do this automatically using the gulp file
 var data = {
 	"version": 14,
-	"itemTypes": [
-		{
+	"itemTypes": [{
 			"itemType": "annotation",
 			"fields": [],
 			"creatorTypes": []
 		},
 		{
 			"itemType": "artwork",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -58,8 +56,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "artist",
 					"primary": true
 				},
@@ -70,8 +67,7 @@ var data = {
 		},
 		{
 			"itemType": "attachment",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -85,8 +81,7 @@ var data = {
 		},
 		{
 			"itemType": "audioRecording",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -152,8 +147,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "performer",
 					"primary": true
 				},
@@ -170,8 +164,7 @@ var data = {
 		},
 		{
 			"itemType": "bill",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -226,8 +219,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "sponsor",
 					"primary": true
 				},
@@ -241,8 +233,7 @@ var data = {
 		},
 		{
 			"itemType": "blogPost",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -278,8 +269,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -293,8 +283,7 @@ var data = {
 		},
 		{
 			"itemType": "book",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -361,8 +350,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -382,8 +370,7 @@ var data = {
 		},
 		{
 			"itemType": "bookSection",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -454,8 +441,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -478,8 +464,7 @@ var data = {
 		},
 		{
 			"itemType": "case",
-			"fields": [
-				{
+			"fields": [{
 					"field": "caseName",
 					"baseField": "title"
 				},
@@ -530,8 +515,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -545,8 +529,7 @@ var data = {
 		},
 		{
 			"itemType": "computerProgram",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -605,8 +588,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "programmer",
 					"primary": true
 				},
@@ -617,8 +599,7 @@ var data = {
 		},
 		{
 			"itemType": "conferencePaper",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -686,8 +667,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -707,8 +687,7 @@ var data = {
 		},
 		{
 			"itemType": "dictionaryEntry",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -779,8 +758,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -800,8 +778,7 @@ var data = {
 		},
 		{
 			"itemType": "document",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -844,8 +821,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -865,8 +841,7 @@ var data = {
 		},
 		{
 			"itemType": "email",
-			"fields": [
-				{
+			"fields": [{
 					"field": "subject",
 					"baseField": "title"
 				},
@@ -895,8 +870,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -910,8 +884,7 @@ var data = {
 		},
 		{
 			"itemType": "encyclopediaArticle",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -982,8 +955,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1003,8 +975,7 @@ var data = {
 		},
 		{
 			"itemType": "film",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1059,8 +1030,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "director",
 					"primary": true
 				},
@@ -1077,8 +1047,7 @@ var data = {
 		},
 		{
 			"itemType": "forumPost",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1114,8 +1083,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1126,8 +1094,7 @@ var data = {
 		},
 		{
 			"itemType": "hearing",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1183,17 +1150,14 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
-					"creatorType": "contributor",
-					"primary": true
-				}
-			]
+			"creatorTypes": [{
+				"creatorType": "contributor",
+				"primary": true
+			}]
 		},
 		{
 			"itemType": "instantMessage",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1221,8 +1185,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1236,8 +1199,7 @@ var data = {
 		},
 		{
 			"itemType": "interview",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1281,8 +1243,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "interviewee",
 					"primary": true
 				},
@@ -1299,8 +1260,7 @@ var data = {
 		},
 		{
 			"itemType": "journalArticle",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1370,8 +1330,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1391,8 +1350,7 @@ var data = {
 		},
 		{
 			"itemType": "letter",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1436,8 +1394,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1451,8 +1408,7 @@ var data = {
 		},
 		{
 			"itemType": "magazineArticle",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1507,8 +1463,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1525,8 +1480,7 @@ var data = {
 		},
 		{
 			"itemType": "manuscript",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1576,8 +1530,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1591,8 +1544,7 @@ var data = {
 		},
 		{
 			"itemType": "map",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1654,8 +1606,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "cartographer",
 					"primary": true
 				},
@@ -1669,8 +1620,7 @@ var data = {
 		},
 		{
 			"itemType": "newspaperArticle",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1728,8 +1678,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -1751,8 +1700,7 @@ var data = {
 		},
 		{
 			"itemType": "patent",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1815,8 +1763,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "inventor",
 					"primary": true
 				},
@@ -1830,8 +1777,7 @@ var data = {
 		},
 		{
 			"itemType": "podcast",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1870,8 +1816,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "podcaster",
 					"primary": true
 				},
@@ -1885,8 +1830,7 @@ var data = {
 		},
 		{
 			"itemType": "presentation",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1924,8 +1868,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "presenter",
 					"primary": true
 				},
@@ -1936,8 +1879,7 @@ var data = {
 		},
 		{
 			"itemType": "radioBroadcast",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -1999,8 +1941,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "director",
 					"primary": true
 				},
@@ -2023,8 +1964,7 @@ var data = {
 		},
 		{
 			"itemType": "report",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -2085,8 +2025,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -2103,8 +2042,7 @@ var data = {
 		},
 		{
 			"itemType": "statute",
-			"fields": [
-				{
+			"fields": [{
 					"field": "nameOfAct",
 					"baseField": "title"
 				},
@@ -2156,8 +2094,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -2168,8 +2105,7 @@ var data = {
 		},
 		{
 			"itemType": "thesis",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -2223,8 +2159,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
@@ -2235,8 +2170,7 @@ var data = {
 		},
 		{
 			"itemType": "tvBroadcast",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -2298,8 +2232,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "director",
 					"primary": true
 				},
@@ -2322,8 +2255,7 @@ var data = {
 		},
 		{
 			"itemType": "videoRecording",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -2389,8 +2321,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "director",
 					"primary": true
 				},
@@ -2410,8 +2341,7 @@ var data = {
 		},
 		{
 			"itemType": "webpage",
-			"fields": [
-				{
+			"fields": [{
 					"field": "title"
 				},
 				{
@@ -2447,8 +2377,7 @@ var data = {
 					"field": "extra"
 				}
 			],
-			"creatorTypes": [
-				{
+			"creatorTypes": [{
 					"creatorType": "author",
 					"primary": true
 				},
