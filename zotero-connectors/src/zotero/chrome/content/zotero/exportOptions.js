@@ -34,8 +34,6 @@ const OPTION_PREFIX = "export-option-";
 // Class to provide options for export
 
 var Zotero_File_Interface_Export = new function() {
-	this.init = init;
-	this.updateOptions = updateOptions;
 	this.accept = accept;
 	this.cancel = cancel;
 	
@@ -44,15 +42,14 @@ var Zotero_File_Interface_Export = new function() {
 	/*
 	 * add options to export
 	 */
-	function init() {
+	this.init = function () {
 		// Set font size from pref
 		var sbc = document.getElementById('zotero-export-options-container');
 		Zotero.setFontSize(sbc);
 		
 		var addedOptions = new Object();
 		
-		var translators = window.arguments[0].translators;
-		translators.sort(function(a, b) { return a.label.localeCompare(b.label) });
+		var { translators, exportingNotes } = window.arguments[0];
 		
 		// get format popup
 		var formatPopup = document.getElementById("format-popup");
@@ -60,7 +57,9 @@ var Zotero_File_Interface_Export = new function() {
 		var optionsBox = document.getElementById("translator-options");
 		var charsetBox = document.getElementById("charset-box");
 		
-		var selectedTranslator = Zotero.Prefs.get("export.lastTranslator");
+		var selectedTranslator = Zotero.Prefs.get(
+			exportingNotes ? "export.lastNoteTranslator" : "export.lastTranslator"
+		);
 		
 		// add styles to format popup
 		for(var i in translators) {
@@ -74,7 +73,12 @@ var Zotero_File_Interface_Export = new function() {
 												// presented to the user
 					// get readable name for option
 					try {
-						var optionLabel = Zotero.getString("exportOptions."+option);
+						if (option == 'includeAppLinks') {
+							var optionLabel = Zotero.getString("exportOptions." + option, Zotero.appName);
+						}
+						else {
+							var optionLabel = Zotero.getString("exportOptions." + option);
+						}
 					} catch(e) {
 						var optionLabel = option;
 					}
@@ -82,10 +86,25 @@ var Zotero_File_Interface_Export = new function() {
 					// right now, option interface supports only boolean values, which
 					// it interprets as checkboxes
 					if(typeof(translators[i].displayOptions[option]) == "boolean") {
-						var checkbox = document.createElement("checkbox");
+						let checkbox = document.createElement("checkbox");
 						checkbox.setAttribute("id", OPTION_PREFIX+option);
 						checkbox.setAttribute("label", optionLabel);
 						optionsBox.insertBefore(checkbox, charsetBox);
+						
+						// Add "Include Annotations" after "Export Files"
+						if (option == 'exportFileData') {
+							checkbox.onclick = () => {
+								setTimeout(() => this.updateAnnotationsCheckbox());
+							};
+							
+							checkbox = document.createElement("checkbox");
+							checkbox.setAttribute("id", OPTION_PREFIX + 'includeAnnotations');
+							checkbox.setAttribute(
+								"label",
+								Zotero.getString('exportOptions.includeAnnotations')
+							);
+							optionsBox.insertBefore(checkbox, charsetBox);
+						}
 					}
 					
 					addedOptions[option] = true;
@@ -108,13 +127,15 @@ var Zotero_File_Interface_Export = new function() {
 			_charsets = Zotero_Charset_Menu.populate(document.getElementById(OPTION_PREFIX+"exportCharset"), true);
 		}
 		
-		updateOptions(Zotero.Prefs.get("export.translatorSettings"));
+		this.updateOptions(Zotero.Prefs.get(
+			exportingNotes ? "export.noteTranslatorSettings" : "export.translatorSettings"
+		));
 	}
 	
 	/*
 	 * update translator-specific options
 	 */
-	function updateOptions(optionString) {
+	this.updateOptions = function (optionString) {
 		// get selected translator
 		var index = document.getElementById("format-menu").selectedIndex;
 		var translatorOptions = window.arguments[0].translators[index].displayOptions;
@@ -133,7 +154,9 @@ var Zotero_File_Interface_Export = new function() {
 			var node = optionsBox.childNodes[i];
 			// skip non-options
 			if(node.id.length <= OPTION_PREFIX.length
-					|| node.id.substr(0, OPTION_PREFIX.length) != OPTION_PREFIX) {
+					|| node.id.substr(0, OPTION_PREFIX.length) != OPTION_PREFIX
+					// Handled separately by updateAnnotationsCheckbox()
+					|| node.id == 'export-option-includeAnnotations') {
 				continue;
 			}
 			
@@ -161,6 +184,10 @@ var Zotero_File_Interface_Export = new function() {
 			}
 		}
 		
+		this.updateAnnotationsCheckbox(
+			(options && options.includeAnnotations) ? options.includeAnnotations : false
+		);
+		
 		// handle charset popup
 		if(_charsets && translatorOptions && translatorOptions.exportCharset) {
 			optionsBox.hidden = undefined;
@@ -181,6 +208,21 @@ var Zotero_File_Interface_Export = new function() {
 		window.sizeToContent();
 	}
 	
+	this.updateAnnotationsCheckbox = function (defaultValue) {
+		var filesCheckbox = document.getElementById(OPTION_PREFIX + 'exportFileData');
+		var annotationsCheckbox = document.getElementById(OPTION_PREFIX + 'includeAnnotations');
+		if (filesCheckbox.hidden) {
+			annotationsCheckbox.hidden = true;
+			annotationsCheckbox.checked = false;
+			return;
+		}
+		annotationsCheckbox.hidden = false;
+		annotationsCheckbox.disabled = !filesCheckbox.checked;
+		if (defaultValue !== undefined) {
+			annotationsCheckbox.checked = defaultValue;
+		}
+	};
+	
 	/*
 	 * make option array reflect status
 	 */
@@ -190,7 +232,10 @@ var Zotero_File_Interface_Export = new function() {
 		window.arguments[0].selectedTranslator = window.arguments[0].translators[index];
 		
 		// save selected translator
-		Zotero.Prefs.set("export.lastTranslator", window.arguments[0].translators[index].translatorID);
+		Zotero.Prefs.set(
+			window.arguments[0].exportingNotes ? "export.lastNoteTranslator" : "export.lastTranslator",
+			window.arguments[0].translators[index].translatorID
+		);
 		
 		// set options on selected translator and generate optionString
 		var optionsAvailable = window.arguments[0].selectedTranslator.displayOptions;
@@ -210,9 +255,19 @@ var Zotero_File_Interface_Export = new function() {
 			}
 		}
 		
+		// If "Export Files" is shown, add "Include Annotations" checkbox value
+		if (optionsAvailable && optionsAvailable.exportFileData !== undefined) {
+			let elem1 = document.getElementById(OPTION_PREFIX + 'exportFileData');
+			let elem2 = document.getElementById(OPTION_PREFIX + 'includeAnnotations');
+			displayOptions.includeAnnotations = elem1.checked && elem2.checked;
+		}
+		
 		// save options
 		var optionString = JSON.stringify(displayOptions);
-		Zotero.Prefs.set("export.translatorSettings", optionString);
+		Zotero.Prefs.set(
+			window.arguments[0].exportingNotes ? "export.noteTranslatorSettings" : "export.translatorSettings",
+			optionString
+		);
 	}
 	
 	/*

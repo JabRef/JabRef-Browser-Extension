@@ -31,7 +31,7 @@
  */
 Zotero.Utilities.Internal = {
 	SNAPSHOT_SAVE_TIMEOUT: 30000,
-	
+
 	/**
 	 * Run a function on chunks of a given size of an array's elements.
 	 *
@@ -564,35 +564,11 @@ Zotero.Utilities.Internal = {
 
 		const SCRIPTS = [
 			// This first script replace in the INDEX_SCRIPTS from the single file cli loader
-			"lib/single-file/index.js",
-
-			// Rest of the scripts (does not include WEB_SCRIPTS, those are handled in build process)
-			"lib/single-file/processors/hooks/content/content-hooks.js",
-			"lib/single-file/processors/hooks/content/content-hooks-frames.js",
-			"lib/single-file/processors/frame-tree/content/content-frame-tree.js",
-			"lib/single-file/processors/lazy/content/content-lazy-loader.js",
-			"lib/single-file/single-file-util.js",
-			"lib/single-file/single-file-helper.js",
-			"lib/single-file/vendor/css-tree.js",
-			"lib/single-file/vendor/html-srcset-parser.js",
-			"lib/single-file/vendor/css-minifier.js",
-			"lib/single-file/vendor/css-font-property-parser.js",
-			"lib/single-file/vendor/css-unescape.js",
-			"lib/single-file/vendor/css-media-query-parser.js",
-			"lib/single-file/modules/html-minifier.js",
-			"lib/single-file/modules/css-fonts-minifier.js",
-			"lib/single-file/modules/css-fonts-alt-minifier.js",
-			"lib/single-file/modules/css-matched-rules.js",
-			"lib/single-file/modules/css-medias-alt-minifier.js",
-			"lib/single-file/modules/css-rules-minifier.js",
-			"lib/single-file/modules/html-images-alt-minifier.js",
-			"lib/single-file/modules/html-serializer.js",
-			"lib/single-file/single-file-core.js",
-			"lib/single-file/single-file.js",
+			"dist/single-file.js",
 
 			// Web SCRIPTS
-			"lib/single-file/processors/hooks/content/content-hooks-frames-web.js",
-			"lib/single-file/processors/hooks/content/content-hooks-web.js",
+			"dist/web/hooks/hooks-frames-web.js",
+			"dist/web/hooks/hooks-web.js",
 		];
 
 		const { loadSubScript } = Components.classes['@mozilla.org/moz/jssubscript-loader;1']
@@ -618,11 +594,8 @@ Zotero.Utilities.Internal = {
 		// List of scripts from:
 		// resource/SingleFile/extension/lib/single-file/core/bg/scripts.js
 		const frameScripts = [
-			"lib/single-file/index.js",
-			"lib/single-file/single-file-helper.js",
-			"lib/single-file/vendor/css-unescape.js",
-			"lib/single-file/processors/hooks/content/content-hooks-frames.js",
-			"lib/single-file/processors/frame-tree/content/content-frame-tree.js",
+			"dist/web/hooks/hooks-frames-web.js",
+			"dist/single-file-frames.js",
 		];
 
 		// Create sandboxes for all the frames we find
@@ -640,7 +613,7 @@ Zotero.Utilities.Internal = {
 
 		// Use SingleFile to retrieve the html
 		const pageData = await Components.utils.evalInSandbox(
-			`this.singlefile.lib.getPageData(
+			`this.singlefile.getPageData(
 				Zotero.SingleFile.CONFIG,
 				{ fetch: ZoteroFetch }
 			);`,
@@ -666,6 +639,8 @@ Zotero.Utilities.Internal = {
 		sandbox.window = view.window;
 		sandbox.document = sandbox.window.document;
 		sandbox.browser = false;
+		// See comment in babel-worker.js
+		sandbox.globalThis = view.window;
 
 		sandbox.Zotero = Components.utils.cloneInto({ HTTP: {} }, sandbox);
 		sandbox.Zotero.debug = Components.utils.exportFunction(Zotero.debug, sandbox);
@@ -836,6 +811,7 @@ Zotero.Utilities.Internal = {
 	 *                                 force links to open in new windows, pass with
 	 *                                 .shiftKey = true. If not provided, the actual event will
 	 *                                 be used instead.
+	 *                                 .callback - Function to call after launching URL
 	 */
 	updateHTMLInXUL: function (elem, options) {
 		options = options || {};
@@ -846,6 +822,9 @@ Zotero.Utilities.Internal = {
 			a.setAttribute('tooltiptext', href);
 			a.onclick = function (event) {
 				Zotero.launchURL(href);
+				if (options.callback) {
+					options.callback();
+				}
 				return false;
 			};
 		}
@@ -963,30 +942,35 @@ Zotero.Utilities.Internal = {
 	 * Parse a Blob (e.g., as received from Zotero.HTTP.request()) into an HTML Document
 	 */
 	blobToHTMLDocument: async function (blob, url) {
-		var charset = null;
-		var matches = blob.type && blob.type.match(/charset=([a-z0-9\-_+])/i);
-		if (matches) {
-			charset = matches[1];
-		}
-		var responseText = await new Promise(function (resolve) {
-			let fr = new FileReader();
-			fr.addEventListener("loadend", function() {
-				resolve(fr.result);
-			});
-			fr.readAsText(blob, charset);
-		});
+		var responseText = await Zotero.Utilities.Internal.blobToText(blob);
 		var parser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
 			.createInstance(Components.interfaces.nsIDOMParser);
 		var doc = parser.parseFromString(responseText, 'text/html');
 		return Zotero.HTTP.wrapDocument(doc, url);
 	},
 	
-	
+	blobToText: async function (blob, charset=null) {
+		if (!charset) {
+			var matches = blob.type && blob.type.match(/charset=([a-z0-9\-_+])/i);
+			if (matches) {
+				charset = matches[1];
+			}
+		}
+		return new Promise(function (resolve) {
+			let fr = new FileReader();
+			fr.addEventListener("loadend", function() {
+				resolve(fr.result);
+			});
+			fr.readAsText(blob, charset);
+		});
+	},
+
+
 	/**
 	 * Converts Zotero.Item to a format expected by translators
 	 * This is mostly the Zotero web API item JSON format, but with an attachments
 	 * and notes arrays and optional compatibility mappings for older translators.
-	 * 
+	 *
 	 * @param {Zotero.Item} zoteroItem
 	 * @param {Boolean} legacy Add mappings for legacy (pre-4.0.27) translators
 	 * @return {Object}
@@ -994,11 +978,11 @@ Zotero.Utilities.Internal = {
 	itemToExportFormat: function (zoteroItem, legacy, skipChildItems) {
 		function addCompatibilityMappings(item, zoteroItem) {
 			item.uniqueFields = {};
-			
+
 			// Meaningless local item ID, but some older export translators depend on it
 			item.itemID = zoteroItem.id;
 			item.key = zoteroItem.key; // CSV translator exports this
-			
+
 			// "version" is expected to be a field for "computerProgram", which is now
 			// called "versionNumber"
 			delete item.version;
@@ -1006,25 +990,25 @@ Zotero.Utilities.Internal = {
 				item.version = item.uniqueFields.version = item.versionNumber;
 				delete item.versionNumber;
 			}
-			
+
 			// SQL instead of ISO-8601
 			item.dateAdded = zoteroItem.dateAdded;
 			item.dateModified = zoteroItem.dateModified;
 			if (item.accessDate) {
 				item.accessDate = zoteroItem.getField('accessDate');
 			}
-			
+
 			// Map base fields
 			for (let field in item) {
 				let id = Zotero.ItemFields.getID(field);
 				if (!id || !Zotero.ItemFields.isValidForType(id, zoteroItem.itemTypeID)) {
-					 continue;
+					continue;
 				}
-				
+
 				let baseField = Zotero.ItemFields.getName(
 					Zotero.ItemFields.getBaseIDFromTypeAndField(item.itemType, field)
 				);
-				
+
 				if (!baseField || baseField == field) {
 					item.uniqueFields[field] = item[field];
 				} else {
@@ -1032,31 +1016,31 @@ Zotero.Utilities.Internal = {
 					item.uniqueFields[baseField] = item[field];
 				}
 			}
-			
+
 			// Add various fields for compatibility with translators pre-4.0.27
 			item.itemID = zoteroItem.id;
 			item.libraryID = zoteroItem.libraryID == 1 ? null : zoteroItem.libraryID;
-			
+
 			// Creators
 			if (item.creators) {
 				for (let i=0; i<item.creators.length; i++) {
 					let creator = item.creators[i];
-					
+
 					if (creator.name) {
 						creator.fieldMode = 1;
 						creator.lastName = creator.name;
 						delete creator.name;
 					}
-					
+
 					// Old format used to supply creatorID (the database ID), but no
 					// translator ever used it
 				}
 			}
-			
+
 			if (!zoteroItem.isRegularItem()) {
 				item.sourceItemKey = item.parentItem;
 			}
-			
+
 			// Tags
 			for (let i=0; i<item.tags.length; i++) {
 				if (!item.tags[i].type) {
@@ -1064,30 +1048,30 @@ Zotero.Utilities.Internal = {
 				}
 				// No translator ever used "primary", "fields", or "linkedItems" objects
 			}
-			
+
 			// "related" was never used (array of itemIDs)
-			
+
 			// seeAlso was always present, but it was always an empty array.
 			// Zotero RDF translator pretended to use it
 			item.seeAlso = [];
-			
+
 			if (zoteroItem.isAttachment()) {
 				item.linkMode = item.uniqueFields.linkMode = zoteroItem.attachmentLinkMode;
 				item.mimeType = item.uniqueFields.mimeType = item.contentType;
 			}
-			
+
 			if (item.note) {
 				item.uniqueFields.note = item.note;
 			}
-			
+
 			return item;
 		}
-		
+
 		var item = zoteroItem.toJSON();
-		
+
 		item.uri = Zotero.URI.getItemURI(zoteroItem);
 		delete item.key;
-		
+
 		if (!skipChildItems && !zoteroItem.isAttachment() && !zoteroItem.isNote()) {
 			// Include attachments
 			item.attachments = [];
@@ -1097,10 +1081,10 @@ Zotero.Utilities.Internal = {
 				let attachment = zoteroAttachment.toJSON();
 				attachment.uri = Zotero.URI.getItemURI(zoteroAttachment);
 				if (legacy) addCompatibilityMappings(attachment, zoteroAttachment);
-				
+
 				item.attachments.push(attachment);
 			}
-			
+
 			// Include notes
 			item.notes = [];
 			let notes = zoteroItem.getNotes();
@@ -1109,13 +1093,13 @@ Zotero.Utilities.Internal = {
 				let note = zoteroNote.toJSON();
 				note.uri = Zotero.URI.getItemURI(zoteroNote);
 				if (legacy) addCompatibilityMappings(note, zoteroNote);
-				
+
 				item.notes.push(note);
 			}
 		}
-		
+
 		if (legacy) addCompatibilityMappings(item, zoteroItem);
-		
+
 		return item;
 	},
 	
@@ -1407,84 +1391,8 @@ Zotero.Utilities.Internal = {
 	
 	
 	extractIdentifiers: function (text) {
-		var identifiers = [];
-		var foundIDs = new Set(); // keep track of identifiers to avoid duplicates
-		
-		// First look for DOIs
-		var ids = text.split(/[\s\u00A0]+/); // whitespace + non-breaking space
-		var doi;
-		for (let id of ids) {
-			if ((doi = Zotero.Utilities.cleanDOI(id)) && !foundIDs.has(doi)) {
-				identifiers.push({
-					DOI: doi
-				});
-				foundIDs.add(doi);
-			}
-		}
-		
-		// Then try ISBNs
-		if (!identifiers.length) {
-			// First try replacing dashes
-			let ids = text.replace(/[\u002D\u00AD\u2010-\u2015\u2212]+/g, "") // hyphens and dashes
-				.toUpperCase();
-			let ISBN_RE = /(?:\D|^)(97[89]\d{10}|\d{9}[\dX])(?!\d)/g;
-			let isbn;
-			while (isbn = ISBN_RE.exec(ids)) {
-				isbn = Zotero.Utilities.cleanISBN(isbn[1]);
-				if (isbn && !foundIDs.has(isbn)) {
-					identifiers.push({
-						ISBN: isbn
-					});
-					foundIDs.add(isbn);
-				}
-			}
-			
-			// Next try spaces
-			if (!identifiers.length) {
-				ids = ids.replace(/[ \u00A0]+/g, ""); // space + non-breaking space
-				while (isbn = ISBN_RE.exec(ids)) {
-					isbn = Zotero.Utilities.cleanISBN(isbn[1]);
-					if(isbn && !foundIDs.has(isbn)) {
-						identifiers.push({
-							ISBN: isbn
-						});
-						foundIDs.add(isbn);
-					}
-				}
-			}
-		}
-		
-		// Next try arXiv
-		if (!identifiers.length) {
-			// arXiv identifiers are extracted without version number
-			// i.e. 0706.0044v1 is extracted as 0706.0044,
-			// because arXiv OAI API doesn't allow to access individual versions
-			let arXiv_RE = /((?:[^A-Za-z]|^)([\-A-Za-z\.]+\/\d{7})(?:(v[0-9]+)|)(?!\d))|((?:\D|^)(\d{4}\.\d{4,5})(?:(v[0-9]+)|)(?!\d))/g;
-			let m;
-			while ((m = arXiv_RE.exec(text))) {
-				let arXiv = m[2] || m[5];
-				if (arXiv && !foundIDs.has(arXiv)) {
-					identifiers.push({arXiv: arXiv});
-					foundIDs.add(arXiv);
-				}
-			}
-		}
-		
-		// Finally try for PMID
-		if (!identifiers.length) {
-			// PMID; right now, the longest PMIDs are 8 digits, so it doesn't seem like we'll
-			// need to discriminate for a fairly long time
-			let PMID_RE = /(^|\s|,|:)(\d{1,9})(?=\s|,|$)/g;
-			let pmid;
-			while ((pmid = PMID_RE.exec(text)) && !foundIDs.has(pmid)) {
-				identifiers.push({
-					PMID: pmid[2]
-				});
-				foundIDs.add(pmid);
-			}
-		}
-		
-		return identifiers;
+		Zotero.debug(`Zotero.Utilities.Internal.extractIdentifiers() is deprecated -- use Zotero.Utilities.extractIdentifiers() instead`);
+		return Zotero.Utilities.extractIdentifiers.apply(Zotero.Utilities, arguments);
 	},
 	
 	
@@ -1869,77 +1777,6 @@ Zotero.Utilities.Internal = {
 		return menu;
 	},
 	
-	
-	// TODO: Move somewhere better
-	getVirtualCollectionState: function (type) {
-		switch (type) {
-			case 'duplicates':
-				var prefKey = 'duplicateLibraries';
-				break;
-			
-			case 'unfiled':
-				var prefKey = 'unfiledLibraries';
-				break;
-			
-			case 'retracted':
-				var prefKey = 'retractedLibraries';
-				break;
-			
-			default:
-				throw new Error("Invalid virtual collection type '" + type + "'");
-		}
-		var libraries;
-		try {
-			libraries = JSON.parse(Zotero.Prefs.get(prefKey) || '{}');
-			if (typeof libraries != 'object') {
-				throw true;
-			}
-		}
-		// Ignore old/incorrect formats
-		catch (e) {
-			Zotero.Prefs.clear(prefKey);
-			libraries = {};
-		}
-		
-		return libraries;
-	},
-	
-	
-	getVirtualCollectionStateForLibrary: function (libraryID, type) {
-		return this.getVirtualCollectionState(type)[libraryID] !== false;
-	},
-	
-	
-	setVirtualCollectionStateForLibrary: function (libraryID, type, show) {
-		switch (type) {
-			case 'duplicates':
-				var prefKey = 'duplicateLibraries';
-				break;
-			
-			case 'unfiled':
-				var prefKey = 'unfiledLibraries';
-				break;
-			
-			case 'retracted':
-				var prefKey = 'retractedLibraries';
-				break;
-			
-			default:
-				throw new Error("Invalid virtual collection type '" + type + "'");
-		}
-		
-		var libraries = this.getVirtualCollectionState(type);
-		
-		// Update current library
-		libraries[libraryID] = !!show;
-		// Remove libraries that don't exist or that are set to true
-		for (let id of Object.keys(libraries).filter(id => libraries[id] || !Zotero.Libraries.exists(id))) {
-			delete libraries[id];
-		}
-		Zotero.Prefs.set(prefKey, JSON.stringify(libraries));
-	},
-	
-	
 	openPreferences: function (paneID, options = {}) {
 		if (typeof options == 'string') {
 			Zotero.debug("ZoteroPane.openPreferences() now takes an 'options' object -- update your code", 2);
@@ -2127,14 +1964,20 @@ Zotero.Utilities.Internal = {
 		if (size <= 1) {
 			size = 'small';
 		}
-		else if (size <= 1.25) {
+		else if (size <= 1.15) {
 			size = 'medium';
 		}
-		else {
+		else if (size <= 1.3) {
 			size = 'large';
+		}
+		else {
+			size = 'x-large';
 		}
 		// Custom attribute -- allows for additional customizations in zotero.css
 		rootElement.setAttribute('zoteroFontSize', size);
+		if (Zotero.rtl) {
+			rootElement.setAttribute('dir', 'rtl');
+		}
 	},
 
 	getAncestorByTagName: function (elem, tagName){
@@ -2163,6 +2006,167 @@ Zotero.Utilities.Internal = {
 			Zotero.restarting = true;
 		}
 		startup.quit(startup.eAttemptQuit | (restart ? startup.eRestart : 0) );
+	},
+
+	/**
+	 * Assign properties to an object
+	 *
+	 * @param {Object} target
+	 * @param {Object} source
+	 * @param {String[]} [props] Properties to assign. Assign all otherwise
+	 */
+	assignProps: function(target, source, props) {
+		if (!props) props = Object.keys(source);
+
+		for (var i=0; i<props.length; i++) {
+			if (source[props[i]] === undefined) continue;
+			target[props[i]] = source[props[i]];
+		}
+	},
+
+	parseURL: function (url) {
+		var parts = require('url').parse(url);
+		// fileName
+		parts.fileName = parts.pathname.split('/').pop();
+		// fileExtension
+		var pos = parts.fileName.lastIndexOf('.');
+		parts.fileExtension = pos == -1 ? '' : parts.fileName.substr(pos + 1);
+		// fileBaseName
+		parts.fileBaseName = parts.fileName
+			// filename up to the period before the file extension, if there is one
+			.substr(0, parts.fileName.length - (parts.fileExtension ? parts.fileExtension.length + 1 : 0));
+		return parts;
+	},
+	
+	/**
+	 * Get the real target URL from an intermediate URL
+	 */
+	resolveIntermediateURL: function(url) {
+		var patterns = [
+			// Google search results
+			{
+				regexp: /^https?:\/\/(www.)?google\.(com|(com?\.)?[a-z]{2})\/url\?/,
+				variable: "url"
+			}
+		];
+
+		for (var i=0, len=patterns.length; i<len; i++) {
+			if (!url.match(patterns[i].regexp)) {
+				continue;
+			}
+			var matches = url.match(new RegExp("&" + patterns[i].variable + "=(.+?)(&|$)"));
+			if (!matches) {
+				continue;
+			}
+			return decodeURIComponent(matches[1]);
+		}
+
+		return url;
+	},
+
+	/**
+	 * Gets the icon for a JSON-style attachment
+	 */
+	determineAttachmentIcon: function(attachment) {
+		if(attachment.linkMode === "linked_url") {
+			return Zotero.ItemTypes.getImageSrc("attachment-web-link");
+		}
+		return Zotero.ItemTypes.getImageSrc(attachment.mimeType === "application/pdf"
+			? "attachment-pdf" : "attachment-snapshot");
+	},
+	
+	/**
+	 * Pass a class into this to add generic methods for creating event listeners
+	 * (and running those events).
+	 *
+	 * ```
+	 * var MyClass = Zotero.Utilities.Internal.makeClassEventDispatcher(class {
+	 * 		constructor: () => {
+	 * 			this.onFoo = this.createEventBinding('foo');
+	 * 		}
+	 * 		foo: () => this.runListeners('foo');
+	 * });
+	 * let object = new MyClass();
+	 * object.onFoo.addListener(() => console.log('foo ran in object of MyClass'));
+	 * object.foo();
+	 * ```
+	 * @param cls
+	 */
+	makeClassEventDispatcher: function (cls) {
+		cls.prototype._events = null;
+		cls.prototype.runListeners = async function (event) {
+			// Zotero.debug(`Running ${event} listeners on ${cls.toString()}`);
+			if (!this._events) this._events = {};
+			if (!this._events[event]) {
+				this._events[event] = {
+					listeners: new Map(),
+				};
+			}
+			this._events[event].triggered = true;
+			// Array.from(entries) since entries() returns an iterator and we want a snapshot of the entries
+			// at the time of runListeners() call to prevent triggering listeners that are added right
+			// runListeners() invocation
+			for (let [listener, once] of Array.from(this._events[event].listeners.entries())) {
+				await Zotero.Promise.resolve(listener.call(this));
+				if (once) {
+					this._events[event].listeners.delete(listener);
+				}
+			}
+		};
+
+		/**
+		 * @param event {String} name of the event
+		 * @param alwaysOnce {Boolean} whether all event listeners on this event will only be triggered once
+		 * @param immediateAfterTrigger {Boolean} whether the event listeners should be triggered immediately
+		 * 								upon being added if the event had been triggered at least once
+		 * @returns {Object} A listener object with an addListener(listener, once) method
+		 * @private
+		 */
+		cls.prototype.createEventBinding = function (event, alwaysOnce, immediateAfterTrigger) {
+			if (!this._events) this._events = {};
+			this._events[event] = {
+				listeners: new Map(),
+				immediateAfterTrigger
+			};
+			return {
+				addListener: (listener, once) => {
+					this._addListener(event, listener, alwaysOnce || once, immediateAfterTrigger);
+				},
+				removeListener: (listener) => {
+					this._removeListener(event, listener);
+				},
+			}
+		};
+
+		cls.prototype._addListener = function (event, listener, once, immediateAfterTrigger) {
+			if (!this._events) this._events = {};
+			let ev = this._events[event];
+			if (!ev) {
+				this._events[event] = {
+					listeners: new Map(),
+					immediateAfterTrigger
+				};
+			}
+			if ((immediateAfterTrigger || ev.immediateAfterTrigger) && ev.triggered) {
+				return listener.call(this);
+			}
+			this._events[event].listeners.set(listener, once);
+		};
+		
+		cls.prototype._removeListener = function(event, listener) {
+			let ev = this._events[event];
+			if (!ev || !ev.listeners) {
+				Zotero.debug(`EventListener.removeListener(): attempting to remove an invalid event ${event} listener`);
+				return;
+			}
+			ev.listeners.delete(listener);
+		};
+
+		cls.prototype._waitForEvent = async function (event) {
+			return new Zotero.Promise((resolve, reject) => {
+				this._addListener(event, () => resolve(), true);
+			});
+		};
 	}
 }
 
@@ -2698,6 +2702,78 @@ Zotero.Utilities.Internal.Base64 = {
 		 return string;
 	 }
  }
+
+Zotero.Utilities.Internal.OpenURL = {
+	/**
+	 * Returns a URL to look up an item in the OpenURL resolver
+	 */
+	resolve: function (item) {
+		var co = Zotero.OpenURL.createContextObject(
+			item.toJSON(),
+			Zotero.Prefs.get("openURL.version")
+		);
+		if (co) {
+			let base = Zotero.Prefs.get("openURL.resolver");
+			// Add & if there's already a ?
+			let splice = base.indexOf("?") == -1 ? "?" : "&";
+			return base + splice + co;
+		}
+		return false;
+	},
+	
+	/**
+	 * Fetch list of resolvers from the Zotero wiki
+	 *
+	 * https://www.zotero.org/support/locate/openurl_resolvers
+	 */
+	getResolvers: async function () {
+		var req = await Zotero.HTTP.request(
+			"GET",
+			"https://www.zotero.org/support/locate/openurl_resolvers?do=export_raw"
+		);
+		var text = req.response;
+		var lines = text.split(/\n/);
+		var urls = [];
+		var continent;
+		var country = null;
+		for (let line of lines) {
+			// Continent
+			let matches = line.match(/^\s*=====\s*([^=]+)=====\s*$/);
+			if (matches) {
+				continent = matches[1].trim();
+				country = null;
+				continue;
+			}
+			// Country
+			matches = line.match(/^\s*====\s*([^=]+)====\s*$/);
+			if (matches) {
+				country = matches[1].trim();
+				continue;
+			}
+			matches = line.match(/^\s*\|\s*([^|]+)\s*\|\s*%%([^%]+)%%\s*\|\s*$/);
+			if (matches) {
+				urls.push({
+					continent,
+					country,
+					name: matches[1].trim(),
+					url: matches[2],
+					version: "1.0"
+				});
+			}
+		}
+		// Skip global resolver, which is hard-coded locally
+		urls = urls.filter(x => x.continent != 'Global');
+		urls.sort((a, b) => {
+			var cmp = Zotero.localeCompare(a.continent, b.continent);
+			if (cmp) return cmp;
+			cmp = Zotero.localeCompare(a.country, b.country);
+			if (cmp) return cmp;
+			return Zotero.localeCompare(a.name, b.name);
+		});
+		return urls;
+	},
+};
+
 if (typeof process === 'object' && process + '' === '[object process]'){
     module.exports = Zotero.Utilities.Internal;
 }

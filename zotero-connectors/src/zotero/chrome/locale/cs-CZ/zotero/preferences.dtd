@@ -11,7 +11,7 @@
 <!ENTITY zotero.preferences.fileHandling "Nakládání se souborem">
 <!ENTITY zotero.preferences.automaticSnapshots "Automaticky udělat snímek při vytváření položky z internetových stránek">
 <!ENTITY zotero.preferences.downloadAssociatedFiles "Automaticky připojit propojené PDF a ostatní soubory při ukládání položek">
-<!ENTITY zotero.preferences.autoRecognizeFiles "Atuomaticky získat metadata pro PDF">
+<!ENTITY zotero.preferences.autoRecognizeFiles "Automaticky získat metadata pro PDF">
 <!ENTITY zotero.preferences.autoRenameFiles "Automaticky přejmenovat přiložené soubory podle rodičovských metadat">
 <!ENTITY zotero.preferences.autoRenameFiles.renameLinked "Přejmenovat propojené soubory">
 <!ENTITY zotero.preferences.fileHandler.openPDFsUsing "Otevřít PDF pomocí">
@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Nejstarší položka první">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Nastavení kanálů">
 
-<!ENTITY zotero.preferences.openurl.search "Hledat resolvery">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Vlastní...">
 <!ENTITY zotero.preferences.openurl.server "Resolver:">
 <!ENTITY zotero.preferences.openurl.version "Verze">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Pokud je tato volba neaktivní, Zotero zahrne URL v případě citování článku (z časopisu, magazínu nebo novin) pouze když článek nemá specifikovaný rozsah stran.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Rychlé kopírování">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Výchozí formát:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Kopírovat jako HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Nastavení dle stránky:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Doména/Cesta">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Získat další styly...">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Uložit do Zotera (ikona v adresním řádku)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Zapnutí celoobrazového módu">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Přejít do panelu Knihovny">
 <!ENTITY zotero.preferences.keys.quicksearch "Rychlé hledání">
 <!ENTITY zotero.preferences.keys.newItem "Vytvořit novou položku">
 <!ENTITY zotero.preferences.keys.newNote "Vytvořit novou poznámku">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Označit všechny položky kanálu jako přečtené/nepřečtené">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Zapnout Výběr štítků">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopírovat citaci vybrané položky do schránky">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopírovat vybrané položky do schránky">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Importovat ze schránky">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Správce mechanismu pro vyhledávání článků">
 <!ENTITY zotero.preferences.locate.description "Popis">
 <!ENTITY zotero.preferences.locate.name "Jméno">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "&quot;Mechanismus pro vyhledávání&quot; rozšiřuje možnosti funkce Najít v info panelu. Položky přidané do seznamu níže se přidají do kontextového menu a mohou být použity k nalezení zdrojů z vaší knihovny na webu.">
 <!ENTITY zotero.preferences.locate.addDescription "Pro přidání vyhledávače, který není v seznamu, přejděte na požadovaný vyhledávač v prohlížeči a vyberte položku „Přidat“ v Zotero menu Najít.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Obnovit původní nastavení">
 

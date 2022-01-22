@@ -23,7 +23,7 @@
     ***** END LICENSE BLOCK *****
 */
 
-import FilePicker from 'zotero/filePicker';
+import FilePicker from 'zotero/modules/filePicker';
 
 var Zotero_CSL_Editor = new function() {
 	this.init = init;
@@ -173,7 +173,7 @@ var Zotero_CSL_Editor = new function() {
 		var selectedLocale = document.getElementById("locale-menu").value;
 		var styleEngine;
 		try {
-			styleEngine = style.getCiteProc(style.locale || selectedLocale);
+			styleEngine = style.getCiteProc(style.locale || selectedLocale, 'html');
 		} catch(e) {
 			iframe.contentDocument.documentElement.innerHTML = '<div>' + Zotero.getString('styles.editor.warning.parseError') + '</div><div>'+e+'</div>';
 			throw e;
@@ -231,7 +231,7 @@ var Zotero_CSL_Editor = new function() {
 				iframe.contentDocument.documentElement.innerHTML = '<div>' + Zotero.getString('styles.editor.warning.renderError') + '</div><div>'+e+'</div>';
 				throw e;
 		}
-		editor.styleEngine = styleEngine;
+		styleEngine.free();
 	}
 	
 	

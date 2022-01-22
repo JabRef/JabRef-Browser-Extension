@@ -62,7 +62,7 @@ Zotero.Server.Connector = {
 				if (!editable && !allowReadOnly) {
 					let userLibrary = Zotero.Libraries.userLibrary;
 					if (userLibrary && userLibrary.editable) {
-						Zotero.debug("Save target isn't editable -- switching to My Library");
+						Zotero.debug("Save target isn't editable -- switching lastViewedFolder to My Library");
 						let treeViewID = userLibrary.treeViewID;
 						Zotero.Prefs.set('lastViewedFolder', treeViewID);
 						({ library, collection, editable } = this.resolveTarget(treeViewID));
@@ -431,7 +431,7 @@ Zotero.Server.Connector.GetTranslators.prototype = {
 			}).catch(function(e) {
 				sendResponseCallback(500);
 				throw e;
-			}).done();
+			});
 		}
 	},
 	
@@ -1143,7 +1143,9 @@ Zotero.Server.Connector.SaveSnapshot.prototype = {
 			return 500;
 		}
 		
-		return [201, "application/json", JSON.stringify({ saveSingleFile: !data.skipSnapshot })];
+		return [201,
+			"application/json",
+			JSON.stringify({ saveSingleFile: !data.skipSnapshot && !data.pdf })];
 	},
 	
 	/*
@@ -1504,7 +1506,7 @@ Zotero.Server.Connector.GetTranslatorCode.prototype = {
 	 */
 	init: function(postData, sendResponseCallback) {
 		var translator = Zotero.Translators.get(postData.translatorID);
-		translator.getCode().then(function(code) {
+		Zotero.Translators.getCodeForTranslator(translator).then(function(code) {
 			sendResponseCallback(200, "application/javascript", code);
 		});
 	}
@@ -1699,7 +1701,8 @@ Zotero.Server.Connector.Ping.prototype = {
 			
 			let response = {
 				prefs: {
-					automaticSnapshots: Zotero.Prefs.get('automaticSnapshots')
+					automaticSnapshots: Zotero.Prefs.get('automaticSnapshots'),
+					googleDocsAddNoteEnabled: Zotero.isPDFBuild
 				}
 			};
 			if (Zotero.QuickCopy.hasSiteSettings()) {

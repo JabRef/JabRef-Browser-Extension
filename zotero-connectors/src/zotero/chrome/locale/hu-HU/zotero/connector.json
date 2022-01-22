@@ -2,8 +2,20 @@
   "general_more": {
     "message": "Egyéb…"
   },
+  "general_moreInfo": {
+    "message": "További információ…"
+  },
+  "general_needHelp": {
+    "message": "Szüksége van segítségre?"
+  },
   "general_done": {
     "message": "Rendben"
+  },
+  "general_yes": {
+    "message": "Igen"
+  },
+  "general_no": {
+    "message": "Nem"
   },
   "general_tryAgain": {
     "message": "Próbálja újra"
@@ -17,8 +29,14 @@
   "general_pleaseWait": {
     "message": "Kérem várjon…"
   },
+  "general_copyToClipboard": {
+    "message": "Másolás a vágólapra"
+  },
   "progressWindow_savingTo": {
     "message": "Mentés"
+  },
+  "progressWindow_tagPlaceholder": {
+    "message": "Címkék (vesszővel elválasztva)"
   },
   "progressWindow_error_translation": {
     "message": "Hiba történt az elem mentése közben. Lásd a $1 további információért"
@@ -41,11 +59,17 @@
   "upgradeApp": {
     "message": "$1frissítése"
   },
+  "firstRun_acceptButton": {
+    "message": "Értem"
+  },
   "error_connection_isAppRunning": {
     "message": "A(z)$1fut?"
   },
   "error_connection_enableSavingToOnlineLibrary": {
     "message": "Mentés engedélyezése online könyvtárba"
+  },
+  "reports_debug_output_submitted": {
+    "message": "A hibakeresés eredménye elküldve.\n\nA hibaazonosító$1."
   },
   "integration_error_clientUpgrade": {
     "message": "A webalapú hivatkozáshoz szükség van $1 vagy későbbire."
@@ -58,6 +82,9 @@
   },
   "integration_googleDocs_updating": {
     "message": "$1 frissíti az ön dokumentumát"
+  },
+  "integration_googleDocs_orphanedCitations_alertButton": {
+    "message": "Hivatkozás újralinkelése"
   },
   "general_saveTo": {
     "message": "Mentés $1-ba(n)"

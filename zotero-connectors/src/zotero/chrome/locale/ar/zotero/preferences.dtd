@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "العناصر الأقدم أولاً">
 <!ENTITY zotero.preferences.feeds.feedDefaults "افتراضيات التلقيم">
 
-<!ENTITY zotero.preferences.openurl.search "البحث عن مقرر">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "تخصيص...">
 <!ENTITY zotero.preferences.openurl.server "رابط المقرر:">
 <!ENTITY zotero.preferences.openurl.version "الإصدار:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "عند تعطيل هذه الخاصية، يقوم زوتيرو بتضمين روابط الويب فقط عند توثيق مقالات (الدوريات أو المجلات أو الجرائد) التي لم يعين لها مدى للصفحات.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "النسخ السريع">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "الصيغة الإفتراضية:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "نسخ كترميز HTML">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "إعدادات خاصة حسب الموقع:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "نطاق الانترنت/المسار">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "احصل على أنماط إضافية">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "احفظ في زوتيرو (ايقونة شريط العنوان)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "التنشيط لوضع ملء الشاشة">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "ركز على جزء المكتبات">
 <!ENTITY zotero.preferences.keys.quicksearch "البحث السريع">
 <!ENTITY zotero.preferences.keys.newItem "انشئ عنصر جديد">
 <!ENTITY zotero.preferences.keys.newNote "انشئ ملاحظة جديدة">
 <!ENTITY zotero.preferences.keys.toggleAllRead "علم كل عناصر الخلاصة كمقروءة / غير مقروءة">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "تنشيط محدد الأوسمة">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "نسخ استشهادات العنصر المختار للحافظة">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "انسخ العناصر المحددة للحافظة">
 <!ENTITY zotero.preferences.keys.importFromClipboard "الاستيراد من الحافظة">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "إدارة محرك البحث">
 <!ENTITY zotero.preferences.locate.description "الوصف">
 <!ENTITY zotero.preferences.locate.name "الاسم">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "خاصية محرك البحث تمد القائمة المنسدلة لتحديد الموقع الموجودة بالنافذة الرئيسية للبرنامج. بتفعيل محركات البحث في القائمة التالية سيتم اضافة محرك البحث للقائمة النسدلة ويمكن استخدامها للبحث وتحديد موقع المصادر بمكتبتك على الويب.">
 <!ENTITY zotero.preferences.locate.addDescription "لأضافه محرك بحث غير مدرج في القائمة ، قم بزيارة محرك البحث المطلوب في  متصفحك وحدد &quot;إضافة&quot; من قائمة تحديد زوتيرو.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "استعادة الاعدادات الافتراضية">
 

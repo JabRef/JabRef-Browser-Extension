@@ -6,6 +6,7 @@
 <!ENTITY zotero.general.deselectAll "Hiçbirini Seçme">
 <!ENTITY zotero.general.edit "Düzenle">
 <!ENTITY zotero.general.delete "Sil">
+<!ENTITY zotero.general.moveToTrash "Çöp Sepetine Gönder">
 <!ENTITY zotero.general.ok "Tamam">
 <!ENTITY zotero.general.cancel "İptal Et">
 <!ENTITY zotero.general.refresh "Yenile">
@@ -91,7 +92,7 @@
 <!ENTITY zotero.items.menu.showInLibrary "Kitaplıkta Göster">
 <!ENTITY zotero.items.menu.attach.note "Not Ekle">
 <!ENTITY zotero.items.menu.attach "Ek Ekle">
-<!ENTITY zotero.items.menu.attach.link.uri "URI'ye Bağlantı İliştir">
+<!ENTITY zotero.items.menu.attach.link.uri "URI'ye Bağlantı Ekle">
 <!ENTITY zotero.items.menu.attach.file "Dosyanın Kaydedilmiş Kopyasını Ekle">
 <!ENTITY zotero.items.menu.attach.fileLink "Dosyaya Bağlantı Ekle...">
 
@@ -99,7 +100,6 @@
 <!ENTITY zotero.items.menu.duplicateItem "Seçili Eseri Çoğalt">
 <!ENTITY zotero.items.menu.mergeItems "Eserleri Birleştir...">
 <!ENTITY zotero.items.menu.unrecognize "Üstveri Alma İşlemini Geri Al">
-<!ENTITY zotero.items.menu.reportMetadata "Yanlış Üstverileri Bildir">
 
 <!ENTITY zotero.duplicatesMerge.versionSelect "Eserin hangi versiyonunun asıl eser olarak kullanılacağını seç:">
 <!ENTITY zotero.duplicatesMerge.fieldSelect "Eserin diğer versiyonlarından hangi alanların tutulacağını seç:">
@@ -151,10 +151,12 @@
 <!ENTITY zotero.toolbar.note.standalone "Yeni Bağımsız Not">
 <!ENTITY zotero.toolbar.note.child "Alt Not Ekle">
 <!ENTITY zotero.toolbar.lookup "Tanımlayıcı ile Arama...">
-<!ENTITY zotero.toolbar.attachment.linked "Dosyaya Bağlantı...">
+<!ENTITY zotero.toolbar.attachment.linked "Dosyaya Bağlantı Kur...">
 <!ENTITY zotero.toolbar.attachment.add "Dosyanın bir Kopyasının Sakla">
 <!ENTITY zotero.toolbar.attachment.weblink "Geçerli Sayfaya Bağlantıyı Kaydet">
-<!ENTITY zotero.toolbar.attachment.snapshot "Geçerli Sayfanın Görünümünü Al">
+<!ENTITY zotero.toolbar.attachment.snapshot "Geçerli Sayfanın Anlık Görüntüsünü Al">
+<!ENTITY zotero.toolbar.context.item "Eser">
+<!ENTITY zotero.toolbar.context.notes "Notlar">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "Gösterilecek etiket yok">
 <!ENTITY zotero.tagSelector.loadingTags "Etiketleri yüklüyor...">
@@ -172,7 +174,7 @@
 <!ENTITY zotero.tagColorChooser.setColor "Rengi Ayarla">
 <!ENTITY zotero.tagColorChooser.removeColor "Rengi Kaldır">
 
-<!ENTITY zotero.lookup.description "ISBN, DOI, PMID ya da arXiv numaralarını girerek kitaplığınıza ekleyin:">
+<!ENTITY zotero.lookup.description "ISBN, DOI, PMID, arXiv ID ya da ADS Bibcode tanımlayıcılarını girerek kitaplığınıza ekleyin:">
 <!ENTITY zotero.lookup.button.search "Ara">
 
 <!ENTITY zotero.createParent.title "Ana Eser Yarat">
@@ -232,9 +234,9 @@
 <!ENTITY zotero.richText.superscript.label "Üstsimge">
 <!ENTITY zotero.richText.subscript.label "Altsimge">
 
-<!ENTITY zotero.annotate.toolbar.add.label "Açıklama Ekle">
-<!ENTITY zotero.annotate.toolbar.collapse.label "Tüm Açıklamaları Daralt">
-<!ENTITY zotero.annotate.toolbar.expand.label "Tüm Açıklamaları Genişlet">
+<!ENTITY zotero.annotate.toolbar.add.label "Ek Açıklama Ekle">
+<!ENTITY zotero.annotate.toolbar.collapse.label "Tüm Ek Açıklamaları Daralt">
+<!ENTITY zotero.annotate.toolbar.expand.label "Tüm Ek Açıklamaları Genişlet">
 <!ENTITY zotero.annotate.toolbar.highlight.label "Metni Vurgula">
 <!ENTITY zotero.annotate.toolbar.unhighlight.label "Metni Vurgulama">
 
@@ -325,3 +327,29 @@
 <!ENTITY zotero.attachLink.title "URI'ye Bağlantı Ekle.">
 <!ENTITY zotero.attachLink.label.link "Bağlantı">
 <!ENTITY zotero.attachLink.label.title "Başlık">
+
+<!ENTITY zotero.context.addChildNote "Eser Notu Ekle">
+<!ENTITY zotero.context.addChildNoteFromAnnotations "Ek Açıklamalardan Eser Notu Ekle">
+<!ENTITY zotero.context.addStandaloneNote "Bağımsız Not Ekle">
+<!ENTITY zotero.context.addStandaloneNoteFromAnnotations "Ek Açıklamalardan Bağımsız Not Ekle">
+<!ENTITY zotero.context.editInWindow "Ayrı Bir Pencerede Düzenle">
+
+<!ENTITY zotero.pdfReader.firstPage "İlk Sayfa">
+<!ENTITY zotero.pdfReader.lastPage "Son Sayfa">
+<!ENTITY zotero.pdfReader.back "Geri">
+<!ENTITY zotero.pdfReader.forward "İleri">
+<!ENTITY zotero.pdfReader.rotateClockwise "Saat Yönünde Döndür">
+<!ENTITY zotero.pdfReader.rotateCounterclockwise "Saat Yönünün Tersine Döndür">
+<!ENTITY zotero.pdfReader.handTool "El Aracı">
+<!ENTITY zotero.pdfReader.verticalScrolling "Dikey Kaydırma">
+<!ENTITY zotero.pdfReader.horizontalScrolling "Yatay Kaydırma">
+<!ENTITY zotero.pdfReader.wrappedScrolling "Yan Yana Kaydırma">
+<!ENTITY zotero.pdfReader.noSpreads "Birleştirme">
+<!ENTITY zotero.pdfReader.oddSpreads "Tek Numaralı">
+<!ENTITY zotero.pdfReader.evenSpreads "Çift Numaralı">
+<!ENTITY zotero.pdfReader.zoomIn "Yakınlaştır">
+<!ENTITY zotero.pdfReader.zoomOut "Uzaklaştır">
+<!ENTITY zotero.pdfReader.zoomAuto "Otomatik Olarak Yeniden Boyutlandır">
+<!ENTITY zotero.pdfReader.zoomPageWidth "Sayfa Genişliğine Yakınlaştır">
+<!ENTITY zotero.pdfReader.transferFromPDF "Ek Açıklamaları İçeri Aktar...">
+<!ENTITY zotero.pdfReader.transferToPDF "Ek Açıklamaları Dosya İçinde Kaydet...">

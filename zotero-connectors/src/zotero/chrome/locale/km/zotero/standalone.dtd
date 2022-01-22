@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "ថតចម្លងអាគតដ្ឋាន">
 <!ENTITY copyBibliographyCmd.label "ថតចម្លងគន្ថនិទេ្ទស">
+<!ENTITY copyNoteCmd.label "Copy Note">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "ប្តូរទិសទំព័រ">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "ប្តូរទិសអត្ថបទ">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Go">
 
 
 <!ENTITY viewMenu.label "View">

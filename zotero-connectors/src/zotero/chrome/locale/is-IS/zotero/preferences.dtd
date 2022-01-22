@@ -39,7 +39,7 @@
 <!ENTITY zotero.preferences.feeds.sorting.oldest "Elstu atriði fyrst">
 <!ENTITY zotero.preferences.feeds.feedDefaults "Sjálfgefnar stillingar streymis">
 
-<!ENTITY zotero.preferences.openurl.search "Leita að auðkennum netþjóna">
+<!ENTITY zotero.preferences.openurl.choose "Choose a resolver…">
 <!ENTITY zotero.preferences.openurl.custom "Sérsniðið…">
 <!ENTITY zotero.preferences.openurl.server "Auðkennir:">
 <!ENTITY zotero.preferences.openurl.version "Útgáfa:">
@@ -104,7 +104,8 @@
 <!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Þegar þetta val er ekki virkjað, þá mun Zotero einungis birta vefslóð í fræðigreinar, tímaritsgreinar og dagblaðagreinar ef ekkert síðubil er tiltekið.">
 
 <!ENTITY zotero.preferences.quickCopy.caption "Flýtiafrit">
-<!ENTITY zotero.preferences.quickCopy.defaultFormat "Sjálfgefið snið:">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Item Format:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Note Format:">
 <!ENTITY zotero.preferences.quickCopy.copyAsHTML "Afrita á HTML-sniði">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Sértækar stillingar fyrir hvert vefsvæði:">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Lén/Slóð">
@@ -127,13 +128,11 @@
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Ná í viðbótarstíla…">
 
 <!ENTITY zotero.preferences.keys.saveToZotero "Vista í Zotero (tákn birt í vefslóðareit)">
-<!ENTITY zotero.preferences.keys.toggleFullscreen "Víxla úr og í heilskjásham">
 <!ENTITY zotero.preferences.keys.focusLibrariesPane "Áhersla á safnaglugga">
 <!ENTITY zotero.preferences.keys.quicksearch "Flýtileit">
 <!ENTITY zotero.preferences.keys.newItem "Ný færsla">
 <!ENTITY zotero.preferences.keys.newNote "Ný athugasemd">
 <!ENTITY zotero.preferences.keys.toggleAllRead "Merkja öll atriði í streymi sem lesin/ólesin">
-<!ENTITY zotero.preferences.keys.toggleTagSelector "Víxla merkjaveljara af/á">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Afrita valdar tilvísunarfærslur á klippispjald">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Afrita valdar færslur á klippispjald">
 <!ENTITY zotero.preferences.keys.importFromClipboard "Flytja inn af klippispjaldi">
@@ -172,7 +171,6 @@
 <!ENTITY zotero.preferences.locate.locateEngineManager "Stýring á uppflettikerfi greina">
 <!ENTITY zotero.preferences.locate.description "Lýsing">
 <!ENTITY zotero.preferences.locate.name "Nafn">
-<!ENTITY zotero.preferences.locate.locateEnginedescription "Uppflettikerfi fjölgar mögulegum leitarleiðum í upplýsingaflipanum. Ef leitarvélar eru virkjaðar í listanum hér fyrir neðan bætast þær við í flettilistanum og hægt verður að nota þær til að leita á vefnum að gögnum sem tengjast þínu færslusafni.">
 <!ENTITY zotero.preferences.locate.addDescription "Til að bæta við leitarvél sem er ekki á listanum, þá er fyrst vafrað á vefsíðu leitarvélarinnar og svo valið &quot;Bæta við&quot; úr staðsetningar vallista Zotero.">
 <!ENTITY zotero.preferences.locate.restoreDefaults "Endurheimta upphafsstillingar">
 

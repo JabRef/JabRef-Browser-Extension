@@ -100,7 +100,7 @@ function Reporter(runner) {
 
 	runner.on('suite', function(suite){
 		++indents;
-		dump("\r"+indent()+suite.title+"\n");
+		dump(indent() + suite.title + "\n");
 	});
 
 	runner.on('suite end', function(suite){
@@ -109,12 +109,12 @@ function Reporter(runner) {
 	});
 
 	runner.on('pending', function(test){
-		dump("\r"+indent()+"pending  -"+test.title+"\n");
+		dump(indent() + "pending  -" + test.title + "\n");
 	});
 
 	runner.on('pass', function(test){
 		passed++;
-		var msg = "\r"+indent()+Mocha.reporters.Base.symbols.ok+" "+test.title;
+		var msg = indent() + Mocha.reporters.Base.symbols.ok + " " + test.title;
 		if ('fast' != test.speed) {
 			msg += " ("+Math.round(test.duration)+" ms)";
 		}
@@ -139,7 +139,7 @@ function Reporter(runner) {
 		
 		failed++;
 		let indentStr = indent();
-		dump("\r" + indentStr
+		dump(indentStr
 			// Dark red X for errors
 			+ "\x1B[31;40m" + Mocha.reporters.Base.symbols.err + " [FAIL]\x1B[0m"
 			// Trigger bell if interactive
@@ -210,12 +210,13 @@ var assert = chai.assert,
 
 // Set up tests to run
 var run = ZoteroUnit.runTests;
-if(run && ZoteroUnit.tests) {
+if (run && ZoteroUnit.tests) {
 	function getTestFilename(test) {
-		// Allow foo, fooTest, fooTest.js, and tests/fooTest.js
+		// Remove any directory prefixes e.g. tests/fooTest.js, test/tests/fooTest.js
+		test = test.split(/[/\\]/).pop();
+		// Allow foo, fooTest, fooTest.js 
 		test = test.replace(/\.js$/, "");
 		test = test.replace(/Test$/, "");
-		test = test.replace(/^tests[/\\]/, "");
 		return test + "Test.js";
 	}
 	
@@ -275,13 +276,15 @@ if(run && ZoteroUnit.tests) {
 }
 
 if(run) {
-	window.onload = function() {
-		Zotero.spawn(function* () {
-			yield Zotero.Schema.schemaUpdatePromise;
-			
-			initPDFToolsPath();
-			
-			return mocha.run();
-		})
+	window.onload = async function () {
+		await Zotero.Schema.schemaUpdatePromise;
+		
+		// Make a copy of the database that can be used in resetDB()
+		var dbFile = Zotero.DataDirectory.getDatabase();
+		await OS.File.copy(dbFile, dbFile + '-test-template');
+		
+		initPDFToolsPath();
+		
+		return mocha.run();
 	};
 }

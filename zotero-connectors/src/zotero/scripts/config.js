@@ -12,6 +12,7 @@ const dirs = [
 // list of folders that are symlinked
 const symlinkDirs = [
 	'chrome/content/zotero/xpcom/rdf',
+	'chrome/content/zotero/xpcom/translate/src',
 	'styles',
 	'translators'
 ];
@@ -32,12 +33,11 @@ const symlinkFiles = [
 	'!resource/react.js',
 	'!resource/react-dom.js',
 	'!resource/react-virtualized.js',
-	// Only include lib directory of singleFile
+	// Only include dist directory of singleFile
 	// Also do a little bit of manipulation similar to React
 	'!resource/SingleFile/**/*',
-	'resource/SingleFile/lib/**/*',
-	'resource/SingleFile/extension/lib/single-file/fetch/content/content-fetch.js',
-	'!resource/SingleFile/lib/single-file/single-file.js',
+	'resource/SingleFile/dist/**/*',
+	'!resource/SingleFile/dist/single-file.js',
 	// We only need a couple Ace Editor files
 	'!resource/ace/**/*',
 	'resource/ace/ace.js',
@@ -50,7 +50,11 @@ const symlinkFiles = [
 	'resource/ace/theme-chrome.js',
 	'resource/ace/theme-monokai.js',
 	'resource/ace/worker-javascript.js',
-	'update.rdf'
+	// Feed *.idl files are for documentation only
+	'!resource/feeds/*.idl',
+	'update.rdf',
+	'!chrome/skin/default/zotero/**/*.scss',
+	'!resource/citeproc_rs_wasm.js',
 ];
 
 
@@ -89,8 +93,11 @@ const browserifyConfigs = [
 // exclude mask used for js, copy, symlink and sass tasks
 const ignoreMask = [
 	'**/#*',
-	'**/_*.scss',
-	'resource/schema/global/schema.json.gz'
+	'resource/schema/global/README.md',
+	'resource/schema/global/schema.json.gz',
+	'resource/schema/global/scripts/*',
+	'chrome/content/zotero/xpcom/translate/example/**/*',
+	'chrome/content/zotero/xpcom/translate/README.md',
 ];
 
 const jsFiles = [
@@ -102,7 +109,8 @@ const jsFiles = [
 	'resource/react.js',
 	'resource/react-dom.js',
 	'resource/react-virtualized.js',
-	'resource/SingleFile/lib/single-file/single-file.js'
+	'resource/SingleFile/dist/single-file.js',
+	'resource/citeproc_rs_wasm.js',
 ];
 
 const scssFiles = [
@@ -110,6 +118,8 @@ const scssFiles = [
 	'chrome/skin/default/zotero/**/*.scss'
 ];
 
+const buildsURL = 'https://zotero-download.s3.amazonaws.com/ci/';
+
 module.exports = {
-	dirs, symlinkDirs, copyDirs, symlinkFiles, browserifyConfigs, jsFiles, scssFiles, ignoreMask
+	dirs, symlinkDirs, copyDirs, symlinkFiles, browserifyConfigs, jsFiles, scssFiles, ignoreMask, buildsURL
 };

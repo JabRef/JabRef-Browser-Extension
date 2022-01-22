@@ -53,6 +53,7 @@ var Zotero_CSL_Preview = new function() {
 		progressWin.show();
 		progressWin.startCloseTimer();
 		var f = function() {
+			var d = new Date();
 			var styles = Zotero.Styles.getVisible();
 			// XXX needs its own string really for the title!
 			var str = '<html><head><title></title></head><body>';
@@ -60,17 +61,27 @@ var Zotero_CSL_Preview = new function() {
 				if (style.source) {
 					continue;
 				}
-				Zotero.debug("Generate Bib for " + style.title);
-				var cite = generateBibliography(style);
-				if (cite) {
+				Zotero.debug("Generate bibliography for " + style.title);
+				let bib;
+				let err = false;
+				try {
+					bib = generateBibliography(style);
+				}
+				catch (e) {
+					err = e;
+					Zotero.logError(e);
+				}
+				if (bib || err) {
 					str += '<h3>' + style.title + '</h3>';
-					str += cite;
+					str += bib || `<p style="color: red">${Zotero.Utilities.htmlSpecialChars(err)}</p>`;
 					str += '<hr>';
 				}
 			}
 			
 			str += '</body></html>';
-			iframe.contentDocument.documentElement.innerHTML = str;			
+			iframe.contentDocument.documentElement.innerHTML = str;
+			
+			Zotero.debug(`Generated previews in ${new Date() - d} ms`);
 		};
 		// Give progress window time to appear
 		setTimeout(f, 100);
@@ -91,7 +102,7 @@ var Zotero_CSL_Preview = new function() {
 		}
 		
 		var locale = document.getElementById("locale-menu").value;
-		var styleEngine = style.getCiteProc(locale);
+		var styleEngine = style.getCiteProc(locale, 'html');
 		
 		// Generate multiple citations
 		var citations = styleEngine.previewCitationCluster(
@@ -108,6 +119,8 @@ var Zotero_CSL_Preview = new function() {
 			styleEngine.updateItems(items.map(item => item.id));
 			bibliography = Zotero.Cite.makeFormattedBibliography(styleEngine, "html");
 		}
+		
+		styleEngine.free();
 		
 		return '<p>' + citations + '</p>' + bibliography;
 	}

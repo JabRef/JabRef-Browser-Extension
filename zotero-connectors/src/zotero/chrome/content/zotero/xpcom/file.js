@@ -53,7 +53,7 @@ Zotero.File = new function(){
 		catch (e) {
 			Zotero.logError(e);
 		}
-		throw new Error("Unexpected value '" + pathOrFile + "'");
+		throw new Error("Unexpected path value '" + pathOrFile + "'");
 	}
 	
 	
@@ -445,25 +445,65 @@ Zotero.File = new function(){
 			});
 		});
 	};
-	
-	
-	this.download = Zotero.Promise.coroutine(function* (uri, path) {
-		Zotero.debug("Saving " + (uri.spec ? uri.spec : uri)
-			+ " to " + (path.pathQueryRef ? path.pathQueryRef : path));
+
+	this.download = async function (uri, path) {
+		var uriStr = uri.spec || uri;
+		
+		Zotero.debug(`Saving ${uriStr} to ${path.pathQueryRef || path}`);
+		
+		if (Zotero.HTTP.browserIsOffline()) {
+			let msg = `Download failed: ${Zotero.appName} is currently offline`;
+			Zotero.debug(msg, 2);
+			throw new Error(msg);
+		}
 		
 		var deferred = Zotero.Promise.defer();
-		NetUtil.asyncFetch(uri, function (is, status, request) {
-			if (!Components.isSuccessCode(status)) {
-				Zotero.logError(status);
-				deferred.reject(new Error("Download failed with status " + status));
-				return;
+		const uri_ = NetUtil.ioService.newURI(uri);
+		const inputChannel = NetUtil.ioService.newChannelFromURI(uri_);
+		const outputChannel = FileUtils.openSafeFileOutputStream(new FileUtils.File(path));
+		const pipe = Cc["@mozilla.org/pipe;1"].createInstance(Ci.nsIPipe);
+		pipe.init(true, true, 0, 0xffffffff, null);
+
+		let listener = Cc[
+			"@mozilla.org/network/simple-stream-listener;1"
+		].createInstance(Ci.nsISimpleStreamListener);
+		
+		listener.init(pipe.outputStream, {
+			onStartRequest(request) {
+				// NOTE: This noop callback is required, do not remove.
+			},
+			onStopRequest(request, status) {
+				const responseStatus = 'responseStatus' in request ? request.responseStatus : null;
+				pipe.outputStream.close();
+
+				if (!Components.isSuccessCode(status)) {
+					Zotero.logError(status);
+					let msg = Zotero.getString('sync.error.checkConnection');
+					switch (status) {
+						case 2152398878:
+							// TODO: Localize
+							msg = "Server not found. Check your internet connection."
+							break;
+					}
+					deferred.reject(new Error(msg));
+					return;
+				}
+				if (responseStatus != 200) {
+					let msg = `Download failed with response code ${responseStatus}`;
+					Zotero.logError(msg);
+					deferred.reject(new Error(msg));
+					return;
+				}
 			}
-			deferred.resolve(is);
 		});
-		var is = yield deferred.promise;
-		yield Zotero.File.putContentsAsync(path, is);
-	});
-	
+
+		NetUtil.asyncCopy(pipe.inputStream, outputChannel, function(aResult) {
+			deferred.resolve();
+		});
+		inputChannel.asyncOpen(listener, null);
+
+		return deferred.promise;
+	};
 	
 	/**
 	 * Rename file within its parent directory
@@ -778,23 +818,25 @@ Zotero.File = new function(){
 	
 	
 	/**
-	 * Generate a data: URI from an nsIFile
+	 * Generate a data: URI from a file path
 	 *
-	 * From https://developer.mozilla.org/en-US/docs/data_URIs
+	 * @param {String} path
+	 * @param {String} contentType
 	 */
-	this.generateDataURI = function (file) {
-		var contentType = Components.classes["@mozilla.org/mime;1"]
-			.getService(Components.interfaces.nsIMIMEService)
-			.getTypeFromFile(file);
-		var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
-			.createInstance(Components.interfaces.nsIFileInputStream);
-		inputStream.init(file, 0x01, 0o600, 0);
-		var stream = Components.classes["@mozilla.org/binaryinputstream;1"]
-			.createInstance(Components.interfaces.nsIBinaryInputStream);
-		stream.setInputStream(inputStream);
-		var encoded = btoa(stream.readBytes(stream.available()));
-		return "data:" + contentType + ";base64," + encoded;
-	}
+	this.generateDataURI = async function (file, contentType) {
+		if (!contentType) {
+			throw new Error("contentType not provided");
+		}
+		
+		var buf = await OS.File.read(file, {});
+		var bytes = new Uint8Array(buf);
+		var binary = '';
+		var len = bytes.byteLength;
+		for (let i = 0; i < len; i++) {
+			binary += String.fromCharCode(bytes[i]);
+		}
+		return 'data:' + contentType + ';base64,' + btoa(binary);
+	};
 	
 	
 	this.setNormalFilePermissions = function (file) {
@@ -1008,14 +1050,17 @@ Zotero.File = new function(){
 	}
 	
 	
-	this.createDirectoryIfMissingAsync = async function (path) {
+	this.createDirectoryIfMissingAsync = async function (path, options = {}) {
 		try {
 			await OS.File.makeDir(
 				path,
-				{
-					ignoreExisting: false,
-					unixMode: 0o755
-				}
+				Object.assign(
+					{
+						ignoreExisting: false,
+						unixMode: 0o755
+					},
+					options
+				)
 			)
 		}
 		catch (e) {
@@ -1197,35 +1242,60 @@ Zotero.File = new function(){
 	}
 	
 	/**
-	 * Truncate a filename (excluding the extension) to the given total length
-	 * If the "extension" is longer than 20 characters,
-	 * it is treated as part of the file name
+	 * Truncate a filename (excluding the extension) to the given byte length
+	 *
+	 * If the extension is longer than 20 characters, it's treated as part of the file name.
+	 *
+	 * @param {String} fileName
+	 * @param {Number} maxLength - Maximum length in bytes
 	 */
 	function truncateFileName(fileName, maxLength) {
-		if(!fileName || (fileName + '').length <= maxLength) return fileName;
+		if (!fileName || Zotero.Utilities.Internal.byteLength((fileName + '')).length <= maxLength) {
+			return fileName;
+		}
 
-		var parts = (fileName + '').split(/\.(?=[^\.]+$)/);
-		var fn = parts[0];
+		var parts = (fileName + '').split(/\.(?=[^.]+$)/);
+		var name = parts[0];
 		var ext = parts[1];
 		//if the file starts with a period , use the whole file
 		//the whole file name might also just be a period
-		if(!fn) {
-			fn = '.' + (ext || '');
+		if (!name) {
+			name = '.' + (ext || '');
 		}
 
 		//treat long extensions as part of the file name
-		if(ext && ext.length > 20) {
-			fn += '.' + ext;
+		if (ext && ext.length > 20) {
+			name += '.' + ext;
 			ext = undefined;
 		}
-
-		if(ext === undefined) {	//there was no period in the whole file name
+		
+		// No period in the whole filename
+		if (ext === undefined) {
 			ext = '';
-		} else {
+		}
+		else {
 			ext = '.' + ext;
 		}
 
-		return fn.substr(0,maxLength-ext.length) + ext;
+		// Drop extension if it wouldn't fit within the limit
+		// E.g., for (lorem.json, 5), return "lorem" instead of ".json"
+		if (Zotero.Utilities.Internal.byteLength(ext) >= maxLength) {
+			ext = '';
+		}
+		
+		while (Zotero.Utilities.Internal.byteLength(name + ext) > maxLength) {
+			// Split into characters, so we don't corrupt emoji characters (though we might
+			// change multi-part emoji in unfortunate ways by removing some of the characters)
+			let parts = [...name];
+			name = name.substring(0, name.length - parts[parts.length - 1].length);
+		}
+		
+		// If removed completely, use underscore
+		if (name == '') {
+			name = '_';
+		}
+		
+		return name + ext;
 	}
 	
 	/*

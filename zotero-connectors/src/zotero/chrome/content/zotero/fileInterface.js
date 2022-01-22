@@ -23,8 +23,9 @@
     ***** END LICENSE BLOCK *****
 */
 
-Components.utils.import("resource://gre/modules/osfile.jsm")
-import FilePicker from 'zotero/filePicker';
+Components.utils.import("resource://gre/modules/osfile.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
+import FilePicker from 'zotero/modules/filePicker';
 
 /****Zotero_File_Exporter****
  **
@@ -48,9 +49,45 @@ var Zotero_File_Exporter = function() {
 Zotero_File_Exporter.prototype.save = async function () {
 	var translation = new Zotero.Translate.Export();
 	var translators = await translation.getTranslators();
+	translators.sort((a, b) => a.label.localeCompare(b.label));
+	
+	// If exporting items, check whether they're only notes to determine which translators to show
+	let exportingNotes = false;
+	if (this.items) {
+		exportingNotes = this.items.every(item => item.isNote() || item.isAttachment());
+		// Keep only note export and Zotero RDF translators, if all items are notes or attachments
+		if (exportingNotes) {
+			translators = translators.filter((translator) => {
+				return (
+					translator.translatorID === '14763d24-8ba0-45df-8f52-b8d1108e7ac9'
+					|| translator.configOptions && translator.configOptions.noteTranslator
+				);
+			});
+			
+			// Remove "Note" prefix from Note Markdown and Note HTML translators
+			let markdownTranslator = translators.find(
+				t => t.translatorID == Zotero.Translators.TRANSLATOR_ID_NOTE_MARKDOWN
+			);
+			if (markdownTranslator) {
+				markdownTranslator.label = 'Markdown';
+				// Move Note Markdown translator to the top
+				translators.unshift(...translators.splice(translators.indexOf(markdownTranslator), 1));
+			}
+			let htmlTranslator = translators.find(
+				t => t.translatorID == Zotero.Translators.TRANSLATOR_ID_NOTE_HTML
+			);
+			if (htmlTranslator) {
+				htmlTranslator.label = 'HTML';
+			}
+		}
+		// Otherwise exclude note export translators
+		else {
+			translators = translators.filter(t => !t.configOptions || !t.configOptions.noteTranslator);
+		}
+	}
 	
 	// present options dialog
-	var io = {translators:translators}
+	var io = { translators, exportingNotes };
 	window.openDialog("chrome://zotero/content/exportOptions.xul",
 		"_blank", "chrome,modal,centerscreen,resizable=no", io);
 	if(!io.selectedTranslator) {
@@ -88,33 +125,34 @@ Zotero_File_Exporter.prototype.save = async function () {
 		translation.setLibraryID(this.libraryID);
 	}
 	
+	async function _exportDone(obj, worked) {
+		// Close the items exported indicator
+		Zotero_File_Interface.Progress.close();
+		
+		if (!worked) {
+			Zotero.alert(
+				null,
+				Zotero.getString('general.error'),
+				Zotero.getString('fileInterface.exportError')
+			);
+			Zotero_File_Interface.Progress.close();
+			return;
+		}
+	}
+
 	translation.setLocation(Zotero.File.pathToFile(fp.file));
 	translation.setTranslator(io.selectedTranslator);
 	translation.setDisplayOptions(io.displayOptions);
 	translation.setHandler("itemDone", function () {
 		Zotero.updateZoteroPaneProgressMeter(translation.getProgress());
 	});
-	translation.setHandler("done", this._exportDone);
+	translation.setHandler("done", _exportDone);
 	Zotero_File_Interface.Progress.show(
 		Zotero.getString("fileInterface.itemsExported")
 	);
 	translation.translate()
 };
-	
-/*
- * Closes the items exported indicator
- */
-Zotero_File_Exporter.prototype._exportDone = function(obj, worked) {
-	Zotero_File_Interface.Progress.close();
-	
-	if(!worked) {
-		Zotero.alert(
-			null,
-			Zotero.getString('general.error'),
-			Zotero.getString("fileInterface.exportError")
-		);
-	}
-}
+
 
 /****Zotero_File_Interface****
  **
@@ -134,7 +172,7 @@ var Zotero_File_Interface = new function() {
 	 *
 	 * @return {Promise}
 	 */
-	this.exportFile = Zotero.Promise.method(function () {
+	this.exportFile = async function () {
 		var exporter = new Zotero_File_Exporter();
 		exporter.libraryID = ZoteroPane_Local.getSelectedLibraryID();
 		if (exporter.libraryID === false) {
@@ -142,7 +180,7 @@ var Zotero_File_Interface = new function() {
 		}
 		exporter.name = Zotero.Libraries.getName(exporter.libraryID);
 		return exporter.save();
-	});
+	};
 	
 	/*
 	 * exports a collection or saved search
@@ -174,36 +212,91 @@ var Zotero_File_Interface = new function() {
 	 */
 	function exportItems() {
 		var exporter = new Zotero_File_Exporter();
-		
-		exporter.items = ZoteroPane_Local.getSelectedItems();
+		let itemIDs = ZoteroPane_Local.getSelectedItems(true);
+		// Get selected item IDs in the item tree order
+		itemIDs = ZoteroPane_Local.getSortedItems(true).filter(id => itemIDs.includes(id));
+		exporter.items = Zotero.Items.get(itemIDs);
 		if(!exporter.items || !exporter.items.length) throw("no items currently selected");
 		
 		exporter.save();
 	}
 	
+	
 	/*
 	 * exports items to clipboard
 	 */
 	function exportItemsToClipboard(items, translatorID) {
-		var translation = new Zotero.Translate.Export();
-		translation.setItems(items);
-		translation.setTranslator(translatorID);
-		translation.setHandler("done", _copyToClipboard);
-		translation.translate();
-	}
-	
-	/*
-	 * handler when done exporting items to clipboard
-	 */
-	function _copyToClipboard(obj, worked) {
-		if(!worked) {
-			Zotero.alert(
-				null, Zotero.getString('general.error'), Zotero.getString("fileInterface.exportError")
-			);
-		} else {
-			Components.classes["@mozilla.org/widget/clipboardhelper;1"]
-                      .getService(Components.interfaces.nsIClipboardHelper)
-                      .copyString(obj.string.replace(/\r\n/g, "\n"));
+		function _translate(items, translatorID, callback) {
+			let translation = new Zotero.Translate.Export();
+			translation.setItems(items.slice());
+			translation.setTranslator(translatorID);
+			translation.setHandler("done", callback);
+			translation.translate();
+		}
+		
+		// If translating with virtual "Markdown + Rich Text" translator, use Note Markdown and
+		// Note HTML instead
+		if (translatorID == Zotero.Translators.TRANSLATOR_ID_MARKDOWN_AND_RICH_TEXT) {
+			translatorID = Zotero.Translators.TRANSLATOR_ID_NOTE_MARKDOWN;
+			_translate(items, translatorID, (obj, worked) => {
+				if (!worked) {
+					Zotero.log(Zotero.getString('fileInterface.exportError'), 'warning');
+					return;
+				}
+				translatorID = Zotero.Translators.TRANSLATOR_ID_NOTE_HTML;
+				_translate(items, translatorID, (obj2, worked) => {
+					if (!worked) {
+						Zotero.log(Zotero.getString('fileInterface.exportError'), 'warning');
+						return;
+					}
+					
+					let text = obj.string.replace(/\r\n/g, '\n');
+					let html = obj2.string.replace(/\r\n/g, '\n');
+
+					// copy to clipboard
+					let transferable = Components.classes['@mozilla.org/widget/transferable;1']
+						.createInstance(Components.interfaces.nsITransferable);
+					let clipboardService = Components.classes['@mozilla.org/widget/clipboard;1']
+						.getService(Components.interfaces.nsIClipboard);
+
+					// Add Text
+					let str = Components.classes['@mozilla.org/supports-string;1']
+						.createInstance(Components.interfaces.nsISupportsString);
+					str.data = text;
+					transferable.addDataFlavor('text/unicode');
+					transferable.setTransferData('text/unicode', str, text.length * 2);
+
+					// Add HTML
+					str = Components.classes['@mozilla.org/supports-string;1']
+						.createInstance(Components.interfaces.nsISupportsString);
+					str.data = html;
+					transferable.addDataFlavor('text/html');
+					transferable.setTransferData('text/html', str, html.length * 2);
+
+					clipboardService.setData(
+						transferable, null, Components.interfaces.nsIClipboard.kGlobalClipboard
+					);
+				});
+			});
+		}
+		else {
+			_translate(items, translatorID, (obj, worked) => {
+				if (!worked) {
+					Zotero.log(Zotero.getString('fileInterface.exportError'), 'warning');
+					return;
+				}
+				let text = obj.string;
+				// For Note HTML translator use body content only
+				if (translatorID == Zotero.Translators.TRANSLATOR_ID_NOTE_HTML) {
+					let parser = Components.classes['@mozilla.org/xmlextras/domparser;1']
+						.createInstance(Components.interfaces.nsIDOMParser);
+					let doc = parser.parseFromString(text, 'text/html');
+					text = doc.body.innerHTML;
+				}
+				Components.classes['@mozilla.org/widget/clipboardhelper;1']
+					.getService(Components.interfaces.nsIClipboardHelper)
+					.copyString(text.replace(/\r\n/g, '\n'));
+			});
 		}
 	}
 	
@@ -266,7 +359,7 @@ var Zotero_File_Interface = new function() {
 	};
 	
 	
-	this.showImportWizard = function () {
+	this.showImportWizard = function (extraArgs = {}) {
 		var libraryID = Zotero.Libraries.userLibraryID;
 		try {
 			let zp = Zotero.getActiveZoteroPane();
@@ -276,7 +369,8 @@ var Zotero_File_Interface = new function() {
 			Zotero.logError(e);
 		}
 		var args = {
-			libraryID
+			libraryID,
+			...extraArgs
 		};
 		args.wrappedJSObject = args;
 		
@@ -329,30 +423,39 @@ var Zotero_File_Interface = new function() {
 		var defaultNewCollectionPrefix = Zotero.getString("fileInterface.imported");
 		
 		var translation;
-		// Check if the file is an SQLite database
-		var sample = yield Zotero.File.getSample(file.path);
-		if (file.path == Zotero.DataDirectory.getDatabase()) {
-			// Blacklist the current Zotero database, which would cause a hang
-		}
-		else if (Zotero.MIME.sniffForMIMEType(sample) == 'application/x-sqlite3') {
-			// Mendeley import doesn't use the real translation architecture, but we create a
-			// translation object with the same interface
+		
+		if (options.mendeleyCode) {
 			translation = yield _getMendeleyTranslation();
 			translation.createNewCollection = createNewCollection;
-			defaultNewCollectionPrefix = Zotero.getString(
-				'fileInterface.appImportCollection', 'Mendeley'
-			);
+			translation.mendeleyCode = options.mendeleyCode;
 		}
-		else if (file.path.endsWith('@www.mendeley.com.sqlite')
-				|| file.path.endsWith('online.sqlite')) {
-			// Keep in sync with importWizard.js
-			throw new Error('Encrypted Mendeley database');
+		else {
+			// Check if the file is an SQLite database
+			var sample = yield Zotero.File.getSample(file.path);
+			if (file.path == Zotero.DataDirectory.getDatabase()) {
+				// Blacklist the current Zotero database, which would cause a hang
+			}
+			else if (Zotero.MIME.sniffForMIMEType(sample) == 'application/x-sqlite3') {
+				// Mendeley import doesn't use the real translation architecture, but we create a
+				// translation object with the same interface
+				translation = yield _getMendeleyTranslation();
+				translation.createNewCollection = createNewCollection;
+				defaultNewCollectionPrefix = Zotero.getString(
+					'fileInterface.appImportCollection', 'Mendeley'
+				);
+			}
+			else if (file.path.endsWith('@www.mendeley.com.sqlite')
+					|| file.path.endsWith('online.sqlite')) {
+				// Keep in sync with importWizard.js
+				throw new Error('Encrypted Mendeley database');
+			}
+			
+			if (!translation) {
+				translation = new Zotero.Translate.Import();
+			}
+			translation.setLocation(file);
 		}
-		
-		if (!translation) {
-			translation = new Zotero.Translate.Import();
-		}
-		translation.setLocation(file);
+
 		return _finishImport({
 			translation,
 			createNewCollection,
@@ -592,7 +695,7 @@ var Zotero_File_Interface = new function() {
 			eval(xmlhttp.response);
 		}
 		return new Zotero_Import_Mendeley();
-	}
+	};
 	
 	
 	/**
@@ -640,13 +743,15 @@ var Zotero_File_Interface = new function() {
 	 * @param {Boolean} [asCitations=false] - Copy citation cluster instead of bibliography
 	 */
 	this.copyItemsToClipboard = function (items, style, locale, asHTML, asCitations) {
+		var d = new Date();
+		
 		// copy to clipboard
 		var transferable = Components.classes["@mozilla.org/widget/transferable;1"].
 						   createInstance(Components.interfaces.nsITransferable);
 		var clipboardService = Components.classes["@mozilla.org/widget/clipboard;1"].
 							   getService(Components.interfaces.nsIClipboard);
 		style = Zotero.Styles.get(style);
-		var cslEngine = style.getCiteProc(locale);
+		var cslEngine = style.getCiteProc(locale, 'html');
 		
 		if (asCitations) {
 			cslEngine.updateItems(items.map(item => item.id));
@@ -675,11 +780,13 @@ var Zotero_File_Interface = new function() {
 			else {
 				// Generate engine again to work around citeproc-js problem:
 				// https://github.com/zotero/zotero/commit/4a475ff3
-				cslEngine = style.getCiteProc(locale);
-				output = Zotero.Cite.makeFormattedBibliographyOrCitationList(cslEngine, items, "text");
+				cslEngine.free();
+				cslEngine = style.getCiteProc(locale, 'text');
+				output = Zotero.Cite.makeFormattedBibliographyOrCitationList(cslEngine, items, 'text');
 			}
 		}
-		
+		cslEngine.free();
+
 		var str = Components.classes["@mozilla.org/supports-string;1"].
 				  createInstance(Components.interfaces.nsISupportsString);
 		str.data = output;
@@ -687,6 +794,8 @@ var Zotero_File_Interface = new function() {
 		transferable.setTransferData("text/unicode", str, output.length * 2);
 		
 		clipboardService.setData(transferable, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
+		
+		Zotero.debug(`Copied bibliography to clipboard in ${new Date() - d} ms}`);
 	}
 	
 	
@@ -694,15 +803,9 @@ var Zotero_File_Interface = new function() {
 	 * Shows bibliography options and creates a bibliography
 	 */
 	async function _doBibliographyOptions(name, items) {
-		// make sure at least one item is not a standalone note or attachment
-		var haveRegularItem = false;
-		for (let item of items) {
-			if (item.isRegularItem()) {
-				haveRegularItem = true;
-				break;
-			}
-		}
-		if (!haveRegularItem) {
+		// Limit to regular items
+		items = items.filter(item => item.isRegularItem());
+		if (!items.length) {
 			Zotero.alert(
 				null,
 				Zotero.getString('general.error'),
@@ -733,7 +836,7 @@ var Zotero_File_Interface = new function() {
 			}
 			else {
 				var style = Zotero.Styles.get(io.style);
-				var cslEngine = style.getCiteProc(locale);
+				var cslEngine = style.getCiteProc(locale, format);
 				var bibliography = Zotero.Cite.makeFormattedBibliographyOrCitationList(cslEngine,
 					items, format, io.mode === "citations");
 			}
@@ -849,7 +952,72 @@ var Zotero_File_Interface = new function() {
 			return false;
 		}
 	}
-}
+
+	this.authenticateMendeleyOnlinePoll = function (win) {
+		if (win && win[0] && win[0].location) {
+			const matchResult = win[0].location.toString().match(/mendeley_oauth_redirect.html(?:.*?)(?:\?|&)code=(.*?)(?:&|$)/i);
+			if (matchResult) {
+				const mendeleyCode = matchResult[1];
+				Zotero.getMainWindow().setTimeout(() => this.showImportWizard({ mendeleyCode }), 0);
+				
+				// Clear all cookies to remove access
+				//
+				// This includes unrelated cookies in the central cookie store, but that's fine for
+				// the moment, since we're not purposely using cookies for anything else.
+				//
+				// TODO: Switch to removeAllSince() once >Fx60
+				try {
+					Cc["@mozilla.org/cookiemanager;1"]
+						.getService(Ci.nsICookieManager)
+						.removeAll();
+				}
+				catch (e) {
+					Zotero.logError(e);
+				}
+				
+				win.close();
+				return;
+			}
+		}
+
+		if (win && !win.closed) {
+			Zotero.getMainWindow().setTimeout(this.authenticateMendeleyOnlinePoll.bind(this, win), 200);
+		}
+	};
+
+	this.authenticateMendeleyOnline = function () {
+		const uri = `https://api.mendeley.com/oauth/authorize?client_id=5907&redirect_uri=https%3A%2F%2Fzotero-static.s3.amazonaws.com%2Fmendeley_oauth_redirect.html&response_type=code&state=&scope=all`;
+		var win = Services.wm.getMostRecentWindow("zotero:basicViewer");
+		if (win) {
+			win.loadURI(uri);
+		}
+		else {
+			const ww = Services.ww;
+			const arg = Components.classes["@mozilla.org/supports-string;1"]
+				.createInstance(Components.interfaces.nsISupportsString);
+			arg.data = uri;
+			win = ww.openWindow(null, "chrome://zotero/content/standalone/basicViewer.xul",
+				"basicViewer", "chrome,dialog=yes,resizable,centerscreen,menubar,scrollbars", arg);
+		}
+
+		let browser;
+		let func = function () {
+			win.removeEventListener("load", func);
+			browser = win.document.documentElement.getElementsByTagName('browser')[0];
+			browser.addEventListener("pageshow", innerFunc);
+		};
+		let innerFunc = function () {
+			browser.removeEventListener("pageshow", innerFunc);
+			win.outerWidth = Math.max(640, Math.min(1000, win.screen.availHeight));
+			win.outerHeight = Math.max(480, Math.min(800, win.screen.availWidth));
+		};
+
+		win.addEventListener("load", func);
+
+		// polling executed by the main window because current (wizard) window will be closed
+		Zotero.getMainWindow().setTimeout(this.authenticateMendeleyOnlinePoll.bind(this, win), 200);
+	};
+};
 
 // Handles the display of a progress indicator
 Zotero_File_Interface.Progress = new function() {

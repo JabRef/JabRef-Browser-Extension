@@ -279,6 +279,27 @@ describe("Zotero.Attachments", function() {
 		});
 	});
 	
+	
+	describe("#importFromURL()", function () {
+		it("should download a PDF from a JS redirect page", async function () {
+			this.timeout(65e3);
+			
+			var item = await Zotero.Attachments.importFromURL({
+				libraryID: Zotero.Libraries.userLibraryID,
+				url: 'https://zotero-static.s3.amazonaws.com/test-pdf-redirect.html',
+				contentType: 'application/pdf'
+			});
+			
+			assert.isTrue(item.isPDFAttachment());
+			var sample = await Zotero.File.getContentsAsync(item.getFilePath(), null, 1000);
+			assert.equal(Zotero.MIME.sniffForMIMEType(sample), 'application/pdf');
+			
+			// Clean up
+			await Zotero.Items.erase(item.id);
+		});
+	});
+	
+	
 	describe("#linkFromDocument", function () {
 		it("should add a link attachment for the current webpage", function* () {
 			var item = yield createDataObject('item');
@@ -362,7 +383,7 @@ describe("Zotero.Attachments", function() {
 			let path = OS.Path.join(storageDir, 'index.html');
 			assert.isTrue(await OS.File.exists(path));
 			let contents = await Zotero.File.getContentsAsync(path);
-			assert.isTrue(contents.startsWith("<html><!--\n Page saved with SingleFile"));
+			assert.include(contents, "><!--\n Page saved with SingleFile");
 			
 			// Check attachment base64 contents
 			let expectedPath = getTestDataDirectory();
@@ -408,7 +429,7 @@ describe("Zotero.Attachments", function() {
 			let path = OS.Path.join(storageDir, 'index.html');
 			assert.isTrue(await OS.File.exists(path));
 			let contents = await Zotero.File.getContentsAsync(path);
-			assert.include(contents, "<html><!--\n Page saved with SingleFile");
+			assert.include(contents, "><!--\n Page saved with SingleFile");
 
 			// Check attachment base64 contents
 			let expectedPath = getTestDataDirectory();
@@ -460,7 +481,7 @@ describe("Zotero.Attachments", function() {
 			let path = OS.Path.join(storageDir, 'index.html');
 			assert.isTrue(await OS.File.exists(path));
 			let contents = await Zotero.File.getContentsAsync(path);
-			assert.include(contents, "<html><!--\n Page saved with SingleFile");
+			assert.include(contents, "><!--\n Page saved with SingleFile");
 		});
 
 		it("should save a document but not save the iframe", async function () {
@@ -1020,7 +1041,7 @@ describe("Zotero.Attachments", function() {
 			assert.equal(requestStub.getCall(5).args[1], pageURL4);
 			
 			// 'website' requests should be a second apart
-			assert.isAbove(requestStubCallTimes[5] - requestStubCallTimes[1], 999);
+			assert.isAbove(requestStubCallTimes[5] - requestStubCallTimes[1], 995);
 			
 			assert.equal(item1.numAttachments(), 1);
 			assert.equal(item2.numAttachments(), 0);
@@ -1327,7 +1348,7 @@ describe("Zotero.Attachments", function() {
 			assert.equal(newAttachment.attachmentContentType, 'application/pdf');
 			assert.isTrue(await newAttachment.fileExists());
 			assert.equal(newAttachment.getField('title'), 'Title');
-			assert.equal(newAttachment.getNote(), 'Note');
+			assert.equal(newAttachment.note, 'Note');
 			assert.sameDeepMembers(newAttachment.getTags(), [{ tag: 'Tag' }]);
 			assert.sameMembers(newAttachment.relatedItems, [relatedItem.key]);
 			assert.sameMembers(relatedItem.relatedItems, [newAttachment.key]);
@@ -1336,6 +1357,30 @@ describe("Zotero.Attachments", function() {
 				await Zotero.Fulltext.getIndexedState(newAttachment),
 				Zotero.Fulltext.INDEX_STATE_INDEXED
 			);
+		});
+		
+		
+		it("should move annotations to stored file", async function () {
+			var item = await createDataObject('item');
+			var relatedItem = await createDataObject('item');
+			
+			var originalFile = OS.Path.join(getTestDataDirectory().path, 'test.pdf');
+			var attachment = await Zotero.Attachments.linkFromFile({
+				file: originalFile,
+				title: 'Title',
+				parentItemID: item.id
+			});
+			var annotation1 = await createAnnotation('highlight', attachment);
+			var annotation2 = await createAnnotation('note', attachment);
+			
+			var newAttachment = await Zotero.Attachments.convertLinkedFileToStoredFile(attachment);
+			
+			assert.isFalse(Zotero.Items.exists(attachment.id));
+			assert.isTrue(Zotero.Items.exists(annotation1.id));
+			assert.isTrue(Zotero.Items.exists(annotation2.id));
+			
+			var annotations = newAttachment.getAnnotations();
+			assert.lengthOf(annotations, 2);
 		});
 		
 		

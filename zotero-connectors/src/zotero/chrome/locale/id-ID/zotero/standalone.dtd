@@ -36,12 +36,16 @@
 
 <!ENTITY copyCitationCmd.label "Kopi Sitasi">
 <!ENTITY copyBibliographyCmd.label "Kopi Bibliografi">
+<!ENTITY copyNoteCmd.label "Copy Note">
 
 <!ENTITY bidiSwitchPageDirectionItem.label "Ubah Arah Halaman">
 <!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
 <!ENTITY bidiSwitchTextDirectionItem.label "Ubah Arah Teks">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
 <!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+
+<!ENTITY goMenu.label "Go">
 
 
 <!ENTITY viewMenu.label "View">

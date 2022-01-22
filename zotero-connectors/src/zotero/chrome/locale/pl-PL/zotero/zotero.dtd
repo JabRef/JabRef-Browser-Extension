@@ -6,6 +6,7 @@
 <!ENTITY zotero.general.deselectAll "Odznacz wszystkie">
 <!ENTITY zotero.general.edit "Edytuj">
 <!ENTITY zotero.general.delete "Usuń">
+<!ENTITY zotero.general.moveToTrash "Przenieś do Kosza">
 <!ENTITY zotero.general.ok "OK">
 <!ENTITY zotero.general.cancel "Anuluj">
 <!ENTITY zotero.general.refresh "Odśwież">
@@ -99,7 +100,6 @@
 <!ENTITY zotero.items.menu.duplicateItem "Duplikuj element">
 <!ENTITY zotero.items.menu.mergeItems "Złącz elementy...">
 <!ENTITY zotero.items.menu.unrecognize "Cofnij pobieranie metadanych">
-<!ENTITY zotero.items.menu.reportMetadata "Zgłoś niepoprawne metadane">
 
 <!ENTITY zotero.duplicatesMerge.versionSelect "Wybierz wersję elementu, którą chcesz użyć jako element główny:">
 <!ENTITY zotero.duplicatesMerge.fieldSelect "Wybierz pola, które chcesz zachować z innych wersji elementu:">
@@ -155,6 +155,8 @@
 <!ENTITY zotero.toolbar.attachment.add "Zapisz kopię pliku...">
 <!ENTITY zotero.toolbar.attachment.weblink "Zapisz odnośnik do aktywnej strony">
 <!ENTITY zotero.toolbar.attachment.snapshot "Zrób zrzut ekranu aktywnej strony">
+<!ENTITY zotero.toolbar.context.item "Element">
+<!ENTITY zotero.toolbar.context.notes "Notatki">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "Brak etykiet do wyświetlenia">
 <!ENTITY zotero.tagSelector.loadingTags "Wczytywanie etykiet...">
@@ -172,7 +174,7 @@
 <!ENTITY zotero.tagColorChooser.setColor "Ustaw kolor">
 <!ENTITY zotero.tagColorChooser.removeColor "Usuń kolor">
 
-<!ENTITY zotero.lookup.description "Podaj numery lub identyfikatory ISBN, DOI, PMID lub arXiv, aby dodać je do twojej biblioteki:">
+<!ENTITY zotero.lookup.description "Wprowadź numery ISBN, DOI, PMID, identyfikatory arXiv lub ADS Bibcode, aby dodać je do twojej biblioteki:">
 <!ENTITY zotero.lookup.button.search "Wyszukiwanie">
 
 <!ENTITY zotero.createParent.title "Utwórz element nadrzędny">
@@ -325,3 +327,29 @@
 <!ENTITY zotero.attachLink.title "Dołącz odnośnik do URI">
 <!ENTITY zotero.attachLink.label.link "Odnośnik:">
 <!ENTITY zotero.attachLink.label.title "Tytuł:">
+
+<!ENTITY zotero.context.addChildNote "Add Item Note">
+<!ENTITY zotero.context.addChildNoteFromAnnotations "Add Item Note from Annotations">
+<!ENTITY zotero.context.addStandaloneNote "Dodaj osobną notatkę">
+<!ENTITY zotero.context.addStandaloneNoteFromAnnotations "Dodaj osobną notatkę z adnotacji">
+<!ENTITY zotero.context.editInWindow "Edytuj w oddzielnym oknie">
+
+<!ENTITY zotero.pdfReader.firstPage "Pierwsza strona">
+<!ENTITY zotero.pdfReader.lastPage "Ostatnia strona">
+<!ENTITY zotero.pdfReader.back "Wstecz">
+<!ENTITY zotero.pdfReader.forward "Naprzód">
+<!ENTITY zotero.pdfReader.rotateClockwise "Obróć zgodnie z ruchem wskazówek zegara">
+<!ENTITY zotero.pdfReader.rotateCounterclockwise "Obróć przeciwnie do ruchu wskazówek zegara">
+<!ENTITY zotero.pdfReader.handTool "Narzędzie rączka">
+<!ENTITY zotero.pdfReader.verticalScrolling "Przewijanie pionowe">
+<!ENTITY zotero.pdfReader.horizontalScrolling "Przewijanie poziome">
+<!ENTITY zotero.pdfReader.wrappedScrolling "Przewijanie zawinięte">
+<!ENTITY zotero.pdfReader.noSpreads "No Spreads">
+<!ENTITY zotero.pdfReader.oddSpreads "Odd Spreads">
+<!ENTITY zotero.pdfReader.evenSpreads "Even Spreads">
+<!ENTITY zotero.pdfReader.zoomIn "Powiększ">
+<!ENTITY zotero.pdfReader.zoomOut "Zmniejsz">
+<!ENTITY zotero.pdfReader.zoomAuto "Automatycznie zmień rozmiar">
+<!ENTITY zotero.pdfReader.zoomPageWidth "Powiększ do szerokości strony">
+<!ENTITY zotero.pdfReader.transferFromPDF "Importuj adnotacje...">
+<!ENTITY zotero.pdfReader.transferToPDF "Zachowaj adnotacje w pliku...">
