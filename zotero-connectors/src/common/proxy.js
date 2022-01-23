@@ -829,10 +829,11 @@ Zotero.Proxy.prototype.toProper = function(m) {
  */
 Zotero.Proxy.prototype.toProxy = function(uri) {
 	if (typeof uri == "string") {
-		uri = url.parse(uri);
+		// CHANGED: Use URL instead of undefined url
+		uri = new URL(uri);
 		// If there's no path it is set to null, but we need
 		// at least an empty string to avoid doing many checks
-		uri.path = uri.path || '';
+		uri.path = (uri.pathname + uri.search) || '';
 	}
 	if (this.regexp.exec(uri.href) || Zotero.Proxies._isBlacklisted(uri.host)) {
 		return uri.href;
