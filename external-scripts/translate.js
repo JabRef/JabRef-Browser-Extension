@@ -1799,7 +1799,7 @@ Zotero.Translate.Base.prototype = {
 				"(" + translator.translatorID + ", " + translator.lastUpdated + ")", 4);
 			try {
 				// CHANGED: Exports do not have a detectExport function, so don't try to export this
-				if (this._entryFunctionSuffix == "Web") {
+				if (this._entryFunctionSuffix !== "Export") {
 					// CHANGED: Make parsing of translator wait for injected code
 					await this._sandboxManager.eval(
 						"var exports = {}, ZOTERO_TRANSLATOR_INFO = " + code,
