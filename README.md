@@ -72,9 +72,10 @@ To update dependencies:
 ## Release of new version
 - Increase version number in `manifest.json`
 - `npm run build`
-- Upload to
-  - https://addons.mozilla.org/en-US/developers/addon/jabref/edit
-  - https://chrome.google.com/u/1/webstore/devconsole
-  - https://partner.microsoft.com/en-us/dashboard/microsoftedge
+- Upload to:
+  - https://addons.mozilla.org/en-US/developers/addon/jabref/versions/submit/
+  - https://chrome.google.com/u/2/webstore/devconsole/26c4c347-9aa1-48d8-8a22-1c79fd3a597e/bifehkofibaamoeaopjglfkddgkijdlh/edit/package
   - https://addons.opera.com/developer/upload/
   - https://developer.apple.com/app-store-connect/
+- Remove the `key` field in `manifest.json` and build again. Then upload to:
+  - https://partner.microsoft.com/en-us/dashboard/microsoftedge/2045cdc1-808f-43c4-8091-43e2dcaff53d/packages
