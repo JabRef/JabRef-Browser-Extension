@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div
+      class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+    >
+      <div class="w-full space-y-8 -mt-20">
+        <div>
+          <div class="text-center">
+            <h1 class="text-5xl font-light pt-3">Error connecting to JabRef</h1>
+          </div>
+        </div>
+        <div
+          class="shadow-xl sm:rounded-md sm:overflow-hidden container mx-auto flex sm:flex-nowrap flex-wrap max-w-6xl bg-white"
+        >
+          <div
+            class="w-5/12 overflow-hidden hidden md:flex px-5 pt-4 pb-14 items-center justify-start relative bg-primary-50"
+          >
+            <img class="w-11/12 mx-auto" src="undraw_server_down_s4lk.svg" />
+            <div
+              class="flex text-lg items-center md:justify-start justify-center absolute bottom-5"
+            ></div>
+          </div>
+          <div
+            class="w-full md:w-6/12 md:mx-auto md:py-8 mt-8 md:mt-0 px-5 py-4"
+          >
+            <div class="px-4 py-5 space-y-6 sm:p-6">
+              <h2 id="message" class="text-3xl font-light font-light pt-3"></h2>
+              <h3
+                id="details"
+                class="text-xl font-light text-gray-800 pt-3"
+              ></h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="error.js"></script>
+</html>

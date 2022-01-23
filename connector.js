@@ -115,6 +115,16 @@ Zotero.Connector = new function() {
 		});
 		console.log("JabRef: Send BibTeX to JabRef: %o", bibtex);
 
+		handleError = function(message, details, stacktrace) {
+			// Open error page
+			browser.tabs.create({
+				url: "/data/error.html?message=" 
+				+ encodeURIComponent(message) 
+				+ "&details=" + encodeURIComponent(details ?? "") 
+				+ "&stacktrace=" + encodeURIComponent(stacktrace ?? "")
+			})
+		}
+
 		browser.runtime.sendNativeMessage("org.jabref.jabref", {
 				"text": bibtex
 			})
@@ -124,18 +134,17 @@ Zotero.Connector = new function() {
 					browser.runtime.sendMessage({
 						"popupClose": "close"
 					});
+				} else if(response.message === 'error') {
+					console.error(`JabRef: Error connecting to JabRef: '${response.output}' at '${response.stacktrace}'`);
+					handleError(response.output, '', response.stacktrace)
 				} else {
-					console.error("JabRef: Error connecting to JabRef: %o with details %o", response.message, response.output);
-					browser.runtime.sendMessage({
-						"errorWhileSendingToJabRef": error.output
-					});
+					console.error(`JabRef: Error connecting to JabRef: '${response.message}' with details '${response.output}' at '${response.stacktrace}'`);
+					handleError(response.message, response.output, response.stacktrace)
 				}
 			})
 			.catch(error => {
-				console.error("JabRef: Error connecting to JabRef: %o", error);
-				browser.runtime.sendMessage({
-					"errorWhileSendingToJabRef": error.message
-				});
+				console.error(`JabRef: Error connecting to JabRef: ${error}`);
+				handleError(error.message, '', error.stack)
 			});
 	}
 };
