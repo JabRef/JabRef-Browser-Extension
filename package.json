@@ -18,7 +18,7 @@
 		"browserify": "^17.0.0",
 		"chai": "^4.3.6",
 		"chalk": "^5.0.0",
-		"chromedriver": "^97.0.4",
+		"chromedriver": "^98.0.0",
 		"geckodriver": "^3.0.1",
 		"gulp": "^4.0.2",
 		"gulp-jsbeautify": "^0.1.1",
