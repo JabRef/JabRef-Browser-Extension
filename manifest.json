@@ -93,7 +93,6 @@
 		"<all_urls>",
 		"activeTab",
 		"tabs",
-		"webNavigation",
 		"storage",
 		"nativeMessaging"
 	],
