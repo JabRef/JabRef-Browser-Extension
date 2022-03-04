@@ -55,7 +55,7 @@ Zotero.GoogleDocs = {
 		if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
 		await Zotero.Inject.loadReactComponents();
 		if (Zotero.isBrowserExt) {
-			await Zotero.GoogleDocsPluginManager.injectUI();
+			await Zotero.Connector_Browser.injectScripts(['zotero-google-docs-integration/ui.js']);
 		}
 		Zotero.GoogleDocs.UI.init();
 		window.addEventListener(`${Zotero.GoogleDocs.name}.call`, async function(e) {
