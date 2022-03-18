@@ -856,7 +856,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 		this.linkbubble = await this.waitForLinkbubble();
 		this.lastTop = "";
 		let style = this.linkbubble.style;
-		const url = Zotero.Utilities.trim(this.linkbubble.children[0].innerText);
+		const url = Zotero.Utilities.trim(this.linkbubble.querySelector('a').href);
 		const open = style.display != 'none';
 
 		Zotero.GoogleDocs.UI.inLink = open;
@@ -872,7 +872,7 @@ Zotero.GoogleDocs.UI.LinkbubbleOverride = class extends React.Component {
 				if (mutation.attributeName != 'style') continue;
 
 				let style = this.linkbubble.style;
-				const url = Zotero.Utilities.trim(this.linkbubble.children[0].innerText);
+				const url = Zotero.Utilities.trim(this.linkbubble.querySelector('a').href);
 				const open = style.display != 'none';
 
 				Zotero.GoogleDocs.UI.inLink = open;
