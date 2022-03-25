@@ -33,7 +33,7 @@
 		"through2": "^4.0.2",
 		"web-ext": "^6.7.0",
 		"webextension-polyfill": "^0.8.0",
-		"yargs": "^17.3.1",
+		"yargs": "^17.4.0",
 		"jsdom": "^19.0.0",
 		"canvas": "^2.9.0",
 		"bufferutil": "^4.0.6",
