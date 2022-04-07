@@ -22,7 +22,7 @@ Just visit a publisher site or some other website containing bibliographic infor
 Once the JabRef browser extension has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
 
 You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef.
-For this, activate "Remote operation" under the Advanced tab in the JabRef Preferences.
+For this, activate "Remote operation" under the Network tab in the JabRef Preferences.
 
 
 ## About this Add-On
