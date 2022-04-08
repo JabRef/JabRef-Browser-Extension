@@ -131,6 +131,21 @@ async function evalInTab(tabsId, code) {
     }
 }
 
+
+saveAsWebpage = function (tab) {
+    var title = tab.title
+    var url = tab.url
+    var date = new Date().toISODate()
+
+    // Construct a manual Bibtex Entry for the webpage
+    var bibtexString = `@misc{,\
+		title={${title}},\
+		url = {${url}},\
+		urlDate={${date}},\
+		}`
+    Zotero.Connector.sendBibTexToJabRef(bibtexString)
+}
+
 savePdf = function (tab) {
     var title = tab.title.replace('.pdf', '')
     var url = tab.url
@@ -142,14 +157,14 @@ savePdf = function (tab) {
 		title={${title}},\
 		file={:${urlEscaped}:PDF},\
 		url = {${url}},\
-		accessDate={${date}},\
+		urlDate={${date}},\
 		}`
     Zotero.Connector.sendBibTexToJabRef(bibtexString)
 }
 
 /*
-	Is called after Zotero injected all scripts and checked if the potential translators can find something on the page.
-	We need to hide or show the page action accordingly.
+    Is called after Zotero injected all scripts and checked if the potential translators can find something on the page.
+    We need to hide or show the page action accordingly.
 */
 onTranslators = function (translators, tabId, contentType) {
     if (translators.length === 0) {
@@ -157,13 +172,21 @@ onTranslators = function (translators, tabId, contentType) {
             'JabRef: Found no suitable translators for tab %o',
             JSON.parse(JSON.stringify(tabId))
         )
-        browser.pageAction.hide(tabId)
+        tabInfo.set(tabId, { ...tabInfo.get(tabId), hasTranslator: false })
+
+        browser.pageAction.show(tabId)
+        browser.pageAction.setTitle({
+            tabId: tabId,
+            title:
+                'Import simple website reference into JabRef',
+        })
     } else {
         console.log(
             'JabRef: Found translators %o for tab %o',
             translators,
             JSON.parse(JSON.stringify(tabId))
         )
+        tabInfo.set(tabId, { ...tabInfo.get(tabId), hasTranslator: true })
 
         browser.pageAction.show(tabId)
         browser.pageAction.setTitle({
@@ -194,6 +217,12 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                         JSON.parse(JSON.stringify(tab))
                     )
                     savePdf(tab)
+                } else if (info.hasTranslator === false) {
+                    console.log(
+                        'JabRef: No translation, simple saving %o',
+                        JSON.parse(JSON.stringify(tab))
+                    )
+                    saveAsWebpage(tab);
                 } else {
                     console.log(
                         'JabRef: Start translation for tab %o',
