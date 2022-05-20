@@ -23,114 +23,14 @@
 	***** END LICENSE BLOCK *****
 */
 (function() {
-	
-var isTopWindow = false;
-if(window.top) {
-	try {
-		isTopWindow = window.top == window;
-	} catch(e) {};
-}	
-if (!isTopWindow) return;
-
-Zotero.GoogleDocs = {
-	config: {
-		noteInsertionPlaceholderURL: 'https://www.zotero.org/?',
-		fieldURL: 'https://www.zotero.org/google-docs/?',
-		brokenFieldURL: 'https://www.zotero.org/google-docs/?broken=',
-		fieldKeyLength: 6,
-		citationPlaceholder: "{Updating}",
-		fieldPrefix: "Z_F",
-		dataPrefix: "Z_D",
-	},
-	clients: {},
-
-	hasZoteroCitations: false,
-	downloadInterceptBlocked: false,
-	downloadIntercepted: false,
-
-	name: "Zotero Google Docs Plugin",
-	updateBatchSize: 32,
-	
-	init: async function() {
-		if (!await Zotero.Prefs.getAsync('integration.googleDocs.enabled')) return;
-		await Zotero.Inject.loadReactComponents();
-		if (Zotero.isBrowserExt) {
-			await Zotero.Connector_Browser.injectScripts(['zotero-google-docs-integration/ui.js']);
-		}
-		Zotero.GoogleDocs.UI.init();
-		window.addEventListener(`${Zotero.GoogleDocs.name}.call`, async function(e) {
-			var client = Zotero.GoogleDocs.clients[e.data.client.id];
-			if (!client) {
-				client = new Zotero.GoogleDocs.Client();
-				await client.init();
-			}
-			client.call.apply(client, e.data.args);
-		});
-	},
-	
-	execCommand: async (command, client, showOrphanedCitationAlert=true) => {
-		if (Zotero.GoogleDocs.UI.isDocx) {
-			return Zotero.GoogleDocs.UI.displayDocxAlert();
-		}
-		if (!client) {
-			client = new Zotero.GoogleDocs.Client();
-			await client.init();
-		}
-
-		if (command == 'addEditCitation') {
-			// Check if we're in a broken field and cancel operation if user
-			// wants clicks More Info
-			try {
-				await client.cursorInField(showOrphanedCitationAlert);
-			} catch (e) {
-				if (e.message != "Handled Error") {
-					Zotero.logError(e);
-				}
-				return;
-			}
-		}
-
-		window.dispatchEvent(new MessageEvent('Zotero.Integration.execCommand', {
-			data: {client: {documentID: client.documentID, name: Zotero.GoogleDocs.name, id: client.id}, command}
-		}));
-		this.lastClient = client;
-	},
-	
-	respond: function(client, response) {
-		window.dispatchEvent(new MessageEvent('Zotero.Integration.respond', {
-			data: {client: {documentID: client.documentID, name: Zotero.GoogleDocs.name, id: client.id}, response}
-		}));
-	},
-	
-	editField: async function() {
-		// Use the last client with a cached field list to speed up the cursorInField() lookup
-		var client = this.lastClient || new Zotero.GoogleDocs.Client();
-		await client.init();
-		try {
-			var field = await client.cursorInField(true);
-		} catch (e) {
-			if (e.message == "Handled Error") {
-				Zotero.debug('Handled Error in editField()');
-				return;
-			}
-			Zotero.debug(`Exception in editField()`);
-			Zotero.logError(e);
-			return client.displayAlert(e.message, 0, 0);
-		}
-		// Remove lastClient fields to ensure execCommand calls receive fresh fields
-		this.lastClient && delete this.lastClient.fields;
-		if (field && field.code.indexOf("BIBL") == 0) {
-			return Zotero.GoogleDocs.execCommand("addEditBibliography", client);
-		} else {
-			return Zotero.GoogleDocs.execCommand("addEditCitation", client, false);
-		}
-	},
-};
 
 Zotero.GoogleDocs.Client = function() {
-	this.documentID = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
+	this.documentId = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
 	this.id = Zotero.Utilities.randomString();
-	this.fields = null;
+	
+	this._fields = null;
+	this._doc = null;
+	
 	Zotero.GoogleDocs.clients[this.id] = this;
 };
 Zotero.GoogleDocs.Client.prototype = {
@@ -143,7 +43,6 @@ Zotero.GoogleDocs.Client.prototype = {
 		this.orphanedCitationAlertShown = false;
 		this.insertingNote = false;
 		this.insertNoteIndex = 1;
-		this.insertIdx = null;
 		this.queued = {
 			fields: {},
 			insert: [],
@@ -151,6 +50,7 @@ Zotero.GoogleDocs.Client.prototype = {
 			documentData: null,
 			bibliographyStyle: null
 		};
+		this._documentExport = false;
 	},
 	
 	call: async function(request) {
@@ -189,7 +89,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	getActiveDocument: async function() {
 		Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
 		return {
-			documentID: this.documentID,
+			documentId: this.documentId,
 			outputFormat: 'html',
 			supportedNotes: ['footnotes'],
 			supportsImportExport: true,
@@ -197,9 +97,21 @@ Zotero.GoogleDocs.Client.prototype = {
 			processorName: "Google Docs"
 		}
 	},
+
+	getGoogleDocument: async function() {
+		if (this._doc) return this._doc;
+		Zotero.debug('Google Docs [getGoogleDocument()]: Retrieving document from API');
+		this._doc = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentId));
+		return this._doc;
+	},
+	
+	resetGoogleDocument: function() {
+		this._doc = this._fields = null;
+	},
 	
 	getDocumentData: async function() {
-		return Zotero.GoogleDocs_API.run(this.documentID, 'getDocumentData', Array.from(arguments));
+		const doc = await this.getGoogleDocument();
+		return doc.getDocumentData();
 	},
 
 	/**
@@ -209,57 +121,15 @@ Zotero.GoogleDocs.Client.prototype = {
 	 * @returns {Promise}
 	 */
 	setDocumentData: async function(data) {
-		this.queued.documentData = data;
-		
-		// Sorting keys in reverse field order
-		var keys = Object.keys(this.queued.fields); 
-		// Settings this.fields to the current fields since after the below calls to
-		// google docs the fields in the doc will correspond to this.getFields() result
-		// which includes fields to be inserted
-		// this.fields might later be used in editField() above
-		var fields = this.fields = await this.getFields();
-		var fieldIDs = fields.map(f => f.id);
-		keys.sort((a, b) => fieldIDs.indexOf(b) - fieldIDs.indexOf(a));
-		
-		let batchSize = Zotero.GoogleDocs.updateBatchSize;
-		let count = 0;
-		while (count < keys.length || this.queued.documentData) {
-			Zotero.debug(`GDocs: Updating doc. Batch ${batchSize}, numItems: ${keys.length - count}`);
-			let batch = keys.slice(count, count+batchSize);
-			try {
-				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
-					Object.assign({}, this.queued, {
-						fields: batch.map(key => this.queued.fields[key]),
-						deletePlaceholder: count+batch < keys.length ? null : this.queued.deletePlaceholder
-					})
-				]);
-			} catch(e) {
-				if (e.status == 429 || e.message.startsWith('Too many changes applied before saving document.')) {
-					// Apps script execution timed out
-					if (batchSize == 1) {
-						throw new Error(
-							`Document update for batch size 1 failed with error ${e.message}. Not going to retry`);
-					}
-					// Cut the batch size for the session in half
-					batchSize = Zotero.GoogleDocs.updateBatchSize = batchSize/2;
-					Zotero.debug(`GDocs: HTTP 429/"Too many changes" from Google Docs. Reducing batch size to ${batchSize}`);
-					Zotero.logError(e);
-					if (!e.status) {
-						// The document will be locked if it was a Too many changes error, so unlock first
-						await Zotero.GoogleDocs_API.run(this.documentID, "unlockTheDoc", []);
-					}
-					continue;
-				}
-				throw e;
-			}
-			this.queued.insert = null;
-			this.queued.documentData = null;
-			this.queued.bibliographyStyle = null;
-			count += batchSize;
+		const doc = await this.getGoogleDocument();
+		let currentData = doc.getDocumentData();
+		if (currentData != data) {
+			doc.setDocumentData(data);
 		}
-		if (!this.insertingNote) {
-			await Zotero.GoogleDocs.UI.moveCursorToEndOfCitation();
-		}
+		doc.commitFields();
+		this._documentExport = false;
+		this._doc = this._fields = null;
+		await doc.commitBatchedUpdates();
 	},
 	
 	activate: async function(force) {
@@ -269,6 +139,9 @@ Zotero.GoogleDocs.Client.prototype = {
 	cleanup: async function() {},
 	
 	complete: async function() {
+		if (!this.insertingNote) {
+			await Zotero.GoogleDocs.UI.moveCursorToEndOfCitation();
+		}
 		delete Zotero.GoogleDocs.clients[this.id];
 		Zotero.GoogleDocs.UI.toggleUpdatingScreen(false);
 	},
@@ -283,48 +156,38 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	getFields: async function() {
-		if (this.fields) {
-			let fields = this.fields;
-			if (typeof this.insertIdx == 'number' && this.queued.insert.length) {
-				let prevField = this.fields[this.insertIdx-1];
-				let nextField = this.fields[this.insertIdx];
-				let noteIndex = 1;
-				if (prevField) {
-					noteIndex = prevField.noteIndex == 0 ? 0 : prevField.noteIndex+1;
-				} else if (nextField) {
-					noteIndex = nextField.noteIndex == 0 ? 0 : nextField.noteIndex-1;
-				}
-				this.insertNoteIndex = noteIndex;
-				let insert = [Object.assign(this.queued.insert[0], {noteIndex})].concat(this.queued.insert.slice(1));
-				fields = fields.slice(0, this.insertIdx).concat(insert,
-					fields.slice(this.insertIdx));
-			}
-			return fields;
-		}
+		if (this._fields) return this._fields;
+		const doc = await this.getGoogleDocument();
+		
+		let fields;
+		fields = doc.getFields(Zotero.GoogleDocs.config.fieldPrefix, !this._documentExport);
+		Zotero.GoogleDocs.UI.orphanedCitations.setCitations(doc.orphanedCitations);
 
-		let response = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', [this.queued.conversion]);
-		this.fields = response.fields;
-		this.orphanedCitations = response.orphanedCitations;
-		Zotero.GoogleDocs.UI.orphanedCitations.setCitations(this.orphanedCitations);
-		let i = 0;
-		for (let field of this.fields) {
-			if (field == -1) {
-				this.insertIdx = i;
-				break;
-			}
-			i++;
-		}
-		if (typeof this.insertIdx == 'number') {
-			this.fields.splice(this.insertIdx, 1);
-		}
-		return this.getFields();
+		this._fieldsByFieldId = {};
+		fields.forEach(field => this._fieldsByFieldId[field.id] = field);
+		fields = fields.map(field => field.serialize());
+		return fields;
+	},
+
+	async getField(fieldID) {
+		await this.getFields();
+		return this._fieldsByFieldId[fieldID];
 	},
 
 	setBibliographyStyle: async function(firstLineIndent, bodyIndent, lineSpacing, entrySpacing,
 						   tabStops, tabStopsCount) {
-		this.queued.bibliographyStyle = {firstLineIndent, bodyIndent, lineSpacing, entrySpacing,
-			tabStops};
+		const doc = await this.getGoogleDocument();
+		doc.setBibliographyStyle(JSON.stringify({firstLineIndent, bodyIndent, lineSpacing, entrySpacing,
+			tabStops}));
 	},
+
+	insertText: async function(text) {
+		this.insertingNote = true;
+		await Zotero.GoogleDocs.UI.writeText(text);
+		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
+		// Need to refetch google doc after insertion
+		this.resetGoogleDocument();
+	},	
 	
 	insertField: async function(fieldType, noteType) {
 		var id = Zotero.Utilities.randomString(Zotero.GoogleDocs.config.fieldKeyLength);
@@ -336,14 +199,10 @@ Zotero.GoogleDocs.Client.prototype = {
 		};
 		
 		this.queued.insert.push(field);
-		await this._insertField(field, false);
+		await this._insertField(field);
+		// Need to refetch google doc after insertion
+		this.resetGoogleDocument();
 		return field;
-	},
-
-	insertText: async function(text) {
-		this.insertingNote = true;
-		await Zotero.GoogleDocs.UI.writeText(text);
-		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 	},
 
 	/**
@@ -367,133 +226,10 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 
 	convertPlaceholdersToFields: async function(placeholderIDs, noteType) {
-		let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID));
-		let links = document.getLinks();
-
-		let placeholders = [];
-		for (let link of links) {
-			if (link.url.startsWith(Zotero.GoogleDocs.config.fieldURL) ||
-				!link.url.startsWith(Zotero.GoogleDocs.config.noteInsertionPlaceholderURL)) continue;
-			let id = link.url.substr(Zotero.GoogleDocs.config.noteInsertionPlaceholderURL.length);
-			let index = placeholderIDs.indexOf(id);
-			if (index == -1) continue;
-			link.id = id;
-			link.index = index;
-			link.code = "TEMP";
-			placeholders.push(link);
-		}
-		// Sanity check
-		if (placeholders.length != placeholderIDs.length){
-			throw new Error(`convertPlaceholdersToFields: number of placeholders (${placeholders.length}) do not match the number of provided placeholder IDs (${placeholderIDs.length})`);
-		}
-		let requestBody = { writeControl: { targetRevisionId: document.revisionId } };
-		let requests = [];
-		// Sort for update by reverse order of appearance to correctly update the doc
-		placeholders.sort((a, b) => b.endIndex - a.endIndex);
-		if (noteType == 1 && !placeholders[0].footnoteId) {
-			// Insert footnotes (and remove placeholders) (using the Google Docs API we can do that properly!)
-			for (let placeholder of placeholders) {
-				requests.push({
-					createFootnote: {
-						location: {
-							index: placeholder.startIndex,
-						}
-					}
-				});
-				requests.push({
-					deleteContentRange: {
-						range: {
-							startIndex: placeholder.startIndex+1,
-							endIndex: placeholder.endIndex+1,
-						}
-					}
-				});
-			}
-			requestBody.requests = requests;
-			let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
-			
-			// Reinsert placeholders in the inserted footnotes
-			requestBody = {};
-			requests = [];
-			placeholders.forEach((placeholder, index) => {
-				// Every second response is from createFootnote
-				let footnoteId = response.replies[index * 2].createFootnote.footnoteId;
-				requests.push({
-					insertText: {
-						text: placeholder.text,
-						location: {
-							index: 1,
-							segmentId: footnoteId
-						}
-					}
-				});
-				requests.push({
-					updateTextStyle: {
-						textStyle: {
-							link: {
-								url: Zotero.GoogleDocs.config.fieldURL + placeholder.id
-							}
-						},
-						fields: 'link',
-						range: {
-							startIndex: 1,
-							endIndex: placeholder.text.length+1,
-							segmentId: footnoteId
-						}
-					}
-				});
-			});
-			requestBody.requests = requests;
-			await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
-		} else {
-			for (let placeholder of placeholders) {
-				requests.push({
-					updateTextStyle: {
-						textStyle: {
-							link: {
-								url: Zotero.GoogleDocs.config.fieldURL + placeholder.id
-							}
-						},
-						fields: 'link',
-						range: {
-							startIndex: placeholder.startIndex,
-							endIndex: placeholder.endIndex,
-							segmentId: placeholder.footnoteId
-						}
-					}
-				});
-				if (placeholder.text[0] == ' ') {
-					requests.push({
-						updateTextStyle: {
-							textStyle: {},
-							fields: 'link',
-							range: {
-								startIndex: placeholder.startIndex,
-								endIndex: placeholder.startIndex+1,
-								segmentId: placeholder.footnoteId
-							}
-						}
-					});
-				}
-			}
-			requestBody.requests = requests;
-			await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
-		}
-		// Reverse to sort in order of appearance, to make sure getFields returns inserted fields
-		// in the correct order 
-		placeholders.reverse();
-		// Queue insert calls to apps script, where the insertion of field text and code will be finalized
-		placeholders.forEach(placeholder => {
-			var field = {
-				text: placeholder.text,
-				code: placeholder.code,
-				id: placeholder.id,
-				noteIndex: noteType ? this.insertNoteIndex++ : 0
-			};
-			this.queued.insert.push(field);
-		});
-		// Returning inserted fields in the order of appearance of placeholder IDs
-		return Array.from(this.queued.insert).sort((a, b) => placeholderIDs.indexOf(a.id) - placeholderIDs.indexOf(b.id));
+		const doc = await this.getGoogleDocument();
+		let response = await doc.placeholdersToFields(placeholderIDs, noteType);
+		this.resetGoogleDocument();
+		return response;
 	},
 
 	cursorInField: async function(showOrphanedCitationAlert=false) {
@@ -519,6 +255,8 @@ Zotero.GoogleDocs.Client.prototype = {
 			}
 			return false;
 		}
+		const doc = await this.getGoogleDocument();
+		doc.commitBatchedUpdates();
 		throw new Error(`Selected field ${selectedFieldID} not returned from Docs backend`);
 	},
 	
@@ -527,110 +265,41 @@ Zotero.GoogleDocs.Client.prototype = {
 	},
 	
 	convert: async function(fieldIDs, fieldType, fieldNoteTypes) {
-		var fields = await this.getFields();
-		var fieldMap = {};
-		for (let field of fields) {
-			fieldMap[field.id] = field;
-		}
+		let field = await this.getField(fieldIDs[0]);
 
-		this.queued.conversion = true;
-		if (fieldMap[fieldIDs[0]].noteIndex != fieldNoteTypes[0]) {
-			// Note/intext conversions
+		if (field.noteIndex != fieldNoteTypes[0]) {
+			fieldIDs = new Set(fieldIDs);
+			const doc = await this.getGoogleDocument();
 			if (fieldNoteTypes[0] > 0) {
-				fieldIDs = new Set(fieldIDs);
-				let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID));
-				let links = document.getLinks()
-					.filter((link) => {
-						if (!link.url.startsWith(Zotero.GoogleDocs.config.fieldURL)) return false;
-						let id = link.url.substr(Zotero.GoogleDocs.config.fieldURL.length);
-						return fieldIDs.has(id) && !link.footnoteId;
-						
-					})
-					// Sort for update by reverse order of appearance to correctly update the doc
-					.reverse();
-				let requestBody = { writeControl: { targetRevisionId: document.revisionId } };
-				let requests = [];
-				
-				// Insert footnotes (and remove placeholders)
-				for (let link of links) {
-					requests.push({
-						createFootnote: {
-							location: {
-								index: link.endIndex,
-							}
-						}
-					});
-					requests.push({
-						deleteContentRange: {
-							range: {
-								startIndex: link.startIndex,
-								endIndex: link.endIndex,
-							}
-						}
-					});
-				}
-				requestBody.requests = requests;
-				let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
-
-				// Reinsert placeholders in the inserted footnotes
-				requestBody = {};
-				requests = [];
-				links.forEach((link, index) => {
-					// Every second response is from createFootnote
-					let footnoteId = response.replies[index * 2].createFootnote.footnoteId;
-					requests.push({
-						insertText: {
-							text: link.text,
-							location: {
-								index: 1,
-								segmentId: footnoteId
-							}
-						}
-					});
-					requests.push({
-						updateTextStyle: {
-							textStyle: {
-								link: {
-									url: link.url
-								}
-							},
-							fields: 'link',
-							range: {
-								startIndex: 1,
-								endIndex: link.text.length+1,
-								segmentId: footnoteId
-							}
-						}
-					});
-				});
-				requestBody.requests = requests;
-				await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
+				await doc.inlineToFootnotes(fieldIDs);
 			} else {
-				// To in-text conversions client-side are impossible, because there is no obvious way
-				// to make the cursor jump from the footnote section to its corresponding footnote.
-				// Luckily, this can be done in Apps Script.
-				return Zotero.GoogleDocs_API.run(this.documentID, 'footnotesToInline', [
-					fieldIDs,
-				]);
+				await doc.footnotesToInline(fieldIDs);
 			}
+			this.resetGoogleDocument();
 		}
+	},
+
+	importDocument: async function() {
+		const doc = await this.getGoogleDocument();
+		let result = await doc.importDocument(...arguments);
+		this.resetGoogleDocument();
+		return result;
+	},
+
+	exportDocument: async function() {
+		this._documentExport = true;
+		const doc = await this.getGoogleDocument();
+		await doc.exportDocument(...arguments);
+		this.resetGoogleDocument();
+		Zotero.GoogleDocs.downloadInterceptBlocked = true;
 	},
 	
 	setText: async function(fieldID, text, isRich) {
-		if (!(fieldID in this.queued.fields)) {
-			this.queued.fields[fieldID] = {id: fieldID};
-		}
-		// Fixing Google bugs. Google Docs XML parser ignores spaces between tags
-		// e.g. <i>Journal</i> <b>2016</b>.
-		// The space above is ignored, so we move it into the previous tag
-		this.queued.fields[fieldID].text = text.replace(/(<\s*\/[^>]+>) +</g, ' $1<');
-		this.queued.fields[fieldID].isRich = isRich;
+		let field = await this.getField(fieldID);
+		field.setText(text);
 	},
 
 	setCode: async function(fieldID, code) {
-		if (!(fieldID in this.queued.fields)) {
-			this.queued.fields[fieldID] = {id: fieldID};
-		}
 		// The speed of updates is highly dependend on the size of
 		// field codes. There are a few citation styles that require
 		// the abstract field, but they are not many and the speed
@@ -649,43 +318,41 @@ Zotero.GoogleDocs.Client.prototype = {
 				code = code.substring(0, startJSON) + JSON.stringify(json) + code.substring(endJSON+1);
 			}
 		}
-		this.queued.fields[fieldID].code = code;
+
+		let field = await this.getField(fieldID);
+		field.setCode(code);
 	},
 	
 	delete: async function(fieldID) {
+		let field = await this.getField(fieldID);
+		field.delete();
+		
+		// For fields that are inserted in front-end but not back-end we need to
+		// only undo the insert operation
 		if (this.queued.insert[0].id == fieldID) {
 			let [field] = this.queued.insert.splice(0, 1);
 			await Zotero.GoogleDocs.UI.undo();
+			// For note citations we also need to undo the footnote insert
 			if (field.noteIndex > 0) {
 				await Zotero.GoogleDocs.UI.undo();
 				await Zotero.GoogleDocs.UI.undo();
 				await Zotero.GoogleDocs.UI.undo();
 			}
-			delete this.queued.fields[fieldID];
-			return;
+			// Need to refetch fields
+			this._fields = null;
 		}
-		if (!(fieldID in this.queued.fields)) {
-			this.queued.fields[fieldID] = {id: fieldID};
-		}
-		this.queued.fields[fieldID].delete = true;
 	}, 
 	
 	removeCode: async function(fieldID) {
-		if (this.queued.insert && this.queued.insert.id == fieldID) {
-			this.queued.insert.removeCode = true;
-		}
-		if (!(fieldID in this.queued.fields)) {
-			this.queued.fields[fieldID] = {id: fieldID};
-		}
-		this.queued.fields[fieldID].removeCode = true;
-		// This call is a part of Unlink Citations, which means that
-		// after this there will be no more Zotero links in the file
+		let field = await this.getField(fieldID);
+		field.unlink();
+		// This call is only ever a part of Unlink Citations, which means that
+		// after it there will be no more Zotero links in the file
 		Zotero.GoogleDocs.hasZoteroCitations = false;
 	},
 	
 	select: async function(fieldID) {
-		let fields = await this.getFields();
-		let field = fields.find(f => f.id == fieldID);
+		let field = await this.getField(fieldID);
 		
 		if (!field) {
 			throw new Error(`Attempting to select field ${fieldID} that does not exist in the document`);
@@ -695,31 +362,6 @@ Zotero.GoogleDocs.Client.prototype = {
 			Zotero.debug(`Failed to select ${field.text} with url ${url}`);
 		}
 	},
-	
-	importDocument: async function() {
-		delete this.fields;
-		return Zotero.GoogleDocs_API.run(this.documentID, 'importDocument');
-		Zotero.GoogleDocs.downloadInterceptBlocked = false;
-	},
-
-	exportDocument: async function() {
-		await Zotero.GoogleDocs_API.run(this.documentID, 'exportDocument', Array.from(arguments));
-		var i = 0;
-		Zotero.debug(`GDocs: Clearing fields ${i++}`);
-		while (!(await Zotero.GoogleDocs_API.run(this.documentID, 'clearAllFields'))) {
-			Zotero.debug(`GDocs: Clearing fields ${i++}`)
-		}
-		Zotero.GoogleDocs.downloadInterceptBlocked = true;
-	}
 };
-		
-if (document.readyState !== "complete") {
-	window.addEventListener("load", function(e) {
-		if (e.target !== document) return;
-		Zotero.GoogleDocs.init();
-	}, false);
-} else {	
-	Zotero.GoogleDocs.init();
-}
 
 })();

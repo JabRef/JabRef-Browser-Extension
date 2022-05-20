@@ -251,11 +251,12 @@ Zotero.GoogleDocs.UI = {
 			}
 			try {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
-				let documentID = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
 				await insertPromise;
-				let response = await Zotero.GoogleDocs_API.run(documentID, 'addPastedRanges', [linksToRanges]);
-				if (response.orphanedCitations && response.orphanedCitations.length) {
-					Zotero.GoogleDocs.UI.orphanedCitations.setCitations(response.orphanedCitations);
+				let documentId = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
+				let doc = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(documentId));
+				await doc.addPastedRanges(linksToRanges);
+				if (doc.orphanedCitations.length) {
+					Zotero.GoogleDocs.UI.orphanedCitations.setCitations(doc.orphanedCitations);
 				}
 			} catch (e) {
 				if (e.message == "Handled Error") {
@@ -618,15 +619,11 @@ Zotero.GoogleDocs.UI = {
 			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
 			await Zotero.Promise.delay();
 		}
-		let event = {key: "b", keyCode: 66};
-		if (Zotero.isMac) {
-			event.metaKey = true
-		} else {
-			event.ctrlKey = true;
-		}
-		await this.sendKeyboardEvent(event);
-		await this.sendKeyboardEvent(event);
-		await this.waitToSaveInsertion();
+		// We don't have a way to know whether our changes submitted via the API have propagated
+		// to the client yet, and the cursor moves back to before-the-citation location after
+		// they do.
+		// This is not ideal, but it will work for users with decent internet connection
+		await Zotero.Promise.delay(500);
 		return this.getSelectedFieldID();
 	},
 	

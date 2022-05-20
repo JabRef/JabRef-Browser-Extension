@@ -114,12 +114,12 @@ Zotero.GoogleDocs.API = {
 			&& Zotero.GoogleDocs.API.authDeferred.reject(error);
 	},
 	
-	run: async function(docID, method, args, email, tab) {
+	run: async function(docID, method, args, tab) {
 		// If not an array, discard or the docs script spews errors.
 		if (! Array.isArray(args)) {
 			args = [];
 		}
-		var headers = await this.getAuthHeaders(email);
+		var headers = await this.getAuthHeaders();
 		headers["Content-Type"] = "application/json";
 		var body = {
 			function: 'callMethod',
@@ -220,6 +220,7 @@ Zotero.GoogleDocs.API = {
 
 	getDocument: async function (docId) {
 		var headers = await this.getAuthHeaders();
+		headers["Content-Type"] = "application/json";
 		try {
 			var xhr = await Zotero.HTTP.request('GET', `https://docs.googleapis.com/v1/documents/${docId}`,
 				{headers, timeout: 60000});
