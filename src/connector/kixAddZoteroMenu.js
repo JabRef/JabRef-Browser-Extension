@@ -52,7 +52,7 @@ function addMenuOption(menubar) {
 	menuAdded = true;
 }
 
-function addToolbarButton(toolbar) {
+async function addToolbarButton(toolbar) {
 	if (isIntegrationEnabled) {
 		var imageURL;
 		if (Zotero.isBrowserExt) {
@@ -67,7 +67,25 @@ function addToolbarButton(toolbar) {
 		var docsMoreButton = document.querySelector('#docs-primary-toolbars #docs-toolbar #moreButton');
 		templateElem = document.createElement('template');
 		templateElem.innerHTML = `<div id="zoteroAddEditCitation" class="goog-inline-block goog-toolbar-button" style="background-image: url(${imageURL}); background-repeat:no-repeat; background-position: center;" role="button" data-tooltip="Add/edit Zotero citation (${shortcut})"></div>`;
-		toolbar.insertBefore(templateElem.content.firstChild, docsMoreButton);
+		let toolbarButton = toolbar.insertBefore(templateElem.content.firstChild, docsMoreButton);
+		
+		// This button might load async, so we only move the Zotero button after it's loaded
+		let docsInsertImageButton = document.querySelector('#docs-primary-toolbars #docs-toolbar #insertImageButton');
+		if (!docsInsertImageButton) {
+			await new Promise(async (resolve) => {
+				observer = new MutationObserver(() => {
+					docsInsertImageButton = document.querySelector('#docs-primary-toolbars #docs-toolbar #insertImageButton')
+					if (docsInsertImageButton) resolve()
+				});
+				observer.observe(document.querySelector('#docs-primary-toolbars #docs-toolbar'),
+					{childList: true, subtree: true});
+				// Give up waiting after 30s
+				Zotero.Promise.delay(30e3).then(resolve);
+			});
+		}
+		if (docsInsertImageButton) {
+			toolbar.insertBefore(toolbarButton, docsInsertImageButton.nextElementSibling);
+		}
 	}
 	buttonAdded = true;
 }
