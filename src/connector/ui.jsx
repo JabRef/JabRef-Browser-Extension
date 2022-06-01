@@ -88,8 +88,12 @@ Zotero.GoogleDocs.UI = {
 		Zotero.GoogleDocs.UI.citationEditorDiv = document.createElement('div');
 		Zotero.GoogleDocs.UI.citationEditorDiv.id = 'docs-zotero-citationEditor-container';
 		document.getElementsByClassName('kix-appview-editor')[0].appendChild(Zotero.GoogleDocs.UI.citationEditorDiv);
+		Zotero.GoogleDocs.UI.linkbubbleOverrideRef = React.createRef();
 		Zotero.GoogleDocs.UI.citationEditor = 
-			<Zotero.GoogleDocs.UI.LinkbubbleOverride edit={() => Zotero.GoogleDocs.editField()}/>;
+			<Zotero.GoogleDocs.UI.LinkbubbleOverride
+				ref={Zotero.GoogleDocs.UI.linkbubbleOverrideRef}
+				edit={() => Zotero.GoogleDocs.editField()}
+			/>;
 		ReactDOM.render(Zotero.GoogleDocs.UI.citationEditor, Zotero.GoogleDocs.UI.citationEditorDiv);
 		
 		// Please wait screen
@@ -316,9 +320,9 @@ Zotero.GoogleDocs.UI = {
 	
 	initModeMonitor: async function() {
 		await new Promise(function(resolve) {
-			if (!!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img')) return resolve();
+			if (!!document.querySelector('#docs-toolbar-mode-switcher .goog-toolbar-menu-button-caption .docs-icon-img')) return resolve();
 			var observer = new MutationObserver(function(mutations) {
-				if (!!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img')) {
+				if (!!document.querySelector('#docs-toolbar-mode-switcher .goog-toolbar-menu-button-caption .docs-icon-img')) {
 					observer.disconnect();
 					return resolve();
 				}
@@ -327,19 +331,21 @@ Zotero.GoogleDocs.UI = {
 		});
 	
 		this.modeObserver = new MutationObserver(function(mutations) {
-			let inWritingMode = !!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit-blue700.docs-icon-img');
+			let indicatorIconElement = document.querySelector('#docs-toolbar-mode-switcher .goog-toolbar-menu-button-caption .docs-icon-img');
+			let inWritingMode = indicatorIconElement.className.includes('edit-pen');
 			if (this.enabled != inWritingMode) {
 				this.toggleEnabled(inWritingMode);
 			}
 		}.bind(this));
 		this.modeObserver.observe(document.querySelector('#docs-toolbar-mode-switcher'), {attributes: true});
-		this.toggleEnabled(!!document.querySelector('#docs-toolbar-mode-switcher .docs-icon-mode-edit.docs-icon-img'));
+		this.toggleEnabled(!!document.querySelector('#docs-toolbar-mode-switcher .goog-toolbar-menu-button-caption .docs-icon-img'));
 	},
 	
 	toggleEnabled: function(state) {
 		if (!state) state = !this.enabled;
 		this.enabled = state;
-		
+
+		this.linkbubbleOverrideRef.current.forceUpdate();
 		if (!state) {
 			this.menubutton.classList.add('goog-control-disabled');
 			this._menubuttonHoverRemoveObserver = new MutationObserver(function() {
