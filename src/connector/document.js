@@ -737,12 +737,12 @@ Zotero.GoogleDocs.Document = class Document {
 			else if ('table' in val) {
 				for (let row of val.table.tableRows) {
 					for (let cell of row.tableCells) {
-						initial = this._readStructuralElements(cell.content, reducer, initial)
+						initial = this._reduceStructuralElements(cell.content, reducer, initial)
 					}
 				}
 			}
 			else if ('tableOfContents' in val) {
-				initial = this._readStructuralElements(val.tableOfContents.content, reducer, initial);
+				initial = this._reduceStructuralElements(val.tableOfContents.content, reducer, initial);
 			}
 		}
 		return initial;
