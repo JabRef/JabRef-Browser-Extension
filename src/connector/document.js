@@ -816,11 +816,23 @@ let Field = Zotero.GoogleDocs.Field = class {
 		}
 
 		if (!onlyText && newCode) {
-			this.namedRanges.forEach((namedRange) => {
-				this._doc.addBatchedUpdate('deleteNamedRange', { namedRangeId: namedRange.namedRangeId });
-			});
+			const prefix = config.fieldPrefix + this.id;
+			// If this field is a shallow clone of an existing field, its named ranges
+			// have been added as a batch update but not yet copied, so we need to delete
+			// those batch updates, or we'll get named range duplication corruption.
+			if (this.namedRanges[0] && !this.namedRanges[0].namedRangeId) {
+				this._doc._batchedUpdates = this._doc._batchedUpdates.filter(update => {
+					return !update.createNamedRange
+						|| !update.createNamedRange.name.startsWith(prefix);
+				});
+			}
+			else {
+				this.namedRanges.forEach((namedRange) => {
+					this._doc.addBatchedUpdate('deleteNamedRange', { namedRangeId: namedRange.namedRangeId });
+				});
+			}
 			this.namedRanges = this._doc.encodeRange(newTextRange || this.getRange(),
-				newCode, config.fieldPrefix+this.id);
+				newCode, prefix);
 		}
 	}
 	
