@@ -32,14 +32,8 @@ if(window.top) {
 }	
 if (!isTopWindow) return;
 
-let zoteroIconURL, citationsUnlinkedIconURL;
-if (Zotero.isBrowserExt) {
-	zoteroIconURL = browser.extension.getURL('images/zotero-z-16px-offline.png');
-	citationsUnlinkedIconURL = browser.extension.getURL('images/citations-unlinked.png');
-} else {
-	zoteroIconURL = `${safari.extension.baseURI}safari/images/zotero-new-z-16px.png`;
-	citationsUnlinkedIconURL = `${safari.extension.baseURI}safari/images/citations-unlinked.png`;
-}
+let zoteroIconURL = Zotero.getExtensionURL('images/zotero-z-16px-offline.png');
+let citationsUnlinkedIconURL = Zotero.getExtensionURL('images/citations-unlinked.png');
 
 /**
  * A class that hacks into the Google Docs editor UI to allow performing various actions that should
@@ -387,7 +381,7 @@ Zotero.GoogleDocs.UI = {
 		let modifiers = await Zotero.Prefs.getAsync('shortcuts.cite');
 
 		// Store for access by Menu and Linkbubble widgets
-		this.shortcut = Zotero.Utilities.kbEventToShortcutString(modifiers);
+		this.shortcut = Zotero.Utilities.Connector.kbEventToShortcutString(modifiers);
 		// The toolbar button is managed by GDocs
 		document.querySelector('#zoteroAddEditCitation').dataset.tooltip =
 			`Add/edit Zotero citation (${this.shortcut})`;

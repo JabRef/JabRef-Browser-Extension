@@ -54,12 +54,7 @@ function addMenuOption(menubar) {
 
 async function addToolbarButton(toolbar) {
 	if (isIntegrationEnabled) {
-		var imageURL;
-		if (Zotero.isBrowserExt) {
-			imageURL = browser.extension.getURL('images/zotero-z-16px-offline.png');
-		} else {
-			imageURL = `${safari.extension.baseURI}safari/images/zotero-new-z-16px.png`;
-		}
+		var imageURL = Zotero.getExtensionURL('images/zotero-z-16px-offline.png');
 		var shortcut = 'Ctrl+Alt+C';
 		if (Zotero.isMac) {
 			shortcut = 'Ctrl+⌘C';
