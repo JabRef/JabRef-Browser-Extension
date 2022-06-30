@@ -257,10 +257,17 @@ Zotero.GoogleDocs.UI = {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
 				await insertPromise;
 				let documentId = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
-				let doc = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(documentId));
-				await doc.addPastedRanges(linksToRanges);
-				if (doc.orphanedCitations.length) {
-					Zotero.GoogleDocs.UI.orphanedCitations.setCitations(doc.orphanedCitations);
+				let orphanedCitations;
+				if (Zotero.GoogleDocs.Client.isV2) {
+					let doc = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(documentId));
+					await doc.addPastedRanges(linksToRanges);
+					orphanedCitations = doc.orphanedCitations;
+				} else {
+					let response = await Zotero.GoogleDocs_API.run(documentId, 'addPastedRanges', [linksToRanges]);
+					orphanedCitations = response.orphanedCitations;
+				}
+				if (orphanedCitations && orphanedCitations.length) {
+					Zotero.GoogleDocs.UI.orphanedCitations.setCitations(response.orphanedCitations);
 				}
 			} catch (e) {
 				if (e.message == "Handled Error") {

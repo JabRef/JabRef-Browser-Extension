@@ -33,6 +33,7 @@ Zotero.GoogleDocs.Client = function() {
 	
 	Zotero.GoogleDocs.clients[this.id] = this;
 };
+Zotero.GoogleDocs.Client.isV2 = true;
 Zotero.GoogleDocs.Client.prototype = {
 	/**
 	 * Called before each integration transaction once
