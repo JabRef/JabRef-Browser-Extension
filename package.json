@@ -32,7 +32,7 @@
 		"sinon": "^14.0.0",
 		"through2": "^4.0.2",
 		"web-ext": "^6.8.0",
-		"webextension-polyfill": "^0.9.0",
+		"webextension-polyfill": "^0.10.0",
 		"yargs": "^17.5.1",
 		"jsdom": "^20.0.0",
 		"canvas": "^2.9.3",
