@@ -95,6 +95,7 @@ Zotero.GoogleDocs.Client.prototype = {
 			supportedNotes: ['footnotes'],
 			supportsImportExport: true,
 			supportsTextInsertion: true,
+			supportsCitationMerging: true,
 			processorName: "Google Docs"
 		}
 	},
@@ -330,7 +331,7 @@ Zotero.GoogleDocs.Client.prototype = {
 		
 		// For fields that are inserted in front-end but not back-end we need to
 		// only undo the insert operation
-		if (this.queued.insert[0].id == fieldID) {
+		if (this.queued.insert[0] && this.queued.insert[0].id == fieldID) {
 			let [field] = this.queued.insert.splice(0, 1);
 			await Zotero.GoogleDocs.UI.undo();
 			// For note citations we also need to undo the footnote insert

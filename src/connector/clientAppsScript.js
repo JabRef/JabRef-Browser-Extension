@@ -91,6 +91,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 			supportedNotes: ['footnotes'],
 			supportsImportExport: true,
 			supportsTextInsertion: true,
+			supportsCitationMerging: true,
 			processorName: "Google Docs"
 		}
 	},
@@ -550,7 +551,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 	},
 
 	delete: async function(fieldID) {
-		if (this.queued.insert[0].id == fieldID) {
+		if (this.queued.insert[0] && this.queued.insert[0].id == fieldID) {
 			let [field] = this.queued.insert.splice(0, 1);
 			await Zotero.GoogleDocs.UI.undo();
 			if (field.noteIndex > 0) {

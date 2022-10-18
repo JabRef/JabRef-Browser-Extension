@@ -259,14 +259,14 @@ Zotero.GoogleDocs.Document = class Document {
 		}
 		let fields = [];
 		if (isField) {
+			let field;
 			Utilities.filterFieldLinks(this.getLinks()).forEach((link, idx) => {
 				let key = link.url.substr(config.fieldURL.length, config.fieldKeyLength);
 				if (rangeFields[key]) {
 					// We have a corresponding namedRange for this link (i.e. field code is not unlinked)
-					let field;
 					// First link in the text with this key
 					if (!rangeFields[key].exists) {
-						field = new Field(this, link, key, rangeFields[key], prefix);
+						field = new Field(this, link, key, rangeFields[key], prefix, field);
 						rangeFields[key].exists = field;
 					}
 					// Not first encounter of the same link in the text.
@@ -279,7 +279,7 @@ Zotero.GoogleDocs.Document = class Document {
 							var newKey = this._changeFieldLinkKey(link);
 							var ranges = this._copyNamedRanges(rangeFields[key], key, newKey, link);
 							key = newKey;
-							field = new Field(this, link, key, ranges, prefix);
+							field = new Field(this, link, key, ranges, prefix, field);
 						} else {
 							rangeFields[key].exists.links.push(link);
 							return;
@@ -756,19 +756,23 @@ Zotero.GoogleDocs.Document = class Document {
 }
 
 let Field = Zotero.GoogleDocs.Field = class {
-	constructor(doc, link, key, namedRanges, prefix) {
+	constructor(doc, link, key, namedRanges, prefix, previousField) {
 		prefix = prefix || config.fieldPrefix;
 
 		this._doc = doc;
 		this.id = key;
 		this.namedRanges = namedRanges;
 		this.links = [link];
+		this.adjacent = false;
+		if (previousField) {
+			previousField.adjacent = Utilities.getRangeFromLinks(previousField.links).endIndex === link.startIndex;
+		}
 
 		this.initialCode = this.code = this._doc.decodeRanges(namedRanges, prefix+key);
 		this.text = link.text;
 		this.noteIndex = link.noteIndex;
 		
-		this._queued = { text: null, code: null };
+		this._queued = { text: null, code: null, delete: false };
 	}
 	
 	/**
@@ -783,6 +787,13 @@ let Field = Zotero.GoogleDocs.Field = class {
 		this._queued = { text: null, code: null };
 		var newTextRange = null;
 		var newCode = (field.code && field.code != this.initialCode) ? field.code : undefined;
+		if (field.delete) {
+			this.namedRanges.forEach((namedRange) => {
+				this._doc.addBatchedUpdate('deleteNamedRange', { namedRangeId: namedRange.namedRangeId });
+			});
+			this._doc.addBatchedUpdate('deleteContentRange', { range: Utilities.getRangeFromLinks(this.links) });
+			return;
+		}
 		if (field.text) {
 			let range = this.getRange();
 
@@ -868,10 +879,7 @@ let Field = Zotero.GoogleDocs.Field = class {
 			this._doc._fields = this._doc._fields.filter(field => field.id != this.id);
 			return;
 		}
-		this.namedRanges.forEach((namedRange) => {
-			this._doc.addBatchedUpdate('deleteNamedRange', { namedRangeId: namedRange.namedRangeId });
-		});
-		this._doc.addBatchedUpdate('deleteContentRange', { range: Utilities.getRangeFromLinks(this.links) });
+		this._queued.delete = true;
 	}
 	
 	getRange() {
@@ -879,7 +887,13 @@ let Field = Zotero.GoogleDocs.Field = class {
 	}
 
 	serialize() {
-		return {id: this.id, text: this.text, code: this.code, noteIndex: this.noteIndex}
+		return {
+			id: this.id,
+			text: this.text,
+			code: this.code,
+			noteIndex: this.noteIndex,
+			adjacent: this.adjacent
+		}
 	}
 }
 

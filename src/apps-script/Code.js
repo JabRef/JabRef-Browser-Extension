@@ -111,10 +111,10 @@ function getFields(prefix, removePlaceholder) {
 	});
 	var fields = [];
 	if (isField) {
+		var field;
 		filterFieldLinks(getAllLinks()).forEach(function(link, idx) {
 			var key = link.url.substr(config.fieldURL.length, config.fieldKeyLength);
 			if (rangeFields[key]) {
-				var field;
 				if (rangeFields[key].exists) {
 					var isBibl = rangeFields[key][0].getName().substr((prefix+key).length+3, 4) == 'BIBL';
 					if (!isBibl) {
@@ -124,13 +124,13 @@ function getFields(prefix, removePlaceholder) {
 						var newKey = changeFieldLinkKey(link);
 						var ranges = copyNamedRanges(rangeFields[key], key, newKey, getRangeFromLinks([link]));
 						key = newKey;
-						field = new Field(link, key, ranges, prefix);
+						field = new Field(link, key, ranges, prefix, field);
 					} else {
 						rangeFields[key].exists.links.push(link);
 						return;
 					}
 				} else {
-					field = new Field(link, key, rangeFields[key], prefix);
+					field = new Field(link, key, rangeFields[key], prefix, field)
 					rangeFields[key].exists = field;
 				}
 				fields.push(field);
@@ -680,12 +680,18 @@ exposed.addPastedRanges = function(linksToCodes) {
 	return { orphanedCitations: orphanedCitations };
 }
 
-var Field = function(link, key, namedRanges, prefix) {
+var Field = function(link, key, namedRanges, prefix, previousField) {
 	prefix = prefix || config.fieldPrefix;
 	
 	this.id = key;
 	this.namedRanges = namedRanges;
 	this.links = [link];
+	this.adjacent = false;
+	if (previousField) {
+		var previousLink = previousField.links[0];
+		previousField.adjacent = previousLink.text === link.text &&
+			previousLink.endOffsetInclusive + 1 === link.startOffset;
+	}
 	
 	this.code = decodeRanges(namedRanges, prefix+key);
 	this.noteIndex = link.footnoteIndex;
@@ -770,7 +776,13 @@ Field.prototype = {
 	},
 	
 	serialize: function() {
-		return {id: this.id, text: this.getText(), code: this.code, noteIndex: this.noteIndex}
+		return {
+			id: this.id,
+			text: this.getText(),
+			code: this.code,
+			noteIndex: this.noteIndex,
+			adjacent: this.adjacent
+		}
 	},
 	
 	unlink: function() {
@@ -784,7 +796,9 @@ Field.prototype = {
 	// Apps Script JS engine parses this as an illegal keyword
 	"delete": function() {
 		this.unlink();
-		this.link.text.deleteText(this.link.startOffset, this.link.endOffsetInclusive);
+		this.links.forEach(function(link) {
+			link.text.deleteText(link.startOffset, link.endOffsetInclusive);
+		});
 	},
 };
 
