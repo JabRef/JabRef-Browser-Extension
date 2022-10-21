@@ -37,7 +37,7 @@
 		"jsdom": "^20.0.1",
 		"canvas": "^2.10.1",
 		"bufferutil": "^4.0.7",
-		"utf-8-validate": "^5.0.9"
+		"utf-8-validate": "^5.0.10"
 	},
 	"babel": {
 		"presets": [
