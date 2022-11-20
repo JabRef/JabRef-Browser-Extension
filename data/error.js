@@ -81,7 +81,7 @@ if (
     <br><br>
     Note that this will disable the confinement of the flatpak package!
     </p>
-    Please follow the <a class="text-indigo-600" target="_blank" href="https://docs.jabref.org/collect/jabref-browser-extension#installation-and-configuration">manual installation instructions</a>
+    If this doesn't resolve the issue, please have a look at the <a class="text-indigo-600" target="_blank" href="https://docs.jabref.org/collect/jabref-browser-extension#flatpak">manual installation instructions</a>
     to make sure your setup is correct.
     In particular, verify that the Flatpak permissions are set.
     <br><br>${referToGithub}
