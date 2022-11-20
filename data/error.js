@@ -67,6 +67,25 @@ if (
     </ul>
     <br>${referToGithub}
     `
+} else if (message === 'flatpakPermissionsError') {
+  // This error is thrown by the powershell/python script if the JabRef executable is not found
+  message = `Flatpak is missing the permissions to access the JabRef executable`
+  message_to_user = `
+    ${details}
+    For flatpak based browsers you have to enable the org.freedesktop.Flatpak permission.<br>
+    To add this you can type 
+    <br><br>
+    <i>flatpak override --user --talk-name=org.freedesktop.Flatpak org.mozilla.firefox</i>
+    <br><br>
+    in a terminal window or use the Flatseal application and add <i>org.freedesktop.Flatpak</i> to the <i>Session bus Talk</i> section for <i>org.mozilla.firefox</i>.
+    <br><br>
+    Note that this will disable the confinement of the flatpak package!
+    </p>
+    If this doesn't resolve the issue, please have a look at the <a class="text-indigo-600" target="_blank" href="https://docs.jabref.org/collect/jabref-browser-extension#flatpak">manual installation instructions</a>
+    to make sure your setup is correct.
+    In particular, verify that the Flatpak permissions are set.
+    <br><br>${referToGithub}
+    `
 } else {
   // We have no idea what the error is
   // Usually, this is caused by some bug in the powershell/python script and the error message is usually helpful
