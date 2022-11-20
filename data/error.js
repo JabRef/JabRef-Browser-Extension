@@ -77,7 +77,7 @@ if (
     <br><br>
     <i>flatpak override --user --talk-name=org.freedesktop.Flatpak org.mozilla.firefox</i>
     <br><br>
-    in a terminal window or use the Flatseal application and add <i>org.freedesktop.Flatpak</i> to the <i>Session bus Talk</i> section for <i>org.mozilla.firefox</i>..
+    in a terminal window or use the Flatseal application and add <i>org.freedesktop.Flatpak</i> to the <i>Session bus Talk</i> section for <i>org.mozilla.firefox</i>.
     <br><br>
     Note that this will disable the confinement of the flatpak package!
     </p>
