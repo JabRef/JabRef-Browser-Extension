@@ -65,7 +65,7 @@ Zotero.GoogleDocs.API = {
 		return this.authDeferred.promise;
 	},
 	
-	onAuthComplete: async function(URL, tab) {
+	onAuthComplete: async function(url, tab) {
 		// close auth window
 		// ensure that tab close listeners don't have a promise they can reject
 		let deferred = this.authDeferred;
@@ -76,8 +76,7 @@ Zotero.GoogleDocs.API = {
 			Zotero.Connector_Browser.closeTab(tab);
 		}
 		try {
-			var url = require('url');
-			var uri = url.parse(URL);
+			var uri = new URL(url);
 			var params = {};
 			for (let keyvalue of uri.hash.split('&')) {
 				let [key, value] = keyvalue.split('=');
@@ -87,9 +86,9 @@ Zotero.GoogleDocs.API = {
 				throw new Error(params.error);
 			}
 			
-			uri = ZOTERO_CONFIG.OAUTH.GOOGLE_DOCS.ACCESS_URL
+			url = ZOTERO_CONFIG.OAUTH.GOOGLE_DOCS.ACCESS_URL
 				+ `?access_token=${params.access_token}`;
-			let xhr = await Zotero.HTTP.request('GET', uri);
+			let xhr = await Zotero.HTTP.request('GET', url);
 			let response = JSON.parse(xhr.responseText);
 			if (response.aud != ZOTERO_CONFIG.OAUTH.GOOGLE_DOCS.CLIENT_KEY) {
 				throw new Error(`Google Docs Access Token invalid ${xhr.responseText}`);
