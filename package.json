@@ -17,7 +17,7 @@
 		"bluebird": "^3.7.2",
 		"browserify": "^17.0.0",
 		"chai": "^4.3.7",
-		"chalk": "^5.1.2",
+		"chalk": "^5.2.0",
 		"chromedriver": "^107.0.1",
 		"geckodriver": "^3.2.0",
 		"gulp": "^4.0.2",
