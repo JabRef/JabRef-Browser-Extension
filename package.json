@@ -34,7 +34,7 @@
 		"web-ext": "^7.4.0",
 		"webextension-polyfill": "^0.10.0",
 		"yargs": "^17.6.2",
-		"jsdom": "^21.0.0",
+		"jsdom": "^21.1.0",
 		"canvas": "^2.11.0",
 		"bufferutil": "^4.0.7",
 		"utf-8-validate": "^6.0.2"
