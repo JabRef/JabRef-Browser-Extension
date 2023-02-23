@@ -378,6 +378,7 @@ Zotero.GoogleDocs.UI = {
 	},
 
 	addKeyboardShortcuts: async function() {
+		// The main cite shortcut
 		let modifiers = await Zotero.Prefs.getAsync('shortcuts.cite');
 
 		// Store for access by Menu and Linkbubble widgets
@@ -388,6 +389,17 @@ Zotero.GoogleDocs.UI = {
 
 		var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
 		Zotero.Inject.addKeyboardShortcut(Object.assign(modifiers), Zotero.GoogleDocs.editField, textEventTarget);
+
+		// Open Zotero menu shortcut, mimicking google doc's native shortcuts
+		modifiers = {altKey: true, keyCode: 90}
+		if (Zotero.isMac) {
+			modifiers.ctrlKey = true;
+		} else {
+			modifiers.shiftKey = true;
+		}
+		Zotero.Inject.addKeyboardShortcut(Object.assign(modifiers), () => {
+			this.clickElement(this.menubutton);
+		}, textEventTarget);
 	},
 	
 	activate: async function(force, message) {
@@ -741,8 +753,52 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		super(props);
 		this.state = {
 			open: Zotero.GoogleDocs.UI.menubutton.classList.contains('goog-control-open'),
-			displayAddNoteButton: false
+			displayAddNoteButton: false,
+			highlightedItem: -1
 		}
+		this._items = [];
+	}
+	
+	componentDidMount() {
+		this.observer = new MutationObserver(async function(mutations) {
+			for (let mutation of mutations) {
+				if (mutation.attributeName != 'class' ||
+					mutation.target.classList.contains('goog-control-open') == this.state.open) continue;
+				let open = mutation.target.classList.contains('goog-control-open');
+				let displayAddNoteButton = await Zotero.Connector.getPref('googleDocsAddNoteEnabled');
+				this.setState({ open, displayAddNoteButton, highlightedItem: -1 });
+			}
+		}.bind(this));
+		this.observer.observe(Zotero.GoogleDocs.UI.menubutton, {attributes: true});
+		this._addKeyboardNavigation();
+	}
+	
+	_addKeyboardNavigation() {
+		document.querySelector('#docs-menubar').addEventListener('keydown', (e) => {
+			if (!this.state.open) return;
+			if (e.key == 'ArrowDown') {
+				this.setState({ highlightedItem: (this.state.highlightedItem + 1) % this._items.length });
+			}
+			else if (e.key == 'ArrowUp') {
+				this.setState({ highlightedItem: (this.state.highlightedItem - 1) % this._items.length });
+			}
+			else if (e.key == 'Enter') {
+				if (this.state.highlightedItem != -1) {
+					this._items[this.state.highlightedItem].props.activate();
+				}
+			}
+			else {
+				for (let item of this._items) {
+					if (item.props.shortcutKey == e.key) {
+						item.props.activate();
+					}
+				}
+			}
+		});
+	}
+	
+	_setHighlighted(idx) {
+		this.setState({ highlightedItem: idx })
 	}
 
 	render() {
@@ -765,10 +821,22 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			}
 		}
 		
-		let exportMenuItem = (
+		this._items = [
+			<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit citation..." shortcutKey='c' activate={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={Zotero.GoogleDocs.UI.shortcut} />,
+		]
+		
+		if (this.state.displayAddNoteButton) {
+			this._items.push(<Zotero.GoogleDocs.UI.Menu.Item label="Add note..." shortcutKey='n' activate={this.props.execCommand.bind(this, 'addNote', null)} />);
+		}
+		
+		this._items.push(
+			<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit bibliography" shortcutKey='b' activate={this.props.execCommand.bind(this, 'addEditBibliography', null)} />,
+			<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences..." shortcutKey='d' activate={this.props.execCommand.bind(this, 'setDocPrefs', null)} />,
+			<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" shortcutKey='r' activate={this.props.execCommand.bind(this, 'refresh', null)} />,
 			<Zotero.GoogleDocs.UI.Menu.Item
 				label="Switch word processors..."
-				handleClick={async () => {
+				shortcutKey='s'
+				activate={async () => {
 					let clientVersion = await Zotero.Connector.getClientVersion();
 					if (clientVersion) {
 						let major = parseInt(clientVersion.split('.')[0]);
@@ -778,59 +846,49 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 						}
 					}
 					this.props.execCommand('exportDocument');
-				}} />
-		);
+				}} />,
+			<Zotero.GoogleDocs.UI.Menu.Item label="Unlink citations..." shortcutKey='u' activate={this.props.execCommand.bind(this, 'removeCodes', null)} />,
+		)
 		
-		let addNoteMenuItem = "";
-		if (this.state.displayAddNoteButton) {
-			addNoteMenuItem = (<Zotero.GoogleDocs.UI.Menu.Item label="Add note..." handleClick={this.props.execCommand.bind(this, 'addNote', null)} />);
-		}
+		this._items.forEach((item, i) => {
+			item.props.idx = i;
+			item.props.highlighted = this.state.highlightedItem == i;
+			item.props.setHighlighted = this._setHighlighted.bind(this);
+		});
 		
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
 				style={style}>
-				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit citation..." handleClick={this.props.execCommand.bind(this, 'addEditCitation', null)} accel={Zotero.GoogleDocs.UI.shortcut} />
-				{addNoteMenuItem}
-				<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit bibliography" handleClick={this.props.execCommand.bind(this, 'addEditBibliography', null)} />
-				<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences..." handleClick={this.props.execCommand.bind(this, 'setDocPrefs', null)} />
-				<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" handleClick={this.props.execCommand.bind(this, 'refresh', null)} />
-				{exportMenuItem}
-				<Zotero.GoogleDocs.UI.Menu.Item label="Unlink citations..." handleClick={this.props.execCommand.bind(this, 'removeCodes', null)} />
+				{this._items}
 			</div>
 		);
-	}
-
-	componentDidMount() {
-		this.observer = new MutationObserver(async function(mutations) {
-			for (let mutation of mutations) {
-				if (mutation.attributeName != 'class' || 
-					mutation.target.classList.contains('goog-control-open') == this.state.open) continue;
-				let open = mutation.target.classList.contains('goog-control-open');
-				let displayAddNoteButton = await Zotero.Connector.getPref('googleDocsAddNoteEnabled');
-				this.setState({ open, displayAddNoteButton });
-			}
-		}.bind(this));
-		this.observer.observe(Zotero.GoogleDocs.UI.menubutton, {attributes: true});
 	}
 }
 
 Zotero.GoogleDocs.UI.Menu.Item = class extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {highlight: false};
 	}
 	render() {
 		let className = "goog-menuitem apps-menuitem";
-		if (this.state.highlight) {
-			className += " goog-menuitem-highlight";
+		if (this.props.highlighted) {
 			className += " goog-menuitem-highlight";
 		}
+		let label = this.props.label;
+		let shortcutIdx = label.toLowerCase().indexOf(this.props.shortcutKey);
+		// Underline shortcut key
+		if (this.props.shortcutKey && shortcutIdx != -1) {
+			label = <span className="goog-menuitem-label">{label.substring(0, shortcutIdx)}<u>{label[shortcutIdx]}</u>{label.substring(shortcutIdx + 1)}</span>;
+		}
+		else {
+			label = <span className="goog-menuitem-label">{label}</span>;
+		}
 		return (
-			<div onMouseDown={this.props.handleClick} onMouseEnter={this.toggleHighlight.bind(this, true)} onMouseLeave={this.toggleHighlight.bind(this, false)}
+			<div onMouseDown={this.props.activate} onMouseEnter={this.toggleHighlight.bind(this, true)} onMouseLeave={this.toggleHighlight.bind(this, false)}
 				className={className} role="menuitem">
 				
 				<div className="goog-menuitem-content">
-					<span className="goog-menuitem-label">{this.props.label}</span>
+					{label}
 					{this.props.accel ? <span className="goog-menuitem-accel">{this.props.accel}</span> : ''}
 				</div>
 			</div>
@@ -838,7 +896,7 @@ Zotero.GoogleDocs.UI.Menu.Item = class extends React.Component {
 	}
 	
 	toggleHighlight(highlight) {
-		this.setState({highlight});
+		this.props.setHighlighted(highlight ? this.props.idx : -1);
 	}
 };
 
