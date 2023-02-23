@@ -856,9 +856,11 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			item.props.setHighlighted = this._setHighlighted.bind(this);
 		});
 		
+		let activeDescendant = this.state.highlightedItem == -1 ? "" : `:z${this.state.highlightedItem}`;
+		
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
-				style={style}>
+				style={style} aria-activedescendant={activeDescendant}>
 				{this._items}
 			</div>
 		);
@@ -885,7 +887,7 @@ Zotero.GoogleDocs.UI.Menu.Item = class extends React.Component {
 		}
 		return (
 			<div onMouseDown={this.props.activate} onMouseEnter={this.toggleHighlight.bind(this, true)} onMouseLeave={this.toggleHighlight.bind(this, false)}
-				className={className} role="menuitem">
+				className={className} role="menuitem" id={`:z${this.props.idx}`}>
 				
 				<div className="goog-menuitem-content">
 					{label}
