@@ -831,7 +831,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		
 		this._items.push(
 			<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit bibliography" shortcutKey='b' activate={this.props.execCommand.bind(this, 'addEditBibliography', null)} />,
-			<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences..." shortcutKey='d' activate={this.props.execCommand.bind(this, 'setDocPrefs', null)} />,
+			<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences..." shortcutKey='p' activate={this.props.execCommand.bind(this, 'setDocPrefs', null)} />,
 			<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" shortcutKey='r' activate={this.props.execCommand.bind(this, 'refresh', null)} />,
 			<Zotero.GoogleDocs.UI.Menu.Item
 				label="Switch word processors..."
