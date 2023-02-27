@@ -777,10 +777,10 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		document.querySelector('#docs-menubar').addEventListener('keydown', (e) => {
 			if (!this.state.open) return;
 			if (e.key == 'ArrowDown') {
-				this.setState({ highlightedItem: (this.state.highlightedItem + 1) % this._items.length });
+				this._setHighlighted((this.state.highlightedItem + 1) % this._items.length);
 			}
 			else if (e.key == 'ArrowUp') {
-				this.setState({ highlightedItem: (this.state.highlightedItem - 1) % this._items.length });
+				this._setHighlighted((this.state.highlightedItem - 1) % this._items.length);
 			}
 			else if (e.key == 'Enter') {
 				if (this.state.highlightedItem != -1) {
@@ -799,6 +799,9 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 	
 	_setHighlighted(idx) {
 		this.setState({ highlightedItem: idx })
+		if (idx != -1) {
+			document.querySelector('#docs-menubar').setAttribute('aria-activedescendant', `:z${idx}`);
+		}
 	}
 
 	render() {
@@ -856,11 +859,9 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 			item.props.setHighlighted = this._setHighlighted.bind(this);
 		});
 		
-		let activeDescendant = this.state.highlightedItem == -1 ? "" : `:z${this.state.highlightedItem}`;
-		
 		return (
 			<div id="docs-zotero-menu" className="goog-menu goog-menu-vertical docs-menu-hide-mnemonics" role="menu"
-				style={style} aria-activedescendant={activeDescendant}>
+				style={style}>
 				{this._items}
 			</div>
 		);
