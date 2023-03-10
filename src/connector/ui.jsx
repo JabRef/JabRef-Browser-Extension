@@ -333,13 +333,13 @@ Zotero.GoogleDocs.UI = {
 	
 		this.modeObserver = new MutationObserver(function(mutations) {
 			let indicatorIconElement = document.querySelector('#docs-toolbar-mode-switcher .goog-toolbar-menu-button-caption .docs-icon-img');
-			let inWritingMode = indicatorIconElement.className.includes('edit-pen');
+			let inWritingMode = indicatorIconElement.className.includes('docs-icon-edit-20');
 			if (this.enabled != inWritingMode) {
 				this.toggleEnabled(inWritingMode);
 			}
 		}.bind(this));
 		this.modeObserver.observe(document.querySelector('#docs-toolbar-mode-switcher'), {attributes: true});
-		this.toggleEnabled(!!document.querySelector('#docs-toolbar-mode-switcher .goog-toolbar-menu-button-caption .docs-icon-img'));
+		this.toggleEnabled(!!document.querySelector('#docs-toolbar-mode-switcher .goog-toolbar-menu-button-caption .docs-icon-img.docs-icon-edit-20'));
 	},
 	
 	toggleEnabled: function(state) {
