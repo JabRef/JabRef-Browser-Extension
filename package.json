@@ -31,7 +31,7 @@
 		"selenium-webdriver": "^4.8.0",
 		"sinon": "^15.0.1",
 		"through2": "^4.0.2",
-		"web-ext": "^7.5.0",
+		"web-ext": "^7.6.0",
 		"webextension-polyfill": "^0.10.0",
 		"yargs": "^17.6.2",
 		"jsdom": "^21.1.0",
