@@ -261,7 +261,7 @@ Zotero.GoogleDocs.UI = {
 					orphanedCitations = response.orphanedCitations;
 				}
 				if (orphanedCitations && orphanedCitations.length) {
-					Zotero.GoogleDocs.UI.orphanedCitations.setCitations(response.orphanedCitations);
+					Zotero.GoogleDocs.UI.orphanedCitations.setCitations(orphanedCitations);
 				}
 			} catch (e) {
 				if (e.message == "Handled Error") {
@@ -1069,7 +1069,7 @@ Zotero.GoogleDocs.UI.OrphanedCitations = React.forwardRef(function(props, ref) {
 	React.useImperativeHandle(ref, () => ({
 		setCitations: function(newCitations) {
 			// Open upon first detecting orphaned citations
-			if (!citations.length && newCitations.length) setOpen(true);
+			if (newCitations.length && citations.length != newCitations.length) setOpen(true);
 			setCitations(newCitations);
 		}
 	}));
