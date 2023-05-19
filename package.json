@@ -29,7 +29,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"selenium-webdriver": "^4.8.0",
-		"sinon": "^15.0.1",
+		"sinon": "^15.1.0",
 		"through2": "^4.0.2",
 		"web-ext": "^7.5.0",
 		"webextension-polyfill": "^0.10.0",
