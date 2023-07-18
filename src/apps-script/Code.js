@@ -942,7 +942,7 @@ function iterateSections(doc, func) {
 		var section = docEl.getChild(i);
 
 		var sectionType = section.getType();
-		var uniqueSectionName;
+		if (sectionType === DocumentApp.ElementType.UNSUPPORTED) continue;
 		var isFirstPageSection = (
 			i != regularHeaderSectionIndex &&
 			i != regularFooterSectionIndex && 
