@@ -534,8 +534,7 @@ Zotero.GoogleDocs.UI = {
 	 * @returns {Promise<void>}
 	 */
 	selectText: async function(text, url=null) {
-		// Selection doesn't update unless the tab is active
-		await this.activate(true);
+		this.toggleUpdatingScreen(false);
 		var openFindDialogKbEvent = {ctrlKey: true, key: 'f', keyCode: '70'};
 		if (Zotero.isMac) {
 			openFindDialogKbEvent = {metaKey: true, key: 'f', keyCode: '70'};
@@ -546,12 +545,16 @@ Zotero.GoogleDocs.UI = {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent(openFindDialogKbEvent);
 			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-close'));
 
-			document.querySelector('.docs-findinput-input').value = text;
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent(openFindDialogKbEvent);
+			document.querySelector('.docs-findinput-input').value = text;
+			document.querySelector('.docs-findinput-input').dispatchEvent(new KeyboardEvent('input'));
+			await Zotero.Promise.delay();
 			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-close'));
 		} else {
-			document.querySelector('.docs-findinput-input').value = text;
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent(openFindDialogKbEvent);
+			document.querySelector('.docs-findinput-input').value = text;
+			document.querySelector('.docs-findinput-input').dispatchEvent(new KeyboardEvent('input'));
+			await Zotero.Promise.delay();
 			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-down'));
 			await Zotero.GoogleDocs.UI.clickElement(document.querySelector('#docs-findbar-id .docs-icon-close'));
 		}
