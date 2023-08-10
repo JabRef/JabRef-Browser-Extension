@@ -315,7 +315,12 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	toggleUpdatingScreen: function(display) {
-		this.isUpdating = display || !this.isUpdating;
+		if (typeof display === 'undefined') {
+			this.isUpdating = !this.isUpdating;
+		}
+		else {
+			this.isUpdating = display;
+		}
 		Zotero.GoogleDocs.UI.pleaseWaitScreen.toggle(this.isUpdating);
 	},
 	
