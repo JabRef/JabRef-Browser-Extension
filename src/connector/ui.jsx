@@ -762,6 +762,7 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		this.state = {
 			open: Zotero.GoogleDocs.UI.menubutton.classList.contains('goog-control-open'),
 			displayAddNoteButton: false,
+			displayCitationExplorerOption: false,
 			highlightedItem: -1
 		}
 		this._items = [];
@@ -774,7 +775,8 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 					mutation.target.classList.contains('goog-control-open') == this.state.open) continue;
 				let open = mutation.target.classList.contains('goog-control-open');
 				let displayAddNoteButton = await Zotero.Connector.getPref('googleDocsAddNoteEnabled');
-				this.setState({ open, displayAddNoteButton, highlightedItem: -1 });
+				let displayCitationExplorerOption = await Zotero.Connector.getPref('googleDocsCitationExplorerEnabled');
+				this.setState({ open, displayAddNoteButton, displayCitationExplorerOption, highlightedItem: -1 });
 			}
 		}.bind(this));
 		this.observer.observe(Zotero.GoogleDocs.UI.menubutton, {attributes: true});
@@ -839,9 +841,16 @@ Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 		if (this.state.displayAddNoteButton) {
 			this._items.push(<Zotero.GoogleDocs.UI.Menu.Item label="Add note..." shortcutKey='n' activate={this.props.execCommand.bind(this, 'addNote', null)} />);
 		}
-		
+
 		this._items.push(
 			<Zotero.GoogleDocs.UI.Menu.Item label="Add/edit bibliography" shortcutKey='b' activate={this.props.execCommand.bind(this, 'addEditBibliography', null)} />,
+		);
+		
+		if (this.state.displayCitationExplorerOption) {
+			this._items.push(<Zotero.GoogleDocs.UI.Menu.Item label="Citation explorer..." shortcutKey='e' activate={this.props.execCommand.bind(this, 'citationExplorer', null)} />);
+		}
+		
+		this._items.push(
 			<Zotero.GoogleDocs.UI.Menu.Item label="Document preferences..." shortcutKey='p' activate={this.props.execCommand.bind(this, 'setDocPrefs', null)} />,
 			<Zotero.GoogleDocs.UI.Menu.Item label="Refresh" shortcutKey='r' activate={this.props.execCommand.bind(this, 'refresh', null)} />,
 			<Zotero.GoogleDocs.UI.Menu.Item
