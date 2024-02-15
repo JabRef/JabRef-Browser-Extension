@@ -499,7 +499,7 @@ Zotero.GoogleDocs.UI = {
 		element.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, button: 0}));
 		await Zotero.Promise.delay();
 		element.dispatchEvent(new MouseEvent('mouseup', {bubbles: true, button: 0}));
-		element.dispatchEvent(new MouseEvent('mouseclick', {bubbles: true, button: 0}));
+		element.dispatchEvent(new MouseEvent('click', {bubbles: true, button: 0}));
 		await Zotero.Promise.delay();
 	},
 	
@@ -660,7 +660,20 @@ Zotero.GoogleDocs.UI = {
 		let urlInput = this._getElemBySelectors(urlInputSelectors);
 		let eventTarget = document.querySelector('.docs-calloutbubble-bubble').parentElement;
 		if (confirm && urlInput.value) {
-			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
+			let applyButton = document.querySelector('.appsElementsLinkInsertionApplyButton');
+			if (applyButton) {
+				// Likely a bug in the new google docs link insertion UI where pressing Enter
+				// does not close the dialog, and will probably be changed/fixed, but for now
+				// we simulate a click on the apply button.
+				// The reason the old code doesn't click the apply button is that when the previous
+				// iteration of the link insertion bubble went live it didn't originally include an
+				// apply button that we could click on and you could only accept the dialog by pressing
+				// Enter. Sigh.
+				await Zotero.GoogleDocs.UI.clickElement(document.querySelector('.appsElementsLinkInsertionApplyButton'));
+			}
+			else {
+				await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
+			}
 		}
 		else {
 			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
