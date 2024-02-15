@@ -658,7 +658,7 @@ Zotero.GoogleDocs.UI = {
 	
 	closeInsertLinkPopup: async function(confirm=true) {
 		let urlInput = this._getElemBySelectors(urlInputSelectors);
-		let eventTarget = document.querySelector('.docs-calloutbubble-bubble.docs-linkbubble-bubble').parentElement;
+		let eventTarget = document.querySelector('.docs-calloutbubble-bubble').parentElement;
 		if (confirm && urlInput.value) {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
 		}
