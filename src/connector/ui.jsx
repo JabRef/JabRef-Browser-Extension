@@ -35,6 +35,11 @@ if (!isTopWindow) return;
 let zoteroIconURL = Zotero.getExtensionURL('images/zotero-z-16px-offline.png');
 let citationsUnlinkedIconURL = Zotero.getExtensionURL('images/citations-unlinked.png');
 
+const textInputSelectors = ['.docs-link-insertlinkbubble-text', '.docs-link-smartinsertlinkbubble-text',
+	'.appsElementsLinkInsertionLinkTextInput input'];
+const urlInputSelectors = ['.docs-link-urlinput-url', '.docs-link-searchinput-search',
+	'.appsElementsLinkInsertionLinkSearchInput input'];
+
 /**
  * A class that hacks into the Google Docs editor UI to allow performing various actions that should
  * be properly done using AppsScript if our script was document-bound, but it is not.
@@ -600,18 +605,10 @@ Zotero.GoogleDocs.UI = {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 		}
 		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
-		let textInput = document.getElementsByClassName('docs-link-insertlinkbubble-text')[0];
-		// Sudden 2021-05-03 change
-		if (!textInput) {
-			textInput = document.getElementsByClassName('docs-link-smartinsertlinkbubble-text')[0];
-		}
+		let textInput = this._getElemBySelectors(textInputSelectors);
 		textInput.value = text;
 		textInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
-		var urlInput = document.getElementsByClassName('docs-link-urlinput-url')[0];
-		// New gdocs link input UI.
-		if (!urlInput) {
-			urlInput = document.getElementsByClassName('docs-link-searchinput-search')[0];
-		}
+		let urlInput = this._getElemBySelectors(urlInputSelectors);
 		urlInput.value = url;
 		urlInput.dispatchEvent(new InputEvent('input', {data: url, bubbles: true}));
 		await Zotero.Promise.delay();
@@ -660,10 +657,7 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	closeInsertLinkPopup: async function(confirm=true) {
-		urlInput = document.querySelector('.docs-link-insertlinkbubble .docs-link-urlinput-url');
-		if (!urlInput) {
-			urlInput = document.querySelector('.docs-link-searchinput-search');
-		}	
+		let urlInput = this._getElemBySelectors(urlInputSelectors);
 		let eventTarget = document.querySelector('.docs-calloutbubble-bubble.docs-linkbubble-bubble').parentElement;
 		if (confirm && urlInput.value) {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
@@ -703,10 +697,7 @@ Zotero.GoogleDocs.UI = {
 	
 	getSelectedFieldID: async function() {
 		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
-		urlInput = document.querySelector('.docs-link-insertlinkbubble .docs-link-urlinput-url');
-		if (!urlInput) {
-			urlInput = document.querySelector('.docs-link-searchinput-search');
-		}
+		let urlInput = this._getElemBySelectors(urlInputSelectors);
 		url = urlInput.value;
 		
 		await Zotero.GoogleDocs.UI.closeInsertLinkPopup(false);
@@ -753,6 +744,15 @@ Zotero.GoogleDocs.UI = {
 		}
 		await deferred.promise;
 		observer.disconnect();
+	},
+
+	_getElemBySelectors(selectors) {
+		for (let selector of selectors) {
+			let elem = document.querySelector(selector);
+			if (elem) return elem;
+		}
+		Zotero.GoogleDocs.UI.displayAlert('Google Docs UI has changed. Please submit a <a href="https://www.zotero.org/support/reporting_problems">Report ID</a> from the Zotero Connector on the <a href="https://forums.zotero.org">Zotero Forums</a>.')
+		throw new Error('Google Docs UI has changed.');
 	}
 }
 
