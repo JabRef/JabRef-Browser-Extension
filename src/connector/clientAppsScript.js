@@ -234,7 +234,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 		};
 
 		this.queued.insert.push(field);
-		await this._insertField(field, false);
+		await this._insertField(field);
 		return field;
 	},
 
@@ -250,7 +250,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 	 *
 	 * @param {Object} field
 	 */
-	_insertField: async function(field, waitForSave=true, ignoreNote=false) {
+	_insertField: async function(field, waitForSave=true) {
 		var url = Zotero.GoogleDocs.config.fieldURL + field.id;
 
 		if (field.noteIndex > 0) {

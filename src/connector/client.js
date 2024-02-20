@@ -213,7 +213,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	 *
 	 * @param {Object} field
 	 */
-	_insertField: async function(field, waitForSave=true, ignoreNote=false) {
+	_insertField: async function(field, waitForSave=true) {
 		var url = Zotero.GoogleDocs.config.fieldURL + field.id;
 
 		if (field.noteIndex > 0) {
