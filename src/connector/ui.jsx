@@ -702,49 +702,45 @@ Zotero.GoogleDocs.UI = {
 	// Wait for google docs to save the text insertion
 	waitToSaveInsertion: async function() {
 		await Zotero.Promise.delay(5);
-		var deferred = Zotero.Promise.defer();
-		// In case the new UI is being pushed out in phases we'll keep the old logic for now
-		var newStyleSaveLabel = document.querySelector('.docs-save-indicator-container');
-		if (!newStyleSaveLabel) {
-			// We cannot check for specific text because of localization, so we just wait for the text
-			// to change. Best bet.
-			var observer = new MutationObserver(() => deferred.resolve());
-			var saveLabel = document.getElementsByClassName('docs-title-save-label-text')[0];
-			observer.observe(saveLabel, {childList: true});	
-		} else {
-			// Ahh this used to be a pain but google added a sync indicator so now waiting to finalize
-			// an insertion is super reliable!
-			if (!document.querySelector('.docs-icon-sync')) {
-				// Except that it isn't, since the sync is not triggered immediately (anymore?)
-				// so some waits to save insertion have been falling through and causing failed pastes.
-				await Zotero.Promise.delay(1000);
-				// We wait an extra second and if there's still no sync indicator then:
-				// - The action that we thought should trigger a sync doesn't actually do that
-				// - Or a full sync will have occurred in this second and we're clear to do whatever we need
-				//   in the backend
-				if (!document.querySelector('.docs-icon-sync')) {
-					return;
-				}
+		const SYNC_ICON_SELECTORS = ['.docs-icon-sync', '.docs-sync-20'];
+		
+		// Ahh this used to be a pain but google added a sync indicator so now waiting to finalize
+		// an insertion is super reliable!
+		if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
+			// Except that it isn't, since the sync is not triggered immediately (anymore?)
+			// so some waits to save insertion have been falling through and causing failed pastes.
+			await Zotero.Promise.delay(1000);
+			// We wait an extra second and if there's still no sync indicator then:
+			// - The action that we thought should trigger a sync doesn't actually do that
+			// - Or a full sync will have occurred in this second and we're clear to do whatever we need
+			//   in the backend
+			if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
+				return;
 			}
-			observer = new MutationObserver(() => {
-				if (!document.querySelector('.docs-icon-sync')) {
-					deferred.resolve()
-				}
-			});
-			saveLabel = document.querySelector('.docs-save-indicator-container');
-			observer.observe(saveLabel, {childList: true, subtree: true});
 		}
+
+		let deferred = Zotero.Promise.defer();
+		observer = new MutationObserver(() => {
+			if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
+				deferred.resolve()
+			}
+		});
+		let saveIndicator = document.querySelector('.docs-save-indicator-container');
+		observer.observe(saveIndicator, {childList: true, subtree: true});
 		await deferred.promise;
 		observer.disconnect();
 	},
 
-	_getElemBySelectors(selectors) {
+	_getElemBySelectors(selectors, throwError=true) {
 		for (let selector of selectors) {
 			let elem = document.querySelector(selector);
 			if (elem) return elem;
 		}
+		if (!throwError) {
+			return Zotero.logError(new Error(`Google Docs UI has changed. Trying to retrieve ${JSON.stringify(selectors)}`));
+		}
 		Zotero.GoogleDocs.UI.displayAlert('Google Docs UI has changed. Please submit a <a href="https://www.zotero.org/support/reporting_problems">Report ID</a> from the Zotero Connector on the <a href="https://forums.zotero.org">Zotero Forums</a>.')
-		throw new Error('Google Docs UI has changed.');
+		throw new Error(`Google Docs UI has changed. Trying to retrieve ${JSON.stringify(selectors)}`);
 	}
 }
 
