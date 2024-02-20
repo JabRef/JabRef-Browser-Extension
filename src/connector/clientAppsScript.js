@@ -200,6 +200,13 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 			return fields;
 		}
 
+		// If we had just inserted the {Updating} link and try to fetch fields, sometimes the
+		// sync to Google Servers is unfinished and the race condition is resolved to reversion
+		// client-side changes. But if we wait in _insertField() then the citation dialog
+		// has to wait for sync to be displayed, which can take a long time. On the other hand
+		// we only fetch the fields here for the Cited section in the citation dialog
+		// (and also for further operations).
+		await Zotero.GoogleDocs.UI.waitToSaveInsertion(false);
 		let response = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', [this.queued.conversion]);
 		this.fields = response.fields;
 		this.orphanedCitations = response.orphanedCitations;
@@ -250,18 +257,13 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 	 *
 	 * @param {Object} field
 	 */
-	_insertField: async function(field, waitForSave=true) {
+	_insertField: async function(field) {
 		var url = Zotero.GoogleDocs.config.fieldURL + field.id;
 
 		if (field.noteIndex > 0) {
 			await Zotero.GoogleDocs.UI.insertFootnote();
 		}
 		await Zotero.GoogleDocs.UI.insertLink(field.text, url);
-
-		if (!waitForSave) {
-			return;
-		}
-		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 	},
 
 	convertPlaceholdersToFields: async function(placeholderIDs, noteType) {
