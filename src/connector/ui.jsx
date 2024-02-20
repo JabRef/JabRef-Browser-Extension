@@ -736,9 +736,7 @@ Zotero.GoogleDocs.UI = {
 			let elem = document.querySelector(selector);
 			if (elem) return elem;
 		}
-		if (!throwError) {
-			return Zotero.logError(new Error(`Google Docs UI has changed. Trying to retrieve ${JSON.stringify(selectors)}`));
-		}
+		if (!throwError) return;
 		Zotero.GoogleDocs.UI.displayAlert('Google Docs UI has changed. Please submit a <a href="https://www.zotero.org/support/reporting_problems">Report ID</a> from the Zotero Connector on the <a href="https://forums.zotero.org">Zotero Forums</a>.')
 		throw new Error(`Google Docs UI has changed. Trying to retrieve ${JSON.stringify(selectors)}`);
 	}
