@@ -700,13 +700,13 @@ Zotero.GoogleDocs.UI = {
 	},
 
 	// Wait for google docs to save the text insertion
-	waitToSaveInsertion: async function(waitIfIdle=true) {
+	waitToSaveInsertion: async function() {
 		await Zotero.Promise.delay(5);
 		const SYNC_ICON_SELECTORS = ['.docs-icon-sync', '.docs-sync-20'];
 		
 		// Ahh this used to be a pain but google added a sync indicator so now waiting to finalize
 		// an insertion is super reliable!
-		if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false) && waitIfIdle) {
+		if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
 			// Except that it isn't, since the sync is not triggered immediately (anymore?)
 			// so some waits to save insertion have been falling through and causing failed pastes.
 			await Zotero.Promise.delay(1000);

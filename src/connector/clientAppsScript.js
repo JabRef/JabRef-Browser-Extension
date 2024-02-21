@@ -206,7 +206,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 		// has to wait for sync to be displayed, which can take a long time. On the other hand
 		// we only fetch the fields here for the Cited section in the citation dialog
 		// (and also for further operations).
-		await Zotero.GoogleDocs.UI.waitToSaveInsertion(false);
+		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
 		let response = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', [this.queued.conversion]);
 		this.fields = response.fields;
 		this.orphanedCitations = response.orphanedCitations;
