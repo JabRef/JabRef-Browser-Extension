@@ -142,7 +142,7 @@ Zotero.GoogleDocs.API = {
 		if (responseJSON.error) {
 			// For some reason, sometimes the still valid auth token starts being rejected
 			if (responseJSON.error.details[0].errorMessage == "Authorization is required to perform that action.") {
-				this.resetAuth();
+				delete this.authHeaders;
 				return this.run(docID, method, args);
 			}
 			var err = new Error(responseJSON.error.details[0].errorMessage);
