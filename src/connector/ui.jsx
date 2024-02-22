@@ -35,10 +35,12 @@ if (!isTopWindow) return;
 let zoteroIconURL = Zotero.getExtensionURL('images/zotero-z-16px-offline.png');
 let citationsUnlinkedIconURL = Zotero.getExtensionURL('images/citations-unlinked.png');
 
-const textInputSelectors = ['.docs-link-insertlinkbubble-text', '.docs-link-smartinsertlinkbubble-text',
+const TEXT_INPUT_SELECTORS = ['.docs-link-insertlinkbubble-text', '.docs-link-smartinsertlinkbubble-text',
 	'.appsElementsLinkInsertionLinkTextInput input'];
-const urlInputSelectors = ['.docs-link-urlinput-url', '.docs-link-searchinput-search',
+const URL_INPUT_SELECTORS = ['.docs-link-urlinput-url', '.docs-link-searchinput-search',
 	'.appsElementsLinkInsertionLinkSearchInput input'];
+const SYNC_ICON_SELECTORS = ['.docs-icon-sync', '.docs-sync-20'];
+const SYNC_TIMEOUT = 10e3;
 
 /**
  * A class that hacks into the Google Docs editor UI to allow performing various actions that should
@@ -50,6 +52,7 @@ Zotero.GoogleDocs.UI = {
 	inLink: false,
 	enabled: true,
 	isUpdating: false,
+	docSyncedPromise: Zotero.Promise.resolve(),
 
 	init: async function () {
 		await Zotero.Inject.loadReactComponents();
@@ -175,7 +178,7 @@ Zotero.GoogleDocs.UI = {
 	interceptPaste: function() {
 		let pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
 		pasteTarget.addEventListener('paste', async (e) => {
-			let insertPromise = this.waitToSaveInsertion();
+			this.setupWaitForSave();
 			let data = (e.clipboardData || window.clipboardData)
 				.getData('application/x-vnd.google-docs-document-slice-clip+wrapped');
 			if (!data) return true;
@@ -254,7 +257,7 @@ Zotero.GoogleDocs.UI = {
 			}
 			try {
 				Zotero.GoogleDocs.UI.toggleUpdatingScreen(true);
-				await insertPromise;
+				await this.waitToSaveInsertion();
 				let documentId = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
 				let orphanedCitations;
 				if (Zotero.GoogleDocs.Client.isV2) {
@@ -492,6 +495,7 @@ Zotero.GoogleDocs.UI = {
 		// Kix's own code and allows us to paste in proper HTML. Beautiful.
 		setTimeout(() => pasteTarget.innerHTML = text);
 		pasteTarget.dispatchEvent(evt);
+		this.setupWaitForSave();
 		await Zotero.Promise.delay();
 	},
 	
@@ -605,13 +609,12 @@ Zotero.GoogleDocs.UI = {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 		}
 		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
-		let textInput = this._getElemBySelectors(textInputSelectors);
+		let textInput = this._getElemBySelectors(TEXT_INPUT_SELECTORS);
 		textInput.value = text;
 		textInput.dispatchEvent(new InputEvent('input', {data: text, bubbles: true}));
-		let urlInput = this._getElemBySelectors(urlInputSelectors);
+		let urlInput = this._getElemBySelectors(URL_INPUT_SELECTORS);
 		urlInput.value = url;
 		urlInput.dispatchEvent(new InputEvent('input', {data: url, bubbles: true}));
-		await Zotero.Promise.delay();
 
 		await Zotero.GoogleDocs.UI.closeInsertLinkPopup(true);
 	},
@@ -657,9 +660,10 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	closeInsertLinkPopup: async function(confirm=true) {
-		let urlInput = this._getElemBySelectors(urlInputSelectors);
+		let urlInput = this._getElemBySelectors(URL_INPUT_SELECTORS);
 		let eventTarget = document.querySelector('.docs-calloutbubble-bubble').parentElement;
 		if (confirm && urlInput.value) {
+			this.setupWaitForSave();
 			let applyButton = document.querySelector('.appsElementsLinkInsertionApplyButton');
 			if (applyButton) {
 				// Likely a bug in the new google docs link insertion UI where pressing Enter
@@ -689,7 +693,7 @@ Zotero.GoogleDocs.UI = {
 	
 	getSelectedFieldID: async function() {
 		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
-		let urlInput = this._getElemBySelectors(urlInputSelectors);
+		let urlInput = this._getElemBySelectors(URL_INPUT_SELECTORS);
 		let url = urlInput.value;
 		
 		await Zotero.GoogleDocs.UI.closeInsertLinkPopup(false);
@@ -698,40 +702,38 @@ Zotero.GoogleDocs.UI = {
 		if (!isZoteroLink) return null;
 		return url.substr(Zotero.GoogleDocs.config.fieldURL.length);
 	},
+	
+	setupWaitForSave: function() {
+		// Setup a promise that will resolve when the sync indicator changes to spinner
+		// and then back to not-spinner, or timeout in SYNC_TIMEOUT.
+		this.docSyncedPromise = Promise.any([Zotero.Promise.delay(SYNC_TIMEOUT), new Promise((resolve) => {
+			let syncStarted = !!this._getElemBySelectors(SYNC_ICON_SELECTORS, false);
+			let observer = new MutationObserver(() => {
+				if (!syncStarted) {
+					if (this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
+						syncStarted = true;
+					}
+					return;
+				}
+				else if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
+					observer.disconnect();
+					resolve();
+				}
+			});
+			let saveIndicator = this._getElemBySelectors('.docs-save-indicator-container');
+			observer.observe(saveIndicator, {childList: true, subtree: true});
+		})]);
+	},
 
 	// Wait for google docs to save the text insertion
 	waitToSaveInsertion: async function() {
-		await Zotero.Promise.delay(5);
-		const SYNC_ICON_SELECTORS = ['.docs-icon-sync', '.docs-sync-20'];
-		
-		// Ahh this used to be a pain but google added a sync indicator so now waiting to finalize
-		// an insertion is super reliable!
-		if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
-			// Except that it isn't, since the sync is not triggered immediately (anymore?)
-			// so some waits to save insertion have been falling through and causing failed pastes.
-			await Zotero.Promise.delay(1000);
-			// We wait an extra second and if there's still no sync indicator then:
-			// - The action that we thought should trigger a sync doesn't actually do that
-			// - Or a full sync will have occurred in this second and we're clear to do whatever we need
-			//   in the backend
-			if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
-				return;
-			}
-		}
-
-		let deferred = Zotero.Promise.defer();
-		observer = new MutationObserver(() => {
-			if (!this._getElemBySelectors(SYNC_ICON_SELECTORS, false)) {
-				deferred.resolve()
-			}
-		});
-		let saveIndicator = document.querySelector('.docs-save-indicator-container');
-		observer.observe(saveIndicator, {childList: true, subtree: true});
-		await deferred.promise;
-		observer.disconnect();
+		return this.docSyncedPromise;
 	},
 
 	_getElemBySelectors(selectors, throwError=true) {
+		if (!Array.isArray(selectors)) {
+			selectors = [selectors];
+		}
 		for (let selector of selectors) {
 			let elem = document.querySelector(selector);
 			if (elem) return elem;
