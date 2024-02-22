@@ -665,15 +665,28 @@ Zotero.GoogleDocs.UI = {
 		if (confirm && urlInput.value) {
 			this.setupWaitForSave();
 			let applyButton = document.querySelector('.appsElementsLinkInsertionApplyButton');
+			// Likely a bug in the new google docs link insertion UI where pressing Enter
+			// does not close the dialog, and will probably be changed/fixed, but for now
+			// we simulate a click on the apply button.
+			// The reason the old code doesn't click the apply button is that when the previous
+			// iteration of the link insertion bubble went live it didn't originally include an
+			// apply button that we could click on and you could only accept the dialog by pressing
+			// Enter. Sigh.	
 			if (applyButton) {
-				// Likely a bug in the new google docs link insertion UI where pressing Enter
-				// does not close the dialog, and will probably be changed/fixed, but for now
-				// we simulate a click on the apply button.
-				// The reason the old code doesn't click the apply button is that when the previous
-				// iteration of the link insertion bubble went live it didn't originally include an
-				// apply button that we could click on and you could only accept the dialog by pressing
-				// Enter. Sigh.
-				await Zotero.GoogleDocs.UI.clickElement(document.querySelector('.appsElementsLinkInsertionApplyButton'));
+				// But wait there's more. The button is disabled until urlInput is set, but sometimes
+				// the button stays disabled for a little while longer.
+				if (applyButton.hasAttribute('disabled')) {
+					await new Promise((resolve) => {
+						let observer = new MutationObserver(() => {
+							if (!applyButton.hasAttribute('disabled')) {
+								observer.disconnect();
+								resolve();
+							}
+						});
+						observer.observe(applyButton, {attributes: true});
+					})
+				}
+				await Zotero.GoogleDocs.UI.clickElement(applyButton);
 			}
 			else {
 				await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
