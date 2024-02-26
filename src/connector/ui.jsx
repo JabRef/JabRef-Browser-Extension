@@ -655,8 +655,24 @@ Zotero.GoogleDocs.UI = {
 	},
 	
 	openInsertLinkPopup: async function() {
+		// Hide the link insert bubble while we're using it, so it doesn't flash-appear for users
+		let linkInsertBubble = this._getElemBySelectors('.docsLinkSmartinsertlinkBubble', false);
+		if (linkInsertBubble) {
+			this._linkInsertBubbleObserver = new MutationObserver(() => {
+				if (linkInsertBubble.style.visibility !== 'hidden') {
+					linkInsertBubble.style.visibility = "hidden";
+				}
+				if (linkInsertBubble.style.opacity !== '0') {
+					linkInsertBubble.style.opacity = "0";
+				}
+			});
+			this._linkInsertBubbleObserver.observe(linkInsertBubble, { attributeFilter: ["style"] });
+			// Make sure we are not permanently breaking the insert link bubble if something
+			// throws an error in our code and the observer does not get disconnected
+			setTimeout(() => this._linkInsertBubbleObserver.disconnect(), 2000);
+		}	
 		await this.clickElement(document.getElementById('insertLinkButton'));
-		return await Zotero.Promise.delay();
+		await Zotero.Promise.delay();
 	},
 	
 	closeInsertLinkPopup: async function(confirm=true) {
@@ -695,12 +711,8 @@ Zotero.GoogleDocs.UI = {
 		else {
 			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
 			// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
-			// too soon after opening it, it gets stuck in the animating view, with effective visibility: none,
+			// too soon after opening it, it gets stuck in the animating view, with effective visibility: hidden,
 			// breaking cursor clicks on the document.
-			// This change makes it possible to see the linkbubble being opened every time we do that for a brief
-			// moment (whereas in the past it was rarely possible), which is somewhat visually jarring, but we
-			// don't have anything to work with.
-			// We should check in the future to see if we can remove this
 			await Zotero.Promise.delay(50);
 			urlInput.dispatchEvent(new KeyboardEvent('keydown', {key: "Escape", keyCode: 27, bubbles: true}));
 			if (urlInput.value) {
@@ -710,6 +722,10 @@ Zotero.GoogleDocs.UI = {
 			textEventTarget.focus();
 		}
 		await Zotero.Promise.delay();
+		if (this._linkInsertBubbleObserver) {
+			this._getElemBySelectors('.docsLinkSmartinsertlinkBubble', false).style.visibility = "";
+			this._linkInsertBubbleObserver.disconnect();
+		}
 	},
 	
 	getSelectedFieldID: async function() {
