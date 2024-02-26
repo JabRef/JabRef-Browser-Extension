@@ -694,6 +694,14 @@ Zotero.GoogleDocs.UI = {
 		}
 		else {
 			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
+			// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
+			// too soon after opening it, it gets stuck in the animating view, with effective visibility: none,
+			// breaking cursor clicks on the document.
+			// This change makes it possible to see the linkbubble being opened every time we do that for a brief
+			// moment (whereas in the past it was rarely possible), which is somewhat visually jarring, but we
+			// don't have anything to work with.
+			// We should check in the future to see if we can remove this
+			await Zotero.Promise.delay(50);
 			urlInput.dispatchEvent(new KeyboardEvent('keydown', {key: "Escape", keyCode: 27, bubbles: true}));
 			if (urlInput.value) {
 				textEventTarget.contentDocument
