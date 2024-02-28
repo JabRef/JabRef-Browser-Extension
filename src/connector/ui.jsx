@@ -68,6 +68,7 @@ Zotero.GoogleDocs.UI = {
 		this.interceptDownloads();
 		this.interceptPaste();
 		this.initModeMonitor();
+		Zotero.GoogleDocs.UI.LinkInsertBubble.init();
 	},
 
 	injectIntoDOM: async function () {
@@ -654,78 +655,12 @@ Zotero.GoogleDocs.UI = {
 		return this.getSelectedFieldID();
 	},
 	
-	openInsertLinkPopup: async function() {
-		// Hide the link insert bubble while we're using it, so it doesn't flash-appear for users
-		let linkInsertBubble = this._getElemBySelectors('.docsLinkSmartinsertlinkBubble', false);
-		if (linkInsertBubble) {
-			this._linkInsertBubbleObserver = new MutationObserver(() => {
-				if (linkInsertBubble.style.visibility !== 'hidden') {
-					linkInsertBubble.style.visibility = "hidden";
-				}
-				if (linkInsertBubble.style.opacity !== '0') {
-					linkInsertBubble.style.opacity = "0";
-				}
-			});
-			this._linkInsertBubbleObserver.observe(linkInsertBubble, { attributeFilter: ["style"] });
-			// Make sure we are not permanently breaking the insert link bubble if something
-			// throws an error in our code and the observer does not get disconnected
-			setTimeout(() => this._linkInsertBubbleObserver.disconnect(), 2000);
-		}	
-		await this.clickElement(document.getElementById('insertLinkButton'));
-		await Zotero.Promise.delay();
+	openInsertLinkPopup: async function(...args) {
+		return Zotero.GoogleDocs.UI.LinkInsertBubble.open(...args);
 	},
 	
-	closeInsertLinkPopup: async function(confirm=true) {
-		let urlInput = this._getElemBySelectors(URL_INPUT_SELECTORS);
-		let eventTarget = document.querySelector('.docs-calloutbubble-bubble').parentElement;
-		if (confirm && urlInput.value) {
-			this.setupWaitForSave();
-			let applyButton = document.querySelector('.appsElementsLinkInsertionApplyButton');
-			// Likely a bug in the new google docs link insertion UI where pressing Enter
-			// does not close the dialog, and will probably be changed/fixed, but for now
-			// we simulate a click on the apply button.
-			// The reason the old code doesn't click the apply button is that when the previous
-			// iteration of the link insertion bubble went live it didn't originally include an
-			// apply button that we could click on and you could only accept the dialog by pressing
-			// Enter. Sigh.	
-			if (applyButton) {
-				// But wait there's more. The button is disabled until urlInput is set, but sometimes
-				// the button stays disabled for a little while longer.
-				if (applyButton.hasAttribute('disabled')) {
-					await new Promise((resolve) => {
-						let observer = new MutationObserver(() => {
-							if (!applyButton.hasAttribute('disabled')) {
-								observer.disconnect();
-								resolve();
-							}
-						});
-						observer.observe(applyButton, {attributes: true});
-					})
-				}
-				await Zotero.GoogleDocs.UI.clickElement(applyButton);
-			}
-			else {
-				await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
-			}
-		}
-		else {
-			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
-			// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
-			// too soon after opening it, it gets stuck in the animating view, with effective visibility: hidden,
-			// breaking cursor clicks on the document.
-			await Zotero.Promise.delay(50);
-			urlInput.dispatchEvent(new KeyboardEvent('keydown', {key: "Escape", keyCode: 27, bubbles: true}));
-			if (urlInput.value) {
-				textEventTarget.contentDocument
-					.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
-			}
-			textEventTarget.focus();
-		}
-		await Zotero.Promise.delay();
-		if (this._linkInsertBubbleObserver) {
-			this._getElemBySelectors('.docsLinkSmartinsertlinkBubble', false).style.visibility = "";
-			this._linkInsertBubbleObserver.disconnect();
-		}
+	closeInsertLinkPopup: async function(...args) {
+		return Zotero.GoogleDocs.UI.LinkInsertBubble.close(...args);
 	},
 	
 	getSelectedFieldID: async function() {
@@ -780,6 +715,133 @@ Zotero.GoogleDocs.UI = {
 		throw new Error(`Google Docs UI has changed. Trying to retrieve ${JSON.stringify(selectors)}`);
 	}
 }
+
+Zotero.GoogleDocs.UI.LinkInsertBubble = {
+	_linkInsertBubble: null,
+	_linkInsertBubblePromise: null,
+	_openDeferred: Zotero.Promise.defer(),
+	_observer: null,
+	_observing: false,
+	
+	init() {
+		this._linkInsertBubble = Zotero.GoogleDocs.UI._getElemBySelectors('.docsLinkSmartinsertlinkBubble', false);
+		if (!this._linkInsertBubble) {
+			// Link insert popup does not exist in the DOM until the user (or Zotero) opens
+			// it for the first time, so we wait for that to happen
+			this._linkInsertBubblePromise = new Promise((resolve) => {
+				let observer = new MutationObserver(() => {
+					this._linkInsertBubble = Zotero.GoogleDocs.UI._getElemBySelectors('.docsLinkSmartinsertlinkBubble', false);
+					if (this._linkInsertBubble) {
+						observer.disconnect();
+						resolve(this._linkInsertBubble);
+					}
+				});
+				observer.observe(Zotero.GoogleDocs.UI._getElemBySelectors('.kix-appview-editor'), { childList: true });
+			})
+		}
+		else {
+			this._linkInsertBubblePromise = Promise.resolve(this._linkInsertBubble);
+		}
+	},
+	
+	async get() {
+		return this._linkInsertBubblePromise;
+	},
+
+	// Hide the link insert bubble while we're using it, so it doesn't flash-appear for users
+	async observeAndMakeInvisible() {
+		let linkInsertBubble = await this.get();
+		this._observer = new MutationObserver(() => {
+			if (linkInsertBubble.style.visibility !== 'hidden') {
+				linkInsertBubble.style.visibility = "hidden";
+			}
+			if (linkInsertBubble.style.opacity !== '0') {
+				linkInsertBubble.style.opacity = "0";
+				// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
+				// too soon after opening it, it gets stuck in the animating view, with effective visibility: hidden,
+				// breaking cursor clicks on the document. Furthermore, it's not something we can easily wait on
+				// by skipping to the next animation frame or something, but we know that as soon as
+				// the opacity of the linkbubble gets set to 1, closing it will not break it.
+				this._openDeferred.resolve();
+			}
+		});
+		this._observer.observe(linkInsertBubble, { attributeFilter: ["style"] });
+		this._observing = true;
+		// Make sure we are not permanently breaking the insert link bubble if something
+		// throws an error in our code and the observer does not get disconnected
+		setTimeout(() => this.stopObserving(), 2000);
+	},
+	
+	stopObserving() {
+		if (this._observing) {
+			this._observer.disconnect()
+			let linkInsertBubble = this._linkInsertBubble;
+			linkInsertBubble.visibilty = "";
+			linkInsertBubble.opacity = "";
+			this._observing = false;
+		}
+	},
+	
+	async open() {
+		// Setup insert link bubble hiding
+		this.observeAndMakeInvisible();
+		// Reset openDeferred (will be resolved in function above, when the dialog is opened)
+		let oldOpenDeferred = this._openDeferred;
+		this._openDeferred = new Zotero.Promise.defer();
+		this._openDeferred.promise.then(oldOpenDeferred.resolve());
+		
+		await Zotero.GoogleDocs.UI.clickElement(Zotero.GoogleDocs.UI._getElemBySelectors('#insertLinkButton'));
+		await Zotero.Promise.delay();
+	},
+	
+	async close(confirm=true) {
+		let urlInput = Zotero.GoogleDocs.UI._getElemBySelectors(URL_INPUT_SELECTORS);
+		let eventTarget = document.querySelector('.docs-calloutbubble-bubble').parentElement;
+		if (confirm && urlInput.value) {
+			Zotero.GoogleDocs.UI.setupWaitForSave();
+			let applyButton = document.querySelector('.appsElementsLinkInsertionApplyButton');
+			// Likely a bug in the new google docs link insertion UI where pressing Enter
+			// does not close the dialog, and will probably be changed/fixed, but for now
+			// we simulate a click on the apply button.
+			// The reason the old code doesn't click the apply button is that when the previous
+			// iteration of the link insertion bubble went live it didn't originally include an
+			// apply button that we could click on and you could only accept the dialog by pressing
+			// Enter. Sigh.	
+			if (applyButton) {
+				// But wait there's more. The button is disabled until urlInput is set, but sometimes
+				// the button stays disabled for a little while longer.
+				if (applyButton.hasAttribute('disabled')) {
+					await new Promise((resolve) => {
+						let observer = new MutationObserver(() => {
+							if (!applyButton.hasAttribute('disabled')) {
+								observer.disconnect();
+								resolve();
+							}
+						});
+						observer.observe(applyButton, {attributes: true});
+					})
+				}
+				await Zotero.GoogleDocs.UI.clickElement(applyButton);
+			}
+			else {
+				await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Enter", keyCode: 13}, eventTarget);
+			}
+		}
+		else {
+			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
+			// Make sure the dialog is fully opened before we attempt to close it
+			await this._openDeferred.promise;
+			urlInput.dispatchEvent(new KeyboardEvent('keydown', {key: "Escape", keyCode: 27, bubbles: true}));
+			if (urlInput.value) {
+				textEventTarget.contentDocument
+					.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
+			}
+			textEventTarget.focus();
+		}
+		this.stopObserving();
+		await Zotero.Promise.delay();
+	}
+};
 
 Zotero.GoogleDocs.UI.Menu = class extends React.Component {
 	constructor(props) {
