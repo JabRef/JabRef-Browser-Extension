@@ -797,6 +797,7 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 	async close(confirm=true) {
 		let urlInput = Zotero.GoogleDocs.UI._getElemBySelectors(URL_INPUT_SELECTORS);
 		let eventTarget = document.querySelector('.docs-calloutbubble-bubble').parentElement;
+		await this._openDeferred.promise;
 		if (confirm && urlInput.value) {
 			Zotero.GoogleDocs.UI.setupWaitForSave();
 			let applyButton = document.querySelector('.appsElementsLinkInsertionApplyButton');
@@ -830,7 +831,6 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 		else {
 			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
 			// Make sure the dialog is fully opened before we attempt to close it
-			await this._openDeferred.promise;
 			urlInput.dispatchEvent(new KeyboardEvent('keydown', {key: "Escape", keyCode: 27, bubbles: true}));
 			if (urlInput.value) {
 				textEventTarget.contentDocument
