@@ -722,8 +722,12 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 	_openDeferred: Zotero.Promise.defer(),
 	_observer: null,
 	_observing: false,
+	_observeTimeout: null,
 	
 	init() {
+		this._stylesheet = document.createElement('style');
+		this._stylesheet.className = 'zotero-stylesheet';
+		document.children[0].appendChild(this._stylesheet);
 		this._linkInsertBubble = Zotero.GoogleDocs.UI._getElemBySelectors('.docsLinkSmartinsertlinkBubble', false);
 		if (!this._linkInsertBubble) {
 			// Link insert popup does not exist in the DOM until the user (or Zotero) opens
@@ -752,11 +756,8 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 	async observeAndMakeInvisible() {
 		let linkInsertBubble = await this.get();
 		this._observer = new MutationObserver(() => {
-			if (linkInsertBubble.style.visibility !== 'hidden') {
-				linkInsertBubble.style.visibility = "hidden";
-			}
 			if (linkInsertBubble.style.opacity !== '0') {
-				linkInsertBubble.style.opacity = "0";
+				console.log(`Bubble open. linkInsertBubble.style.opacity ${linkInsertBubble.style.opacity}`);
 				// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
 				// too soon after opening it, it gets stuck in the animating view, with effective visibility: hidden,
 				// breaking cursor clicks on the document. Furthermore, it's not something we can easily wait on
@@ -766,19 +767,19 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 			}
 		});
 		this._observer.observe(linkInsertBubble, { attributeFilter: ["style"] });
+		this._stylesheet.sheet.insertRule('.docsLinkSmartinsertlinkCardContainer {visibility: hidden !important}')
 		this._observing = true;
 		// Make sure we are not permanently breaking the insert link bubble if something
 		// throws an error in our code and the observer does not get disconnected
-		setTimeout(() => this.stopObserving(), 2000);
+		this._observeTimeout = setTimeout(() => this.stopObserving(), 2000);
 	},
 	
 	stopObserving() {
 		if (this._observing) {
 			this._observer.disconnect()
-			let linkInsertBubble = this._linkInsertBubble;
-			linkInsertBubble.visibilty = "";
-			linkInsertBubble.opacity = "";
 			this._observing = false;
+			setTimeout(() => this._stylesheet.sheet.deleteRule(0), 200);
+			clearTimeout(this._observeTimeout);
 		}
 	},
 	
@@ -838,8 +839,8 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 			}
 			textEventTarget.focus();
 		}
-		this.stopObserving();
 		await Zotero.Promise.delay();
+		this.stopObserving();
 	}
 };
 
