@@ -606,6 +606,8 @@ Zotero.GoogleDocs.UI = {
 	
 	insertLink: async function(text, url) {
 		var selectedText = this.getSelectedText();
+		// If we do not remove the selected text content, then the insert link dialog does not
+		// contain a field to specify link text and our code breaks
 		if (selectedText.length) {
 			await Zotero.GoogleDocs.UI.sendKeyboardEvent({key: "Backspace", keyCode: 8});
 		}
@@ -636,23 +638,45 @@ Zotero.GoogleDocs.UI = {
 		var selection = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.textContent;
 		// on macOS a U+200B ZERO WIDTH SPACE is the text content when nothing is selected here
 		// so we remove and trim various unicode zero-width space characters here
-		selection = selection.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+		selection = selection.replace(/[\u200B-\u200D\uFEFF]/g, '');
 		return selection;
 	},
 	
+	getSelectedLink: function() {
+		let elem = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.querySelector('a');
+		if (!elem) return "";
+		else return elem.getAttribute('href');
+	},
+	
 	moveCursorToEndOfCitation: async function() {
-		var selectedText = this.getSelectedText();
-		if (selectedText.length) {
-			var textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
-			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
-			await Zotero.Promise.delay();
-		}
-		// We don't have a way to know whether our changes submitted via the API have propagated
-		// to the client yet, and the cursor moves back to before-the-citation location after
-		// they do.
-		// This is not ideal, but it will work for users with decent internet connection
+		// Sometimes it takes a while for the doc to receive updates from the back end
+		// so we wait here preemptively. Worst case the cursor won't properly move to the front
+		// of the item.
 		await Zotero.Promise.delay(500);
-		return this.getSelectedFieldID();
+		let isZoteroLink = url => url.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
+		
+		let textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
+		let copyEventTarget = textEventTarget.body.children[0];
+		let selectedText = this.getSelectedText();
+		if (selectedText.length) {
+			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
+		}
+
+		// Move cursor right until we are out of the Zotero link.
+		textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39, shiftKey: true}));
+		copyEventTarget.dispatchEvent(new CustomEvent('copy'));
+		selectedText = this.getSelectedText();
+		let selectionLink = this.getSelectedLink();
+		while (selectedText.length && isZoteroLink(selectionLink)) {
+			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
+			copyEventTarget.innerHTML = ""
+			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39, shiftKey: true}));
+			copyEventTarget.dispatchEvent(new CustomEvent('copy'));
+			selectedText = this.getSelectedText();
+			selectionLink = this.getSelectedLink();
+		}
+		textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowLeft", keyCode: 37}));
+		copyEventTarget.innerHTML = ""
 	},
 	
 	openInsertLinkPopup: async function(...args) {
@@ -663,16 +687,51 @@ Zotero.GoogleDocs.UI = {
 		return Zotero.GoogleDocs.UI.LinkInsertBubble.close(...args);
 	},
 	
+	/**
+	 * Get the field ID under cursor by moving the selection left by one, and right by one character
+	 * and checking whether the selected text is a Zotero citation
+	 */
 	getSelectedFieldID: async function() {
-		await Zotero.GoogleDocs.UI.openInsertLinkPopup();
-		let urlInput = this._getElemBySelectors(URL_INPUT_SELECTORS);
-		let url = urlInput.value;
+		let isZoteroLink = url => url.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
 		
-		await Zotero.GoogleDocs.UI.closeInsertLinkPopup(false);
+		let textEventTarget = this._getElemBySelectors('.docs-texteventtarget-iframe').contentDocument;
+		let copyEventTarget = textEventTarget.body.children[0];
+		let selectionLink = this.getSelectedLink();
+		let selectedText = this.getSelectedText();
 		
-		let isZoteroLink = url.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
-		if (!isZoteroLink) return null;
-		return url.substr(Zotero.GoogleDocs.config.fieldURL.length);
+		// If there is already selected text do not modify the selection cursor
+		if (!isZoteroLink(selectionLink) && !selectedText.length) {
+			// Otherwise check text to the left
+			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowLeft", keyCode: 37, shiftKey: true}));
+			// If you modify the selection cursor by dispatching fake keyboard events and the current
+			// document focus is not in the text of the document (but rather in e.g. a menu), the internal
+			// google docs code does not update the element in the document which usually contains
+			// the HTML of the selected text.
+			// We dispatch a fake copy event which forces the update, and then we can retrieve
+			// the updated current selection.
+			copyEventTarget.dispatchEvent(new CustomEvent('copy'));
+			selectionLink = this.getSelectedLink()
+			selectedText = this.getSelectedText();
+			// If the cursor was at the start of the text then no selection in the previous step occurred
+			if (selectedText.length) {
+				textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
+				// The element with the selection content does not get reset when we reset the cursor like this
+				// so we do it manually.
+				copyEventTarget.innerHTML = ""
+			}
+			if (!isZoteroLink(selectionLink)) {
+				// And check text to the right
+				textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39, shiftKey: true}));
+				copyEventTarget.dispatchEvent(new CustomEvent('copy'));
+				selectionLink = this.getSelectedLink()
+				selectedText = this.getSelectedText();
+				textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowLeft", keyCode: 37}));
+				copyEventTarget.innerHTML = ""
+			}
+		}
+
+		if (!isZoteroLink(selectionLink)) return;
+		return selectionLink.substr(Zotero.GoogleDocs.config.fieldURL.length);
 	},
 	
 	setupWaitForSave: function() {
@@ -721,7 +780,6 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 	_linkInsertBubblePromise: null,
 	_openDeferred: Zotero.Promise.defer(),
 	_observer: null,
-	_observing: false,
 	_observeTimeout: null,
 	
 	init() {
@@ -752,53 +810,81 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 		return this._linkInsertBubblePromise;
 	},
 
-	// Hide the link insert bubble while we're using it, so it doesn't flash-appear for users
-	async observeAndMakeInvisible() {
-		let linkInsertBubble = await this.get();
-		this._observer = new MutationObserver(() => {
-			if (linkInsertBubble.style.opacity !== '0') {
-				console.log(`Bubble open. linkInsertBubble.style.opacity ${linkInsertBubble.style.opacity}`);
-				// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
-				// too soon after opening it, it gets stuck in the animating view, with effective visibility: hidden,
-				// breaking cursor clicks on the document. Furthermore, it's not something we can easily wait on
-				// by skipping to the next animation frame or something, but we know that as soon as
-				// the opacity of the linkbubble gets set to 1, closing it will not break it.
-				this._openDeferred.resolve();
-			}
-		});
-		this._observer.observe(linkInsertBubble, { attributeFilter: ["style"] });
+	// Google Docs JS manages the styling of the insert link card and if we change it on the element
+	// things break, so we force it invisible (to prevent from flash opening) via a stylesheet
+	// injection
+	makeInvisible() {
 		this._stylesheet.sheet.insertRule('.docsLinkSmartinsertlinkCardContainer {visibility: hidden !important}')
-		this._observing = true;
-		// Make sure we are not permanently breaking the insert link bubble if something
-		// throws an error in our code and the observer does not get disconnected
-		this._observeTimeout = setTimeout(() => this.stopObserving(), 2000);
+	},
+
+	makeVisible() {
+		while (this._stylesheet.sheet.cssRules.length) {
+			this._stylesheet.sheet.deleteRule(0)
+		}
 	},
 	
-	stopObserving() {
-		if (this._observing) {
-			this._observer.disconnect()
-			this._observing = false;
-			setTimeout(() => this._stylesheet.sheet.deleteRule(0), 200);
-			clearTimeout(this._observeTimeout);
-		}
+	async waitToOpenAndMakeInvisible() {
+		let linkInsertBubble = await this.get();
+		this.makeInvisible();
+		let observer, timeout;
+		await new Promise((resolve) => {
+			observer = new MutationObserver((mutationList) => {
+				if (linkInsertBubble.style.opacity === '1' && !linkInsertBubble.style.transition) {
+					// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
+					// too soon after opening it, it gets stuck in the animating view, with visibility: hidden; display block;,
+					// breaking cursor clicks on the document. It has a 218ms animation that we wait for here.
+					resolve();
+				}
+			});
+			observer.observe(linkInsertBubble, { attributeFilter: ["style", 'subtree', 'childList', 'attributes'] });
+			// Make sure we are not permanently breaking the insert link bubble if something
+			// throws an error in our code and the observer does not get disconnected
+			timeout = setTimeout(() => {
+				Zotero.logError('GoogleDocs.UI.LinkInsertBubble: waiting to open has timed out. Link insert bubble animation watcher broken?')
+				resolve();
+			}, 2000);
+		});
+		clearTimeout(timeout);
+		observer.disconnect()
 	},
 	
 	async open() {
 		// Setup insert link bubble hiding
-		this.observeAndMakeInvisible();
-		// Reset openDeferred (will be resolved in function above, when the dialog is opened)
-		let oldOpenDeferred = this._openDeferred;
-		this._openDeferred = new Zotero.Promise.defer();
-		this._openDeferred.promise.then(oldOpenDeferred.resolve());
-		
+		let openPromise = this.waitToOpenAndMakeInvisible();
 		await Zotero.GoogleDocs.UI.clickElement(Zotero.GoogleDocs.UI._getElemBySelectors('#insertLinkButton'));
-		await Zotero.Promise.delay();
+		await openPromise;
+	},
+	
+	async waitToCloseAndMakeVisible() {
+		let linkInsertBubble = await this.get();
+		let observer, timeout;
+		await new Promise((resolve) => {
+			observer = new MutationObserver(() => {
+				if (linkInsertBubble.style.opacity === '0' && !linkInsertBubble.style.transition) {
+					// 2024 02 Google Docs linkbubble changes added an opening animation. If we attempt to close the dialog
+					// too soon after opening it, it gets stuck in the animating view, with visibility: hidden; display block;,
+					// breaking cursor clicks on the document. It has a 218ms animation that we wait for here.
+					resolve();
+				}
+			});
+			observer.observe(linkInsertBubble, { attributeFilter: ["style"] });
+			// Make sure we are not permanently breaking the insert link bubble if something
+			// throws an error in our code and the observer does not get disconnected
+			timeout = setTimeout(() => {
+				Zotero.logError('GoogleDocs.UI.LinkInsertBubble: waiting to close has timed out. Link insert bubble animation watcher broken?')
+				resolve();
+			}, 2000);
+		});
+		clearTimeout(timeout);
+		observer.disconnect()
+		this.makeVisible();
 	},
 	
 	async close(confirm=true) {
 		let urlInput = Zotero.GoogleDocs.UI._getElemBySelectors(URL_INPUT_SELECTORS);
 		let eventTarget = document.querySelector('.docs-calloutbubble-bubble').parentElement;
-		await this._openDeferred.promise;
+		let closePromise = this.waitToCloseAndMakeVisible();
+		// Make sure the dialog is fully opened before we attempt to close it
 		if (confirm && urlInput.value) {
 			Zotero.GoogleDocs.UI.setupWaitForSave();
 			let applyButton = document.querySelector('.appsElementsLinkInsertionApplyButton');
@@ -831,7 +917,6 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 		}
 		else {
 			let textEventTarget = document.querySelector('.docs-texteventtarget-iframe');
-			// Make sure the dialog is fully opened before we attempt to close it
 			urlInput.dispatchEvent(new KeyboardEvent('keydown', {key: "Escape", keyCode: 27, bubbles: true}));
 			if (urlInput.value) {
 				textEventTarget.contentDocument
@@ -839,8 +924,7 @@ Zotero.GoogleDocs.UI.LinkInsertBubble = {
 			}
 			textEventTarget.focus();
 		}
-		await Zotero.Promise.delay();
-		this.stopObserving();
+		await closePromise;
 	}
 };
 

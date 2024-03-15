@@ -40,6 +40,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 		this.orphanedCitationAlertShown = false;
 		this.insertingNote = false;
 		this.insertNoteIndex = 1;
+		this.noteType = 1;
 		this.insertIdx = null;
 		this.queued = {
 			fields: {},
@@ -186,7 +187,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 			if (typeof this.insertIdx == 'number' && this.queued.insert.length) {
 				let prevField = this.fields[this.insertIdx-1];
 				let nextField = this.fields[this.insertIdx];
-				let noteIndex = 1;
+				let noteIndex = this.noteType ? 1 : 0;
 				if (prevField) {
 					noteIndex = prevField.noteIndex == 0 ? 0 : prevField.noteIndex+1;
 				} else if (nextField) {
@@ -232,6 +233,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 	},
 
 	insertField: async function(fieldType, noteType) {
+		this.noteType = noteType;
 		var id = Zotero.Utilities.randomString(Zotero.GoogleDocs.config.fieldKeyLength);
 		var field = {
 			text: Zotero.GoogleDocs.config.citationPlaceholder,
