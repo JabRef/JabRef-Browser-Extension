@@ -475,11 +475,9 @@ Zotero.GoogleDocs.UI = {
 	 */
 	writeText: async function(text) {
 		var evt;
-		var pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body.children[0];
-		if (!pasteTarget) {
-			// The body has no children on Safari
-			pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.body;
-		}
+		// On Safari this is the <body> element, but on other browsers it's a <div> in the <body>.
+		// selector captures all both variants
+		var pasteTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument.querySelector('[contenteditable]');
 		if (!Zotero.isFirefox) {
 			var dt = new DataTransfer();
 			dt.setData('text/html', text);
@@ -656,7 +654,7 @@ Zotero.GoogleDocs.UI = {
 		let isZoteroLink = url => url.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
 		
 		let textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
-		let copyEventTarget = textEventTarget.body.children[0];
+		let copyEventTarget = textEventTarget.querySelector('[contenteditable]');;
 		let selectedText = this.getSelectedText();
 		if (selectedText.length) {
 			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
@@ -695,7 +693,7 @@ Zotero.GoogleDocs.UI = {
 		let isZoteroLink = url => url.indexOf(Zotero.GoogleDocs.config.fieldURL) == 0;
 		
 		let textEventTarget = this._getElemBySelectors('.docs-texteventtarget-iframe').contentDocument;
-		let copyEventTarget = textEventTarget.body.children[0];
+		let copyEventTarget = textEventTarget.querySelector('[contenteditable]');;
 		let selectionLink = this.getSelectedLink();
 		let selectedText = this.getSelectedText();
 		
