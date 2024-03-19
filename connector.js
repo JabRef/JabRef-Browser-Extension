@@ -138,8 +138,13 @@ Zotero.Connector = new function() {
 					console.error(`JabRef: Error connecting to JabRef: '${response.output}' at '${response.stacktrace}'`);
 					handleError(response.output, '', response.stacktrace)
 				} else {
-					console.error(`JabRef: Error connecting to JabRef: '${response.message}' with details '${response.output}' at '${response.stacktrace}'`);
-					handleError(response.message, response.output, response.stacktrace)
+					if (response.message) {
+						console.error(`JabRef: Error connecting to JabRef: '${response.message}' with details '${response.output}' at '${response.stacktrace}'`);
+						handleError(response.message, response.output, response.stacktrace)
+					} else {
+						console.error("JabRef: Error connecting to JabRef. Unexpected response type", response)
+						handleError("Error connecting to JabRef. Unexpected response type", JSON.stringify(response))
+					}
 				}
 			})
 			.catch(error => {
