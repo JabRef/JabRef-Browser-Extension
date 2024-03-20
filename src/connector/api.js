@@ -27,18 +27,21 @@ Zotero.GoogleDocs = Zotero.GoogleDocs || {};
 
 Zotero.GoogleDocs.API = {
 	authDeferred: null,
-	authHeaders: null,
-	lastAuthEmail: null,
+	authCredentials: {},
 	apiVersion: 5,
 	
+	init: async function() {
+		this.authCredentials = await Zotero.Utilities.Connector.createMV3PersistentObject('googleDocsAuthCredentials')
+	},
+	
 	resetAuth: function() {
-		delete this.authHeaders;
-		delete this.lastAuthEmail;
+		delete this.authCredentials.headers;
+		delete this.authCredentials.lastEmail;
 	},
 
 	getAuthHeaders: async function() {
-		if (Zotero.GoogleDocs.API.authHeaders) {
-			return Zotero.GoogleDocs.API.authHeaders;
+		if (Zotero.GoogleDocs.API.authCredentials.headers) {
+			return Zotero.GoogleDocs.API.authCredentials.headers;
 		}
 		
 		// For macOS, since popping up an auth window or calling Connector_Browser.bringToFront()
@@ -53,8 +56,8 @@ Zotero.GoogleDocs.API = {
 			scope: 'https://www.googleapis.com/auth/documents email',
 			state: 'google-docs-auth-callback'
 		};
-		if (Zotero.GoogleDocs.API.lastAuthEmail) {
-			params.login_hint = Zotero.GoogleDocs.API.lastAuthEmail;
+		if (Zotero.GoogleDocs.API.authCredentials.lastEmail) {
+			params.login_hint = Zotero.GoogleDocs.API.authCredentials.lastEmail;
 		}
 		let url = ZOTERO_CONFIG.OAUTH.GOOGLE_DOCS.AUTHORIZE_URL + "?";
 		for (let key in params) {
@@ -94,10 +97,10 @@ Zotero.GoogleDocs.API = {
 				throw new Error(`Google Docs Access Token invalid ${xhr.responseText}`);
 			}
 			
-			this.lastAuthEmail = response.email;
-			this.authHeaders = {'Authorization': `Bearer ${params.access_token}`};
+			this.authCredentials.lastEmail = response.email;
+			this.authCredentials.headers = {'Authorization': `Bearer ${params.access_token}`};
 			// Request a new token upon expiration
-			setTimeout(() => this.authHeaders = null, (parseInt(params.expires_in)-60)*1000);
+			setTimeout(() => this.authCredentials.headers = null, (parseInt(params.expires_in)-60)*1000);
 			response = await this.getAuthHeaders();
 			deferred.resolve(response);
 			return response;
@@ -142,7 +145,7 @@ Zotero.GoogleDocs.API = {
 		if (responseJSON.error) {
 			// For some reason, sometimes the still valid auth token starts being rejected
 			if (responseJSON.error.details[0].errorMessage == "Authorization is required to perform that action.") {
-				delete this.authHeaders;
+				delete this.authCredentials.headers;
 				return this.run(docID, method, args);
 			}
 			var err = new Error(responseJSON.error.details[0].errorMessage);
