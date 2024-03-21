@@ -655,6 +655,8 @@ Zotero.GoogleDocs.UI = {
 		
 		let textEventTarget = document.querySelector('.docs-texteventtarget-iframe').contentDocument;
 		let copyEventTarget = textEventTarget.querySelector('[contenteditable]');;
+		copyEventTarget.innerHTML = ""
+		copyEventTarget.dispatchEvent(new CustomEvent('copy'));
 		let selectedText = this.getSelectedText();
 		if (selectedText.length) {
 			textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39}));
@@ -694,6 +696,8 @@ Zotero.GoogleDocs.UI = {
 		
 		let textEventTarget = this._getElemBySelectors('.docs-texteventtarget-iframe').contentDocument;
 		let copyEventTarget = textEventTarget.querySelector('[contenteditable]');;
+		copyEventTarget.innerHTML = ""
+		copyEventTarget.dispatchEvent(new CustomEvent('copy'));
 		let selectionLink = this.getSelectedLink();
 		let selectedText = this.getSelectedText();
 		
@@ -707,6 +711,9 @@ Zotero.GoogleDocs.UI = {
 			// the HTML of the selected text.
 			// We dispatch a fake copy event which forces the update, and then we can retrieve
 			// the updated current selection.
+			// But we first set the copyEventTarget to be empty, because if the current selection is empty
+			// the copy event doesn't update this field and it causes fake reports of selection.
+			copyEventTarget.innerHTML = ""
 			copyEventTarget.dispatchEvent(new CustomEvent('copy'));
 			selectionLink = this.getSelectedLink()
 			selectedText = this.getSelectedText();
@@ -720,6 +727,7 @@ Zotero.GoogleDocs.UI = {
 			if (!isZoteroLink(selectionLink)) {
 				// And check text to the right
 				textEventTarget.dispatchEvent(new KeyboardEvent('keydown', {key: "ArrowRight", keyCode: 39, shiftKey: true}));
+				copyEventTarget.innerHTML = ""
 				copyEventTarget.dispatchEvent(new CustomEvent('copy'));
 				selectionLink = this.getSelectedLink()
 				selectedText = this.getSelectedText();
