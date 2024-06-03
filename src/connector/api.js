@@ -54,6 +54,8 @@ Zotero.GoogleDocs.API = {
 			redirect_uri: ZOTERO_CONFIG.OAUTH.GOOGLE_DOCS.CALLBACK_URL,
 			response_type: 'token',
 			scope: 'https://www.googleapis.com/auth/documents email',
+			// Will be enabled by Google on June 17, 2024. Uncomment for testing
+			// enable_granular_consent: "true",
 			state: 'google-docs-auth-callback'
 		};
 		if (Zotero.GoogleDocs.API.authCredentials.lastEmail) {
@@ -85,8 +87,18 @@ Zotero.GoogleDocs.API = {
 				let [key, value] = keyvalue.split('=');
 				params[key] = decodeURIComponent(value);
 			}
-			if (params.error) {
-				throw new Error(params.error);
+			let error = params.error || params['#error'];
+			if (error) {
+				if (error === 'access_denied') {
+					throw new Error(`Google Auth permission to access Google Docs not granted`);
+				}
+				else {
+					throw new Error(error);
+				}
+			}
+			
+			if (!params.scope.includes("https://www.googleapis.com/auth/documents")) {
+				throw new Error(`Google Auth permission to access Google Docs not granted`);
 			}
 			
 			url = ZOTERO_CONFIG.OAUTH.GOOGLE_DOCS.ACCESS_URL
@@ -121,7 +133,19 @@ Zotero.GoogleDocs.API = {
 		if (! Array.isArray(args)) {
 			args = [];
 		}
-		var headers = await this.getAuthHeaders();
+		let headers;
+		try {
+			headers = await this.getAuthHeaders();
+		}
+		catch (e) {
+			if (e.message.includes('not granted')) {
+				this.displayPermissionsNotGrantedPrompt(tab)
+				throw new Error('Handled Error');
+			}
+			else {
+				throw e;
+			}
+		}
 		headers["Content-Type"] = "application/json";
 		var body = {
 			function: 'callMethod',
@@ -208,7 +232,19 @@ Zotero.GoogleDocs.API = {
 		return result.button == 1;
 	},
 	
-	displayWrongAccountPrompt: async function(error, tab) {
+	displayPermissionsNotGrantedPrompt: async function(tab) {
+		var message = Zotero.getString('integration_googleDocs_authScopeError', ZOTERO_CONFIG.CLIENT_NAME);
+		var result = await Zotero.Messaging.sendMessage('confirm', {
+			title: ZOTERO_CONFIG.CLIENT_NAME,
+			button2Text: "",
+			button3Text: Zotero.getString('general_moreInfo'),
+			message
+		}, tab);
+		if (result.button != 3) return;
+		Zotero.Connector_Browser.openTab('https://www.zotero.org/support/google_docs#authentication');
+	},
+	
+	displayWrongAccountPrompt: async function(tab) {
 		var message = Zotero.getString('integration_googleDocs_documentPermissionError', ZOTERO_CONFIG.CLIENT_NAME);
 		var result = await Zotero.Messaging.sendMessage('confirm', {
 			title: ZOTERO_CONFIG.CLIENT_NAME,
