@@ -122,7 +122,7 @@ Zotero.GoogleDocs.API = {
 	},
 	
 	onAuthCancel: function() {
-		let error = new Error('Google Docs authentication was cancelled');
+		let error = new Error('Google Docs authorization was cancelled');
 		error.type = "Alert";
 		Zotero.GoogleDocs.API.authDeferred
 			&& Zotero.GoogleDocs.API.authDeferred.reject(error);
@@ -241,7 +241,7 @@ Zotero.GoogleDocs.API = {
 			message
 		}, tab);
 		if (result.button != 3) return;
-		Zotero.Connector_Browser.openTab('https://www.zotero.org/support/google_docs#authentication');
+		Zotero.Connector_Browser.openTab('https://www.zotero.org/support/google_docs#authorization');
 	},
 	
 	displayWrongAccountPrompt: async function(tab) {
@@ -253,7 +253,7 @@ Zotero.GoogleDocs.API = {
 			message
 		}, tab);
 		if (result.button != 3) return;
-		Zotero.Connector_Browser.openTab('https://www.zotero.org/support/google_docs#authentication');
+		Zotero.Connector_Browser.openTab('https://www.zotero.org/support/google_docs#authorization');
 	},
 
 	getDocument: async function (docId) {
