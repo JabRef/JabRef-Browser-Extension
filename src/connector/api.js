@@ -40,6 +40,10 @@ Zotero.GoogleDocs.API = {
 	},
 
 	getAuthHeaders: async function() {
+		// Delete headers if expired which will cause a refetch
+		if (Zotero.GoogleDocs.API.authCredentials.expiresAt && Date.now() > Zotero.GoogleDocs.API.authCredentials.expiresAt) {
+			Zotero.GoogleDocs.API.headers = null;
+		}
 		if (Zotero.GoogleDocs.API.authCredentials.headers) {
 			return Zotero.GoogleDocs.API.authCredentials.headers;
 		}
@@ -111,8 +115,7 @@ Zotero.GoogleDocs.API = {
 			
 			this.authCredentials.lastEmail = response.email;
 			this.authCredentials.headers = {'Authorization': `Bearer ${params.access_token}`};
-			// Request a new token upon expiration
-			setTimeout(() => this.authCredentials.headers = null, (parseInt(params.expires_in)-60)*1000);
+			this.authCredentials.expiresAt = Date.now() + (parseInt(params.expires_in)-60)*1000;
 			response = await this.getAuthHeaders();
 			deferred.resolve(response);
 			return response;
