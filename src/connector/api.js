@@ -42,7 +42,7 @@ Zotero.GoogleDocs.API = {
 	getAuthHeaders: async function() {
 		// Delete headers if expired which will cause a refetch
 		if (Zotero.GoogleDocs.API.authCredentials.expiresAt && Date.now() > Zotero.GoogleDocs.API.authCredentials.expiresAt) {
-			Zotero.GoogleDocs.API.headers = null;
+			delete Zotero.GoogleDocs.API.authCredentials.headers;
 		}
 		if (Zotero.GoogleDocs.API.authCredentials.headers) {
 			return Zotero.GoogleDocs.API.authCredentials.headers;
