@@ -23,12 +23,16 @@
 	***** END LICENSE BLOCK *****
 */
 
+const TABS_CRITERIA_METHODS = new Set(['replaceNamedRangeContent', 'replaceAllText', 'deleteNamedRange'])
+const TAB_ID_METHODS = new Set(['deletePositionedObject', 'replaceImage', 'updateDocumentStyle', 'deleteHeader', 'deleteFooter', 'location', 'range'])
+const TAB_ID_PARAMS = new Set(['location', 'range'])
+
 Zotero.GoogleDocs = Zotero.GoogleDocs || {};
 
 Zotero.GoogleDocs.API = {
 	authDeferred: null,
 	authCredentials: {},
-	apiVersion: 5,
+	apiVersion: 6,
 	
 	init: async function() {
 		this.authCredentials = await Zotero.Utilities.Connector.createMV3PersistentObject('googleDocsAuthCredentials')
@@ -131,7 +135,7 @@ Zotero.GoogleDocs.API = {
 			&& Zotero.GoogleDocs.API.authDeferred.reject(error);
 	},
 	
-	run: async function(docID, method, args, tab) {
+	run: async function(documentSpecifier, method, args, tab) {
 		// If not an array, discard or the docs script spews errors.
 		if (! Array.isArray(args)) {
 			args = [];
@@ -152,7 +156,7 @@ Zotero.GoogleDocs.API = {
 		headers["Content-Type"] = "application/json";
 		var body = {
 			function: 'callMethod',
-			parameters: [docID, method, args, Zotero.GoogleDocs.API.apiVersion],
+			parameters: [documentSpecifier, method, args, Zotero.GoogleDocs.API.apiVersion],
 			devMode: ZOTERO_CONFIG.GOOGLE_DOCS_DEV_MODE
 		};
 		try {
@@ -173,7 +177,7 @@ Zotero.GoogleDocs.API = {
 			// For some reason, sometimes the still valid auth token starts being rejected
 			if (responseJSON.error.details[0].errorMessage == "Authorization is required to perform that action.") {
 				delete this.authCredentials.headers;
-				return this.run(docID, method, args);
+				return this.run(documentSpecifier, method, args);
 			}
 			var err = new Error(responseJSON.error.details[0].errorMessage);
 			err.stack = responseJSON.error.details[0].scriptStackTraceElements;
@@ -259,11 +263,11 @@ Zotero.GoogleDocs.API = {
 		Zotero.Connector_Browser.openTab('https://www.zotero.org/support/google_docs#authorization');
 	},
 
-	getDocument: async function (docId) {
+	getDocument: async function (docID, tabID=null) {
 		var headers = await this.getAuthHeaders();
 		headers["Content-Type"] = "application/json";
 		try {
-			var xhr = await Zotero.HTTP.request('GET', `https://docs.googleapis.com/v1/documents/${docId}`,
+			var xhr = await Zotero.HTTP.request('GET', `https://docs.googleapis.com/v1/documents/${docID}?includeTabsContent=true`,
 				{headers, timeout: 60000});
 		} catch (e) {
 			if (e.status == 403) {
@@ -273,12 +277,44 @@ Zotero.GoogleDocs.API = {
 					throw new Error(`${e.status}: Google Docs request failed.\n\n${e.responseText}`);
 				}
 		}
-
-		return JSON.parse(xhr.responseText);
+		
+		let document = JSON.parse(xhr.responseText);
+		if (!document.tabs) return document;
+		for (let tab of document.tabs) {
+			// Return first tab if not specified
+			if (tabID === null || tab.tabProperties.tabId == tabID) {
+				let documentTab = tab.documentTab;
+				documentTab.documentId = docID;
+				documentTab.tabId = tabID;
+				return documentTab;
+			}
+		}
+		return document;
+	},
+	
+	_addTabDataToObject(object, tabId) {
+		const key = Object.keys(object)[0];
+		if (TABS_CRITERIA_METHODS.has(key)) {
+			object.tabsCriteria = { tabIds: [tabId] }
+			return;
+		}
+		else if (TAB_ID_METHODS.has(key)) {
+			object.tabId = tabId;
+		}
+		for (let k in object[key]) {
+			if (TAB_ID_PARAMS.has(k)) {
+				object[key][k].tabId = tabId;
+			}
+		}
 	},
 
-	batchUpdateDocument: async function (docId, body) {
+	batchUpdateDocument: async function (docId, tabId=null, body) {
 		var headers = await this.getAuthHeaders();
+		if (tabId) {
+			for (let request of body.requests) {
+				request = this._addTabDataToObject(request, tabId);
+			}
+		}
 		try {
 			var xhr = await Zotero.HTTP.request('POST', `https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`,
 				{headers, body, timeout: 60000});

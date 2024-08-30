@@ -62,7 +62,7 @@ Zotero.GoogleDocs.Document = class Document {
 		let requestBody = { writeControl: { targetRevisionId: this.revisionId } };
 		requestBody.requests = this._batchedUpdates;
 		this._batchedUpdates = [];
-		let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentId, requestBody);
+		let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentId, this.tabId, requestBody);
 		this.revisionId = response.writeControl.requiredRevisionId;
 		this._updatesCommited = true;
 		return response;
@@ -499,7 +499,7 @@ Zotero.GoogleDocs.Document = class Document {
 	}
 	
 	async placeholdersToFields(placeholderIDs, noteType) {
-		let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentId));
+		let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentId, this.tabId));
 		let links = document.getLinks();
 
 		let placeholders = [];

@@ -26,6 +26,7 @@
 
 Zotero.GoogleDocs.Client = function() {
 	this.documentId = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
+	this.tabID = new URL(document.location.href).searchParams.get('tab');
 	this.id = Zotero.Utilities.randomString();
 	
 	this._fields = null;
@@ -103,7 +104,7 @@ Zotero.GoogleDocs.Client.prototype = {
 	getGoogleDocument: async function() {
 		if (this._doc) return this._doc;
 		Zotero.debug('Google Docs [getGoogleDocument()]: Retrieving document from API');
-		this._doc = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentId));
+		this._doc = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentId, this.tabId));
 		return this._doc;
 	},
 	

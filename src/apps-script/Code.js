@@ -42,15 +42,23 @@ var LOCK_NAME = "Z_LOCK";
 
 var EXPORTED_DOCUMENT_MARKERS = ["ZOTERO_TRANSFER_DOCUMENT", "ZOTERO_EXPORTED_DOCUMENT"];
 
-var doc, bodyRange, docUrl, insertIdx, apiVersion = 0;
+var doc, _doc, bodyRange, docID, tabID, insertIdx, apiVersion = 0;
 var extraReturnData = {};
 var orphanedCitations = [];
 
-function callMethod(documentUrl, method, args, apiVers) {
+function callMethod(documentSpecifier, method, args, apiVers) {
 	apiVersion = apiVers || apiVersion;
-	docUrl = documentUrl;
+	
+	if (apiVersion <= 5) {
+		docID = documentSpecifier;
+	}
+	else {
+		docID = documentSpecifier.docID;
+		tabID = documentSpecifier.tabID;
+	}
+	
 	try {
-		doc = DocumentApp.openById(documentUrl);
+		getDocument();
 	} catch (e) {
 		if (e.message == "Action not allowed" && apiVersion >= 3) {
 			console.error({
@@ -81,6 +89,14 @@ function callMethod(documentUrl, method, args, apiVers) {
 		throw e;
 	}
 	return Object.assign({response: response}, extraReturnData);
+}
+
+function getDocument() {
+	doc = _doc = DocumentApp.openById(docID);
+	if (apiVersion >= 6 && tabID) {
+		doc = doc.getTab(tabID).asDocumentTab();
+	}
+	return doc;
 }
 
 /**
@@ -392,8 +408,8 @@ function lockTheDoc() {
 	// Unfortunately no API to just save the doc without closing it.
 	// The locking process here is quite obviously not an atomic operation, which is
 	// far from ideal, but that's the best we have and better than naught
-	doc.saveAndClose();
-	doc = DocumentApp.openById(docUrl);
+	_doc.saveAndClose();
+	getDocument();
 	bodyRange = doc.newRange().addElement(doc.getBody()).build();
 	return doc;
 }

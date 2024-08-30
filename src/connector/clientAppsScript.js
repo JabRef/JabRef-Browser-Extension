@@ -26,6 +26,7 @@
 
 Zotero.GoogleDocs.ClientAppsScript = function() {
 	this.documentID = document.location.href.match(/https:\/\/docs.google.com\/document\/d\/([^/]*)/)[1];
+	this.tabID = new URL(document.location.href).searchParams.get('tab');
 	this.id = Zotero.Utilities.randomString();
 	this.fields = null;
 	Zotero.GoogleDocs.clients[this.id] = this;
@@ -79,6 +80,10 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 		if (method == 'complete') return result;
 		return Zotero.GoogleDocs.respond(this, result ? JSON.stringify(result) : 'null');
 	},
+	
+	runAppsScript(fnName, args) {
+		return Zotero.GoogleDocs_API.run({docID: this.documentID, tabID: this.tabID}, fnName, args);
+	},
 
 	getDocument: async function() {
 		return this.getActiveDocument();
@@ -98,7 +103,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 	},
 
 	getDocumentData: async function() {
-		return Zotero.GoogleDocs_API.run(this.documentID, 'getDocumentData', Array.from(arguments));
+		return this.runAppsScript('getDocumentData', Array.from(arguments));
 	},
 
 	/**
@@ -126,7 +131,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 			Zotero.debug(`GDocs: Updating doc. Batch ${batchSize}, numItems: ${keys.length - count}`);
 			let batch = keys.slice(count, count+batchSize);
 			try {
-				await Zotero.GoogleDocs_API.run(this.documentID, 'complete', [
+				await this.runAppsScript('complete', [
 					Object.assign({}, this.queued, {
 						fields: batch.map(key => this.queued.fields[key]),
 						deletePlaceholder: count+batch < keys.length ? null : this.queued.deletePlaceholder
@@ -145,7 +150,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 					Zotero.logError(e);
 					if (!e.status) {
 						// The document will be locked if it was a Too many changes error, so unlock first
-						await Zotero.GoogleDocs_API.run(this.documentID, "unlockTheDoc", []);
+						await this.runAppsScript("unlockTheDoc", []);
 					}
 					continue;
 				}
@@ -208,7 +213,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 		// we only fetch the fields here for the Cited section in the citation dialog
 		// (and also for further operations).
 		await Zotero.GoogleDocs.UI.waitToSaveInsertion();
-		let response = await Zotero.GoogleDocs_API.run(this.documentID, 'getFields', [this.queued.conversion]);
+		let response = await this.runAppsScript('getFields', [this.queued.conversion]);
 		this.fields = response.fields;
 		this.orphanedCitations = response.orphanedCitations;
 		Zotero.GoogleDocs.UI.orphanedCitations.setCitations(this.orphanedCitations);
@@ -269,7 +274,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 	},
 
 	convertPlaceholdersToFields: async function(placeholderIDs, noteType) {
-		let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID));
+		let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID, this.tabID));
 		let links = document.getLinks();
 
 		let placeholders = [];
@@ -312,7 +317,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 				});
 			}
 			requestBody.requests = requests;
-			let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
+			let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, this.tabID, requestBody);
 
 			// Reinsert placeholders in the inserted footnotes
 			requestBody = {};
@@ -346,7 +351,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 				});
 			});
 			requestBody.requests = requests;
-			await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
+			await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, this.tabID, requestBody);
 		} else {
 			for (let placeholder of placeholders) {
 				requests.push({
@@ -379,7 +384,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 				}
 			}
 			requestBody.requests = requests;
-			await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
+			await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, this.tabID, requestBody);
 		}
 		// Reverse to sort in order of appearance, to make sure getFields returns inserted fields
 		// in the correct order 
@@ -440,7 +445,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 			// Note/intext conversions
 			if (fieldNoteTypes[0] > 0) {
 				fieldIDs = new Set(fieldIDs);
-				let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID));
+				let document = new Zotero.GoogleDocs.Document(await Zotero.GoogleDocs_API.getDocument(this.documentID, this.tabID));
 				let links = document.getLinks()
 					.filter((link) => {
 						if (!link.url.startsWith(Zotero.GoogleDocs.config.fieldURL)) return false;
@@ -472,7 +477,7 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 					});
 				}
 				requestBody.requests = requests;
-				let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
+				let response = await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, this.tabID, requestBody);
 
 				// Reinsert placeholders in the inserted footnotes
 				requestBody = {};
@@ -506,12 +511,12 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 					});
 				});
 				requestBody.requests = requests;
-				await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, requestBody);
+				await Zotero.GoogleDocs_API.batchUpdateDocument(this.documentID, this.tabID, requestBody);
 			} else {
 				// To in-text conversions client-side are impossible, because there is no obvious way
 				// to make the cursor jump from the footnote section to its corresponding footnote.
 				// Luckily, this can be done in Apps Script.
-				return Zotero.GoogleDocs_API.run(this.documentID, 'footnotesToInline', [
+				return this.runAppsScript('footnotesToInline', [
 					fieldIDs,
 				]);
 			}
@@ -600,15 +605,15 @@ Zotero.GoogleDocs.ClientAppsScript.prototype = {
 
 	importDocument: async function() {
 		delete this.fields;
-		return Zotero.GoogleDocs_API.run(this.documentID, 'importDocument');
+		return this.runAppsScript('importDocument');
 		Zotero.GoogleDocs.downloadInterceptBlocked = false;
 	},
 
 	exportDocument: async function() {
-		await Zotero.GoogleDocs_API.run(this.documentID, 'exportDocument', Array.from(arguments));
+		await this.runAppsScript('exportDocument', Array.from(arguments));
 		var i = 0;
 		Zotero.debug(`GDocs: Clearing fields ${i++}`);
-		while (!(await Zotero.GoogleDocs_API.run(this.documentID, 'clearAllFields'))) {
+		while (!(await this.runAppsScript('clearAllFields'))) {
 			Zotero.debug(`GDocs: Clearing fields ${i++}`)
 		}
 		Zotero.GoogleDocs.downloadInterceptBlocked = true;
