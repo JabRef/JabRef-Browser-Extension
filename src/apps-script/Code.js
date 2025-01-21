@@ -394,7 +394,7 @@ function getBibliographyStyle() {
 	modifiers[DocumentApp.Attribute.INDENT_FIRST_LINE] = (biblStyle.bodyIndent+biblStyle.firstLineIndent) * config.twipsToPoints;
 	modifiers[DocumentApp.Attribute.INDENT_START] = biblStyle.bodyIndent*config.twipsToPoints;
 	modifiers[DocumentApp.Attribute.LINE_SPACING] = biblStyle.lineSpacing/240;
-	modifiers[DocumentApp.Attribute.MARGIN_BOTTOM] = biblStyle.entrySpacing/240;
+	modifiers[DocumentApp.Attribute.SPACING_AFTER] = biblStyle.entrySpacing*config.twipsToPoints;
 	// biblStyle.tabStops; no access via Apps Script currently.
 	return modifiers;
 }

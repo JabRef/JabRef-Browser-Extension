@@ -200,7 +200,7 @@ Zotero.GoogleDocs.Document = class Document {
 			};
 		paragraphStyle.indentStart = { magnitude: bibStyle.bodyIndent*config.twipsToPoints, unit: "PT" };
 		paragraphStyle.lineSpacing = bibStyle.lineSpacing/2.40;
-		paragraphStyle.spaceAbove = { magnitude: bibStyle.entrySpacing*config.twipsToPoints, unit: "PT" };
+		paragraphStyle.spaceBelow = { magnitude: bibStyle.entrySpacing*config.twipsToPoints, unit: "PT" };
 		// Read only for now
 		// https://developers.google.com/docs/api/reference/rest/v1/documents#paragraphstyle
 		// https://issuetracker.google.com/issues/36765521
