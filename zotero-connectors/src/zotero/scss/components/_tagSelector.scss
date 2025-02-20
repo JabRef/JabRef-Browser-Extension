@@ -1,0 +1,183 @@
+//
+// Tag selector
+// --------------------------------------------------
+#zotero-tag-selector-container {
+	display: flex;
+	min-height: 100px;
+}
+
+#zotero-tag-selector-container[collapsed=true] {
+	visibility: collapse;
+}
+
+#zotero-tag-selector {
+	width: 100%;
+	display: flex;
+	height: 100%;
+}
+
+.tag-selector {
+	display: flex;
+	flex: 1 0;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.tag-selector-list-container {
+	flex: 1 1 auto;
+	justify-content: space-between;
+	display: flex;
+	overflow: hidden;
+	height: 163px; // 200 - height of filter pane
+}
+
+.tag-selector-list-container > div {
+	flex: 1 1 auto;
+}
+
+.tag-selector-message {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+}
+
+.tag-selector-list {
+	display: inline-block;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	scrollbar-color: var(--color-scrollbar) var(--color-scrollbar-background);
+
+	.ReactVirtualized__Collection__innerScrollContainer {
+		padding-bottom: 8px;
+	}
+}
+
+.tag-selector-filter-pane {
+	padding: 0 8px 0;
+}
+
+.tag-selector-filter-container {
+	border-top: var(--material-panedivider);
+	display: flex;
+	flex-direction: row;
+	flex: 0 0 1em;
+	gap: 4px;
+}
+
+.tag-selector-filter-container .search {
+	display: flex;
+	flex: 1 0;
+}
+
+.tag-selector-actions {
+	appearance: none;
+	flex-shrink: 0;
+	border-radius: 5px;
+	margin: 0;
+	-moz-context-properties: fill, fill-opacity, stroke, stroke-opacity;
+	background-color: transparent;
+	align-self: center;
+	border: 0;
+	display: block;
+	flex: 0 1;
+	padding: 3px 4px;
+	white-space: nowrap;
+
+	&:hover {
+		background-color: var(--fill-quinary);
+	}
+	
+	&:active, &[selected] {
+		background-color: var(--fill-quarternary);
+	}
+
+	@include focus-ring;
+
+	.icon-css {
+		fill: var(--fill-secondary);
+	}
+}
+
+.tag-selector-item {
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.916666667em;
+	line-height: 1.272727273;
+	overflow: hidden;
+	padding: 1px 4px;
+	text-overflow: ellipsis;
+	white-space: pre;
+	box-sizing: border-box;
+	color: var(--fill-primary);
+
+	@include comfortable {
+		padding: 2px 4px;
+	}
+
+	@include focus-ring(true);
+
+	&:hover {
+		background-color: var(--fill-quinary);
+	}
+
+	&.selected {
+		color: var(--color-background);
+		background-color: var(--fill-secondary);
+
+		&:hover {
+			opacity: .75;
+		}
+	}
+
+	&.colored {
+		font-weight: 600;
+
+		&.selected:not(.emoji) {
+			background-color: currentcolor;
+
+			@each $colorHex, $colorVar in $tagColorsLookup {
+				@include state('.tag-selector-item[data-color="#{$colorHex}"]') {
+					background-color: var($colorVar);
+				}
+			}
+		}
+
+		&:not(.emoji) {
+			&::before {
+				content: " ";
+				display: inline-block;
+				width: 0.636363636em; // 7px (+ 1px border = 8px)
+				height: 0.636363636em;
+				margin-right: .272727273em;
+				border-radius: 50%;
+				background-color: currentcolor; // fallback for non-standard colors
+				vertical-align: -0.363636364em; // -4px
+				border: var(--material-border-transparent);
+
+				@include state('.tag-selector-item.selected') {
+					border-color: var(--color-background);
+				}
+			}
+
+			@each $colorHex, $colorVar in $tagColorsLookup {
+				@include state('.tag-selector-item[data-color="#{$colorHex}"]') {
+					&::before {
+						background-color: var($colorVar);
+					}
+				}
+			}
+		}
+	}
+
+	&.disabled {
+		opacity: .6;
+		cursor: default;
+	}
+	
+	&.dragged-over {
+		color: var(--color-background);
+		background-color: var(--fill-secondary);
+	}
+}

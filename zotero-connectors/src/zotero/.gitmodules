@@ -1,0 +1,58 @@
+[submodule "translators"]
+	path = translators
+	url = https://github.com/zotero/translators.git
+	branch = master
+[submodule "chrome/content/zotero/locale/csl"]
+	path = chrome/content/zotero/locale/csl
+	url = https://github.com/citation-style-language/locales.git
+	branch = master
+[submodule "styles"]
+	path = styles
+	url = https://github.com/zotero/bundled-styles.git
+	branch = master
+[submodule "test/resource/chai"]
+	path = test/resource/chai
+	url = https://github.com/chaijs/chai.git
+	branch = master
+[submodule "test/resource/mocha"]
+	path = test/resource/mocha
+	url = https://github.com/mochajs/mocha.git
+	branch = master
+[submodule "test/resource/chai-as-promised"]
+	path = test/resource/chai-as-promised
+	url = https://github.com/domenic/chai-as-promised.git
+	branch = master
+[submodule "resource/schema/global"]
+	path = resource/schema/global
+	url = https://github.com/zotero/zotero-schema.git
+	branch = master
+[submodule "resource/SingleFile"]
+	path = resource/SingleFile
+	url = https://github.com/gildas-lormeau/SingleFile.git
+[submodule "pdf-reader"]
+	path = reader
+	url = https://github.com/zotero/reader.git
+	branch = master
+[submodule "pdf-worker"]
+	path = pdf-worker
+	url = https://github.com/zotero/pdf-worker.git
+	branch = master
+[submodule "note-editor"]
+	path = note-editor
+	url = https://github.com/zotero/note-editor.git
+	branch = master
+[submodule "chrome/content/zotero/xpcom/utilities"]
+	path = chrome/content/zotero/xpcom/utilities
+	url = https://github.com/zotero/utilities.git
+[submodule "chrome/content/zotero/xpcom/translate"]
+	path = chrome/content/zotero/xpcom/translate
+	url = https://github.com/zotero/translate.git
+[submodule "app/modules/zotero-word-for-mac-integration"]
+	path = app/modules/zotero-word-for-mac-integration
+	url = https://github.com/zotero/zotero-word-for-mac-integration.git
+[submodule "app/modules/zotero-word-for-windows-integration"]
+	path = app/modules/zotero-word-for-windows-integration
+	url = https://github.com/zotero/zotero-word-for-windows-integration.git
+[submodule "app/modules/zotero-libreoffice-integration"]
+	path = app/modules/zotero-libreoffice-integration
+	url = https://github.com/zotero/zotero-libreoffice-integration.git

@@ -1,0 +1,161 @@
+.banner-container > .banner {
+	@include macOS-normalize-controls;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	position: relative;
+	white-space: nowrap;
+	overflow: hidden;
+	
+	line-height: 2.2em;
+	font-size: 13.5px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-inline-start: 1em;
+	padding-inline-end: 8px;
+	font-weight: 600;
+	
+	label[is="text-link"], .link {
+		color: inherit;
+		border: none;
+		margin: 0;
+		padding-inline: 0.5em;
+	}
+	
+	label[is="text-link"].close-link {
+		text-decoration: none;
+		cursor: pointer;
+		font-size: 22px;
+		line-height: 26px;
+		margin-inline-end: -0.5em;
+	}
+	
+	.message {
+		margin-inline-end: .8em;
+	}
+
+	.spacer {
+		flex: 1;
+	}
+
+	.link {
+		&:active {
+			color: #4b4b4b;
+		}
+	}
+}
+
+// Add drop shadow after banner that's followed by another
+//
+// We set a z-index in ZoteroPane.setBannerZIndexes() to make this work
+.banner-container:has(~ .banner-container:not([collapsed="true"])) {
+	box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+#post-upgrade-container, #mac-word-plugin-install-container {
+	background: var(--material-background);
+}
+
+#post-upgrade-banner {
+	background: var(--accent-blue30);
+	color: var(--fill-primary);
+	flex-wrap: wrap;
+	gap: 8px;
+	font-weight: normal;
+	
+	.link {
+		color: var(--accent-blue);
+		text-decoration: underline;
+		cursor: pointer;
+	}
+	
+	#post-upgrade-centered {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-wrap: wrap;
+		gap: 8px;
+		flex: 1 auto;
+
+		#post-upgrade-density {
+			@media (-moz-platform: windows) {
+				radio {
+					height: 24px;
+					margin: 0;
+				}
+			}
+		}
+	}
+	
+	#post-upgrade-new-features-link {
+		font-weight: bold;
+		padding-inline: unset;
+	}
+	
+	#post-upgrade-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-inline-start: auto;
+
+		@media (-moz-platform: windows) {
+			button {
+				height: 24px;
+				margin: 0 !important;
+			}
+		}
+	}
+}
+
+#retracted-items-banner {
+	background: #d93425;
+	color: white;
+
+	label[is="text-link"] {
+		margin-inline-start: 0.3em;
+		
+		&:active {
+			color: #f9e8e2;
+		}
+	}
+}
+
+#mac-word-plugin-install-banner {
+	background: var(--accent-blue30);
+	color: var(--fill-primary);
+	font-weight: normal;
+	border-bottom: #a9a9a9 .5px solid;
+}
+
+#mac-word-plugin-install-remind-later {
+	margin-inline-end: .4em;
+}
+
+#sync-reminder-banner {
+	background: rgb(255, 234, 80);
+	border-bottom: #a9a9a9 .5px solid;
+	color: black;
+}
+
+#architecture-warning-container {
+	background-color: var(--accent-red);
+	color: white;
+
+	.message {
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+
+	a {
+		border: none;
+		color: inherit;
+		margin: 0;
+		padding: 0 .5em;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+}

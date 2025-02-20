@@ -1,0 +1,43 @@
+duplicates-merge-pane {
+	&, #zotero-duplicates-merge-version-select, #zotero-duplicates-merge-info-box-container {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		scrollbar-color: var(--color-scrollbar) var(--color-scrollbar-background);
+	}
+
+	padding-top: 9px;
+
+	> groupbox {
+		// Override default margin/padding that breaks our styles here
+		margin: 0;
+		padding: 0;
+		padding-inline: 8px;
+		min-height: 0;
+
+		> :is(description, label, button) {
+			margin: 0;
+		}
+	}
+
+	#zotero-duplicates-merge-info-box-container {
+		flex: 1;
+		padding-inline: 8px;
+		overflow-y: scroll;
+
+		#zotero-duplicates-merge-info-box {
+			border-top: var(--material-border-quinary);
+		}
+
+		collapsible-section > .head {
+			display: none;
+		}
+	}
+
+	/* Show duplicates date list item as selected even when not focused
+	(default behavior on other platforms) */
+	#zotero-duplicates-merge-original-date:not(:focus) > richlistitem[selected="true"] {
+		background-color: -moz-cellhighlight;
+		color: -moz-cellhighlighttext;
+	}
+}

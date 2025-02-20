@@ -1,0 +1,118 @@
+//
+// Variables
+// --------------------------------------------------
+
+
+// Dimensions
+// --------------------------------------------------
+
+$space-min:    4px;
+$space-xs:     8px;
+$space-sm:    12px;
+$space-md:    16px;
+$space-lg:    24px;
+$space-xl:    32px;
+$space-xxl:   48px;
+$space-max:   64px;
+
+$space-thumb: 42px;
+
+
+// Typography
+// --------------------------------------------------
+
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-family-base:       $font-family-sans-serif;
+
+$font-size-base:   13px;
+
+$font-size-h1: 20px;
+$font-size-h2: 16px;
+
+$line-height-base:           1.539;
+$line-height-computed:       ceil($font-size-base * $line-height-base);
+
+// todo: line-height-small
+$line-height-large: 26px;
+$line-height-large-touch: $space-thumb;
+
+$link-hover-decoration: underline;
+
+$headings-font-family:    inherit;
+$headings-font-weight:    400;
+$headings-line-height:    1.2;
+
+
+// Components
+// --------------------------------------------------
+
+$padding-base-vertical: 2px;
+
+$padding-base-horizontal: $space-xs;
+$padding-large-horizontal: $space-sm;
+
+$border-radius-small: 3px;
+$border-radius-base:  4px;
+$border-radius-large: 6px;
+
+$border-width: 1px;
+
+$separator-width: 1px;
+
+// Buttons
+// --------------------------------------------------
+
+$btn-disabled-opacity: 0.5;
+
+// Z-index master list
+// --------------------------------------------------
+
+$z-index-mobile-nav:     0;
+$z-index-navbar-bg:     10;
+$z-index-main:          10;
+$z-index-level:         10;
+$z-index-level-active:  20;
+$z-index-navbar:        20;
+$z-index-menu:          30;
+$z-index-modal:         40;
+$z-index-drag-layer:    50;
+$z-index-loading-cover: 60;
+
+// Item pane
+// --------------------------------------------------
+$item-pane-sections: (
+	"info": var(--accent-blue),
+	"abstract": var(--accent-azure),
+	"attachments": var(--accent-green),
+	"notes": var(--accent-yellow),
+	"attachment-info": var(--accent-green),
+	"attachment-preview": #926d70,
+	"attachment-annotations": var(--tag-purple),
+	"libraries-collections": var(--accent-teal),
+	"tags": var(--accent-orange),
+	"related": var(--accent-wood),
+);
+
+$tagColorsLookup: (
+	'#ff6666': --tag-red,
+	'#ff8c19': --tag-orange,
+	'#999999': --tag-gray,
+	'#5fb236': --tag-green,
+	'#009980': --tag-teal,
+	'#2ea8e5': --tag-blue,
+	'#576dd9': --tag-indigo,
+	'#a28ae5': --tag-purple,
+	'#a6507b': --tag-plum,
+);
+
+// Layout constants
+// --------------------------------------------------
+$min-width-tabs-deck: 570px;
+$min-width-collections-pane: 200px;
+$min-width-items-pane: 370px;
+$min-width-item-pane: 320px;
+$min-width-context-pane: 320px;
+$width-sidenav: 37px;
+
+$height-toolbar: 41px;
+$min-height-items-pane: 150px;

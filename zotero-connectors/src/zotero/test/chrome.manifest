@@ -1,0 +1,3 @@
+content	zotero-unit			test/content/
+resource zotero-unit		test/resource/
+resource zotero-unit-tests  test/tests/

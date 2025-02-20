@@ -1,0 +1,106 @@
+zoterosearch {
+	#search-box > hbox, #search-box > groupbox {
+		margin: 0 6px;
+	}
+
+	groupbox {
+		margin-top: 0;
+		padding-top: 0;
+
+		& > #conditions {
+			-moz-appearance: groupbox;
+			padding: 6px;
+		}
+	}
+
+	caption {
+		font: inherit;
+		padding-left: 0 !important;
+	}
+
+	label:first-child:not(tooltip label), checkbox:first-child {
+		margin-left: 0 !important;
+		padding-left: 0 !important;
+	}
+
+	checkbox {
+		margin-right: .5em;
+	}
+
+	input {
+		margin-block: 0;
+	}
+
+	.search-condition {
+		flex: 1;
+		display: flex;
+		align-items: center;
+
+		.valuefield, .valuemenu, .value-date-age {
+			flex: 1;
+		}
+	}
+
+	#joinModeMenu {
+		min-width: 60px;
+	}
+	
+	#conditionsmenu {
+		width: 15em;
+	}
+	
+	#operatorsmenu, #valuemenu, #valuefield, .search-in-the-last {
+		width: 12em;
+	}
+	
+	#valuemenu::part(icon) {
+		max-height: 16px;
+	}
+	
+	#valuemenu::part(label), #valuemenu menuitem > .menu-iconic-text {
+		white-space: pre;
+	}
+
+	#condition-tooltips tooltip
+	{
+		background: red !important;
+	}
+
+	#condition-tooltips hbox > label
+	{
+		font-weight: 600;
+	}
+
+	.toolbarbutton-text
+	{
+		margin: 0;
+		padding: 0;
+	}
+
+	#textbox-button {
+		cursor: default;
+		appearance: none;
+		justify-self: start;
+		margin-inline-start: 12px;
+		align-self: center;
+		
+		&:hover, &:active, &[open] {
+			background: none;
+		}
+	}
+
+	zoterosearchtextbox[hasOptions="true"] #search-textbox {
+		padding-inline-start: 20px;
+	}
+
+	.search-in-the-last {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		
+		.input {
+			min-width: 3em;
+			flex: 1;
+		}
+	}
+}

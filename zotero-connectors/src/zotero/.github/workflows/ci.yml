@@ -1,0 +1,98 @@
+name: CI
+on: [push, pull_request]
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    name: Build, Upload, Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+      
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          #cache: npm
+      
+      # On GitHub
+      - name: Install xvfb
+        if: env.ACT != 'true'
+        run: sudo apt update && sudo apt install -y xvfb
+      
+      # Local via act
+      - name: Install packages for act
+        if: env.ACT == 'true'
+        run: apt update && apt install -y zstd xvfb dbus-x11 libgtk-3-0 libx11-xcb1 libdbus-glib-1-2 libxt6
+      
+      - name: Cache xulrunner
+        id: xulrunner-cache
+        uses: actions/cache@v4
+        with:
+          path: app/xulrunner/firefox-x86_64
+          key: xulrunner-${{ hashFiles('app/config.sh', 'app/scripts/fetch_xulrunner') }}
+      
+      - name: Fetch xulrunner
+        if: steps.xulrunner-cache.outputs.cache-hit != 'true'
+        run: app/scripts/fetch_xulrunner -p l
+      
+      - name: Cache Node modules
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+        
+      - name: Install Node modules
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm install
+        
+      - name: Build Zotero
+        run: npm run build
+        # Currently necessary for pdf-worker Webpack: https://stackoverflow.com/a/69746937
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
+      
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
+      - name: Upload deployment ZIP
+        if: |
+          env.ACT != 'true'
+          && github.repository == 'zotero/zotero'
+          && github.event_name == 'push'
+          && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fx128' || endsWith(github.ref, '-hotfix'))
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir build-zip
+          cd build
+          zip -r ../build-zip/$GITHUB_SHA.zip *
+          cd ..
+          gem install --no-document dpl -v '>= 2.0'
+          dpl s3 --bucket zotero-download --local_dir build-zip --upload_dir ci/client --acl public_read
+      
+      - name: Run tests
+        run: xvfb-run test/runtests.sh -f
+
+      - name: Cache utilities Node modules
+        id: utilities-node-cache
+        uses: actions/cache@v4
+        with:
+          path: chrome/content/zotero/xpcom/utilities/node_modules
+          key: utilities-node-modules-${{ hashFiles('chrome/content/zotero/xpcom/utilities/package-lock.json') }}
+
+      - name: Install utilities Node modules
+        if: steps.utilities-node-cache.outputs.cache-hit != 'true'
+        run: npm install --prefix chrome/content/zotero/xpcom/utilities
+
+      - name: Run utilities tests
+        run: |
+          npm test --prefix chrome/content/zotero/xpcom/utilities -- -j resource/schema/global/schema.json

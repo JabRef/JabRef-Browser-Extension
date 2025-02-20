@@ -1,0 +1,20 @@
+/* Display the custom header */
+.update-header {
+	display: -moz-box !important;
+}
+
+.update-header h2 {
+	font-size: 13px;
+}
+
+#downloadProgress {
+	flex: 1;
+}
+
+.update-name {
+	flex: 1;
+}
+
+#errorReason {
+	padding: .75em;
+}

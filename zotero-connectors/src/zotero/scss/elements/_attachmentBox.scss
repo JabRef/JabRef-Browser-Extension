@@ -1,0 +1,72 @@
+attachment-box {
+	display: flex;
+	flex-direction: column;
+
+	&[hidden] {
+		display: none;
+	}
+
+	&:not([data-use-preview]) {
+		attachment-preview {
+			visibility: hidden;
+			display: none;
+		}
+	}
+
+	.body {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.metadata-table {
+		@include meta-table;
+
+		#index-status {
+			padding-inline: var(--editable-text-padding-inline);
+			margin-top: 2px;
+			@include comfortable {
+				margin-top: 3px;
+			}
+		}
+
+		#reindex
+		{
+			height: 22px;
+			width: 22px;
+			padding: 1px;
+			margin-left: 4px;
+			@include svgicon-menu("sync", "universal", "20");
+			&:not([disabled='true']) {
+				color: var(--fill-secondary);
+			}
+		}
+	}
+
+	#url
+	{
+		padding: 1px 0;
+	}
+
+	#note-container {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		overflow: hidden;
+		margin: 4px 0;
+
+		&[hidden] {
+			display: none;
+		}
+
+		#attachment-note-editor {
+			margin: 4px 0;
+			display: flex;
+			height: 300px;
+	
+			&[hidden] {
+				display: none;
+			}
+		}
+	}
+}

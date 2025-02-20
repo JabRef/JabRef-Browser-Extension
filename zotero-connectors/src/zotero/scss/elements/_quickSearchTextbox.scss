@@ -1,0 +1,84 @@
+// | 6px padding | 16px icon width | 2px padding | 8px dropmarker width | 4px padding |
+quick-search-textbox {
+	--search-textbox-width: 146px;
+	font-size: var(--zotero-font-size);
+	margin-right: 0;
+	width: var(--search-textbox-width);
+	height: 28px;
+	max-width: 300px;
+	flex-grow: 1;
+
+	*[zoteroFontSize=small] {
+		font-size: 11px;
+	}
+
+	:is(search-textbox)::part(search-sign),
+	:is(search-textbox)::part(search-icon) {
+		@include svgicon-menu("magnifier", "universal", "16");
+		color: var(--fill-secondary);
+		// right: 4px gap + 2px padding + 8px dropmarker width + 4px padding
+		// left, top, and bottom: 5px padding (6px on Figma, including 1px search-textbox border)
+		// Use explicit left/right padding here because this element is flipped in RTL (see _search.scss)
+		padding: 5px 18px 5px 5px;
+		margin: 0;
+	}
+
+	:is(search-textbox)::part(search-input) {
+		padding: 0;
+	}
+}
+
+#zotero-tb-search-dropmarker {
+	position: relative;
+	// 6px padding + 16px icon width + 2px padding + 8px dropmarker width + 4px padding
+	width: 36px;
+	margin-inline-end: -36px;
+	z-index: 2;
+}
+
+#zotero-tb-search-menu-button {
+	width: 36px;
+	height: 28px;
+	min-height: 28px;
+	padding-block: 0;
+	// inline-start: 6px padding + 16px icon width + 2px padding - 1px outer border
+	padding-inline: 23px 4px !important;
+	margin: 0;
+	border: 0;
+	border-radius: 5px;
+	appearance: none;
+	min-width: 0;
+	cursor: default;
+	@include svgicon-menu("chevron-6", "universal", "8");
+	color: var(--fill-secondary);
+	background: transparent;
+
+	@include focus-ring;
+
+	.button-menu-dropmarker {
+		display: none; /* Hide automatic dropmarker */
+	}
+}
+
+#zotero-tb-search-textbox {
+	padding: 0;
+	padding-inline-end: 6px;
+	margin: 0;
+	position: relative;
+	inset-inline-start: 0;
+	width: var(--search-textbox-width);
+	height: 28px;
+	z-index: 1;
+	width: 100%;
+}
+
+#zotero-tb-search-spinner {
+	margin: 0 8px;
+	// make sure the spinner always occupies space
+	display: inline;
+	visibility: hidden;
+}
+
+#search-wrapper {
+	width: 100%;
+}

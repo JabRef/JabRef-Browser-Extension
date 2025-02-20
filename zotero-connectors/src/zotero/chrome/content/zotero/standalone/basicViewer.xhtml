@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!--
+    ***** BEGIN LICENSE BLOCK *****
+    
+    Copyright © 2011 Center for History and New Media
+                     George Mason University, Fairfax, Virginia, USA
+                     http://zotero.org
+    
+    This file is part of Zotero.
+    
+    Zotero is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    Zotero is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+    
+    You should have received a copy of the GNU Affero General Public License
+    along with Zotero.  If not, see <http://www.gnu.org/licenses/>.
+    
+    ***** END LICENSE BLOCK *****
+-->
+
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://zotero/skin/zotero.css" type="text/css"?>
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero.css"?>
+<?xul-overlay href="chrome://zotero/content/standalone/editMenuOverlay.xul"?>
+<?xul-overlay href="chrome://zotero-platform/content/standalone/menuOverlay.xul"?>
+
+<!DOCTYPE window [
+	<!ENTITY % editMenuOverlayDTD SYSTEM "chrome://zotero/locale/mozilla/editMenuOverlay.dtd" > %editMenuOverlayDTD;
+	<!ENTITY % standaloneDTD SYSTEM "chrome://zotero/locale/standalone.dtd" > %standaloneDTD;
+	<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" > %brandDTD;
+	<!ENTITY % zoteroDTD SYSTEM "chrome://zotero/locale/zotero.dtd"> %zoteroDTD;
+]>
+
+<window id="main-window"
+				xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+				xmlns:html="http://www.w3.org/1999/xhtml"
+				onload="window.sizeToContent()"
+				windowtype="zotero:basicViewer" 
+				title="&brandShortName;"
+				style="min-width: 1000px; min-height: 700px;"
+				persist="screenX screenY width height sizemode">
+	
+	<linkset>
+		<html:link rel="localization" href="browser/menubar.ftl"/>
+		<html:link rel="localization" href="browser/browserSets.ftl"/>
+		<html:link rel="localization" href="toolkit/global/textActions.ftl"/>
+	</linkset>
+
+	<script>
+		
+		Services.scriptloader.loadSubScript("chrome://zotero/content/platformKeys.js", this);
+		Services.scriptloader.loadSubScript("chrome://zotero/content/editMenuOverlay.js", this);
+		Services.scriptloader.loadSubScript("chrome://zotero/content/include.js", this);
+		
+		// Mozilla scripts
+		Services.scriptloader.loadSubScript("chrome://global/content/globalOverlay.js", this);
+		Services.scriptloader.loadSubScript("chrome://global/content/contentAreaUtils.js", this);
+		Services.scriptloader.loadSubScript("chrome://global/content/printUtils.js", this);
+		if (Zotero.isMac) {
+			Services.scriptloader.loadSubScript("chrome://global/content/macWindowMenu.js", this);
+		}
+		if(window.arguments?.[0] === 'mendeleyImport') {
+			Services.scriptloader.loadSubScript("chrome://zotero/content/import/mendeley/authViewer.js", this);
+		} else {
+			Services.scriptloader.loadSubScript("chrome://zotero/content/standalone/basicViewer.js", this);	
+		}
+	</script>
+	
+	<commandset id="mainCommandSet">
+		<!--FILE-->
+		<command id="cmd_close" oncommand="window.close();"/>
+		<command id="cmd_save" oncommand="saveBrowser(browser);"/>
+		<command id="cmd_print" oncommand="PrintUtils.startPrintWindow(browser.browsingContext);"/>
+		<command id="cmd_quitApplication" oncommand="goQuitApplication();"/>
+		
+		<!--EDIT-->
+		<commandset id="editMenuCommands"/>
+		<command id="cmd_find"
+			oncommand="document.getElementById('zotero-tb-search').focus();"/>
+	</commandset>
+	
+	<keyset id="mainKeyset">
+		<key id="key_close" key="&closeCmd.key;" command="cmd_close" modifiers="accel"/>
+		<key id="key_print" key="&printCmd.key;" command="cmd_print" modifiers="accel"/>
+		<key id="key_save" key="&saveCmd.key;" command="cmd_save" modifiers="accel"/>
+	</keyset>
+	
+	<keyset id="editMenuKeys">
+		<key id="key_undo" data-l10n-id="text-action-undo-shortcut" modifiers="accel" command="cmd_undo"/>
+		<!-- l10n and modifiers set in platformKeys.js -->
+		<key id="key_redo" command="cmd_redo"/>
+		<key id="key_cut" data-l10n-id="text-action-cut-shortcut" modifiers="accel" command="cmd_cut"/>
+		<key id="key_copy" data-l10n-id="text-action-copy-shortcut" modifiers="accel" command="cmd_copy"/>
+		<key id="key_paste" data-l10n-id="text-action-paste-shortcut" modifiers="accel" command="cmd_paste"/>
+		<key id="key_delete" keycode="VK_DELETE" command="cmd_delete"/>
+		<key id="key_selectAll" data-l10n-id="text-action-select-all-shortcut" modifiers="accel" command="cmd_selectAll"/>
+		<key id="key_switchTextDirection" data-l10n-id="bidi-switch-direction-shortcut" command="cmd_switchTextDirection" modifiers="accel,shift" />
+		<key id="key_find" key="&findCmd.key;" modifiers="accel" command="cmd_find"/>
+		<key id="key_findAgain" key="&findAgainCmd.key;" modifiers="accel" command="cmd_findAgain"/>
+		<key id="key_findPrevious" key="&findAgainCmd.key;" modifiers="shift,accel" command="cmd_findPrevious"/>
+		<key id="key_findAgain2" keycode="&findAgainCmd.key2;" command="cmd_findAgain"/>
+		<key id="key_findPrevious2" keycode="&findAgainCmd.key2;" modifiers="shift" command="cmd_findPrevious"/>
+	</keyset>
+
+	<popupset id="contentAreaContextSet">
+		<menupopup id="contentAreaContextMenu"
+				onpopupshowing="goUpdateCommand('cmd_copy')">
+			<menuitem id="context-copy"
+					data-l10n-id="text-action-copy"
+					command="cmd_copy"
+					disabled="true"/>
+			<menuitem id="context-selectall"
+					data-l10n-id="text-action-select-all"
+					command="cmd_selectAll"/>
+		</menupopup>
+	</popupset>
+	
+	<toolbox id="navigator-toolbox" class="toolbox-top menubar-container" mode="icons" defaultmode="icons">
+		<!-- Menu -->
+		<toolbar type="menubar" id="toolbar-menubar" class="chromeclass-menubar" customizable="true"
+				defaultset="menubar-items"
+				mode="icons" iconsize="small" defaulticonsize="small"
+				context="toolbar-context-menu">
+			<toolbaritem id="menubar-items" align="center">
+				<menubar id="main-menubar"
+				style="border:0px;padding:0px;margin:0px;-moz-appearance:none">
+					<menu id="fileMenu" label="&fileMenu.label;" accesskey="&fileMenu.accesskey;">
+						<menupopup id="menu_FilePopup">
+							<menuitem id="menu_close" label="&closeCmd.label;" key="key_close"
+									accesskey="&closeCmd.accesskey;" command="cmd_close"/>
+							<menuseparator/>
+							<menuitem id="menu_save" label="&saveCmd.label;" key="key_save"
+									accesskey="&saveCmd.accesskey;" command="cmd_save"/>
+							<menuseparator/>
+							<menuitem id="menu_print" label="&printCmd.label;" key="key_print"
+									accesskey="&printCmd.accesskey;" command="cmd_print"/>
+							
+						</menupopup>
+					</menu>
+					
+					<menu id="edit-menu" data-l10n-id="menu-edit">
+						<menupopup id="menu_EditPopup">
+							<menuitem id="menu_undo"
+									key="key_undo"
+									command="cmd_undo" data-l10n-id="text-action-undo"/>
+							<menuitem id="menu_redo"
+									key="key_redo"
+									command="cmd_redo" data-l10n-id="text-action-redo"/>
+							<menuseparator/>
+							<menuitem id="menu_cut"
+									key="key_cut"
+									command="cmd_cut" data-l10n-id="text-action-cut"/>
+							<menuitem id="menu_copy"
+									key="key_copy"
+									command="cmd_copy" data-l10n-id="text-action-copy"/>
+							<menuitem id="menu_paste"
+									key="key_paste"
+									command="cmd_paste" data-l10n-id="text-action-paste"/>
+							<menuitem id="menu_delete"
+									key="key_delete"
+									command="cmd_delete" data-l10n-id="text-action-delete"/>
+							<menuseparator/>
+							<menuitem id="menu_selectAll"
+									key="key_selectAll"
+									command="cmd_selectAll" data-l10n-id="text-action-select-all"/>
+							<menuseparator hidden="true" id="textfieldDirection-separator"/>
+							<menuitem id="textfieldDirection-swap"
+									command="cmd_switchTextDirection"
+									key="key_switchTextDirection"
+									hidden="true" data-l10n-id="menu-edit-bidi-switch-text-direction"/>
+						</menupopup>
+					</menu>
+					
+					<commandset id="macCommandSet"> <!-- was mainCommandSet -->
+						<command id="minimizeWindow"
+								 data-l10n-id="window-minimize-command"
+								 oncommand="window.minimize();" />
+						<command id="zoomWindow"
+								 data-l10n-id="window-zoom-command"
+								 oncommand="zoomWindow();" />
+					</commandset>
+
+					<keyset id="macKeyset">  <!-- was mainKeySet -->
+						<key id="key_minimizeWindow"
+								command="minimizeWindow"
+								data-l10n-id="window-minimize-shortcut"
+								modifiers="accel"
+								internal="true"/>
+					</keyset>
+
+					<menu id="windowMenu"
+							data-l10n-id="menu-window-menu">
+						<menupopup id="windowPopup">
+							<menuseparator/>
+							<menuitem command="minimizeWindow" key="key_minimizeWindow"/>
+							<menuitem command="zoomWindow"/>
+							<!-- decomment when "BringAllToFront" is implemented
+								<menuseparator/>
+								<menuitem label="&bringAllToFront.label;" disabled="true"/> -->
+							<menuseparator id="sep-window-list"/>
+						</menupopup>
+					</menu>
+				</menubar>
+			</toolbaritem>
+		</toolbar>
+	</toolbox>
+	
+	<hbox flex="1" id="browser">
+		<vbox id="appcontent" flex="1">
+			<browser
+					type="content"
+					flex="1"
+					remote="false"
+					disableglobalhistory="true"
+					maychangeremoteness="true"
+					context="contentAreaContextMenu"
+					messagemanagergroup="basicViewer"/>
+		</vbox>
+	</hbox>
+</window>

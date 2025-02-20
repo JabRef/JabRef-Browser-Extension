@@ -1,0 +1,8 @@
+.zotero-text-link {
+	-moz-user-focus: normal;
+	color: LinkText;
+	text-decoration: underline;
+	border: var(--material-border-transparent);
+	cursor: pointer;
+	@include focus-ring;
+}

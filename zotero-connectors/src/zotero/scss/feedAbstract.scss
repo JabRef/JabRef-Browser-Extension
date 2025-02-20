@@ -1,0 +1,26 @@
+@import "abstracts/variables";
+@import "abstracts/functions";
+@import "abstracts/mixins";
+@import "abstracts/placeholders";
+@import "abstracts/utilities";
+@import "abstracts/split-button";
+@import "abstracts/svgicon";
+
+@import "themes/light";
+@import "themes/dark";
+
+@import "base/base";
+
+html {
+	color-scheme: light dark;
+}
+
+html, body {
+	background: var(--material-sidepane);
+	overflow: hidden;
+	line-height: 1.5;
+}
+
+img, svg {
+	max-width: 100%;
+}

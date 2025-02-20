@@ -1,0 +1,161 @@
+{
+  "general_more": {
+    "message": "Viac..."
+  },
+  "general_moreInfo": {
+    "message": "Viac informácií..."
+  },
+  "general_needHelp": {
+    "message": "Potrebujete pomoc?"
+  },
+  "general_done": {
+    "message": "Hotovo"
+  },
+  "general_yes": {
+    "message": "Áno"
+  },
+  "general_no": {
+    "message": "Nie"
+  },
+  "general_tryAgain": {
+    "message": "Skúste znova"
+  },
+  "general_warning": {
+    "message": "Upozornenie"
+  },
+  "general_ok": {
+    "message": "OK"
+  },
+  "general_cancel": {
+    "message": "Zrušiť"
+  },
+  "general_selectAll": {
+    "message": "Vybrať všetko"
+  },
+  "general_deselectAll": {
+    "message": "Odznačiť všetky"
+  },
+  "general_pleaseWait": {
+    "message": "Počkajte, prosím..."
+  },
+  "general_copyToClipboard": {
+    "message": "Skopírovať do schránky"
+  },
+  "itemType_note": {
+    "message": "Poznámka"
+  },
+  "itemType_attachment": {
+    "message": "Príloha"
+  },
+  "progressWindow_savingTo": {
+    "message": "Ukladá sa do"
+  },
+  "progressWindow_tagPlaceholder": {
+    "message": "Značky (oddelené čiarkami)"
+  },
+  "progressWindow_error_translation": {
+    "message": "Pri ukladaní tohto súboru došlo k chybe. Pre viac informácií si pozrite $1."
+  },
+  "progressWindow_error_siteAccessLimitsError": {
+    "message": "Pri ukladaní záznamu došlo k chybe. $1 môže obmedziť počet záznamov, ktoré môžete naraz uložiť. Pozrite na $2 pre viac informácií."
+  },
+  "progressWindow_error_troubleshootingTranslatorIssues": {
+    "message": "Riešenie problémov s translátormi"
+  },
+  "progressWindow_error_siteAccessLimits": {
+    "message": "Obmedzenia prístupu na stránku"
+  },
+  "progressWindow_error_fallback": {
+    "message": "Pri ukladaní pomocou $1 došlo k chybe. Namiesto toho prebieha pokus o ukladanie pomocou $2."
+  },
+  "progressWindow_error_upgradeClient": {
+    "message": "Túto funkciu vaša verzia $1 nepodporuje. Aktualizujte ju, prosím, na $2."
+  },
+  "progressWindow_error_upgradeClient_latestVersion": {
+    "message": "najnovšia verzia"
+  },
+  "appConnector": {
+    "message": "Konektor $1"
+  },
+  "upgradeApp": {
+    "message": "Aktualizovať $1"
+  },
+  "firstRun_title": {
+    "message": "Nainštalovali ste $1 konektor!"
+  },
+  "firstRun_text1": {
+    "message": "Konektor $1 vám umožní jedným kliknutím <a href=\"$2\">ukladať záznamy do $1</a> z vášho prehliadača."
+  },
+  "firstRun_text2": {
+    "message": "Ak ho ešte nemáte, <a href=\"$2\">stiahnite si </a> samostatnú aplikáciu $1 pre najlepší zážitok."
+  },
+  "firstRun_acceptButton": {
+    "message": "Rozumiem"
+  },
+  "error_connection_isAppRunning": {
+    "message": "Beží $1?"
+  },
+  "error_connection_save": {
+    "message": "$1 nedokázal komunikovať s počítačovým programom $2. Konektor dokáže uložiť niektoré stránky priamo na váš účet v$3, ale najlepší výsledok dosiahnete, keď sa uistíte, že $2 je otvorený, prv než začnete ukladať."
+  },
+  "error_connection_downloadOrTroubleshoot": {
+    "message": "Môžete <a href=\"$1\">stiahnuť $2</a> alebo <a href=\"$3\">riešiť poruchu spojenia</a>, ak je to potrebné."
+  },
+  "error_connection_enableSavingToOnlineLibrary": {
+    "message": "Zapnúť ukladanie do Online knižnice"
+  },
+  "reports_report_submitted": {
+    "message": "Vaše chybové hlásenie bolo odoslané.\n\nID správy: $1\n\nProsím napíšte správu do diskusného fóra Zotero obsahujúcu toto ID, popis problému a kroky, ktoré sú potrebné k jeho reprodukovaniu.\n\nChybové hlásenia sa nekontrolujú dokiaľ sa o nich nediskutuje vo fórach."
+  },
+  "reports_debug_output_submitted": {
+    "message": "Vaše ladiace informácie boli odoslané.\n\nID ladenia je $1."
+  },
+  "reports_submission_failed": {
+    "message": "Pri odosielaní vašej správy sa vyskytla chyba.\n\n$1\n\nSkontrolujte prosím svoje pripojenie na internet. Ak problémy pretrvávajú, pošlite správu na fóra Zotero."
+  },
+  "integration_error_clientUpgrade": {
+    "message": "Webové citovanie vyžaduje verziu $1 alebo vyššiu."
+  },
+  "integration_error_connection": {
+    "message": "$1 nedokázal komunikovať s počítačovým programom $2. $2 musí byť pre používanie webového citovania spustený."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_warning": {
+    "message": "Tento dokument obsahuje aktívne citácie Zotera, ktoré sa objavia ako odkazy zotero.org v stiahnutej kópii."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_instructions": {
+    "message": "Pre vytvorenie verzie vhodnej na zdieľaie, zvoľte <b>Vytvoriť kópiu…</b> z ponuky Súbor, zvoľte <b>Odpojiť citácie</b> z ponuky Zotero v novom dokumente a potom stiahnite neprepojenú verziu. Uschovajte tento pôvodný prepojený dokument pre prípad, že budete potrebovať urobiť ďalšie zmeny."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_downloadAnyway": {
+    "message": "Každopádne stiahnuť prepojenú verziu"
+  },
+  "integration_googleDocs_updating": {
+    "message": "$1 aktualizuje váš dokument."
+  },
+  "integration_googleDocs_docxAlert": {
+    "message": "Integrácia $1 nie je dostupná pri úprave súborov .docx od Microsoft Word  priamo v Google Docs. Zvoľte Súbor → Uložiť ako Google Docs pre zapnutie tejto funkcie.<br/><br/>Ak chcete preniesť dokument Word s citáciami $1 do Google Docs, pozrite na <a href=\"https://www.zotero.org/support/kb/moving_documents_between_word_processors\">Presun dokumentov medzi textovými editormi</a>."
+  },
+  "integration_googleDocs_documentLocked": {
+    "message": "Citácie v dokumente práve edituje iný $1 užívateľ. Skúste to prosím neskôr."
+  },
+  "integration_googleDocs_documentLocked_moreInfo": {
+    "message": "$1 uzamkne váš dokument, aby zabránil viacerým používateľom upravovať citácie súčasne. Súbežné úpravy citácií v dokumente môžu viesť k poškodeniu citácie alebo dokumentu. Niektoré nepredvídateľné okolnosti, ako napríklad zlyhanie siete, môžu viesť k trvalému uzamknutiu vášho dokumentu. Ak si myslíte, že sa to stalo, môžete obísť zámok. <br/><br/>Chcete obísť zámok dokumentu?"
+  },
+  "integration_googleDocs_documentPermissionError": {
+    "message": "Účet Google, ktorý ste vybrali, nemá povolenie na úpravu tohto dokumentu. Skúste to znova a vyberte účet s prístupom na úpravy."
+  },
+  "integration_googleDocs_orphanedCitations_buttonTooltip": {
+    "message": "Zobraziť neprepojených $1 citácií"
+  },
+  "integration_googleDocs_orphanedCitations_alert": {
+    "message": "Citácia, ktorú sa pokúšate upraviť, prestala byť prepojená s $1."
+  },
+  "integration_googleDocs_orphanedCitations_alertButton": {
+    "message": "Znova prepojiť citáciu"
+  },
+  "integration_googleDocs_orphanedCitations_disclaimer": {
+    "message": "Tieto citácie prestali byť <a target=\"_blank\" href=\"https://www.zotero.org/support/kb/google_docs_citations_unlinked\">prepojené s $1</a>. Budete ich musieť znova prepojiť prv ako budú aktualizované alebo sa objavia vo vašej bibliografii."
+  },
+  "general_saveTo": {
+    "message": "Uložiť do $1"
+  }
+}

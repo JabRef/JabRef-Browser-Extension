@@ -1,0 +1,10 @@
+toolbox-meatball-menu-dock-bottom-label = Andochează jos
+toolbox-meatball-menu-dock-left-label = Andochează la stânga
+toolbox-meatball-menu-dock-right-label = Andochează la dreapta
+toolbox-meatball-menu-dock-separate-window-label = Fereastră separată
+toolbox-meatball-menu-splitconsole-label = Afișează consola divizată
+toolbox-meatball-menu-hideconsole-label = Ascunde consola divizată
+toolbox-meatball-menu-settings-label = Setări
+toolbox-meatball-menu-documentation-label = Documentație…
+toolbox-meatball-menu-community-label = Comunitate…
+toolbox-meatball-menu-noautohide-label = Dezactivează ascunderea automată a ferestrelor pop-up

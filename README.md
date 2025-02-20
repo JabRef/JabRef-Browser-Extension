@@ -62,7 +62,7 @@ To update dependencies:
 - `npm-upgrade` updates all packages
 - `npm install` install updated packages
 
-If you execute it for the first time you have to use git subtree add and delete the module subdirs 
+If you execute it for the first time you have to use git subtree add and delete the module subdirs under zotero-connectors/src/
 
 - running
 

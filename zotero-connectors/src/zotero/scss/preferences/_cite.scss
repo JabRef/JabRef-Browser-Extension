@@ -1,0 +1,33 @@
+#wordProcessors > label:not(:first-child) {
+	margin-top: 10px;
+}
+
+#wordProcessorInstallers {
+	margin-block: 0.5em;
+}
+
+#wordProcessorInstallers > groupbox > label > h2 {
+	/* Override spacing added between groupboxes */
+	margin-top: 0.5em !important;
+}
+
+#styleManager
+{
+	height: 250px;
+	max-height: 250px;
+}
+
+#styleManager-updated
+{
+	width: 105px;
+}
+
+/* Get additional styles link should occupy only as much space as needed */
+#styleManager-buttons .zotero-text-link {
+	max-width: fit-content;
+	margin-right: auto;
+}
+
+#openCSLEdit, #styleManager-delete {
+	margin-inline-end: 6px;
+}

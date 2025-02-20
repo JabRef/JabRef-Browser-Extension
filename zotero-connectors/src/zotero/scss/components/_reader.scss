@@ -1,0 +1,7 @@
+.tags-popup {
+	font: inherit;
+	min-width: 300px;
+	& > tags-box {
+		padding-inline: 8px;
+	}
+}

@@ -1,0 +1,230 @@
+@import "abstracts/variables";
+@import "abstracts/functions";
+@import "abstracts/mixins";
+@import "abstracts/placeholders";
+@import "abstracts/utilities";
+@import "abstracts/split-button";
+@import "abstracts/svgicon";
+
+@import "themes/light";
+@import "themes/dark";
+
+// Base
+// --------------------------------------------------
+
+@import "base/base";
+
+$scaffold-toolbarbutton-icons: (
+		load: 'folder-open',
+		save: 'save',
+		saveToZotero: 'save-to-zotero',
+		detect: 'run-detect',
+		do: 'run-do',
+		template: 'plus'
+);
+
+@each $cls, $icon in $scaffold-toolbarbutton-icons {
+	#tb-#{$cls} {
+		@include svgicon-menu($icon, "universal", "20");
+	}
+};
+
+#scaffold, #zotero-select-item-dialog {
+	@include contain-richlistbox;
+	@include macOS-normalize-controls;
+}
+
+#scaffold {
+	min-height: 600px;
+}
+
+#zotero-select-item-dialog {
+	max-width: 400px;
+	min-height: 330px;
+	max-height: 330px;
+}
+
+#zotero-selectitems-links {
+	flex: 1 1 0;
+}
+
+#zotero-select-items-buttons {
+	// Prevent contain-richlistbox from squishing the buttons
+	flex-shrink: 0;
+	gap: 6px;
+	padding-top: 4px;
+}
+
+.menubar-container {
+	display: flex;
+	background: var(--material-sidepane);
+	border-bottom: var(--material-panedivider);
+
+	#main-menubar {
+		pointer-events: all;
+	}
+}
+
+#zotero-toolbar {
+	@media not (-moz-platform: macos) {
+		appearance: none;
+		background: var(--material-sidepane);
+	}
+	box-sizing: content-box;
+	border-bottom: var(--material-panedivider);
+
+	toolbarbutton {
+		height: 28px;
+		padding: 0 4px;
+		margin: 0 4px;
+		
+		.toolbarbutton-menu-dropmarker {
+			margin-inline-start: 4px;
+		}
+	}
+	
+	toolbarseparator {
+		appearance: none;
+		width: 1px;
+		height: 18px;
+		background-color: var(--fill-quinary);
+	}
+}
+
+browser,
+#appcontent
+{
+	background: var(--material-toolbar);
+}
+
+#left-tabbox {
+	flex: 1;
+	min-width: 500px;
+	margin: 0 5px 5px 5px;
+	padding: 16px 0 16px 16px;
+	overflow: clip;
+	
+	tabpanel {
+		display: flex;
+		width: 100%;
+		min-width: 0;
+	}
+}
+
+#right-pane {
+	min-width: 350px;
+	border-inline-start: var(--material-panedivider);
+
+	#output {
+		height: 100%;
+		background: var(--material-background);
+		outline: none;
+		border: 0;
+	}
+}
+
+#metadata-grid {
+	flex: 1;
+	display: grid;
+	align-content: start;
+	align-items: center;
+	grid-template-columns: max-content 1fr;
+	gap: 8px;
+
+	label,
+	button,
+	input {
+		margin: 0;
+	}
+
+	& > label:nth-child(2n + 1) {
+		justify-self: inline-end;
+	}
+
+	label:first-child {
+		text-align: inline-end;
+	}
+
+	.button-row {
+		display: grid;
+		grid-template-columns: 1fr max-content;
+		gap: 8px;
+	}
+
+	#metadata-bottom-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	
+		#textbox-minVersion {
+			margin-inline-end: auto;
+		}
+	}
+
+	#checkboxes-translatorType {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+	}
+}
+
+#testing-container {
+	flex: 1;
+	max-width: 100%;
+	gap: 8px;
+
+	richlistbox {
+		min-width: 200px;
+		margin-block: 0;
+	
+		richlistitem {
+			padding: 0;
+			align-items: center;
+		}
+	}
+
+	#testing-buttons {
+		gap: 8px;
+
+		button,
+		checkbox {
+			margin: 0;
+		}
+	}
+
+	#testing-listbox-container {
+		flex: 1;
+	}
+
+	#editor-tests {
+		flex: 2;
+	}
+}
+
+#browser-container {
+	flex: 1;
+	gap: 8px;
+
+	#browser-url-container {
+		gap: 8px;
+
+		button,
+		label,
+		input {
+			margin: 0;
+		}
+	}	
+}
+
+#import-container {
+	flex: 1;
+	gap: 8px;
+
+	#import-buttons {
+		gap: 8px;
+
+		button {
+			margin: 0;
+		}
+	}
+}

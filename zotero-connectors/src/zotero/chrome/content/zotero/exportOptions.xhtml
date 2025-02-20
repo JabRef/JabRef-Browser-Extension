@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero.css"?>
+
+<!DOCTYPE window [
+<!ENTITY % zoteroDTD SYSTEM "chrome://zotero/locale/zotero.dtd" >
+%zoteroDTD;
+]>
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	title="&zotero.exportOptions.title;"
+	drawintitlebar-platforms="mac"
+	onload="Zotero_File_Interface_Export.init()">
+<dialog
+	buttons="cancel,accept"
+	id="zotero-export-options">
+	
+	<script>
+		Services.scriptloader.loadSubScript("chrome://zotero/content/include.js", this);
+		Services.scriptloader.loadSubScript("chrome://zotero/content/titlebar.js", this);
+		Services.scriptloader.loadSubScript("chrome://zotero/content/customElements.js", this);
+	</script>
+	<script src="charsetMenu.js"/>
+	<script src="exportOptions.js"/>
+	<script type="application/javascript">
+	<![CDATA[
+		var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+		observerService.notifyObservers(null, "charsetmenu-selected", "other");
+	]]>
+	</script>
+
+	
+	<vbox id="zotero-export-options-container" flex="1">
+		<hbox align="center">
+			<label value="&zotero.exportOptions.format.label;" control="format-menu"/>
+			<menulist id="format-menu" oncommand="Zotero_File_Interface_Export.updateOptions()" native="true">
+				<menupopup id="format-popup"/>
+			</menulist>
+		</hbox>
+		<groupbox id="translator-options">
+			<caption id="translator-options-label" label="&zotero.exportOptions.translatorOptions.label;"/>
+			
+			<vbox id="charset-box" hidden="true">
+				<separator class="thin"/>
+				<label value="&zotero.charset.label;:" control="charset-menu"/>
+				<menulist id="export-option-exportCharset" native="true"/>
+			</vbox>
+		</groupbox>
+	</vbox>
+</dialog>
+</window>

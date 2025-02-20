@@ -1,0 +1,96 @@
+<!ENTITY preferencesCmdMac.label "偏好設定…">
+<!ENTITY preferencesCmdMac.commandkey "，">
+<!ENTITY servicesMenuMac.label "服務">
+<!ENTITY hideThisAppCmdMac.label "隱藏 &brandShortName;">
+<!ENTITY hideThisAppCmdMac.commandkey "H">
+<!ENTITY hideOtherAppsCmdMac.label "隱藏其他">
+<!ENTITY hideOtherAppsCmdMac.commandkey "H">
+<!ENTITY showAllAppsCmdMac.label "顯示全部">
+<!ENTITY quitApplicationCmdMac.label "退出Zotero">
+<!ENTITY quitApplicationCmdMac.key "Q">
+
+<!ENTITY fileMenu.label "檔案">
+<!ENTITY fileMenu.accesskey "F">
+<!ENTITY saveCmd.label "儲存……">
+<!ENTITY saveCmd.key "S">
+<!ENTITY saveCmd.accesskey "A">
+<!ENTITY pageSetupCmd.label "頁面設定……">
+<!ENTITY pageSetupCmd.accesskey "U">
+<!ENTITY printCmd.label "列印……">
+<!ENTITY printCmd.key "P">
+<!ENTITY printCmd.accesskey "P">
+<!ENTITY closeCmd.label "關閉">
+<!ENTITY closeCmd.key "W">
+<!ENTITY closeCmd.accesskey "C">
+<!ENTITY manageAttachments.label "管理附件">
+<!ENTITY convertToStored.label "將連結檔轉成儲存檔……">
+<!ENTITY importCmd.label "匯入……">
+<!ENTITY importCmd.key "I">
+<!ENTITY importFromClipboardCmd.label "從剪貼簿匯入">
+<!ENTITY quitApplicationCmdWin.label "離開">
+<!ENTITY quitApplicationCmdWin.accesskey "x">
+<!ENTITY quitApplicationCmd.label "退出">
+<!ENTITY quitApplicationCmd.accesskey "Q">
+
+<!ENTITY copyCitationCmd.label "複製成引用文獻">
+<!ENTITY copyBibliographyCmd.label "複製參考文獻表">
+<!ENTITY copyNoteCmd.label "複製筆記">
+
+<!ENTITY bidiSwitchPageDirectionItem.label "切換頁面方向">
+<!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
+<!ENTITY bidiSwitchTextDirectionItem.label "切換文字方向">
+<!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
+<!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+<!ENTITY goMenu.label "前往">
+<!ENTITY goMenu.accesskey "G">
+
+<!ENTITY viewMenu.label "檢視">
+<!ENTITY viewMenu.accesskey "V">
+<!ENTITY layout.label "版面">
+<!ENTITY standardView.label "標準檢視">
+<!ENTITY stackedView.label "堆放檢視">
+<!ENTITY collectionsPane.label "文獻集窗格">
+<!ENTITY itemPane.label "項目窗格">
+<!ENTITY tagSelector.label "標籤選擇器">
+<!ENTITY recursiveCollections.label "顯示子文獻集的項目">
+<!ENTITY fontSize.label "字型大小">
+<!ENTITY noteFontSize.label "筆記字型大小">
+<!ENTITY columns.label "直欄">
+<!ENTITY sortBy.label "排序方式">
+
+<!ENTITY toolsMenu.label "工具">
+<!ENTITY toolsMenu.accesskey "T">
+<!ENTITY installConnector.label "Install Browser Connector…">
+<!ENTITY installConnector.accesskey "C">
+<!ENTITY addons.label "附加元件">
+<!ENTITY developer.label "開發者">
+
+<!ENTITY bringAllToFront.label "全部移到上層">
+
+<!ENTITY helpMenu.label "說明">
+<!ENTITY helpMenu.accesskey "H">
+<!ENTITY helpMenuWin.label "說明">
+<!ENTITY helpMenuWin.accesskey "H">
+<!ENTITY helpMac.commandkey "?">
+<!ENTITY aboutProduct.label "關於 &brandShortName;">
+<!ENTITY aboutProduct.accesskey "A">
+<!ENTITY productHelp.label "支援及說明文件">
+<!ENTITY productHelp.accesskey "D">
+<!ENTITY helpTroubleshootingInfo.label "診斷資訊">
+<!ENTITY helpTroubleshootingInfo.accesskey "T">
+<!ENTITY helpFeedbackPage.label "交流論壇">
+<!ENTITY helpFeedbackPage.accesskey "F">
+
+<!ENTITY helpReportErrors.label "回報錯誤…">
+<!ENTITY helpReportErrors.accesskey "R">
+
+<!ENTITY debugOutputLogging.label "Debug輸出紀錄">
+<!ENTITY debugOutputLogging.accesskey "L">
+<!ENTITY debugOutputLogging.submit "送出輸出結果">
+<!ENTITY debugOutputLogging.view "檢視輸出結果">
+<!ENTITY debugOutputLogging.clear "清除輸出結果">
+<!ENTITY debugOutputLogging.restartWithLoggingEnabled "以紀錄模式重新啟動程式……">
+
+<!ENTITY helpCheckForUpdates.label "檢查更新…">
+<!ENTITY helpCheckForUpdates.accesskey "U">

@@ -1,0 +1,197 @@
+.import-wizard {
+	min-width: 600px;
+	min-height: 400px;
+	font-size: 12px;
+
+	radiogroup {
+		radio {
+			padding-top: 5px;
+		}
+	}
+
+	wizardpage {
+		display: flex;
+		flex-direction: column;
+
+		> div {
+			display: block;
+		}
+	}
+
+	a {
+		display: inline;
+		color: LinkText;
+		cursor: pointer;
+
+		&:hover, &:active, &:focus {
+			outline:none;
+			text-decoration: $link-hover-decoration;
+		}
+	}
+
+	checkbox {
+		margin-left: 4px; // indent required for correct focus ring rendering
+	}
+
+	button {
+		font: menu;
+	}
+
+	h2 {
+		font-size: 14px;
+		font-weight: normal;
+		margin-bottom: 6px;
+		margin: 0;
+	}
+
+	[disabled="true"] .checkbox-label {
+		opacity: .5;
+	}
+
+	#other-files {
+		margin-left: -1px;
+		width: 400px;
+	}
+
+
+	#page-start {
+		radiogroup {
+			margin-top: 4px;
+		}
+	}
+
+	#page-options-folder-import {
+		fieldset {
+			display: block;
+			border: none;
+			margin-left: 1em;
+		}
+
+		#recreate-structure {
+			margin-top: .25em;
+		}
+
+		.import-file-types-header {
+			margin-top: 1em;
+		}
+
+		.page-options-file-type {
+			display: flex;
+			margin-top: .25em;
+
+			&:first-child {
+				margin-top: 1em;
+			}
+		}
+	}
+
+	#page-options-file-handling {
+		padding-top: 1.5em;
+
+		.radioset {
+			// font-size: 13px;
+			margin-left: 1em;
+		}
+	}
+
+	#page-options-relink-only {
+		display: flex;
+
+		a {
+			margin: 4px 1em 4px;
+		}
+	}
+
+	.page-options-file-handling-description {
+		margin-top: .6em;
+		font-size: 11px;
+	}
+
+	#page-done-error {
+		margin-top: 2em;
+		text-align: right;
+	}
+
+	.mendeley-online-intro {
+		// font-size: 13px;
+
+		& +.mendeley-online-intro {
+			margin-top: 1em;
+		}
+	}
+
+	#mendeley-login {
+		padding: 1.5em 1em 0;
+		font-size: 13px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		border: none;
+
+		.field {
+			display: flex;
+			max-width: 300px;
+			line-height: 1.5em;
+			align-items: center;
+		}
+
+		.field+.field {
+			margin-top: .5em;
+		}
+
+		label {
+			flex: 0 0 90px;
+			width: 90px;
+			margin-right: 8px;
+			text-align: right;
+		}
+
+		input {
+			flex: 1 1 auto;
+			font-size: 13px;
+		}
+	}
+
+	#mendeley-online-login-feedback {
+		text-align: center;
+		white-space: pre-wrap;
+		font-size: 13px;
+		margin-top: 1.3em;
+		color: var(--accent-orange);
+		font-weight: 600;
+	}
+
+	#import-progress {
+		margin-top: 1em;
+	}
+
+	#page-progress {
+		display: flex;
+		flex-direction: column;
+	}
+
+	// TODO: deduplicate with rtfscan
+	.table-container {
+		display: flex;
+		height: 0;
+		flex-direction: column;
+		flex: 1 0 auto;
+		margin-top: 1.5em;
+	
+		> div {
+			display: flex;
+			flex: 1 0 auto;
+			background-color: -moz-field;
+			overflow: hidden;
+			position: relative;
+		}
+
+		.virtualized-table-body {
+			display: flex;
+
+			.windowed-list {
+				flex: 1 0 auto;
+			}
+		}
+	}
+}

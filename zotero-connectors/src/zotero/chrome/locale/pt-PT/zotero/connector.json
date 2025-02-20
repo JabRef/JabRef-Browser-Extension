@@ -1,0 +1,239 @@
+{
+  "general_more": {
+    "message": "Mais…"
+  },
+  "general_moreInfo": {
+    "message": "Mais informação..."
+  },
+  "general_needHelp": {
+    "message": "Precisa de ajuda?"
+  },
+  "general_done": {
+    "message": "Feito"
+  },
+  "general_yes": {
+    "message": "Sim"
+  },
+  "general_no": {
+    "message": "Não"
+  },
+  "general_tryAgain": {
+    "message": "Tentar Novamente"
+  },
+  "general_warning": {
+    "message": "Aviso"
+  },
+  "general_ok": {
+    "message": "OK"
+  },
+  "general_cancel": {
+    "message": "Cancelar"
+  },
+  "general_selectAll": {
+    "message": "Seleccionar Tudo"
+  },
+  "general_deselectAll": {
+    "message": "Desseleccionar Todas"
+  },
+  "general_pleaseWait": {
+    "message": "Por favor aguarde…"
+  },
+  "general_copyToClipboard": {
+    "message": "Copiar para a Área de Transferência"
+  },
+  "itemType_pdf": {
+    "message": "Anexo PDF"
+  },
+  "itemType_epub": {
+    "message": "Anexo EPUB"
+  },
+  "itemType_snapshot": {
+    "message": "Instantâneo"
+  },
+  "itemType_note": {
+    "message": "Nota"
+  },
+  "itemType_link": {
+    "message": "Ligação web"
+  },
+  "itemType_attachment": {
+    "message": "Anexo"
+  },
+  "progressWindow_savingTo": {
+    "message": "Guardando para"
+  },
+  "progressWindow_detailsBtnView": {
+    "message": "Ver detalhes"
+  },
+  "progressWindow_detailsBtnHide": {
+    "message": "Ocultar detalhes"
+  },
+  "progressWindow_collectionSelector": {
+    "message": "Seletor de coleção alvo"
+  },
+  "progressWindow_savingItems": {
+    "message": "A guardar $1 itens. $2"
+  },
+  "progressWindow_savingItem": {
+    "message": "A guardar o item $1"
+  },
+  "progressWindow_saveItem": {
+    "message": "Item $1: $2"
+  },
+  "progressWindow_downloadComplete": {
+    "message": "$1 salvo"
+  },
+  "progressWindow_downloadCompletePlural": {
+    "message": "Salvo $1 para o item $2"
+  },
+  "progressWindow_downloadFailed": {
+    "message": "Falha ao baixar $1"
+  },
+  "progressWindow_downloadFailedPlural": {
+    "message": "Falha ao baixar $1 para o item $2"
+  },
+  "progressWindow_allDone": {
+    "message": "Salvo com sucesso. A caixa de diálogo irá fechar agora."
+  },
+  "progressWindow_alreadySaved": {
+    "message": "Os itens desta página web já foram salvos."
+  },
+  "progressWindow_tagPlaceholder": {
+    "message": "Etiquetas (separadas por vírgulas)"
+  },
+  "progressWindow_filterPlaceholder": {
+    "message": "Filtrar Coleções"
+  },
+  "progressWindow_error_translation": {
+    "message": "Ocorreu um erro ao guardar este item. Ver $1 para mais informação."
+  },
+  "progressWindow_error_siteAccessLimitsError": {
+    "message": "Um erro ocorreu ao guardar este item. $1 pode limitar o número de itens que pode guardar de uma só vez. Veja $2 para mais informações."
+  },
+  "progressWindow_error_troubleshootingTranslatorIssues": {
+    "message": "Resolvendo Problemas com o Tradutor"
+  },
+  "progressWindow_error_siteAccessLimits": {
+    "message": "Limites de Acesso ao Sítio"
+  },
+  "progressWindow_error_fallback": {
+    "message": "Ocorreu um erro a guardar com $1. Tentando alternativamente guardar com $2."
+  },
+  "progressWindow_error_upgradeClient": {
+    "message": "Esta funcionalidade não é suportada pela sua versão $1. Por favor actualize-a para a versão $2."
+  },
+  "progressWindow_error_upgradeClient_latestVersion": {
+    "message": "última versão"
+  },
+  "itemSelector_title": {
+    "message": "Selecione quais itens você gostaria de adicionar à sua biblioteca:"
+  },
+  "extensionIsDisabled": {
+    "message": "$1 está desabilitado"
+  },
+  "extensionIsDisabled_fileURL": {
+    "message": "$1 Conector indisponível para URL de ficheiro"
+  },
+  "extensionIsDisabled_extensionPage": {
+    "message": "$1 Conector indisponível em páginas de extensões"
+  },
+  "appConnector": {
+    "message": "Conector $1"
+  },
+  "upgradeApp": {
+    "message": "Actualizar para o $1"
+  },
+  "firstRun_title": {
+    "message": "Instalou o Connector $1!"
+  },
+  "firstRun_text1": {
+    "message": "O Conector $1 permite-lhe <a href=\"$2\">guardar itens no $1 </a> a partir do seu navegador com um único clique."
+  },
+  "firstRun_text2": {
+    "message": "Se ainda não o fez, <a href=\"$2\">baixe</a> o aplicativo $1 para ter uma melhor experiência."
+  },
+  "firstRun_acceptButton": {
+    "message": "Percebi"
+  },
+  "error_connection_isAppRunning": {
+    "message": "O $1 está em Execução?"
+  },
+  "error_connection_save": {
+    "message": "O $1 não foi capaz de comunicar com a aplicação de secretária $2. O Conector pode guardar algumas páginas directamente na sua conta $3, mas, para melhores resultados, assegure-se de que o $2 está aberto antes de tentar guardar."
+  },
+  "error_connection_downloadOrTroubleshoot": {
+    "message": "Pode <a href=\"$1\">descarregar o $2</a> ou <a href=\"$3\">resolver problemas com a ligação</a>, se necessário."
+  },
+  "error_connection_enableSavingToOnlineLibrary": {
+    "message": "Activar Guardar na Biblioteca em Linha"
+  },
+  "reports_report_submitted": {
+    "message": "O seu relatório de erro foi submetido.\n\nID do relatório: $1\n\nPor favor, poste uma mensagem nos Fórums do Zotero com o ID do relatório, uma descrição do problema e quaisquer passos necessários para o reproduzir.\n\nOs relatórios de erro não são revistos a não ser que sejam referenciados nos fóruns."
+  },
+  "reports_debug_output_submitted": {
+    "message": "As suas saídas de depuração foram submetidas.\n\nO ID de Depuração é $1."
+  },
+  "reports_submission_failed": {
+    "message": "Ocurreu um erro ao submeter o seu relatório.\n\n$1\n\nPor favor, verifique sua ligação à internet. Se o problema persistir, poste uma mensagem nos Fórums do Zotero."
+  },
+  "integration_error_clientUpgrade": {
+    "message": "A citação baseada na Web requer o $1 ou mais recente."
+  },
+  "integration_error_connection": {
+    "message": "O $1 não foi capaz de comunicar com a aplicação de secretária $2. O $2 tem de estar aberto para usar a citação baseada na Web."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_warning": {
+    "message": "Este documento contém citações ativas do Zotero que irão aparecer como hiperligações zotero.org numa cópia descarregada."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_instructions": {
+    "message": "Para gerar uma versão apropriada para partilha, selecione <b>Criar uma cópia…</b> no menu Ficheiro, selecione, no novo documento, <b>Desligar Citações</b> no menu Zotero e descarregue então a versão desligada. Mantenha este documento ligado para o caso de necessitar de fazer mais alterações."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_downloadAnyway": {
+    "message": "Descarregar Versão Ligada de Qualquer Modo"
+  },
+  "integration_googleDocs_updating": {
+    "message": "$1 está a actualizar o seu documento."
+  },
+  "integration_googleDocs_docxAlert": {
+    "message": "A integração $1 não está disponível quando se edita directamente no Google Docs ficheiros .docx do Microsoft Word. Escolha Ficheiro → Guardar como Google Docs para activar esta funcionalidade.<br/><br/>Se quiser transferir para o Google Docs um documento Word com citações $1, veja <a href=\"https://www.zotero.org/support/kb/moving_documents_between_word_processors\">Movendo Documentos Entre Processadores de Texto</a>."
+  },
+  "integration_googleDocs_documentLocked": {
+    "message": "As citações do documento estão a ser editadas por outro utilizador $1. Por favor, tente novamente mais tarde."
+  },
+  "integration_googleDocs_documentLocked_moreInfo": {
+    "message": "$1 bloqueia o seu documento para prevenir múltiplos utilizadores de editarem citações ao mesmo tempo. A edição de citação em simultâneo no documento pode levar à corrupção da citação ou do documento. Alguns imprevistos, como falhas de rede, podem levar a que o seu documento fique permanentemente bloqueado. Se crê que isto aconteceu, pode sobrepor-se ao bloqueio. <br/><br/>Deseja sobrepor-se o bloqueio do documento?"
+  },
+  "integration_googleDocs_authScopeError": {
+    "message": "$1 precisa de permissão para editar seus documentos Google Docs a fim de inserir citações. Por favor, tente novamente e certifique-se de permitir que $1 veja, edite, crie e exclua seus documentos Google Docs."
+  },
+  "integration_googleDocs_documentPermissionError": {
+    "message": "A conta Google que selecionou não tem permissão para editar este documento. Por favor, tente novamente e assegure-se de que escolheu uma conta com acesso à edição"
+  },
+  "integration_googleDocs_orphanedCitations_buttonTooltip": {
+    "message": "Mostrar $1 citações desligadas"
+  },
+  "integration_googleDocs_orphanedCitations_alert": {
+    "message": "A citação que está a tentar editar foi desligada de $1."
+  },
+  "integration_googleDocs_orphanedCitations_alertButton": {
+    "message": "Religar Citação"
+  },
+  "integration_googleDocs_orphanedCitations_disclaimer": {
+    "message": "Estas citações foram desligadas<a target=\"_blank\" href=\"https://www.zotero.org/support/kb/google_docs_citations_unlinked\">de$1</a>. Terá de religá-las antes que elas sejam atualizadas ou apareçam na sua bibliografia."
+  },
+  "copyUnproxiedLink": {
+    "message": "Copiar link sem proxy"
+  },
+  "copyUnproxiedPageURL": {
+    "message": "Copiar página URL sem proxy"
+  },
+  "reloadViaProxy": {
+    "message": "Recarregar por Proxy"
+  },
+  "reloadVia": {
+    "message": "Recarregar por $1"
+  },
+  "general_saveTo": {
+    "message": "Guardar para $1"
+  }
+}

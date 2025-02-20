@@ -1,0 +1,111 @@
+tabbox {
+	tabs {
+		tab {
+			appearance: none;
+			// Since the tab with opacity is weird, we just use hard-coded colors
+			@include light-dark(background, #ededed, #343434);
+			--tabbox-tab-shadow:
+				0px 2px 2px -2px var(--fill-quarternary) inset,
+				0px -2px 2px -2px var(--fill-quarternary) inset,
+				0px 4px 4px -4px var(--fill-quinary) inset,
+				0px -4px 4px -4px var(--fill-quinary) inset;
+			--tabbox-tab-shadow-left:
+				2px 0px 2px -2px var(--fill-quarternary) inset,
+				4px 0px 4px -4px var(--fill-quinary) inset;
+			--tabbox-tab-shadow-right:
+				-2px 0px 2px -2px var(--fill-quarternary) inset,
+				-4px 0px 4px -4px var(--fill-quinary) inset;
+			
+			padding-block: 1px;
+			box-shadow: var(--tabbox-tab-shadow);
+
+			&::before {
+				content: "";
+				height: 14px;
+				top: 5px;
+				border-left: 1px solid var(--fill-quarternary);
+			}
+
+			&:first-of-type {
+				border-start-start-radius: 6px;
+				border-end-start-radius: 6px;
+				
+				&::before {
+					display: none;
+				}
+
+				&:-moz-locale-dir(ltr) {
+					box-shadow:
+						var(--tabbox-tab-shadow),
+						var(--tabbox-tab-shadow-left);
+				}
+				&:-moz-locale-dir(rtl) {
+					box-shadow:
+						var(--tabbox-tab-shadow),
+						var(--tabbox-tab-shadow-right);
+				}
+			}
+
+			&:last-of-type {
+				border-start-end-radius: 6px;
+				border-end-end-radius: 6px;
+				&:-moz-locale-dir(ltr) {
+					box-shadow:
+						var(--tabbox-tab-shadow),
+						var(--tabbox-tab-shadow-right);
+				}
+				&:-moz-locale-dir(rtl) {
+					box-shadow:
+						var(--tabbox-tab-shadow),
+						var(--tabbox-tab-shadow-left);
+				}
+			}
+
+			&[visuallyselected=true] {
+				/* fx115: toolkit/themes/osx/global/tabbox.css sets selected tabs' text color to #FFF, which is incorrect */
+				&:not(:-moz-window-inactive) {
+					color: unset;
+				}
+
+				& + tab {
+					&::before {
+						border-color: transparent;
+					}
+				}
+
+				&::before {
+					border-color: transparent;
+				}
+
+				.tab-middle {
+					border-radius: 5px;
+					background: var(--material-button);
+					box-shadow:
+						0px 1px 0.75px 0px var(--fill-quinary),
+						0px 0.25px 0.25px 0px var(--color-border);
+					outline: 0.5px solid var(--fill-senary);
+				}
+			}
+
+			.tab-middle {
+				padding: 2px 8px;
+			}
+		}
+
+		// focus-ring if tabbox is not marked as clicked (to avoid blinking)
+		&:not([clicked]) tab:focus-visible {
+			outline: none;
+			// box-shadow should appear around hbox with rounded corners
+			hbox {
+				box-shadow: 0 0 0 var(--width-focus-border) -moz-mac-focusring !important;
+				z-index: 1;
+			}
+		}
+	}
+	tabpanels {
+		appearance: none;
+		background: var(--color-sidepane);
+		border: 1px solid var(--fill-quinary);
+		border-radius: 5px;
+	}
+}

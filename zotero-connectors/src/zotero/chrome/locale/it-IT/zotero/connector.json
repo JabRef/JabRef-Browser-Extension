@@ -1,0 +1,239 @@
+{
+  "general_more": {
+    "message": "Altro…"
+  },
+  "general_moreInfo": {
+    "message": "Per maggiori informazioni…"
+  },
+  "general_needHelp": {
+    "message": "Hai bisogno di aiuto?"
+  },
+  "general_done": {
+    "message": "Fatto"
+  },
+  "general_yes": {
+    "message": "Si"
+  },
+  "general_no": {
+    "message": "No"
+  },
+  "general_tryAgain": {
+    "message": "Riprova"
+  },
+  "general_warning": {
+    "message": "Attenzione"
+  },
+  "general_ok": {
+    "message": "OK"
+  },
+  "general_cancel": {
+    "message": "Annulla"
+  },
+  "general_selectAll": {
+    "message": "Seleziona tutto"
+  },
+  "general_deselectAll": {
+    "message": "Deseleziona tutti"
+  },
+  "general_pleaseWait": {
+    "message": "Ti preghiamo di attendere…"
+  },
+  "general_copyToClipboard": {
+    "message": "Copia negli appunti"
+  },
+  "itemType_pdf": {
+    "message": "Allegato PDF"
+  },
+  "itemType_epub": {
+    "message": "Allegato EPUB"
+  },
+  "itemType_snapshot": {
+    "message": "Pagina web"
+  },
+  "itemType_note": {
+    "message": "Nota"
+  },
+  "itemType_link": {
+    "message": "Link web"
+  },
+  "itemType_attachment": {
+    "message": "Allegato"
+  },
+  "progressWindow_savingTo": {
+    "message": "Salva in"
+  },
+  "progressWindow_detailsBtnView": {
+    "message": "Mostra dettagli"
+  },
+  "progressWindow_detailsBtnHide": {
+    "message": "Nascondi dettagli"
+  },
+  "progressWindow_collectionSelector": {
+    "message": "Selettore collezione di destinazione"
+  },
+  "progressWindow_savingItems": {
+    "message": "Salvataggio $1 elementi. $2"
+  },
+  "progressWindow_savingItem": {
+    "message": "Salvataggio elemento $1"
+  },
+  "progressWindow_saveItem": {
+    "message": "Elemento $1: $2"
+  },
+  "progressWindow_downloadComplete": {
+    "message": "$1 salvato"
+  },
+  "progressWindow_downloadCompletePlural": {
+    "message": "$1 salvato per l'elemento $2"
+  },
+  "progressWindow_downloadFailed": {
+    "message": "Download di $1 fallito"
+  },
+  "progressWindow_downloadFailedPlural": {
+    "message": "Download di $1 fallito per l'elemento $2"
+  },
+  "progressWindow_allDone": {
+    "message": "Salvataggio completato. Questa schermata verrà chiusa."
+  },
+  "progressWindow_alreadySaved": {
+    "message": "Gli elementi di questa pagina web sono già salvati."
+  },
+  "progressWindow_tagPlaceholder": {
+    "message": "Tag (separati da virgole)"
+  },
+  "progressWindow_filterPlaceholder": {
+    "message": "Filtra collezioni"
+  },
+  "progressWindow_error_translation": {
+    "message": "Si è verificato un errore durante il salvataggio di questo elemento. Consulta $1 per ulteriori informazioni."
+  },
+  "progressWindow_error_siteAccessLimitsError": {
+    "message": "Si è verificato un errore durante il salvataggio di questo elemento. $1 può limitare il numero di elementi che puoi salvare contemporaneamente. Vedi $2 per ulteriori informazioni."
+  },
+  "progressWindow_error_troubleshootingTranslatorIssues": {
+    "message": "Risoluzione di problemi dei programmi traduttori"
+  },
+  "progressWindow_error_siteAccessLimits": {
+    "message": "Limiti di accesso al sito"
+  },
+  "progressWindow_error_fallback": {
+    "message": "Si è verificato un errore durante il salvataggio con $1. Nuovo tentativo di salvataggio con$2. "
+  },
+  "progressWindow_error_upgradeClient": {
+    "message": "Questa funzionalità non è supportata dalla versione di $1 in uso. Ti invitiamo ad aggiornarlo alla versione $2."
+  },
+  "progressWindow_error_upgradeClient_latestVersion": {
+    "message": "ultima versione"
+  },
+  "itemSelector_title": {
+    "message": "Seleziona gli elementi da aggiungere alla propria biblioteca:"
+  },
+  "extensionIsDisabled": {
+    "message": "$1 Connector non è disponibile in questa pagina"
+  },
+  "extensionIsDisabled_fileURL": {
+    "message": "$1 Connector non è disponibile negli URL di file"
+  },
+  "extensionIsDisabled_extensionPage": {
+    "message": "$1 Connector non è disponibile nelle pagine delle estensioni"
+  },
+  "appConnector": {
+    "message": "$1 Connector"
+  },
+  "upgradeApp": {
+    "message": "Aggiorna $1"
+  },
+  "firstRun_title": {
+    "message": "Hai installato $1 Connector!"
+  },
+  "firstRun_text1": {
+    "message": "$1 Connector ti consente di <a href=\"$2\"> salvare gli elementi su $1</a> dal tuo browser in un solo click."
+  },
+  "firstRun_text2": {
+    "message": "Se non l'hai ancora fatto, <a href=\"$2\">scarica</a> l'applicazione $1 per un'esperienza d'uso ottimale."
+  },
+  "firstRun_acceptButton": {
+    "message": "Ho capito"
+  },
+  "error_connection_isAppRunning": {
+    "message": "$1 è in esecuzione?"
+  },
+  "error_connection_save": {
+    "message": "$1 non è stato in grado di comunicare con l'applicazione desktop di  $2. Zotero Connector può salvare alcune pagine direttamente nel tuo account $3, ma per ottenere un risultato migliore è bene assicurarsi che $2 sia aperto prima di tentare il salvataggio."
+  },
+  "error_connection_downloadOrTroubleshoot": {
+    "message": "È possibile <a href=\"$1\">scaricare $2</a> o <a href=\"$3\">risolvere i problemi di connessione</a> se necessario."
+  },
+  "error_connection_enableSavingToOnlineLibrary": {
+    "message": "Abilita il salvataggio nella biblioteca online"
+  },
+  "reports_report_submitted": {
+    "message": "La segnalazione di errore è stata inviata.\n\nID della segnalazione: $1\n\nTi preghiamo di pubblicare un messaggio sul forum di Zotero contenente l'ID di segnalazione, una descrizione del problema e tutti i passaggi necessari a ricrearlo.\n\nLe segnalazioni di errore non saranno revisionate a meno che non vengano espressamente menzionate nel forum."
+  },
+  "reports_debug_output_submitted": {
+    "message": "Il messaggio di debug è stato inviato.\n\nID della segnalazione: $1."
+  },
+  "reports_submission_failed": {
+    "message": "Si è verificato un errore durante l'invio della segnalazione.\n\n$1\n\nControlla la tua connessione a Internet. Se il problema dovesse persistere, ti invitiamo a pubblicare un messaggio sul forum di Zotero."
+  },
+  "integration_error_clientUpgrade": {
+    "message": "Le citazioni web richiedono la versione $1 o successiva."
+  },
+  "integration_error_connection": {
+    "message": "$1 non è stato in grado di comunicare con l'applicazione desktop di $2. $2 deve essere aperto se desideri utilizzare le citazioni web."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_warning": {
+    "message": "Il documento include delle citazioni di Zotero che verranno mostrate come collegamento a zotero.org all'interno della copia scaricata."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_instructions": {
+    "message": "Per generare una versione adatta alla condivisione, seleziona <b>Crea una copia…</b> dal menù File, quindi <b>Scollega le citazioni</b> dal menù di Zotero all'interno del nuovo documento e, infine, scarica la versione senza collegamenti. Conserva una copia del documento originale con i collegamenti nel caso sia necessario apportare ulteriori modifiche."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_downloadAnyway": {
+    "message": "Scarica la versione con i collegamenti ugualmente"
+  },
+  "integration_googleDocs_updating": {
+    "message": "$1 sta aggiornando il documento."
+  },
+  "integration_googleDocs_docxAlert": {
+    "message": "L'integrazione con $1 non è disponibile durante la modifica diretta di un file .docx di Microsoft Word in Google Documenti. Scegli File → 'Salva come documento Google' se desideri attivare questa funzionalità.<br/><br/> Se desideri trasferire un documento di Word contenente delle citazioni di $1 in Google Documenti, ti invitiamo a consultare <a href=\"https://www.zotero.org/support/kb/moving_documents_between_word_processors\">Come spostare documenti tra programmi di scrittura differenti</a>."
+  },
+  "integration_googleDocs_documentLocked": {
+    "message": "Le citazioni del documento stanno subendo delle modifiche da parte di un altro utente $1. Per favore, riprova più tardi."
+  },
+  "integration_googleDocs_documentLocked_moreInfo": {
+    "message": "$1 blocca il tuo documento per impedire a più utenti di modificare le citazioni nello stesso momento. La modifica simultanea delle citazioni nel documento può danneggiare le citazioni o il documento. Alcune circostanze imprevedibili, come i guasti di rete, possono portare al blocco permanente del tuo documento. Se credi che sia successo questo, puoi annullare il blocco. <br/><br/>Vuoi annullare il blocco del documento?"
+  },
+  "integration_googleDocs_authScopeError": {
+    "message": "$1 richiede di essere abilitato alla  modifica in Google Documenti per poter inserire citazioni. Si prega di riprovare, e assicurarsi di aver abilitato $1 all'accesso, modifica, creazione ed eliminazione di documenti in Google Documenti."
+  },
+  "integration_googleDocs_documentPermissionError": {
+    "message": "L'account Google che hai selezionato non ha il permesso di modificare questo documento. Per favore riprova e assicurati di scegliere un account con permessi di editor."
+  },
+  "integration_googleDocs_orphanedCitations_buttonTooltip": {
+    "message": "Mostra le citazioni scollegate da $1"
+  },
+  "integration_googleDocs_orphanedCitations_alert": {
+    "message": "La citazione che stai tentando di modificare è scollegata da $1."
+  },
+  "integration_googleDocs_orphanedCitations_alertButton": {
+    "message": "Collega nuovamente la citazione"
+  },
+  "integration_googleDocs_orphanedCitations_disclaimer": {
+    "message": "Queste citazioni sono <a target=\"_blank\" href=\"https://www.zotero.org/support/kb/google_docs_citations_unlinked\">scollegate da $1</a>. È necessario ricollegarle prima che possano aggiornarsi o comparire all'interno della tua bibliografia."
+  },
+  "copyUnproxiedLink": {
+    "message": "Copia il link senza proxy"
+  },
+  "copyUnproxiedPageURL": {
+    "message": "Copia l'URL della pagina senza proxy"
+  },
+  "reloadViaProxy": {
+    "message": "Ricarica tramite proxy"
+  },
+  "reloadVia": {
+    "message": "Ricarica tramite $1"
+  },
+  "general_saveTo": {
+    "message": "Salva in $1"
+  }
+}

@@ -1,0 +1,67 @@
+:is(panel):not(#autoscroller)::part(content) {
+	--panel-background: var(--material-toolbar);
+}
+
+#main-window {
+	min-width: max(var(--width-of-fixed-components) + $min-width-items-pane, $min-width-tabs-deck);
+	min-height: 300px;
+}
+
+#main-window.stacked {
+	min-height: calc(var(--height-of-fixed-components) + $min-height-items-pane + $height-toolbar);
+}
+
+#zotero-pane {
+	min-width: 0;
+	min-height: 0;
+}
+
+#zotero-pane-stack > hbox {
+	// Let window chrome, tabs, and toolbar shrink even when sidebars overflow
+	min-width: 0;
+}
+#browser, #zotero-pane-stack, #zotero-trees {
+	min-height: 0;
+}
+
+#zotero-pane-overlay {
+	background: rgba(0,0,0,.3);
+}
+
+#zotero-pane-progress-box {
+	background: var(--color-sidepane);
+	border-radius: 5px;
+	border: var(--color-panedivider);
+	height: 30px;
+	width: 300px;
+}
+
+#zotero-pane-progressmeter-container {
+	padding: 10px;
+}
+
+#zotero-layout-switcher {
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-width: 0;
+
+	/*
+		Fx115: make panes occupy all available width/height after layout switch
+		or splitter expand/collapse.
+		The splitter element stores state in the style attribute's width/height
+		properties, and if we remove them, the splitter breaks. So we override
+		them here with !important.
+	*/
+	&[orient="horizontal"] :is(#zotero-items-pane-container, #zotero-item-pane) {
+		height: auto !important;
+	}
+
+	&[orient="vertical"],
+	&[orient="vertical"] :is(#zotero-items-pane-container, #zotero-item-pane) {
+		width: -moz-available !important;
+		/* min-width: 0 is required here to allow the pane to shrink in Stacked view,
+		   but the child #zotero-items-pane sets a larger min-width, and the splitter
+		   follows that instead of this. */
+		min-width: 0 !important;
+	}
+}

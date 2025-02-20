@@ -1,0 +1,29 @@
+/* Fixes tabs missing styling on (GTK 3.20) Ubuntu 16.10. See https://bugzilla.mozilla.org/show_bug.cgi?id=1306425 */
+tabpanels {
+	-moz-appearance: none;
+	border: 1px solid hsla(0, 0%, 0%, 0.2);
+	
+}
+tab {
+	-moz-appearance: none;
+	border-top: 1px solid hsla(0, 0%, 0%, 0.2);
+	border-right: 1px solid hsla(0, 0%, 0%, 0.2);
+	border-left: 1px solid hsla(0, 0%, 0%, 0.2);
+}
+/* Fixes misc Ubuntu 16.10 rendering issue fixes. */
+#zotero-prefs menulist dropmarker{
+	width: 30px;
+}
+#zotero-prefs .numberbox-input-box{
+	-moz-appearance: textfield;
+}
+
+#zotero-tags-splitter:not([state=collapsed]) {
+	min-height: 5px;
+}
+
+#zotero-context-splitter-stacked {
+	-moz-appearance: none;
+	background-color: #ececec;
+	border-top: 1px solid hsla(0, 0%, 0%, 0.2);
+}

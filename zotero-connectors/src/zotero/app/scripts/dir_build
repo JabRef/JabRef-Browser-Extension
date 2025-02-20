@@ -1,0 +1,88 @@
+#!/bin/bash
+set -euo pipefail
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+APP_ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+. "$APP_ROOT_DIR/config.sh"
+
+function usage {
+	cat >&2 <<DONE
+Usage: $0 -p platforms
+Options
+ -p PLATFORMS        Platforms to build (m=Mac, w=Windows, l=Linux)
+ -t                  add devtools
+ -q                  quick build (skip compression and other optional steps for faster restarts during development)
+DONE
+	exit 1
+}
+
+DEVTOOLS=0
+PLATFORM=""
+quick_build=0
+while getopts "tp:q" opt; do
+	case $opt in
+		t)
+			DEVTOOLS=1
+			;;
+		p)
+			for i in `seq 0 1 $((${#OPTARG}-1))`
+			do
+				case ${OPTARG:i:1} in
+					m) PLATFORM="m";;
+					w) PLATFORM="w";;
+					l) PLATFORM="l";;
+					*)
+						echo "$0: Invalid platform option ${OPTARG:i:1}"
+						usage
+						;;
+				esac
+			done
+			;;
+		q)
+			quick_build=1
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+	esac
+done
+
+if [[ -z $PLATFORM ]]; then
+	if [ "`uname`" = "Darwin" ]; then
+		PLATFORM="m"
+	elif [ "`uname`" = "Linux" ]; then
+		PLATFORM="l"
+		
+		# If platform not given explicitly, skip 32-bit build if 64-bit system
+		if [ "$(uname -m)" = "x86_64" ]; then
+			export SKIP_32=1
+		fi
+	elif [ "`uname -o 2> /dev/null`" = "Cygwin" ]; then
+		PLATFORM="w"
+	fi
+fi
+
+CHANNEL="source"
+
+PARAMS=""
+if [ $DEVTOOLS -eq 1 ]; then
+	PARAMS+=" -t"
+fi
+if [ $quick_build -eq 1 ]; then
+	PARAMS+=" -q"
+fi
+
+hash=`git -C "$ROOT_DIR" rev-parse --short HEAD`
+
+build_dir=`mktemp -d`
+function cleanup {
+	rm -rf $build_dir
+}
+trap cleanup EXIT
+
+"$SCRIPT_DIR/prepare_build" -s "$ROOT_DIR/build" -o "$build_dir" -c $CHANNEL -m $hash
+"$APP_ROOT_DIR/build.sh" -d "$build_dir" -p $PLATFORM -c $CHANNEL -s $PARAMS
+
+echo Done

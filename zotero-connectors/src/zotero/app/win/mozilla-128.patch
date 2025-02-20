@@ -1,0 +1,118 @@
+diff --git a/browser/app/nsBrowserApp.cpp b/browser/app/nsBrowserApp.cpp
+--- a/browser/app/nsBrowserApp.cpp
++++ b/browser/app/nsBrowserApp.cpp
+@@ -154,19 +154,30 @@ static bool IsArg(const char* arg, const
+ #endif
+ 
+   return false;
+ }
+ 
+ Bootstrap::UniquePtr gBootstrap;
+ 
+ static int do_main(int argc, char* argv[], char* envp[]) {
++  // Allow profile downgrade for Zotero
++  _putenv_s("MOZ_ALLOW_DOWNGRADE", "1");
++  // Don't create dedicated profile (default-esr)
++  _putenv_s("MOZ_LEGACY_PROFILES", "1");
++
+   // Allow firefox.exe to launch XULRunner apps via -app <application.ini>
+   // Note that -app must be the *first* argument.
+-  const char* appDataFile = getenv("XUL_APP_FILE");
++  UniqueFreePtr<char> iniPath = BinaryPath::GetApplicationIni();
++  if (!iniPath) {
++	  Output("Couldn't find application.ini.\n");
++	  return 255;
++
++  }
++  char *appDataFile = iniPath.get();
+   if ((!appDataFile || !*appDataFile) && (argc > 1 && IsArg(argv[1], "app"))) {
+     if (argc == 2) {
+       Output("Incorrect number of arguments passed to -app");
+       return 255;
+     }
+     appDataFile = argv[2];
+ 
+     char appEnv[MAXPATHLEN];
+diff --git a/browser/app/winlauncher/LauncherProcessWin.cpp b/browser/app/winlauncher/LauncherProcessWin.cpp
+--- a/browser/app/winlauncher/LauncherProcessWin.cpp
++++ b/browser/app/winlauncher/LauncherProcessWin.cpp
+@@ -155,17 +155,31 @@ static mozilla::LauncherFlags ProcessCmd
+                         mozilla::CheckArgFlag::None) == mozilla::ARG_FOUND ||
+       mozilla::CheckArg(aArgc, aArgv, "remote-debugging-port", nullptr,
+                         mozilla::CheckArgFlag::None) == mozilla::ARG_FOUND ||
+       mozilla::EnvHasValue("MOZ_AUTOMATION") ||
+       mozilla::EnvHasValue("MOZ_HEADLESS")) {
+     result |= mozilla::LauncherFlags::eWaitForBrowser;
+   }
+ 
+-  if (mozilla::CheckArg(aArgc, aArgv, "no-deelevate") == mozilla::ARG_FOUND) {
++  // Disable deelevation for Zotero
++  //
++  // If people are running as Administrator, or in some cases running with
++  // UAC disabled, Word runs at integrity level High and deelevation drops
++  // Zotero down to Medium, which causes 'Could not find a running Word
++  // instance' errors.
++  //
++  // Even when not running as administrator, the process switch involved in
++  // deelevation also seems to be causing various security software, such as
++  // Cisco Secure Endpoint, to block Zotero from running:
++  // https://forums.zotero.org/discussion/116762
++  //
++  // Disabling deelevation returns us to the behavior of Zotero 6, Word, and
++  // most other programs
++  if (true || mozilla::CheckArg(aArgc, aArgv, "no-deelevate") == mozilla::ARG_FOUND) {
+     result |= mozilla::LauncherFlags::eNoDeelevate;
+   }
+ 
+   if (mozilla::CheckArg(aArgc, aArgv, ATTEMPTING_DEELEVATION_FLAG) ==
+       mozilla::ARG_FOUND) {
+     result |= mozilla::LauncherFlags::eDeelevating;
+   }
+ 
+diff --git a/xpcom/build/BinaryPath.h b/xpcom/build/BinaryPath.h
+--- a/xpcom/build/BinaryPath.h
++++ b/xpcom/build/BinaryPath.h
+@@ -283,16 +283,43 @@ class BinaryPath {
+     if (NS_FAILED(Get(path))) {
+       return nullptr;
+     }
+     UniqueFreePtr<char> result;
+     result.reset(strdup(path));
+     return result;
+   }
+ 
++  static UniqueFreePtr<char> GetApplicationIni() {
++	char path[MAXPATHLEN];
++	if (NS_FAILED(Get(path))) {
++		return nullptr;
++	}
++
++	char *c = path + strlen(path);
++	while (c >= path && *c != '\\' && *c != '/') {
++		*c = NULL;
++		c--;
++	}
++
++	if (c < path) {
++		return nullptr;
++	}
++
++	char iniPath[MAXPATHLEN];
++	int n = snprintf(iniPath, MAXPATHLEN, "%s\\app\\application.ini", path);
++	if (n < 0 || n >= MAXPATHLEN) {
++		return nullptr;
++	}
++
++	UniqueFreePtr<char> result;
++	result.reset(strdup(iniPath));
++	return result;
++  }
++
+ #ifdef MOZILLA_INTERNAL_API
+   static nsresult GetFile(nsIFile** aResult) {
+     nsCOMPtr<nsIFile> lf;
+ #  ifdef XP_WIN
+     wchar_t exePath[MAXPATHLEN];
+     nsresult rv = GetW(exePath);
+ #  else
+     char exePath[MAXPATHLEN];

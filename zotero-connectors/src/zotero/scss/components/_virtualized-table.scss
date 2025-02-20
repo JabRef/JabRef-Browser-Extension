@@ -1,0 +1,393 @@
+//
+// Virtualized table
+// --------------------------------------------------
+
+/**
+		<hbox class="virtualized-table-container" flex="1">
+				<html:div id="virtualized-table-div"/>
+		</hbox>
+ */
+.virtualized-table-container {
+	display: flex;
+	height: 0;
+	flex-direction: column;
+
+	> div {
+		display: flex;
+		flex: 1;
+		overflow: hidden;
+		position: relative;
+		background: var(--material-background);
+	}
+}
+
+.virtualized-table, .drag-image-container {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+
+	&:focus {
+		outline: none;
+	}
+
+	&.resizing {
+		cursor: col-resize;
+
+		.cell {
+			cursor: col-resize;
+		}
+	}
+	
+	.cell {
+		padding: 0 8px;
+		min-width: 30px;
+		cursor: default;
+		white-space: nowrap;
+		flex-grow: 1;
+		box-sizing: border-box;
+
+		&.label {
+			padding-inline-start: 0;
+			padding-inline-end: 4px;
+		}
+
+		&.first-column,
+		&.primary {
+			display: flex;
+			align-items: center;
+
+			:not(.cell-text) {
+				flex-shrink: 0
+			}
+
+			.cell-text {
+				flex-grow: 1;
+				text-overflow: ellipsis;
+				overflow: hidden;
+
+				&:not(:first-child) {
+					@include state(".cell.first-column:not(.hasAttachment)") {
+						margin-inline-start: 4px;
+					}
+				}
+			}
+
+			.twisty + .cell-text, .spacer-twisty + .cell-text {
+				margin-inline-start: 0;
+				margin-inline-end: 0;
+			}
+
+			// Add margin on the end side if the directionality of the
+			// .cell-text is the opposite of that of the table
+			&:dir(ltr) .cell-text:dir(rtl),
+			&:dir(rtl) .cell-text:dir(ltr) {
+				margin-inline-end: 5px;
+			}
+
+			&:dir(ltr) .cell-text {
+				text-align: left;
+			}
+
+			&:dir(rtl) .cell-text {
+				text-align: right;
+			}
+		}
+
+		.cell-icon {
+			min-width: 16px;
+		}
+	}
+
+	.row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 100%;
+		box-sizing: border-box;
+		border-radius: 5px;
+
+		&.drop {
+			color: var(--material-background) !important;
+			background: var(--fill-secondary) !important;
+
+			* {
+				pointer-events: none !important;
+			}
+		}
+
+		span.drop-before, span.drop-after {
+			position: absolute;
+			width: 20%;
+			height: 1px;
+			background-color: var(--fill-secondary);
+			pointer-events: none;
+		}
+
+		span.drop-before {
+			top: 0;
+		}
+
+		span.drop-after {
+			bottom: -1px;
+		}
+
+		&.selected:not(.highlighted) {
+			background-color: var(--color-accent);
+			color: var(--color-accent-text);
+
+			@include state(".virtualized-table:not(:focus-within)") {
+				color: var(--fill-primary);
+				background-color: var(--color-quarternary-on-sidepane);
+			}
+		}
+
+		&.highlighted {
+			background: var(--accent-highlight);
+		}
+
+		&.unread {
+			font-weight: 600;
+		}
+
+		&.context-row {
+			color: var(--fill-secondary);
+		}
+
+		.spacer-twisty {
+			display: inline-block;
+			min-width: 16px;
+		}
+
+		.twisty {
+			margin-inline-end: 0 !important;
+			display: flex;
+			align-items: center;
+			transition: transform 0.125s ease;
+			transform: rotate(-90deg);
+
+			&.open {
+				transform: rotate(0deg) !important;
+			}
+
+			&.icon-css {
+				width: 16px;
+				height: 16px;
+				padding: 4px;
+				box-sizing: border-box;
+				background: url("chrome://zotero/skin/8/universal/chevron-8.svg") content-box no-repeat;
+				-moz-context-properties: fill, fill-opacity;
+			}
+		}
+	}
+
+	.column-drag-marker {
+		z-index: 99999;
+		position: absolute;
+		top: 0;
+		height: 100%;
+		width: 2px;
+		background-color: #ccc;
+	}
+
+	.twisty {
+		width: 19px;
+
+		svg {
+			fill: #888;
+			width: 16px;
+		}
+	}
+
+	.selected:not(.highlighted) .twisty svg {
+		fill: #fff;
+	}
+
+	.spacer-twisty {
+		min-width: 19px;
+	}
+  
+	.spacer-header {
+		min-width: 0px;
+	}
+}
+
+.virtualized-table-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	width: 100%;
+	background: var(--material-background);
+	height: 1.83333333em; // 22px @ 12px font size
+	overflow: hidden;
+	border-bottom: 1px solid var(--material-border-quarternary);
+	padding-inline: 8px;
+	box-sizing: border-box;
+	padding-inline-end: calc(8px + var(--scrollbar-width, 0px));
+
+	@include comfortable {
+		height: 2.33333333em; // 28px @ 12px font size
+		padding: 0 8px;
+	}
+
+	&.static-columns {
+		pointer-events: none;
+	}
+
+	&::after {
+		content: "";
+		display: block;
+		border-bottom: var(--material-border-quarternary);
+		height: 1px;
+		width: 100%;
+		position: absolute;
+		top: calc(1.83333333em - 1px);
+		left: 0;
+		right: 0;
+		z-index: 1;
+
+		@include comfortable {
+			top: calc(2.33333333em - 1px);
+		}
+	}
+
+	.column-picker {
+		text-align: center;
+	}
+
+	.cell {
+		display: flex;
+		position: relative;
+		height: 100%;
+		align-items: center;
+
+		&:hover {
+			background: var(--material-mix-quinary);
+		}
+
+		&.dragging {
+			background: var(--material-mix-quarternary);
+		}
+
+		.resizer {
+			background: linear-gradient(var(--fill-quarternary), var(--fill-quarternary)) no-repeat center/1px 66.666667%; // 14px @ 12px font size
+			cursor: col-resize;
+			height: 100%;
+			content: "\00a0";
+			display: block;
+			position: absolute;
+			left: -5px;
+			min-width: 10px;
+
+			@include comfortable {
+				background-size: 1px 74.074074%; // 20px @ 12px font size
+			}
+		}
+
+		.label {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			flex: 1;
+		}
+
+		&.cell-icon {
+			> .label {
+				margin-inline-start: 0;
+			}
+
+			.icon-css {
+				fill: var(--fill-secondary);
+			}
+
+			justify-content: center;
+		}
+
+		.sort-indicator {
+			-moz-appearance: toolbarbutton-dropdown;
+			display: block;
+			margin-right: 3px; // + 5px padding = 8px total
+			
+			&.icon-css {
+				background: url("chrome://zotero/skin/8/universal/chevron-8.svg") content-box no-repeat;
+				-moz-context-properties: fill, fill-opacity;
+				fill: var(--fill-primary);
+			}
+
+			&.ascending {
+				transform: rotate(180deg);
+			}
+		}
+	}
+}
+
+.virtualized-table-body, .drag-image-container {
+	flex: 1 0;
+	max-width: 100%;
+	overflow: auto;
+	padding: 4px 8px 8px;
+
+	.cell {
+		text-overflow: ellipsis;
+		overflow: hidden;
+		max-height: 100%;
+		// TEMP: Disables tooltip display for truncated cells, but without this rule
+		// you cannot drag items before selecting them first because the ondrag event is
+		// not called if any children under the drag element are removed for which 
+		// pointer-events are enabled, and we need to rerender the rows for selection
+		// before dragging.
+		pointer-events: none;
+
+		&.first-column {
+			padding-inline-start: 0;
+		}
+	}
+}
+
+.virtualized-table.multi-select:focus {
+	.row.focused:not(.selected) {
+		outline: var(--default-focusring-width) dotted var(--color-accent);
+		z-index: 10000;
+	}
+}
+
+*[dir=rtl] {
+	.virtualized-table-header {
+		.cell .sort-indicator {
+			left: 3px; // + 5px padding = 8px total
+			right: initial;
+		}
+
+		.resizer {
+			right: -5px;
+			left: initial;
+		}
+	}
+
+	.row .twisty {
+		transform: rotate(90deg);
+	}
+}
+
+.virtualized-table {
+	.row .twisty.icon-css {
+		@include focus-states using ($color) {
+			@if $color =="white" {
+				fill: var(--accent-white);
+			}
+
+			@else {
+				fill: var(--fill-secondary);
+			}
+		}
+	}
+}
+
+.drag-image-container {
+	box-sizing: border-box;
+
+	.row .twisty.icon-css {
+		@include focus-states('.row.selected', '.drag-image-container:focus-within') using ($color) {
+			fill: var(--fill-secondary);
+		}
+	}
+}

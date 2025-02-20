@@ -1,0 +1,136 @@
+#zotero-long-tag-fixer {
+	padding: 20px;
+	font-size: 12px;
+	line-height: 1.333333333;
+	width: 600px;
+
+	h1 {
+		font-size: 13px;
+		line-height: 1.38462;
+		font-weight: 400;
+		margin: 0;
+	}
+
+	tab {
+		display: none;
+		
+		@include variant("#zotero-long-tag-fixer.is-long-tag") {
+			display: revert;
+		}
+	}
+
+	tabpanels {
+		padding-top: 15px;
+		
+		tabpanel {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			min-width: 0;
+			// prevent dialog from resizing when switching tabs or split character
+			min-height: 250px;
+
+			// fix min-width leaking to children for some reason causing weird glitch with checkboxes
+			* {
+				min-width: unset;
+			}
+		}
+
+		@include variant("#zotero-long-tag-fixer.is-long-tag") {
+			padding-top: 33px;
+		}
+	}
+
+	#intro {
+		display: none;
+		flex-direction: column;
+
+		@include variant("#zotero-long-tag-fixer.is-long-tag") {
+			display: flex;
+		}
+
+		> label {
+			margin: .5em 0 0 0;
+		}
+
+		> textarea {
+			margin: 16px 0;
+			height: 50px;
+			border: none;
+			padding: .5em;
+			background: var(--material-sidepane);
+			appearance: none;
+			outline: none;
+		}
+	}
+
+	#zotero-new-tag-actions {
+		margin: 20px 0;
+	}
+
+	.split-tab {
+		.tag-list {
+			max-height: calc(8 * (1em + 10px));
+			overflow-x: hidden;
+			padding: 8px;
+
+			> richlistitem {
+				height: calc(1em + 10px);
+				border-radius: 5px;
+				@include text-truncate;
+
+				label {
+					line-height: calc(1em + 10px);
+				}
+			}
+
+			input[type="checkbox"] {
+				margin: 0 6px 0 0;
+				width: auto;
+			}
+		}
+
+		.delimiter-input {
+			width: 20px;
+		}
+
+		.delimiter-input-wrap {
+			display: flex;
+			align-items: center;
+		}
+
+		.tag-list + label {
+			padding: 0.5em 0;
+		}
+	}
+
+	.edit-tab {
+		display: flex;
+		flex-direction: column;
+
+		#zotero-new-tag-editor {
+			padding: 8px;
+			flex: 1 1 auto;
+		}
+
+		#zotero-new-tag-characters {
+			flex: 0 1 auto;
+			padding: .5em 0;
+		}
+	}
+
+	.invalid {
+		color: var(--accent-red);
+	}
+
+	.select-actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	#zotero-new-tag-character-count {
+		font-weight: 600;
+		margin-right: 0;
+	}
+}

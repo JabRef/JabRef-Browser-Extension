@@ -1,0 +1,301 @@
+<!--
+    ***** BEGIN LICENSE BLOCK *****
+    
+    Copyright © 2006–2022 Center for History and New Media
+                     George Mason University, Fairfax, Virginia, USA
+                     http://zotero.org
+    
+    This file is part of Zotero.
+    
+    Zotero is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    Zotero is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+    
+    You should have received a copy of the GNU Affero General Public License
+    along with Zotero.  If not, see <http://www.gnu.org/licenses/>.
+    
+    ***** END LICENSE BLOCK *****
+-->
+
+<vbox id="zotero-prefpane-advanced" onload="Zotero_Preferences.Advanced.init()">
+	<vbox class="main-section" id="zotero-prefpane-advanced-general-tab">
+		<groupbox id="zotero-prefpane-advanced-miscellaneous" aria-label="&zotero.preferences.miscellaneous;">
+			<label><html:h2>&zotero.preferences.miscellaneous;</html:h2></label>
+			
+			<hbox align="center">
+				<checkbox label="&zotero.preferences.autoUpdate;" preference="extensions.zotero.automaticScraperUpdates" native="true"/>
+				<button id="updateButton" label="&zotero.preferences.updateNow;"
+					oncommand="Zotero_Preferences.Advanced.updateTranslators()"/>
+			</hbox>
+			
+			<checkbox label="&zotero.preferences.reportTranslationFailure;" preference="extensions.zotero.reportTranslationFailure" native="true"/>
+			
+			<checkbox
+				id="zotero-prefpane-advanced-enable-local-api"
+				data-l10n-id="preferences-advanced-enable-local-api"
+				preference="extensions.zotero.httpServer.localAPI.enabled"
+				native="true"
+			/>
+			<vbox class="indented-pref">
+				<label
+					id="zotero-prefpane-advanced-local-api-available"
+					data-l10n-id="preferences-advanced-local-api-available"
+				>
+					<html:code class="local-api-url" data-l10n-name="url"/>
+				</label>
+				<hbox id="zotero-prefpane-advanced-server-disabled" align="center" hidden="true">
+					<label data-l10n-id="preferences-advanced-server-disabled"/>
+					<button
+						data-l10n-id="preferences-advanced-server-enable-and-restart"
+						oncommand="Zotero_Preferences.Advanced.enableServerForLocalAPI()"
+					/>
+				</hbox>
+			</vbox>
+		</groupbox>
+
+		<groupbox aria-labelledby="preferences-advanced-language-and-region-title">
+			<label><html:h2 id="preferences-advanced-language-and-region-title" data-l10n-id="preferences-advanced-language-and-region-title"/></label>
+
+			<checkbox
+				data-l10n-id="preferences-advanced-enable-bidi-ui"
+				preference="bidi.browser.ui"
+				native="true"
+			/>
+		</groupbox>
+	</vbox>
+	
+	<vbox class="main-section" role="group" aria-label="&zotero.preferences.advanced.filesAndFolders;">
+		<html:h1>&zotero.preferences.advanced.filesAndFolders;</html:h1>
+
+		<groupbox aria-label="&zotero.preferences.attachmentBaseDir.caption;" aria-description="&zotero.preferences.attachmentBaseDir.message;">
+			<label><html:h2>&zotero.preferences.attachmentBaseDir.caption;</html:h2></label>
+			
+			<vbox>
+				<description>&zotero.preferences.attachmentBaseDir.message;</description>
+			</vbox>
+			
+			<hbox align="center">
+				<label id="baseAttachmentPathLabel" value="&zotero.preferences.attachmentBaseDir.basePath;"/>
+				<html:input type="text" id="baseAttachmentPath"
+					preference="extensions.zotero.baseAttachmentPath"
+					readonly="true"
+					flex="1"
+					tabindex="0"
+					class="directory-path"
+					aria-labelledby="baseAttachmentPathLabel"/>
+				<button id="baseAttachmentPathButton"
+					label="&zotero.preferences.attachmentBaseDir.selectBasePath;"
+					oncommand="Zotero_Preferences.Attachment_Base_Directory.choosePath()"
+					aria-describedby="baseAttachmentPathLabel"/>
+			</hbox>
+			
+			<hbox class="preferences-button-group">
+				<button id="resetBasePath"
+					label="&zotero.preferences.attachmentBaseDir.resetBasePath;"
+					oncommand="Zotero_Preferences.Attachment_Base_Directory.clearPath()"
+					data-search-strings="attachmentBasePath.clearBasePath.message"/>
+			</hbox>
+			
+		</groupbox>
+		
+		<groupbox aria-label="&zotero.preferences.dataDir;">
+			<label><html:h2>&zotero.preferences.dataDir;</html:h2></label>
+			
+			<hbox align="center">
+				<label id="dara-dir-label" value="Data directory:" control="data-dir-path"></label>
+				<html:input type="text" id="data-dir-path" preference="extensions.zotero.dataDir"
+					readonly="true" class="directory-path"/>
+				<button id="change-data-dir" label="&zotero.preferences.attachmentBaseDir.selectBasePath;"
+					aria-describedby="dara-dir-label"
+					oncommand="Zotero_Preferences.Advanced.dataDirUpdate(true)"/>
+			</hbox>
+			
+			<vbox id="command-line-data-dir" hidden="true">
+				<description id="command-line-data-dir-path"/>
+				<label value="&zotero.preferences.dataDir.viaCommandLine;"/>
+			</vbox>
+			
+			<hbox class="preferences-button-group">
+				<button label="&zotero.preferences.dataDir.reveal;"
+					oncommand="Zotero.DataDirectory.reveal()"/>
+				<button id="custom-data-dir" data-l10n-id="preferences-advanced-custom-data-dir"
+					oncommand="Zotero_Preferences.Advanced.dataDirUpdate(true)"/>
+				<button id="reset-data-dir" data-l10n-id="preferences-advanced-reset-data-dir"
+					oncommand="Zotero_Preferences.Advanced.dataDirUpdate(false)" aria-describedby="default-data-dir"/>
+				<html:input id="default-data-dir" data-l10n-id="preferences-advanced-default-data-dir"
+					data-l10n-attrs="value" readonly="true" class="directory-path"/>
+				<button id="migrate-data-dir" label="&zotero.preferences.dataDir.migrate;"
+					oncommand="Zotero_Preferences.Advanced.migrateDataDirectory()" hidden="true"/>
+			</hbox>
+		</groupbox>
+		
+		<groupbox aria-label="&zotero.preferences.dbMaintenance;">
+			<label><html:h2>&zotero.preferences.dbMaintenance;</html:h2></label>
+			
+			<hbox id="db-maintenance-options">
+				<button label="&zotero.preferences.dbMaintenance.integrityCheck;"
+					oncommand="Zotero_Preferences.Advanced.runIntegrityCheck(this)"/>
+				<button id="reset-translators-button"
+					label="&zotero.preferences.dbMaintenance.resetTranslators;"
+					oncommand="Zotero_Preferences.Advanced.resetTranslators()"/>
+				<button id="reset-styles-button"
+					label="&zotero.preferences.dbMaintenance.resetStyles;"
+					oncommand="Zotero_Preferences.Advanced.resetStyles()"/>
+			</hbox>
+		</groupbox>
+	</vbox>
+
+	<html:div class="main-section" id="zotero-prefpane-advanced-keys-tab" role="group" aria-label="&zotero.preferences.advanced.keys;">
+		<html:h1>&zotero.preferences.advanced.keys;</html:h1>
+	
+		<html:div id="zotero-keys-grid">
+			<html:label for="textbox-newItem">&zotero.preferences.keys.newItem;</html:label>
+			<html:label class="modifier"/>
+			<html:input type="text" id="textbox-newItem" maxlength="1" size="1" preference="extensions.zotero.keys.newItem"/>
+
+			<html:label for="textbox-newNote">&zotero.preferences.keys.newNote;</html:label>
+			<html:label class="modifier"/>
+			<html:input type="text" id="textbox-newNote" maxlength="1" size="1" preference="extensions.zotero.keys.newNote"/>
+
+			<html:label for="textbox-library">&zotero.preferences.keys.focusLibrariesPane;</html:label>
+			<html:label class="modifier"/>
+			<html:input type="text" id="textbox-library" maxlength="1" size="1" preference="extensions.zotero.keys.library"/>
+
+			<html:label for="textbox-quicksearch">&zotero.preferences.keys.quicksearch;</html:label>
+			<html:label class="modifier"/>
+			<html:input type="text" id="textbox-quicksearch" maxlength="1" size="1" preference="extensions.zotero.keys.quicksearch"/>
+
+			<html:label for="textbox-copySelectedItemCitationsToClipboard">&zotero.preferences.keys.copySelectedItemCitationsToClipboard;</html:label>
+			<html:label class="modifier"/>
+			<html:input type="text" id="textbox-copySelectedItemCitationsToClipboard" maxlength="1" size="1"
+					preference="extensions.zotero.keys.copySelectedItemCitationsToClipboard"
+					oninput="if (Zotero_Preferences.Export) { Zotero_Preferences.Export.updateQuickCopyInstructions(); }"/>
+
+			<html:label for="textbox-copySelectedItemsToClipboard">&zotero.preferences.keys.copySelectedItemsToClipboard;</html:label>
+			<html:label class="modifier"/>
+			<html:input type="text" id="textbox-copySelectedItemsToClipboard" maxlength="1" size="1"
+					preference="extensions.zotero.keys.copySelectedItemsToClipboard"
+					oninput="if (Zotero_Preferences.Export) { Zotero_Preferences.Export.updateQuickCopyInstructions(); }"/>
+
+			<html:label for="textbox-toggleAllRead">&zotero.preferences.keys.toggleAllRead;</html:label>
+			<html:label class="modifier"/>
+			<html:input type="text" id="textbox-toggleAllRead" maxlength="1" size="1" preference="extensions.zotero.keys.toggleAllRead"/>
+		</html:div>
+		
+		<label class="statusLine" value="&zotero.preferences.keys.changesTakeEffect;"/>
+		
+		<separator/>
+	</html:div>
+	<vbox class="main-section" id="zotero-prefpane-advanced-feeds-tab" role="group" aria-label="&zotero.preferences.feeds;">
+		<html:h1>&zotero.preferences.feeds;</html:h1>
+
+		<groupbox>
+			<hbox>
+				<hbox align="center">
+					<label value="&zotero.preferences.feeds.sorting.label;" control="feed-sort"/>
+					<menulist id="feed-sort" preference="extensions.zotero.feeds.sortAscending" native="true">
+						<menupopup>
+							<menuitem label="&zotero.preferences.feeds.sorting.newest;" value="false"/>
+							<menuitem label="&zotero.preferences.feeds.sorting.oldest;" value="true"/>
+						</menupopup>
+					</menulist>
+				</hbox>
+			</hbox>
+		</groupbox>
+		
+		<groupbox id="zotero-prefpane-advanced-feeds-feedDefaults" aria-label="&zotero.preferences.feeds.feedDefaults;">
+			<label><html:h2>&zotero.preferences.feeds.feedDefaults;</html:h2></label>
+			<hbox>
+				<hbox align="center">
+					<label id="zotero-prefpane-feeds-refresh-label1" value="&zotero.feedSettings.refresh.label1;"/>
+					<html:input class="html-input" type="number" min="1" step="1" size="3" data-preference="feeds.defaultTTL"
+						aria-labelledby="zotero-prefpane-feeds-refresh-label1 zotero-prefpane-feeds-refresh-label2"/>
+					<label id="zotero-prefpane-feeds-refresh-label2" value="&zotero.feedSettings.refresh.label2;"/>
+				</hbox>
+			</hbox>
+			<hbox>
+				<hbox align="center">
+					<label id="zotero-prefpane-feeds-readAfter-label1" value="&zotero.feedSettings.cleanupReadAfter.label1;"/>
+					<html:input class="html-input" type="number" min="1" step="1" size="2" data-preference="feeds.defaultCleanupReadAfter"
+						aria-labelledby="zotero-prefpane-feeds-readAfter-label1 zotero-prefpane-feeds-readAfter-label2"/>
+					<label id="zotero-prefpane-feeds-readAfter-label2" value="&zotero.feedSettings.cleanupReadAfter.label2;"/>
+				</hbox>
+			</hbox>
+			<hbox>
+				<hbox align="center">
+					<label id="zotero-prefpane-feeds-unreadAfter-label1" value="&zotero.feedSettings.cleanupUnreadAfter.label1;"/>
+					<html:input class="html-input" type="number" min="1" step="1" size="2" data-preference="feeds.defaultCleanupUnreadAfter"
+						aria-labelledby="zotero-prefpane-feeds-unreadAfter-label1 zotero-prefpane-feeds-unreadAfter-label2"/>
+					<label id="zotero-prefpane-feeds-unreadAfter-label2" value="&zotero.feedSettings.cleanupUnreadAfter.label2;"/>
+				</hbox>
+			</hbox>
+		</groupbox>
+	</vbox>
+
+	<vbox class="main-section" role="group" aria-label="&zotero.preferences.prefpane.search;">
+		<html:h1>&zotero.preferences.prefpane.search;</html:h1>
+
+		<groupbox aria-label="&zotero.preferences.search.fulltextCache;">
+			<label><html:h2>&zotero.preferences.search.fulltextCache;</html:h2></label>
+			
+			<hbox>
+				<button id="fulltext-rebuildIndex" flex="1" oncommand="Zotero_Preferences.Advanced.rebuildIndexPrompt()"
+					data-search-strings="zotero.preferences.search.rebuildWarning"/>
+				<button id="fulltext-clearIndex" flex="1" oncommand="Zotero_Preferences.Advanced.clearIndexPrompt()"
+					data-search-strings="zotero.preferences.search.clearWarning"/>
+			</hbox>
+			
+			<separator/>
+			
+			<hbox align="center">
+				<html:label for="fulltext-maxLength">&zotero.preferences.fulltext.textMaxLength;</html:label>
+				<html:input id="fulltext-maxLength" type="text" size="10" preference="extensions.zotero.fulltext.textMaxLength"/>
+				<html:label>(&zotero.preferences.default; 500000)</html:label>
+			</hbox>
+	
+			<separator class="thin"/>
+	
+			<hbox align="center">
+				<html:label for="fulltext-pdfMaxPages">&zotero.preferences.fulltext.pdfMaxPages;</html:label>
+				<html:input id="fulltext-pdfMaxPages" type="text" size="5" preference="extensions.zotero.fulltext.pdfMaxPages"/>
+				<html:label>(&zotero.preferences.default; 100)</html:label>
+			</hbox>
+		</groupbox>
+		
+		<groupbox id="fulltext-stats" tabindex="0" aria-label="&zotero.preferences.search.indexStats;" aria-describedby="fulltext-stats-grid">
+			<label><html:h2>&zotero.preferences.search.indexStats;</html:h2></label>
+			
+			<vbox class="form-grid" id="fulltext-stats-grid">
+				<label value="&zotero.preferences.search.indexStats.indexed;"/>
+				<label id="fulltext-stats-indexed"/>
+	
+				<label value="&zotero.preferences.search.indexStats.partial;"/>
+				<label id="fulltext-stats-partial"/>
+	
+				<label value="&zotero.preferences.search.indexStats.unindexed;"/>
+				<label id="fulltext-stats-unindexed"/>
+	
+				<label value="&zotero.preferences.search.indexStats.words;"/>
+				<label id="fulltext-stats-words"/>
+			</vbox>
+		</groupbox>	
+	</vbox>
+	
+	<vbox>
+		<hbox id="zotero-prefpane-advanced-open-buttons" align="center">
+			<button id="config-editor"
+				label="&zotero.preferences.configEditor;"
+				oncommand="Zotero.openInViewer('about:config')"/>
+			<button id="memory-info"
+				label="Memory Info"
+				oncommand="Zotero.openInViewer('about:memory')"
+				hidden="true"/>
+		</hbox>
+	</vbox>
+</vbox>

@@ -1,0 +1,252 @@
+info-box {
+	
+	display: flex;
+	min-width: 0;
+	width: 100%;
+
+	&[hidden] {
+		display: none;
+	}
+
+	#info-box {
+		width: 100%;
+	}
+
+	#info-table {
+		@include meta-table;
+		
+		.meta-row .zotero-field-version-button {
+			padding: 3px;
+		}
+	}
+
+	.creator-type-label, #more-creators-label {
+		color: var(--fill-secondary);
+	}
+
+	.drag-hidden-creator {
+		opacity: 0;
+	}
+
+	#item-type-menu {
+		@include focus-ring(true);
+		margin: 0;
+		margin-inline-end: 5px !important;
+		flex: 1;
+		padding-inline-start: 5px;
+
+		// Same padding as editable-text
+		@include comfortable {
+			padding-top: 3px;
+			padding-bottom: 3px;
+		}	
+
+		&::part(dropmarker) {
+			display: none;
+		}
+		
+		&::part(label-box) {
+			font-weight: normal;
+		}
+
+		&::part(label) {
+			margin-inline-start: 0;
+		}
+
+		&[disabled] {
+			background: none;
+		}
+	}
+
+	#item-type-menu:not(:hover):not(:active) {
+		background: transparent !important;
+	}
+
+	#item-type-menu > .menulist-label-box {
+		-moz-box-flex: 0 !important;
+	}
+
+	#item-type-menu > .menulist-label-box, #item-type-menu > .menulist-label-box > .menulist-label {
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	// Do not display grippy if there is only one creator
+	.meta-label > .single-creator-grippy {
+		visibility: hidden !important;
+	}
+
+	textarea {
+		font: inherit;
+		resize: none;
+	}
+
+
+	#more-creators-label
+	{
+		font-weight: 600;
+	}
+
+	.pointer:hover, .pointer:hover > label {
+		cursor: pointer !important;
+	}
+
+	/* creator type menu */
+	.creator-type-label {
+		@include focus-ring(true);
+		display: inline-block;
+		// undo the padding so that the name is pushed to the end
+		margin-inline-end: -4px;
+		padding-left: 4px;
+		padding-right: 4px;
+		
+		&:hover, &:focus {
+			.creator-type-dropmarker {
+			  visibility: visible;
+			}
+		}
+	}
+	.creator-type-label, .creator-type-value {
+		-moz-box-align: center;
+		align-items: center;
+		display: flex;
+	}
+
+	// Some spacing between creator buttons
+	.creator-type-value > .zotero-clicky {
+		margin-left: 1px; 
+	}
+
+	.creator-name-box {
+		flex: 1;
+		display: flex;
+		editable-text input {
+			min-width: 0;
+		}
+
+		// Margin adjusted by inline padding to have 4px between first and last name
+		*[fieldMode="0"]:first-child {
+			margin-inline-end: calc(max(0px, 4px - var(--editable-text-padding-inline)));
+			flex-grow: 3; // last name should have priority to expand over first name
+		}
+		// Add comma when the last name is not focused
+		*[fieldMode="0"]:first-child {
+			position: relative;
+			&::after {
+				content: var(--comma-character, ',');
+				position: absolute;
+				inset-inline-end: 0;
+				bottom: var(--editable-text-padding-block);
+			}
+			&.focused::after {
+				visibility: hidden;
+			}
+		}
+	}
+
+	.creator-type-dropmarker {
+		display: inline-block;
+		background-image: url('chrome://zotero/skin/16/universal/chevron-12.svg');
+		background-size: contain;
+		width: 8px;
+		height: 8px;
+		background-repeat: no-repeat;
+		padding-right: 4px;
+		align-self: center;
+		visibility: hidden;
+	}
+
+	.comma {
+		margin-inline-end: calc(4px - var(--editable-text-padding-inline));
+		align-self: center;
+	}
+
+	#zotero-date-field-status
+	{
+		color: var(--fill-secondary);
+		padding: 0 !important;
+		padding-inline-start: 5px !important;
+		padding-inline-end: 1px !important;
+		white-space: nowrap;
+		align-self: center;
+	}
+
+	/*
+	 * Retraction box
+	 */
+	#retraction-box {
+		cursor: default;
+	}
+
+	#retraction-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.5em 1em;
+		background: #d93425;
+		color: white;
+		font-weight: 600;
+	}
+
+	#retraction-details {
+		@include light-dark(background, #fbf0f0, var(--material-background));
+		padding: .5em 1.5em;
+		margin-top: 0;
+		margin-bottom: 1em;
+		cursor: text;
+		user-select: text;
+		-moz-user-select: text;
+	}
+
+	#retraction-details dt {
+		font-weight: 600;
+	}
+
+	#retraction-details dt:not(:first-child) {
+		margin-top: .5em;
+	}
+
+	#retraction-details dd {
+		margin-left: 2em;
+	}
+
+	#retraction-details a {
+		text-decoration: underline;
+	}
+
+	#retraction-links ul {
+		padding-left: 0;
+	}
+
+	#retraction-links li {
+		list-style: none;
+	}
+
+	#retraction-links li:not(:first-child) {
+		margin-top: .75em;
+	}
+
+	#retraction-credit {
+		text-align: right;
+		margin-top: 1.5em;
+		margin-right: -.9em;
+		margin-bottom: .2em;
+	}
+
+	#retraction-hide {
+		text-align: right;
+		margin-top: .3em;
+		margin-right: -1.2em;
+		margin-bottom: .3em;
+	}
+
+	#retraction-hide button {
+		background: none;
+		margin: 0;
+		padding: 0;
+		cursor: pointer;
+		display: inline;
+		text-decoration: underline;
+		border-style: none;
+	}
+}

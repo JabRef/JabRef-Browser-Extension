@@ -1,0 +1,31 @@
+:root {
+	--theme-border-color: #cecece;
+}
+
+tree {
+	border-width: 0;
+}
+
+#zotero-tag-selector groupbox {
+	-moz-appearance: none;
+	padding: 0;
+	border: 0;
+}
+
+#tags-box {
+	padding-top: 0.1em;
+	padding-left: 0.05em;
+}
+
+
+/* 
+	Default scrollbar displays up/down arrows even 
+	when there is no overflow and the scrollbar is hidden
+*/
+.zotero-view-item {
+	scrollbar-width: thin;
+}
+
+.zotero-view-item > tabpanel > vbox {
+	padding-left: 5px;
+}

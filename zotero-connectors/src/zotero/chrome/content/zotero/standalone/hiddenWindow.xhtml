@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<!--
+    ***** BEGIN LICENSE BLOCK *****
+    
+    Copyright © 2009 Center for History and New Media
+                     George Mason University, Fairfax, Virginia, USA
+                     http://zotero.org
+    
+    This file is part of Zotero.
+    
+    Zotero is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    Zotero is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+    
+    You should have received a copy of the GNU Affero General Public License
+    along with Zotero.  If not, see <http://www.gnu.org/licenses/>.
+    
+    ***** END LICENSE BLOCK *****
+-->
+
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xul-overlay href="chrome://zotero-platform/content/standalone/menuOverlay.xul"?>
+
+<!DOCTYPE window [
+	<!ENTITY % standaloneDTD SYSTEM "chrome://zotero/locale/standalone.dtd" > %standaloneDTD;
+	<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" > %brandDTD;
+	<!ENTITY % zoteroDTD SYSTEM "chrome://zotero/locale/zotero.dtd"> %zoteroDTD;
+]>
+
+<window id="main-window" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+		xmlns:html="http://www.w3.org/1999/xhtml">
+	<html:link rel="localization" href="zotero.ftl"/>
+	<html:link rel="localization" href="branding/brand.ftl"/>
+	<html:link rel="localization" href="browser/menubar.ftl"/>
+	<html:link rel="localization" href="browser/browserSets.ftl"/>
+	
+	<script type="application/javascript">
+		Services.scriptloader.loadSubScript("chrome://global/content/globalOverlay.js", this);
+		Services.scriptloader.loadSubScript("chrome://zotero/content/platformKeys.js", this);
+	</script>
+	<script>
+		function openAbout() {
+			var ww = Components.classes['@mozilla.org/embedcomp/window-watcher;1']
+				.getService(Components.interfaces.nsIWindowWatcher);
+			ww.openWindow(null, 'chrome://zotero/content/about.xhtml', 'about', 'chrome,dialog=yes', null);
+		}
+		
+		// Equivalent to Zotero.Utilities.Internal.openPreferences()
+		function openPreferences() {
+			let win = Services.wm.getMostRecentWindow('zotero:pref');
+			if (win) {
+				win.focus();
+			}
+			else {
+				Services.ww.openWindow(
+					null,
+					'chrome://zotero/content/preferences/preferences.xhtml',
+					'zotero-prefs',
+					'chrome,titlebar,centerscreen,resizable=yes',
+					null
+				);
+			}
+		}
+	</script>
+	<commandset id="mainCommandSet">
+		<command id="cmd_quitApplication" oncommand="goQuitApplication(event);"/>
+		<command id="cmd_close" disabled="true"/>
+		<command id="minimizeWindow" disabled="true" data-l10n-id="window-minimize-command"/>
+		<command id="zoomWindow" disabled="true" data-l10n-id="window-zoom-command"/>
+	</commandset>
+	
+	<keyset id="mainKeyset">
+		<key id="key_close" data-l10n-id="close-shortcut" command="cmd_close" modifiers="accel"/>
+		<key id="key_preferencesCmdMac"
+				data-l10n-id="preferences-shortcut"
+				modifiers="accel"
+				internal="true"/>
+		<key id="key_hideThisAppCmdMac"
+				data-l10n-id="hide-app-shortcut"
+				modifiers="accel"
+				internal="true"/>
+		<key id="key_hideOtherAppsCmdMac"
+				data-l10n-id="hide-other-apps-shortcut"
+				modifiers="accel,alt"
+				internal="true"/>
+		<key id="key_quitApplication"
+				data-l10n-id="quit-app-shortcut"
+				command="cmd_quitApplication"
+				modifiers="accel"
+				internal="true"/>
+		<key id="key_minimizeWindow"
+				command="minimizeWindow"
+				data-l10n-id="window-minimize-shortcut"
+				modifiers="accel"/>
+	</keyset>
+
+	<menubar id="main-menubar">
+		<menu id="fileMenu" data-l10n-id="menu-file">
+			<menupopup id="menu_FilePopup">
+				<!-- This gets moved to the Application menu automatically -->
+				<menuitem id="aboutName"
+						accesskey="&aboutProduct.accesskey;"
+						label="&aboutProduct.label;"
+						oncommand="openAbout()"/>
+				<menuitem id="menu_preferences"
+						label="&preferencesCmdMac.label;"
+						key="key_preferencesCmdMac"
+						oncommand="openPreferences()"/>
+				<menuitem id="menu_mac_services"
+						label="&servicesMenuMac.label;"/>
+				<menuitem id="menu_mac_hide_app"
+						data-l10n-id="menu-application-hide-this"
+						key="key_hideThisAppCmdMac"/>
+				<menuitem id="menu_mac_hide_others"
+						label="&hideOtherAppsCmdMac.label;"
+						key="key_hideOtherAppsCmdMac"/>
+				<menuitem id="menu_mac_show_all"
+						label="&showAllAppsCmdMac.label;"/>
+				<menuitem id="menu_FileQuitItem"
+						label="&quitApplicationCmdMac.label;"
+						key="key_quitApplication"
+						command="cmd_quitApplication"/>
+
+				<!-- Disabled Close line in File menu, just to show something -->
+				<menuitem id="menu_close"
+						label="&closeCmd.label;"
+						key="key_close"
+						command="cmd_close"/>
+			</menupopup>
+		</menu>
+
+		<menu id="windowMenu"
+				data-l10n-id="menu-window-menu">
+			<menupopup id="windowPopup">
+				<menuseparator/>
+				<menuitem command="minimizeWindow" key="key_minimizeWindow"/>
+				<menuitem command="zoomWindow"/>
+				<!-- decomment when "BringAllToFront" is implemented
+					<menuseparator/>
+					<menuitem label="&bringAllToFront.label;" disabled="true"/> -->
+				<menuseparator id="sep-window-list"/>
+			</menupopup>
+		</menu>
+	</menubar>
+</window>

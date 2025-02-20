@@ -1,0 +1,9 @@
+toolbox-meatball-menu-dock-bottom-label = Dock to bottom
+toolbox-meatball-menu-splitconsole-label = Show split console
+toolbox-meatball-menu-hideconsole-label = Hide split console
+toolbox-meatball-menu-settings-label = Settings
+toolbox-meatball-menu-documentation-label = Documentation…
+toolbox-meatball-menu-community-label = Community…
+toolbox-meatball-menu-noautohide-label = Slökktu á sjálfvirkri felun sprettglugga
+toolbox-mode-everything-sub-label = (Hægara)
+toolbox-mode-parent-process-sub-label = (Hratt)

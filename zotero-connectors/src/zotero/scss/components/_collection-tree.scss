@@ -1,0 +1,98 @@
+$icons: (
+	collection, duplicates, feed, feed-error, feed-library, feed-updating, groups, library,
+	library-group, publications, trash-full, trash, unfiled, retracted, search,
+);
+
+@each $icon in $icons {
+	.icon-css.icon-#{$icon} {
+		@include focus-states using ($color) {
+			@include svgicon($icon, $color, "16", "collection-tree");
+		}
+	}
+}
+
+#zotero-collections-pane {
+	min-width: $min-width-collections-pane;
+	max-width: var(--max-width-collections-pane);
+	width: $min-width-collections-pane;
+	flex-grow: 0;
+	flex-shrink: 1;
+	background: var(--material-sidepane);
+}
+
+#zotero-collections-tree-container {
+	height: 5.2em;
+}
+
+#zotero-collections-tree {
+	width: 100%;
+
+	#main-window & {
+		// virtualized-table has a default background (--material-background)
+		// which is what we want in most places, including dialogs that include
+		// #zotero-collections-tree, however main window collection tree is an
+		// exception
+		background: transparent;
+	}
+
+	.virtualized-table {
+		overflow-y: auto;
+		flex: 1 0;
+		text-overflow: ellipsis;
+
+		.row {
+			.icon-css:not(.twisty) {
+				width: 16px;
+				height: 16px;
+			}
+	
+			@each $icon in $icons {
+				.icon-css.icon-#{$icon} {
+					@include focus-states using ($color) {
+						@include svgicon($icon, $color, "16", "collection-tree");
+					}
+				}
+			}
+		}
+	}
+
+	.virtualized-table-body {
+		padding: 0 8px 8px;
+		scrollbar-color: var(--color-scrollbar) var(--color-scrollbar-background);
+	}
+
+	.cell.primary {
+		display: flex;
+		align-items: center;
+		// Stretch the cell to full height
+		align-self: stretch;
+
+		:not(.cell-text) {
+			flex-shrink: 0
+		}
+
+		.cell-text {
+			flex-shrink: 1;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			margin-left: 4px;
+		}
+
+		input.cell-text {
+			// Stretch the input to full height and be centered vertically
+			align-self: stretch;
+			border: none;
+			outline: color-mix(in srgb, var(--color-accent) 80%, var(--material-background)) solid 2px;
+			padding: 1px 2px;
+			margin-right: 5px;
+			width: 100%;
+			font-size: inherit;
+			pointer-events: auto;
+			background: var(--material-background);
+		}
+
+		.cell-icon {
+			min-width: 16px;
+		}
+	}
+}

@@ -1,0 +1,54 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+richlistcheckbox {
+	display: flex;
+	line-height: 1.5em;
+	
+	checkbox {
+		padding: 0;
+		margin: 0
+	}
+}
+ 
+richlistcheckbox[selected="true"] {
+	background-color: var(--color-accent);
+	color: var(--fill-primary);
+}
+
+richlistbox:where(:focus) > richlistcheckbox[selected="true"] {
+	background-color: var(--color-accent);
+	color: var(--color-accent-text);
+}
+
+richlistbox[seltype="multiple"]:focus > richlistcheckbox[current="true"],
+richlistbox:focus > richlistcheckbox[current="true"] {
+	outline: var(--default-focusring);
+	outline-color: var(--color-accent);
+	outline-offset: calc(-1 * var(--default-focusring-width));
+}
+
+richlistbox[seltype="multiple"]:focus > richlistcheckbox[current="true"][selected="true"],
+richlistbox:focus > richlistcheckbox[current="true"][selected="true"] {
+	outline-color: #F3D982; /* TODO: find a suitable system color */
+}
+
+richlistbox:not(:focus) > richlistcheckbox[selected="true"] {
+	background-color: -moz-cellhighlight;
+	color: -moz-cellhighlighttext;
+}
+
+richlistbox > richlistcheckbox > label {
+	margin: 0px;
+	padding-top: 0px;
+	padding-bottom: 1px;
+	padding-inline-start: 4px;
+	padding-inline-end: 0px;
+	white-space: nowrap;
+}
+
+richlistcheckbox[selected=true] {
+	background-color: -moz-cellhighlight;
+	color: -moz-cellhighlighttext;	
+}

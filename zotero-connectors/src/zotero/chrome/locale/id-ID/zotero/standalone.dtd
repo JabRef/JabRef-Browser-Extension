@@ -1,0 +1,96 @@
+<!ENTITY preferencesCmdMac.label "Preferensi...">
+<!ENTITY preferencesCmdMac.commandkey ",">
+<!ENTITY servicesMenuMac.label "Layanan">
+<!ENTITY hideThisAppCmdMac.label "Sembunyikan &brandShortName;">
+<!ENTITY hideThisAppCmdMac.commandkey "H">
+<!ENTITY hideOtherAppsCmdMac.label "Sembunyikan yang Lain">
+<!ENTITY hideOtherAppsCmdMac.commandkey "H">
+<!ENTITY showAllAppsCmdMac.label "Tunjukkan Semua">
+<!ENTITY quitApplicationCmdMac.label "Berhentikan Zotero">
+<!ENTITY quitApplicationCmdMac.key "Q">
+
+<!ENTITY fileMenu.label "Berkas">
+<!ENTITY fileMenu.accesskey "F">
+<!ENTITY saveCmd.label "Simpan...">
+<!ENTITY saveCmd.key "S">
+<!ENTITY saveCmd.accesskey "A">
+<!ENTITY pageSetupCmd.label "Setup Halaman...">
+<!ENTITY pageSetupCmd.accesskey "U">
+<!ENTITY printCmd.label "Cetak...">
+<!ENTITY printCmd.key "P">
+<!ENTITY printCmd.accesskey "U">
+<!ENTITY closeCmd.label "Tutup">
+<!ENTITY closeCmd.key "W">
+<!ENTITY closeCmd.accesskey "C">
+<!ENTITY manageAttachments.label "Kelola Lampiran">
+<!ENTITY convertToStored.label "Konversi File Tertaut ke File Tersimpan...">
+<!ENTITY importCmd.label "Impor...">
+<!ENTITY importCmd.key "I">
+<!ENTITY importFromClipboardCmd.label "Impor dari Clipboard">
+<!ENTITY quitApplicationCmdWin.label "Keluar">
+<!ENTITY quitApplicationCmdWin.accesskey "x">
+<!ENTITY quitApplicationCmd.label "Berhenti">
+<!ENTITY quitApplicationCmd.accesskey "Q">
+
+<!ENTITY copyCitationCmd.label "Kopi Sitasi">
+<!ENTITY copyBibliographyCmd.label "Kopi Bibliografi">
+<!ENTITY copyNoteCmd.label "Salin catatan">
+
+<!ENTITY bidiSwitchPageDirectionItem.label "Ubah Arah Halaman">
+<!ENTITY bidiSwitchPageDirectionItem.accesskey "g">
+<!ENTITY bidiSwitchTextDirectionItem.label "Ubah Arah Teks">
+<!ENTITY bidiSwitchTextDirectionItem.accesskey "w">
+<!ENTITY bidiSwitchTextDirectionItem.commandkey "X">
+
+<!ENTITY goMenu.label "Pergi">
+<!ENTITY goMenu.accesskey "G">
+
+<!ENTITY viewMenu.label "Lihat">
+<!ENTITY viewMenu.accesskey "V">
+<!ENTITY layout.label "Tata letak">
+<!ENTITY standardView.label "Tampilan Standar">
+<!ENTITY stackedView.label "Tampilan Bertumpuk">
+<!ENTITY collectionsPane.label "Panel Koleksi">
+<!ENTITY itemPane.label "Panel Item">
+<!ENTITY tagSelector.label "Pemilih Tag">
+<!ENTITY recursiveCollections.label "Tampilkan Item dari Subkoleksi">
+<!ENTITY fontSize.label "Ukuran font">
+<!ENTITY noteFontSize.label "Ukuran font catatan">
+<!ENTITY columns.label "Columns">
+<!ENTITY sortBy.label "Sort By">
+
+<!ENTITY toolsMenu.label "Perkakas">
+<!ENTITY toolsMenu.accesskey "T">
+<!ENTITY installConnector.label "Install Browser Connector…">
+<!ENTITY installConnector.accesskey "C">
+<!ENTITY addons.label "Pengaya">
+<!ENTITY developer.label "Pengembang">
+
+<!ENTITY bringAllToFront.label "Bawa Semuanya ke Depan">
+
+<!ENTITY helpMenu.label "Bantuan">
+<!ENTITY helpMenu.accesskey "H">
+<!ENTITY helpMenuWin.label "Bantuan">
+<!ENTITY helpMenuWin.accesskey "H">
+<!ENTITY helpMac.commandkey "?">
+<!ENTITY aboutProduct.label "Tentang &brandShortName;">
+<!ENTITY aboutProduct.accesskey "A">
+<!ENTITY productHelp.label "Dukungan dan Dokumentasi">
+<!ENTITY productHelp.accesskey "H">
+<!ENTITY helpTroubleshootingInfo.label "Informasi Penyelasaian Masalah">
+<!ENTITY helpTroubleshootingInfo.accesskey "T">
+<!ENTITY helpFeedbackPage.label "Forum Diskusi">
+<!ENTITY helpFeedbackPage.accesskey "F">
+
+<!ENTITY helpReportErrors.label "Laporkan Kesalahan...">
+<!ENTITY helpReportErrors.accesskey "R">
+
+<!ENTITY debugOutputLogging.label "Pencatatan Output Debug">
+<!ENTITY debugOutputLogging.accesskey "L">
+<!ENTITY debugOutputLogging.submit "Kirim Output">
+<!ENTITY debugOutputLogging.view "Lihat Output">
+<!ENTITY debugOutputLogging.clear "Bersihkan Output">
+<!ENTITY debugOutputLogging.restartWithLoggingEnabled "Mulai ulang dengan Pencatatan Diaktifkan...">
+
+<!ENTITY helpCheckForUpdates.label "Periksa Pemutakhiran">
+<!ENTITY helpCheckForUpdates.accesskey "U">

@@ -1,0 +1,51 @@
+.notes-list-container {
+	display: flex;
+	width: 100%;
+	overflow-y: auto;
+	flex-grow: 1;
+	background: var(--material-sidepane);
+	border-top: var(--material-border-quinary);
+	padding-inline: 8px;
+	scrollbar-color: var(--color-scrollbar) var(--color-scrollbar-background);
+}
+
+context-notes-list {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+	height: 0;
+	
+	.item-notes > .body, .all-notes > .body {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		gap: 6px;
+		
+		@include comfortable {
+			gap: 8px;
+		}
+		
+		&::before, &::after {
+			// Apply gap to start and end
+			content: '';
+		}
+
+		> .more {
+			appearance: none;
+			border-radius: 5px;
+			border: 1px solid var(--color-quinary-on-sidepane);
+			background: var(--material-background);
+
+			padding: 2px 8px;
+
+			@include comfortable {
+				padding-block: 4px;
+			}
+
+			&:active {
+				background-color: var(--accent-blue10);
+			}
+		}
+	}
+}

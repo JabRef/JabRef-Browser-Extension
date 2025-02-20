@@ -1,0 +1,23 @@
+{
+  "compact": false,
+  "retainLines": true,
+  "presets": [
+    "@babel/preset-react"
+  ],
+  "ignore": [
+    "chrome/content/zotero/include.js",
+    "chrome/content/zotero/xpcom/citeproc.js",
+    "chrome/content/ace/*",
+    "chrome/content/scaffold/templates/*",
+    "resource/react-virtualized.js",
+    "test/resource/*.js"
+  ],
+  "plugins": [
+    [
+      "transform-es2015-modules-commonjs",
+      {
+        "strictMode": false
+      }
+    ]
+  ]
+}

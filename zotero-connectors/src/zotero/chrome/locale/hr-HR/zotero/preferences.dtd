@@ -1,0 +1,202 @@
+<!ENTITY zotero.preferences.title "Postavke Zotera">
+
+<!ENTITY zotero.preferences.helpButton.label "Pomoć">
+
+<!ENTITY zotero.preferences.default "Zadano:">
+<!ENTITY zotero.preferences.items "stavke">
+<!ENTITY zotero.preferences.period ". ">
+<!ENTITY zotero.preferences.custom "Prilagođen...">
+
+<!ENTITY zotero.preferences.prefpane.general "Opće">
+
+<!ENTITY zotero.preferences.interface "Sučelje">
+<!ENTITY zotero.preferences.fileHandling "Upravljanje datotekom">
+<!ENTITY zotero.preferences.automaticSnapshots "Automatski snima snimku pri stvaranja stavki s web stranica">
+<!ENTITY zotero.preferences.downloadAssociatedFiles "Automatski prilaže povezane PDF-ove i druge datoteke prilikom spremanja stavki">
+<!ENTITY zotero.preferences.autoRenameFiles.renameLinked "Preimenovanje povezanih datoteka">
+<!ENTITY zotero.preferences.fileHandler.openPDFsUsing "Otvori PDF pomoću">
+<!ENTITY zotero.preferences.fileHandler.systemDefault "Zadane postavke sustava">
+
+<!ENTITY zotero.preferences.miscellaneous "Razno">
+<!ENTITY zotero.preferences.autoUpdate "Automatski provjeri ima li ažuriranih prijevoda i stilova">
+<!ENTITY zotero.preferences.updateNow "Ažurirajte sada">
+<!ENTITY zotero.preferences.reportTranslationFailure "Izvještaj neispravnih prevoditeljskih stranica">
+<!ENTITY zotero.preferences.parseRISRefer "Koristite Zotero za preuzimanje BibTex/Ris/Refer datoteka">
+<!ENTITY zotero.preferences.automaticTags "Automatski označite stavke ključnim riječima i naslovima predmeta">
+<!ENTITY zotero.preferences.trashAutoEmptyDaysPre "Automatsko uklanjanje stavki iz otpada izbrisanih više od">
+<!ENTITY zotero.preferences.trashAutoEmptyDaysPost "dan prije">
+
+<!ENTITY zotero.preferences.reader.tabsTitle.label "Prikaži kartice kao">
+<!ENTITY zotero.preferences.reader.tabsTitle.creatorYearTitle "Autor - Godina - Naslov">
+<!ENTITY zotero.preferences.reader.tabsTitle.titleCreatorYear "Naslov - Autor - Godina">
+<!ENTITY zotero.preferences.reader.tabsTitle.filename "Naziv datoteke">
+
+<!ENTITY zotero.preferences.groups "Grupe">
+<!ENTITY zotero.preferences.groups.whenCopyingInclude "Prilikom kopiranja stavki između biblioteka, uključi:">
+<!ENTITY zotero.preferences.groups.childNotes "trenutne bilješke">
+<!ENTITY zotero.preferences.groups.childFiles "trenutne snimke i uvezene datoteke">
+<!ENTITY zotero.preferences.groups.annotations "primjedbe">
+<!ENTITY zotero.preferences.groups.childLinks "trenutne poveznice">
+<!ENTITY zotero.preferences.groups.tags "oznake">
+
+<!ENTITY zotero.preferences.feeds "Pohrana">
+<!ENTITY zotero.preferences.feeds.sorting.label "Sortiranje:">
+<!ENTITY zotero.preferences.feeds.sorting.newest "Novije stavke prve">
+<!ENTITY zotero.preferences.feeds.sorting.oldest "Starije stavke prve">
+<!ENTITY zotero.preferences.feeds.feedDefaults "Osnovna pohrana">
+
+<!ENTITY zotero.preferences.prefpane.sync "Uskladba">
+<!ENTITY zotero.preferences.sync.username "Korisničko ime:">
+<!ENTITY zotero.preferences.sync.password "Lozinka:">
+<!ENTITY zotero.preferences.sync.syncServer "Uskladba podataka:">
+<!ENTITY zotero.preferences.sync.setUpSync "Postavke uskladbe">
+<!ENTITY zotero.preferences.sync.unlinkAccount "Prekini vezu s računom...">
+<!ENTITY zotero.preferences.sync.createAccount "Kreiraj račun">
+<!ENTITY zotero.preferences.sync.lostPassword "Zaboravljena lozinka?">
+<!ENTITY zotero.preferences.sync.syncAutomatically "Automatska uskladba">
+<!ENTITY zotero.preferences.sync.syncFullTextContent "Uskladba sadržaja ukupnog teksta">
+<!ENTITY zotero.preferences.sync.syncFullTextContent.desc "Zotero može uskladiti puni tekstualni sadržaj datoteka u vašim Zotero bibliotekama sa zotero.org i drugim povezanim uređajima, omogućavajući jednostavno pretraživanje datoteka gdje god se nalazili. Cijeli tekstualni sadržaj vaših datoteka neće se javno dijeliti.">
+<!ENTITY zotero.preferences.sync.about "O uskladbi">
+<!ENTITY zotero.preferences.sync.fileSyncing "Uskladba datoteka">
+<!ENTITY zotero.preferences.sync.fileSyncing.url "URL:">
+<!ENTITY zotero.preferences.sync.fileSyncing.myLibrary "Uskladite datoteke privitaka u Moje datoteke pomoću">
+<!ENTITY zotero.preferences.sync.fileSyncing.groups "Uskladite datoteke privitaka u grupnim bibliotekama koristeći Zotero pohranu">
+<!ENTITY zotero.preferences.sync.fileSyncing.download "Preuzmite datoteke">
+<!ENTITY zotero.preferences.sync.fileSyncing.download.atSyncTime "u vrijeme uskladbe">
+<!ENTITY zotero.preferences.sync.fileSyncing.download.onDemand "po potrebi">
+<!ENTITY zotero.preferences.sync.fileSyncing.verifyServer "Potvrdi Server">
+<!ENTITY zotero.preferences.sync.fileSyncing.tos1 "Korištenjem Zotero pohrane, slažete se obvezati njegovim">
+<!ENTITY zotero.preferences.sync.fileSyncing.tos2 "odredbe i uvjeti">
+<!ENTITY zotero.preferences.sync.librariesToSync "Biblioteke za uskladbu">
+<!ENTITY zotero.preferences.sync.librariesToSync.button "Odaberi biblioteku...">
+<!ENTITY zotero.preferences.sync.librariesToSync.sync "Uskladba">
+<!ENTITY zotero.preferences.sync.librariesToSync.library "Biblioteka">
+<!ENTITY zotero.preferences.sync.reset.warning1 "Sljedeće se radnje koriste u rijetkim, specifičnim situacijama i ne bi se smjele koristiti za općenito rješavanje problema. U  slučajevima resetiranja, mogući dodatni problemi. Vidjeti">
+<!ENTITY zotero.preferences.sync.reset.warning2 "Mogućnosti resetiranja sinkronizacije">
+<!ENTITY zotero.preferences.sync.reset.warning3 "za više informacija">
+<!ENTITY zotero.preferences.sync.reset.resetDataSyncHistory "Povijest resetiranja usklađivanja podataka ">
+<!ENTITY zotero.preferences.sync.reset.resetDataSyncHistory.desc "Spojite lokalne podatke s udaljenim podacima, zanemarujući povijest uskladbe">
+<!ENTITY zotero.preferences.sync.reset.restoreFromOnlineLibrary "Povrat sa mrežne knjižnice">
+<!ENTITY zotero.preferences.sync.reset.restoreFromOnlineLibrary.desc "Prebrišite lokalne Zotero podatke podacima iz mrežne knjižnice.">
+<!ENTITY zotero.preferences.sync.reset.restoreToOnlineLibrary "Zamjeni mrežnu knjižnicu">
+<!ENTITY zotero.preferences.sync.reset.restoreToOnlineLibrary.desc "Prebrišite mrežnu knjižnicu lokalnim Zotero podacima">
+<!ENTITY zotero.preferences.sync.reset.resetFileSyncHistory "Poništi povijest sinkronizacije datoteke">
+<!ENTITY zotero.preferences.sync.reset.resetFileSyncHistory.desc "Usporedi sve privitke sa uslugom skladištenja">
+<!ENTITY zotero.preferences.sync.reset "Poništi">
+<!ENTITY zotero.preferences.sync.reset.showResetOptions "Pokaži opcije poništenja...">
+<!ENTITY zotero.preferences.sync.reset.button "Poništi...">
+
+
+<!ENTITY zotero.preferences.prefpane.search "Pretraži">
+<!ENTITY zotero.preferences.search.fulltextCache "Predmemorija cijelog teksta">
+<!ENTITY zotero.preferences.search.indexStats "Statistika indeksa">
+
+<!ENTITY zotero.preferences.search.indexStats.indexed "Indeksirano:">
+<!ENTITY zotero.preferences.search.indexStats.partial "Djelomično:">
+<!ENTITY zotero.preferences.search.indexStats.unindexed "Neindeksirano:">
+<!ENTITY zotero.preferences.search.indexStats.words "Riječi:">
+
+<!ENTITY zotero.preferences.fulltext.textMaxLength "Maksimalan broj znakova za indeksiranje po datoteci:">
+<!ENTITY zotero.preferences.fulltext.pdfMaxPages "Maksimalno stranica za indeksiranje po datoteci">
+
+<!ENTITY zotero.preferences.prefpane.export "Izvoz">
+
+<!ENTITY zotero.preferences.citationOptions.caption "Opcije navođenja">
+<!ENTITY zotero.preferences.export.citePaperJournalArticleURL "Uključite URL-ove članaka u reference">
+<!ENTITY zotero.preferences.export.citePaperJournalArticleURL.description "Kada je ova opcija onemogućena, Zotero uključuje URL-ove kada citira članke iz časopisa, magazina i novina samo ako članak nema naveden raspon stranica.">
+
+<!ENTITY zotero.preferences.quickCopy.caption "Brzo kopiranje">
+<!ENTITY zotero.preferences.quickCopy.itemFormat "Format stavke:">
+<!ENTITY zotero.preferences.quickCopy.noteFormat "Format zabilješke:">
+<!ENTITY zotero.preferences.quickCopy.copyAsHTML "Kopija kao HTML">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.setings "Postavke za specifičnu web stranicu:">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Domena/putanja">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath.example "(npr. wikipwdia.org)">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.format "Format">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.locale "Jezik">
+<!ENTITY zotero.preferences.quickCopy.dragLimit "Onemogućiti brzo kopiranje pri povlačenju više od">
+
+<!ENTITY zotero.preferences.prefpane.cite "Navod">
+<!ENTITY zotero.preferences.cite.wordProcessors "Programi za obradu teksta">
+<!ENTITY zotero.preferences.cite.wordProcessors.useClassicAddCitationDialog "Koristi klasični dijaloški okvir Dodaj navod">
+<!ENTITY zotero.preferences.styleEditor "Uređivač stila">
+<!ENTITY zotero.preferences.stylePreview "Preglednik stila">
+
+<!ENTITY zotero.preferences.cite.styles.styleManager "Upravljanje stilom">
+<!ENTITY zotero.preferences.cite.styles.styleManager.title "Naslov">
+<!ENTITY zotero.preferences.cite.styles.styleManager.updated "Nadopunjeno">
+<!ENTITY zotero.preferences.cite.styles.styleManager.csl "CSL">
+<!ENTITY zotero.preferences.export.getAdditionalStyles "Nabavite dodatne stilove...">
+
+<!ENTITY zotero.preferences.keys.saveToZotero "Spremi u Zotero (ikona adresne trake)">
+<!ENTITY zotero.preferences.keys.focusLibrariesPane "Fokus na knjižnično okno">
+<!ENTITY zotero.preferences.keys.quicksearch "Brza pretaraga">
+<!ENTITY zotero.preferences.keys.newItem "Kreiraj novu stavku">
+<!ENTITY zotero.preferences.keys.newNote "Kreiraj novu bilješku">
+<!ENTITY zotero.preferences.keys.toggleAllRead "Označi sve stavke unosa kao pročitane/nepročitane">
+<!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopiraj odabrane stavke navoda u međuspremnik">
+<!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopiraj odabrane stavke u međuspremnik">
+<!ENTITY zotero.preferences.keys.importFromClipboard "Unos u međuspremnik">
+<!ENTITY zotero.preferences.keys.changesTakeEffect "Promjene stupaju na snagu nakon ponovnog pokretanja">
+
+<!ENTITY zotero.preferences.prefpane.proxies "Opunomoćenici">
+
+<!ENTITY zotero.preferences.proxies.proxyOptions "Opcije Proxy-a">
+<!ENTITY zotero.preferences.proxies.desc_before_link "Zotero će transparentno preusmjeriti zahtjeve preko spremljenih proxy-a. Vidi">
+<!ENTITY zotero.preferences.proxies.desc_link " dokumentacija proxy-a">
+<!ENTITY zotero.preferences.proxies.desc_after_link "za više informacija.">
+<!ENTITY zotero.preferences.proxies.transparent "Transparentno preusmjeravanje zahtjeva putem prethodno korištenih proxy-a">
+<!ENTITY zotero.preferences.proxies.autoRecognize "Automatski prepoznaj resurse poslužitelja">
+<!ENTITY zotero.preferences.proxies.showRedirectNotification "Prikaži obavijest prilikom preusmjeravanja putem poslužitelja">
+<!ENTITY zotero.preferences.proxies.disableByDomain "Onemogući preusmjeravanje poslužitelja kada naziv moje domene sadrži ">
+<!ENTITY zotero.preferences.proxies.configured "Konfiguracija poslužitelja">
+<!ENTITY zotero.preferences.proxies.hostname "Naziv hosta">
+<!ENTITY zotero.preferences.proxies.scheme "Šema">
+
+<!ENTITY zotero.preferences.proxies.multiSite "Više stranica">
+<!ENTITY zotero.preferences.proxies.autoAssociate "Automatski pridruži nove hostove">
+<!ENTITY zotero.preferences.proxies.variables "Možete koristiti sljedeće varijable u svojoj shemi poslužitelja:">
+<!ENTITY zotero.preferences.proxies.h_variable "&#37;h - Ime hosta na stranici poslužitelja ( npr. www.zotero.org)">
+<!ENTITY zotero.preferences.proxies.p_variable "&#37;p - Putanja stranice poslužitelja isključujue početnu kosu crtu (npr. about/index.html)">
+<!ENTITY zotero.preferences.proxies.d_variable "&#37;d - put direktorija (npr. about/)">
+<!ENTITY zotero.preferences.proxies.f_variable "&#37;f - naziv datoteke (npr. index.html)">
+<!ENTITY zotero.preferences.proxies.a_variable "&#37;a - Bilo koji niz">
+
+<!ENTITY zotero.preferences.prefpane.advanced "Napredno">
+<!ENTITY zotero.preferences.advanced.filesAndFolders "Datoteke i Mape">
+<!ENTITY zotero.preferences.advanced.keys "Prečice">
+
+<!ENTITY zotero.preferences.advanced.advancedConfiguration "Napredne postavke">
+
+<!ENTITY zotero.preferences.prefpane.locate "Pronaći">
+<!ENTITY zotero.preferences.locate.locateEngineManager "Upravitelj tražilice članaka">
+<!ENTITY zotero.preferences.locate.description "Opis">
+<!ENTITY zotero.preferences.locate.name "Ime">
+<!ENTITY zotero.preferences.locate.addDescription "Za dodavanje tražilice koja nije na popisu, posjetite željenu tražilicu u svom pregledniku i odaberite &quot;Dodaj&quot; iz Zoterovog Lociraj izbornika.">
+<!ENTITY zotero.preferences.locate.restoreDefaults "Vrati zadane postavke">
+
+<!ENTITY zotero.preferences.charset "Kodiranje znakova">
+<!ENTITY zotero.preferences.charset.importCharset "Umetanje kodiranog znaka">
+<!ENTITY zotero.preferences.charset.displayExportOption "Prikaz opcije kodiranja znakova pri izvozu">
+
+<!ENTITY zotero.preferences.dataDir "Lokacija direktorij podataka">
+<!ENTITY zotero.preferences.dataDir.useProfile "Koristi imenik profila">
+<!ENTITY zotero.preferences.dataDir.custom "Prilagođeno:">
+<!ENTITY zotero.preferences.dataDir.choose "Biraj…">
+<!ENTITY zotero.preferences.dataDir.viaCommandLine "(navedeno preko naredbenog retka)">
+<!ENTITY zotero.preferences.dataDir.reveal "Prikaži direktorij podataka">
+<!ENTITY zotero.preferences.dataDir.migrate "Premjesti na novu zadanu lokaciju…">
+
+<!ENTITY zotero.preferences.attachmentBaseDir.caption "Povezani osnovni imenik privitaka">
+<!ENTITY zotero.preferences.attachmentBaseDir.message "Zotero će koristiti relativne staze za povezane privitke datoteka unutar osnovnog direktorija, omogućujući vam pristup datotekama na različitim računalima sve dok struktura datoteke unutar osnovnog direktorija ostaje ista.">
+<!ENTITY zotero.preferences.attachmentBaseDir.basePath "Osnovni direktorij:">
+<!ENTITY zotero.preferences.attachmentBaseDir.selectBasePath "Biraj…">
+<!ENTITY zotero.preferences.attachmentBaseDir.resetBasePath "Vrati na apsolutne veze…">
+
+<!ENTITY zotero.preferences.dbMaintenance "Održavanje baze podataka">
+<!ENTITY zotero.preferences.dbMaintenance.integrityCheck "Provjera integriteta baze">
+<!ENTITY zotero.preferences.dbMaintenance.resetTranslatorsAndStyles "Poništi prevoditelje i stilove…">
+<!ENTITY zotero.preferences.dbMaintenance.resetTranslators "Poništi prevoditelje…">
+<!ENTITY zotero.preferences.dbMaintenance.resetStyles "Poništi stilove...">
+
+<!ENTITY zotero.preferences.configEditor "Uređivač postavki">

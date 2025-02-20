@@ -1,0 +1,19 @@
+<!ENTITY zotero.publications.my_publications "הפרסומים שלי">
+
+<!ENTITY zotero.publications.intro "פריטים שנוספים ל„פרסומים שלי” יופיעו בעמוד הפרופיל שלך ב־zotero.org. אם בחרת לצרף קבצים הם ייחשפו לקהל הרחב בכפוף לרישיון שציינת. יש להוסיף אך ורק יצירה מקורית שלך ולצרף אך ורק קבצים שיש לך זכויות להפיץ ושיש לך רצון בכך.">
+<!ENTITY zotero.publications.include.checkbox.files "צירוף קבצים">
+<!ENTITY zotero.publications.include.checkbox.notes "צירוף הערות">
+<!ENTITY zotero.publications.include.adjustAtAnyTime "אפשר לכוון מה להציג בכל עת מהאוסף „הפרסומים שלי”.">
+
+<!ENTITY zotero.publications.sharing.title "נא לבחור כיצד יש לשתף את היצירה שלך">
+<!ENTITY zotero.publications.sharing.text "מותר לך לשמור לעצמך את כל הזכויות על יצירתך, להגיש את היצירה בכפוף לרישון Creative Commons או להעניק אותה לנחלת הכלל. בכל המקרים, היצירה תהיה זמינה לקהל הרחב דרך zotero.org.">
+<!ENTITY zotero.publications.sharing.prompt "לאפשר לשתף את היצירה שלך עם אחרים?">
+<!ENTITY zotero.publications.sharing.cc "כן, תחת רישיון Creative Commons">
+<!ENTITY zotero.publications.sharing.cc0 "כן, ולהפיץ את היצירה שלי לנחלת הכלל">
+<!ENTITY zotero.publications.sharing.reserved "לא, רק לפרסם את היצירה שלי דרך zotero.org">
+
+<!ENTITY zotero.publications.chooseLicense.title "נא לבחור רישיון Creative Commons">
+<!ENTITY zotero.publications.chooseLicense.text "רישיון Creative Commons מאפשר לאחרים להעתיק ולהפיץ מחדש את היצירה שלך כל עוד מצורפת אליה הוקרה ליוצרים, קישור לרישיון ולציין שבוצעו בה שינויים. אפשר לציין תנאים נוספים להלן.">
+<!ENTITY zotero.publications.chooseLicense.adaptations.prompt "לאפשר הפצה של גירסאות ערוכות של היצירה שלך?">
+<!ENTITY zotero.publications.chooseLicense.adaptations.sharealike "כן, כל עוד תנאי השיתוף זהים">
+<!ENTITY zotero.publications.chooseLicense.commercial.prompt "לאפשר שימוש מסחרי ביצירה שלך?">

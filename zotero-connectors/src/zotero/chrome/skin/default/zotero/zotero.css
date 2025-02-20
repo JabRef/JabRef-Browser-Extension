@@ -1,0 +1,107 @@
+groupbox > label > h2, groupbox > * > label > h2 {
+	font-size: 14px;
+	margin-top: 1em;
+	margin-bottom: .3em;
+}
+
+label.zotero-text-link {
+	-moz-user-focus: normal;
+	color: LinkText;
+	text-decoration: underline;
+	border: 1px solid transparent;
+	cursor: pointer;
+}
+
+.text-link {
+	-moz-user-focus: normal;
+	color: LinkText;
+	text-decoration: underline;
+	border: 1px solid transparent;
+	cursor: pointer;
+}
+
+.zotero-message-error
+{
+	font-weight: 600;
+}
+
+#zotero-progress-text-headline
+{
+	font-weight: 600;
+	margin-bottom: 2px;
+}
+
+.zotero-progress-icon-headline {
+	width: 16px;
+	height: 16px;
+}
+
+.zotero-progress-item-hbox
+{
+	padding-inline-start: 5px;
+	padding-block: 2px;
+	margin-block: 0;
+}
+
+.zotero-progress-item-hbox[parent]
+{
+	margin-top: 3px;
+}
+
+.zotero-progress-item-label
+{
+	width: 210px;
+	margin-inline: 5px 0;
+	margin-block: 0;
+}
+
+.zotero-warning {
+  font-weight: 600;
+  font-size: 1.25em;
+  margin-bottom: 1em;
+}
+
+#zotero-note-window {
+	padding-bottom: 4px;
+}
+
+#zotero-captcha-description {
+	max-width: 300px;
+	padding-bottom: 4px;
+	text-align: justify;
+}
+
+#zotero-captcha-error {
+	max-width: 300px;
+	padding-bottom: 4px;
+	padding-top: 4px;
+	font-weight: 600;
+	color: red;
+	text-align: center;
+}
+
+/* Constrain 2x collection/search icons */
+zoterosearch .menulist-icon {
+	height: 16px;
+}
+
+#zotero-attach-uri-container
+{
+	width: 30em;
+	max-width: 30em;
+}
+
+#zotero-attach-uri-message
+{
+	width: 29.5em;
+	max-width: 29.5em;
+}
+
+#zotero-edit-bibliography-dialog #item-list .listcell-icon {
+	max-width: 16px;
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+}

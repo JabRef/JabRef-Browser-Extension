@@ -1,0 +1,239 @@
+{
+  "general_more": {
+    "message": "Plus…"
+  },
+  "general_moreInfo": {
+    "message": "Plus d'info..."
+  },
+  "general_needHelp": {
+    "message": "Besoin d'aide?"
+  },
+  "general_done": {
+    "message": "Terminé"
+  },
+  "general_yes": {
+    "message": "Oui"
+  },
+  "general_no": {
+    "message": "Non"
+  },
+  "general_tryAgain": {
+    "message": "Réessayer"
+  },
+  "general_warning": {
+    "message": "Avertissement"
+  },
+  "general_ok": {
+    "message": "OK"
+  },
+  "general_cancel": {
+    "message": "Annuler"
+  },
+  "general_selectAll": {
+    "message": "Tout sélectionner"
+  },
+  "general_deselectAll": {
+    "message": "Tout désélectionner"
+  },
+  "general_pleaseWait": {
+    "message": "Veuillez patienter…"
+  },
+  "general_copyToClipboard": {
+    "message": "Copier dans le presse-papiers"
+  },
+  "itemType_pdf": {
+    "message": "Pièce jointe PDF"
+  },
+  "itemType_epub": {
+    "message": "Pièce jointe EPUB"
+  },
+  "itemType_snapshot": {
+    "message": "Capture"
+  },
+  "itemType_note": {
+    "message": "Note"
+  },
+  "itemType_link": {
+    "message": "Lien Web"
+  },
+  "itemType_attachment": {
+    "message": "Pièce jointe"
+  },
+  "progressWindow_savingTo": {
+    "message": "Enregistrer dans"
+  },
+  "progressWindow_detailsBtnView": {
+    "message": "Afficher les détails"
+  },
+  "progressWindow_detailsBtnHide": {
+    "message": "Masquer les détails"
+  },
+  "progressWindow_collectionSelector": {
+    "message": "Sélecteur de la collection de destination"
+  },
+  "progressWindow_savingItems": {
+    "message": "Enregistrement de $1 documents. $2"
+  },
+  "progressWindow_savingItem": {
+    "message": "Enregistrement du document $1"
+  },
+  "progressWindow_saveItem": {
+    "message": "Document $1 : $2"
+  },
+  "progressWindow_downloadComplete": {
+    "message": "$1 enregistré"
+  },
+  "progressWindow_downloadCompletePlural": {
+    "message": " $1 enregistré pour le document $2"
+  },
+  "progressWindow_downloadFailed": {
+    "message": "Echec du téléchargement de $1"
+  },
+  "progressWindow_downloadFailedPlural": {
+    "message": "Échec du téléchargement de $1 pour le document $2"
+  },
+  "progressWindow_allDone": {
+    "message": "Enregistrement terminé. La fenêtre va maintenant se refermer."
+  },
+  "progressWindow_alreadySaved": {
+    "message": "Des documents ont déjà été enregistrés depuis cette page web."
+  },
+  "progressWindow_tagPlaceholder": {
+    "message": "Marqueurs (séparés par des virgules)"
+  },
+  "progressWindow_filterPlaceholder": {
+    "message": "Filtrer les collections"
+  },
+  "progressWindow_error_translation": {
+    "message": "Une erreur s’est produite lors de l’enregistrement de ce document. Consultez $1 pour davantage de précisions. "
+  },
+  "progressWindow_error_siteAccessLimitsError": {
+    "message": "Une erreur s'est produite lors de l'enregistrement de ce document. Il est possible que $1 limite le nombre de documents que vous pouvez enregistrer en même temps. Voir $2 pour plus d'informations."
+  },
+  "progressWindow_error_troubleshootingTranslatorIssues": {
+    "message": "Résoudre les problèmes de convertisseur"
+  },
+  "progressWindow_error_siteAccessLimits": {
+    "message": "Limites d'accès au site"
+  },
+  "progressWindow_error_fallback": {
+    "message": "Une erreur s’est produite lors de l’enregistrement avec $1. Tentative d’enregistrement en utilisant $2 à la place."
+  },
+  "progressWindow_error_upgradeClient": {
+    "message": "Cette fonctionnalité n’est pas compatible avec votre version de $1. Veuillez mettre à niveau vers $2."
+  },
+  "progressWindow_error_upgradeClient_latestVersion": {
+    "message": "dernière version"
+  },
+  "itemSelector_title": {
+    "message": "Sélectionnez les documents que vous voulez ajouter à votre bibliothèque :"
+  },
+  "extensionIsDisabled": {
+    "message": "Le connecteur $1 n'est pas disponible pour cette page."
+  },
+  "extensionIsDisabled_fileURL": {
+    "message": "Le connecteur $1 n'est pas disponible pour les URLs de fichiers."
+  },
+  "extensionIsDisabled_extensionPage": {
+    "message": "Le connecteur $1 n'est pas disponible pour les pages d'extension."
+  },
+  "appConnector": {
+    "message": "Connecteur $1"
+  },
+  "upgradeApp": {
+    "message": "Mettre à niveau $1"
+  },
+  "firstRun_title": {
+    "message": "Vous avez installé le connecteur pour $1!"
+  },
+  "firstRun_text1": {
+    "message": "Le Connecteur $1 vous permet <a href=\"$2\">d'enregistrer des documents dans$1</a> depuis de votre navigateur en un seul clic."
+  },
+  "firstRun_text2": {
+    "message": "Si vous ne l'avez pas encore fait, <a href=\"$2\">téléchargez</a> l'application $1 pour bénéficier d'une expérience optimale."
+  },
+  "firstRun_acceptButton": {
+    "message": "Compris"
+  },
+  "error_connection_isAppRunning": {
+    "message": "$1 est-il ouvert ?"
+  },
+  "error_connection_save": {
+    "message": "Le $1 n'a pas pu communiquer avec l'application $2. Le Connecteur peut enregistrer certaines pages directement sur votre compte $3, mais pour de meilleurs résultats assurez-vous que $2 est ouvert avant d'essayer d'enregistrer."
+  },
+  "error_connection_downloadOrTroubleshoot": {
+    "message": "Vous pouvez <a href=\"$1\">télécharger le $2</a> ou <a href=\"$3\">résoudre les problèmes de connexion</a> si nécessaire."
+  },
+  "error_connection_enableSavingToOnlineLibrary": {
+    "message": "Activer l'enregistrement dans la bibliothèque en ligne"
+  },
+  "reports_report_submitted": {
+    "message": "Votre rapport d'erreur a été soumis.\n\nReport ID: $1\n\nVeuillez poster un message sur les forums de Zotero avec cet identifiant, une description du problème et toutes les étapes nécessaires pour le reproduire.\nLes rapports d'erreur ne sont pas analysés tant qu'ils ne sont pas cités dans les forums avec cet identifiant."
+  },
+  "reports_debug_output_submitted": {
+    "message": "Le journal de débogage a été envoyé.\n\nLe Debug ID est $1."
+  },
+  "reports_submission_failed": {
+    "message": "Une erreur s'est produite lors de l'envoi de votre rapport.\n\n$1\n\nVeuillez vérifier votre connexion internet. Si le problème persiste, veuillez poster un message sur les forums Zotero."
+  },
+  "integration_error_clientUpgrade": {
+    "message": "L'insertion de citations dans une application web nécessite $1 ou ultérieur."
+  },
+  "integration_error_connection": {
+    "message": "Le $1 n'a pas pu communiquer avec l'application $2. $2 doit être ouvert pour pouvoir insérer des citations dans une application web."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_warning": {
+    "message": "Ce document contient des citations Zotero actives qui apparaîtront sous forme de liens zotero.org dans une copie téléchargée."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_instructions": {
+    "message": "Pour générer une version adaptée au partage, sélectionnez <b>Faire une copie…</b> dans le menu Fichier, sélectionnez <b>Dissocier les citations</b> dans le menu Zotero du nouveau document, puis téléchargez la version non liée. Conservez ce document lié original au cas où vous auriez besoin d'apporter d'autres modifications."
+  },
+  "integration_googleDocs_unlinkBeforeSaving_downloadAnyway": {
+    "message": "Télécharger la version liée quand même"
+  },
+  "integration_googleDocs_updating": {
+    "message": "$1 met à jour votre document."
+  },
+  "integration_googleDocs_docxAlert": {
+    "message": "L'intégration de $1 n'est pas disponible lors de l'édition directe de fichiers Microsoft Word .docx dans Google Docs. Sélectionnez Fichier → Enregistrer au format Google Docs afin d'activer cette fonctionnalité.<br/><br/>Si vous souhaitez transférer un document Word avec $1 citations vers Google Docs, consultez <a href=\"https://www.zotero.org/support/kb/moving_documents_between_word_processors\">Transférer des documents comportant des citations Zotero entre différents logiciels de traitement de texte</a>."
+  },
+  "integration_googleDocs_documentLocked": {
+    "message": "Les citations du document sont en cours de modification par un autre utilisateur $1. Veuillez réessayer ultérieurement."
+  },
+  "integration_googleDocs_documentLocked_moreInfo": {
+    "message": "$1 verrouille votre document pour empêcher plusieurs utilisateurs de modifier les citations en même temps. La modification simultanée de citations dans le document peut entraîner une corruption des citations ou du document. Certaines circonstances imprévisibles, telles que des pannes de réseau, peuvent entraîner le verrouillage permanent de votre document. Si vous pensez que cela s'est produit, vous pouvez annuler le verrouillage. <br/><br/>Voulez-vous annuler le verrouillage du document ?"
+  },
+  "integration_googleDocs_authScopeError": {
+    "message": "$1 doit avoir la permission de modifier votre document Google Docs pour insérer des citations. Veuillez réessayer en vous assurant que $1 est autorisé à voir, modifier, créer et supprimer vos documents Google Docs."
+  },
+  "integration_googleDocs_documentPermissionError": {
+    "message": "Le compte Google que vous avez sélectionné n'a pas l'autorisation de modifier ce document. Veuillez réessayer, en vous assurant de choisir un compte disposant d'un accès en modification."
+  },
+  "integration_googleDocs_orphanedCitations_buttonTooltip": {
+    "message": "Afficher les citations $1 non liées."
+  },
+  "integration_googleDocs_orphanedCitations_alert": {
+    "message": "La citation que vous tentez de modifier n'est plus liée à  $1."
+  },
+  "integration_googleDocs_orphanedCitations_alertButton": {
+    "message": "Lier à nouveau la citation."
+  },
+  "integration_googleDocs_orphanedCitations_disclaimer": {
+    "message": "Ces citations ne sont <a target=\"_blank\" href=\"https://www.zotero.org/support/kb/google_docs_citations_unlinked\">plus liées à $1</a>. Vous devez les lier à nouveau pour qu'elles soient mises à jour ou apparaissent dans votre bibliographie."
+  },
+  "copyUnproxiedLink": {
+    "message": "Copier le lien sans proxy"
+  },
+  "copyUnproxiedPageURL": {
+    "message": "Copier l’URL de la page sans proxy"
+  },
+  "reloadViaProxy": {
+    "message": "Recharger via proxy"
+  },
+  "reloadVia": {
+    "message": "Recharger via $1"
+  },
+  "general_saveTo": {
+    "message": "Enregistrer dans $1"
+  }
+}

@@ -1,0 +1,27 @@
+@import "abstracts/variables";
+@import "abstracts/functions";
+@import "abstracts/mixins";
+@import "abstracts/placeholders";
+@import "abstracts/utilities";
+@import "abstracts/split-button";
+@import "abstracts/svgicon";
+
+@include macOS-normalize-controls;
+
+#progress-queue-root {
+	min-height: 0;
+	padding: 10px;
+}
+
+#progress-container {
+	padding-bottom: 6px;
+	gap: 6px;
+}
+
+#progress-indicator {
+	flex: 1;
+}
+
+.virtualized-table-container {
+	height: 200px;
+}
