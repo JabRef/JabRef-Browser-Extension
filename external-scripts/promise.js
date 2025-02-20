@@ -27,7 +27,7 @@
  * Polyfill some of bluebirds methods to retain code readability in shared
  * translator code.
  */
-
+ 
 Zotero.Promise = Promise;
 
 Zotero.Promise.method = function(fn) {
@@ -43,7 +43,7 @@ Zotero.Promise.method = function(fn) {
 				isResolved = true;
 			}
 			if (typeof promise.isResolved === 'undefined') {
-				promise.then(() => isResolved = true);
+				promise.then(() => isResolved = true, () => 0);
 				promise.isResolved = () => isResolved;
 			}
 			return promise;
@@ -62,12 +62,12 @@ Zotero.Promise.defer = function() {
 	return deferred;
 }
 
-Zotero.Promise.delay = function(timeout) {
-	return new Promise(function(resolve) {
+Zotero.Promise.delay = function (timeout) {
+	return new Promise(function (resolve) {
 		setTimeout(resolve, timeout);
 	});
 }
 
-if (typeof process === 'object' && process + '' === '[object process]') {
+if (typeof process === 'object' && process + '' === '[object process]'){
 	module.exports = Zotero.Promise;
 }

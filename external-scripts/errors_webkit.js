@@ -25,7 +25,14 @@
 
 Zotero.Errors = new function() {
 	var _output = [];
-
+	
+	this.init = async function() {
+		if (Zotero.isManifestV3) {
+			let storedData = await browser.storage.session.get({'loggedErrors': []});
+			_output = storedData.loggedErrors.concat(_output);
+		}
+	}
+	
 	/**
 	 * Error handler
 	 * @param {String} string Error string
@@ -33,18 +40,29 @@ Zotero.Errors = new function() {
 	 * @param {Number} line Line where error occurred
 	 */
 	this.log = function(string, url, line) {
-		var err = ['[JavaScript Error: "', string, '"'];
-		if (url || line) {
+		// Special case for MV3 service worker restart info logging
+		var err;
+		if (string.startsWith('Service worker')) {
+			err = [`[Info: ${string}`];
+			url = line = null;
+		}
+		else {
+			err = [`[JavaScript Error: "${string}"`];
+		}
+		if(url || line) {
 			var info = [];
-			if (url) info.push('file: "' + url + '"');
-			if (line) info.push('line: ' + line);
-			err.push(" {" + info.join(" ") + "}");
+			if(url) info.push('file: "'+url+'"');
+			if(line) info.push('line: '+line);
+			err.push(" {"+info.join(" ")+"}");
 		}
 		err.push("]");
 		err = err.join("");
 		_output.push(err);
+		if (Zotero.isManifestV3) {
+			browser.storage.session.set({'loggedErrors': _output});
+		}
 	}
-
+	
 	/**
 	 * Gets errors as an array of strings
 	 */
@@ -53,38 +71,77 @@ Zotero.Errors = new function() {
 	}
 
 	/**
+	 * Get versions, platform, etc.
+	 */
+	this.getSystemInfo = async function () {
+		var info;
+		if (Zotero.isSafari && Zotero.isBackground) {
+			info = {
+				connector: "true",
+				version: Zotero.version,
+				platform: "Safari App Extension",
+			};
+		} else {
+			info = {
+				connector: "true",
+				version: Zotero.version,
+				platform: navigator.platform,
+				locale: navigator.language,
+				userAgent: navigator.userAgent,
+				isManifestV3: Zotero.isManifestV3
+			};
+		}
+		
+		info.appName = Zotero.appName;
+		info.zoteroAvailable = !!(await Zotero.Connector.checkIsOnline());
+		
+		
+		if (Zotero.isBackground && Zotero.isBrowserExt) {
+			let granted = await browser.permissions.contains({permissions: ['management']});
+			if (granted) {
+				// See https://github.com/zotero/zotero-connectors/issues/476
+				if (!Zotero.isChromium || chrome.management.getAll) {
+					let extensions = await browser.management.getAll();
+					info.extensions = extensions
+						.filter(extension => extension.enabled && extension.name != Zotero.appName)
+						.map(extension => {
+							return `${extension.name}: ${extension.version}, ${extension.type}`;
+						}).join(', ')
+				}
+			}
+		}
+		return JSON.stringify(info, null, 2);
+	}
+	
+	/**
 	 * Sends an error report to the server
 	 * NB: Runs on the prefs injected page on Safari
 	 * since responseXML or DOMParser are unavailable
 	 * in the global page
 	 */
 	this.sendErrorReport = async function() {
-		var info = await Zotero.getSystemInfo();
+		var info = await this.getSystemInfo();
 		var parts = {
 			error: "true",
 			errorData: (await this.getErrors()).join('\n'),
 			extraData: '',
 			diagnostic: info
 		};
-
+		
 		var body = '';
 		for (var key in parts) {
 			body += key + '=' + encodeURIComponent(parts[key]) + '&';
 		}
 		body = body.substr(0, body.length - 1);
-		let headers = {
-			'Content-Type': 'application/x-www-form-urlencoded'
-		};
-		let options = {
-			body,
-			headers
-		};
+		let headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+		let options = {body, headers};
 		var xmlhttp = await Zotero.HTTP.request("POST", "https://www.zotero.org/repo/report", options);
 		let responseXML;
 		try {
 			let parser = new DOMParser();
 			responseXML = parser.parseFromString(xmlhttp.responseText, "text/xml");
-		} catch (e) {
+		}
+		catch (e) {
 			throw new Error('Invalid response from repository');
 		}
 		var reported = responseXML.getElementsByTagName('reported');
@@ -96,6 +153,5 @@ Zotero.Errors = new function() {
 }
 
 if (typeof Zotero.Debug != "undefined") {
-	// Remove access to Zotero.Debug
-	//Zotero.Debug.bgInit = Zotero.Debug.init;
+	Zotero.Debug.bgInit = Zotero.Debug.init;
 }

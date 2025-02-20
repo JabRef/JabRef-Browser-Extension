@@ -54,22 +54,26 @@ Zotero.Utilities.Translate.prototype.strToDate = Zotero.Date.strToDate;
 Zotero.Utilities.Translate.prototype.strToISO = Zotero.Date.strToISO;
 Zotero.Utilities.Translate.prototype.createContextObject = Zotero.OpenURL.createContextObject;
 Zotero.Utilities.Translate.prototype.parseContextObject = Zotero.OpenURL.parseContextObject;
+Zotero.Utilities.Translate.prototype.itemTypeExists = Zotero.Utilities.Item.itemTypeExists;
+Zotero.Utilities.Translate.prototype.itemToCSLJSON = Zotero.Utilities.Item.itemToCSLJSON;
+Zotero.Utilities.Translate.prototype.itemFromCSLJSON = Zotero.Utilities.Item.itemFromCSLJSON;
+Zotero.Utilities.Translate.prototype.itemToLegacyExportFormat = Zotero.Utilities.Item.itemToLegacyExportFormat;
 
 /**
  * Hack to overloads {@link Zotero.Utilities.capitalizeTitle} to allow overriding capitalizeTitles 
  * pref on a per-translate instance basis (for translator testing only)
  */
 Zotero.Utilities.Translate.prototype.capitalizeTitle = function(string, force) {
-	if (force === undefined) {
+	if(force === undefined) {
 		var translate = this._translate;
 		do {
-			if (translate.capitalizeTitles !== undefined) {
+			if(translate.capitalizeTitles !== undefined) {
 				force = translate.capitalizeTitles;
 				break;
 			}
-		} while (translate = translate._parentTranslator);
+		} while(translate = translate._parentTranslator);
 	}
-
+	
 	return Zotero.Utilities.capitalizeTitle(string, force);
 }
 
@@ -90,7 +94,7 @@ Zotero.Utilities.Translate.prototype.getVersion = function() {
  */
 Zotero.Utilities.Translate.prototype.gatherElementsOnXPath = function(doc, parentNode, xpath, nsResolver) {
 	var elmts = [];
-
+	
 	var iterator = doc.evaluate(xpath, parentNode, nsResolver, XPathResult.ANY_TYPE, null);
 	var elmt = iterator.iterateNext();
 	var i = 0;
@@ -110,7 +114,7 @@ Zotero.Utilities.Translate.prototype.gatherElementsOnXPath = function(doc, paren
 Zotero.Utilities.Translate.prototype.getNodeString = function(doc, contextNode, xpath, nsResolver) {
 	var elmts = this.gatherElementsOnXPath(doc, contextNode, xpath, nsResolver);
 	var returnVar = "";
-	for (var i = 0; i < elmts.length; i++) {
+	for(var i=0; i<elmts.length; i++) {
 		returnVar += elmts[i].nodeValue;
 	}
 	return returnVar;
@@ -127,11 +131,11 @@ Zotero.Utilities.Translate.prototype.getNodeString = function(doc, contextNode, 
  *	Zotero.selectItems from within a translator
  */
 Zotero.Utilities.Translate.prototype.getItemArray = function(doc, inHere, urlRe, rejectRe) {
-	var availableItems = new Object(); // Technically, associative arrays are objects
-
+	var availableItems = new Object();	// Technically, associative arrays are objects
+	
 	// Require link to match this
-	if (urlRe) {
-		if (urlRe.exec) {
+	if(urlRe) {
+		if(urlRe.exec) {
 			var urlRegexp = urlRe;
 		} else {
 			var urlRegexp = new RegExp();
@@ -139,30 +143,30 @@ Zotero.Utilities.Translate.prototype.getItemArray = function(doc, inHere, urlRe,
 		}
 	}
 	// Do not allow text to match this
-	if (rejectRe) {
-		if (rejectRe.exec) {
+	if(rejectRe) {
+		if(rejectRe.exec) {
 			var rejectRegexp = rejectRe;
 		} else {
 			var rejectRegexp = new RegExp();
 			rejectRegexp.compile(rejectRe, "i");
 		}
 	}
-
-	if (!inHere.length) {
+	
+	if(!inHere.length) {
 		inHere = new Array(inHere);
 	}
-
-	for (var j = 0; j < inHere.length; j++) {
+	
+	for(var j=0; j<inHere.length; j++) {
 		var links = inHere[j].getElementsByTagName("a");
-		for (var i = 0; i < links.length; i++) {
-			if (!urlRe || urlRegexp.test(links[i].href)) {
+		for(var i=0; i<links.length; i++) {
+			if(!urlRe || urlRegexp.test(links[i].href)) {
 				var text = "textContent" in links[i] ? links[i].textContent : links[i].innerText;
-				if (text) {
+				if(text) {
 					text = this.trimInternal(text);
-					if (!rejectRe || !rejectRegexp.test(text)) {
-						if (availableItems[links[i].href]) {
-							if (text != availableItems[links[i].href]) {
-								availableItems[links[i].href] += " " + text;
+					if(!rejectRe || !rejectRegexp.test(text)) {
+						if(availableItems[links[i].href]) {
+							if(text != availableItems[links[i].href]) {
+								availableItems[links[i].href] += " "+text;
 							}
 						} else {
 							availableItems[links[i].href] = text;
@@ -172,7 +176,7 @@ Zotero.Utilities.Translate.prototype.getItemArray = function(doc, inHere, urlRe,
 			}
 		}
 	}
-
+	
 	return availableItems;
 }
 
@@ -196,7 +200,7 @@ Zotero.Utilities.Translate.prototype.loadDocument = function(url, succeeded, fai
  * @see Zotero.Utilities.Translate#requestDocument
  * @ignore
  */
-Zotero.Utilities.Translate.prototype.processDocuments = async function(urls, processor, noCompleteOnError) {
+Zotero.Utilities.Translate.prototype.processDocuments = async function (urls, processor, noCompleteOnError) {
 	// Handle old signature: urls, processor, onDone, onError
 	if (arguments.length > 3 || typeof arguments[2] == 'function') {
 		Zotero.debug("ZU.processDocuments() now takes only 3 arguments -- update your code");
@@ -204,49 +208,50 @@ Zotero.Utilities.Translate.prototype.processDocuments = async function(urls, pro
 		var onError = arguments[3];
 		noCompleteOnError = false;
 	}
-
+	
 	var translate = this._translate;
 
 	if (typeof urls == "string") {
 		urls = [translate.resolveURL(urls)];
 	} else {
-		for (var i in urls) {
+		for(var i in urls) {
 			urls[i] = translate.resolveURL(urls[i]);
 		}
 	}
-
-	var processDoc = function(doc) {
+	
+	var processDoc = function (doc) {
 		return processor(doc, doc.location.href);
 	};
-
+	
 	var funcs = [];
 	// If current URL passed, use loaded document instead of reloading
 	for (var i = 0; i < urls.length; i++) {
-		if (translate.document && translate.document.location &&
-			translate.document.location.toString() === urls[i]) {
+		if(translate.document && translate.document.location
+				&& translate.document.location.toString() === urls[i]) {
 			Zotero.debug("Translate: Attempted to load the current document using processDocuments; using loaded document instead");
 			funcs.push(() => processDoc(this._translate.document, urls[i]));
 			urls.splice(i, 1);
 			i--;
 		}
 	}
-
+	
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#processDocuments");
-
+	
 	if (urls.length) {
 		funcs.push(
 			() => Zotero.HTTP.processDocuments(
 				urls,
-				function(doc) {
+				function (doc) {
 					if (!processor) return;
 					return processDoc(doc);
-				}, {
+				},
+				{
 					cookieSandbox: translate.cookieSandbox
 				}
 			)
 		);
 	}
-
+	
 	var f;
 	while (f = funcs.shift()) {
 		try {
@@ -255,11 +260,13 @@ Zotero.Utilities.Translate.prototype.processDocuments = async function(urls, pro
 			if (maybePromise) {
 				await maybePromise;
 			}
-		} catch (e) {
+		}
+		catch (e) {
 			if (onError) {
 				try {
 					onError(e);
-				} catch (e) {
+				}
+				catch (e) {
 					translate.complete(false, e);
 				}
 			}
@@ -270,32 +277,32 @@ Zotero.Utilities.Translate.prototype.processDocuments = async function(urls, pro
 			throw e;
 		}
 	}
-
+	
 	// Deprecated
 	if (onDone) {
 		onDone();
 	}
-
+	
 	translate.decrementAsyncProcesses("Zotero.Utilities.Translate#processDocuments");
 };
 
 /**
- * Send an asynchronous HTTP request, returning a promise.
- *
- * @param {string} url URL to request
- * @param {string} [options.method] The method of the request ("GET", "POST", etc.)
- * @param {object} [options.requestHeaders] HTTP headers to send with the request
- * @param {string} [options.body] The request's body
- * @param {string} [options.responseCharset] The charset the response should be interpreted as
- * @param {string} [options.responseType] 'text', 'json', or 'document'.
- * 	If 'json', the response's body will be parsed with JSON.parse before being returned.
- * 	If 'document', the response's body will be parsed as an HTML document (like deprecated processDocuments).
- * @return {Promise<object>} A promise resolved with an object containing status,
- * 	headers, and body attributes if the request succeeds.
- * 	If the browser is offline or the response contains a non-2XX status code,
- * 	the promise will be rejected with a Zotero.HTTP.UnexpectedStatusException.
- */
-Zotero.Utilities.Translate.prototype.request = async function(url, options = {}) {
+* Send an asynchronous HTTP request, returning a promise.
+*
+* @param {string} url URL to request
+* @param {string} [options.method=GET] The method of the request ("GET", "POST", etc.)
+* @param {object} [options.requestHeaders] HTTP headers to send with the request
+* @param {string} [options.body] The request's body
+* @param {string} [options.responseCharset] The charset the response should be interpreted as
+* @param {string} [options.responseType] 'text', 'json', or 'document'.
+* 	If 'json', the response's body will be parsed with JSON.parse before being returned.
+* 	If 'document', the response's body will be parsed as an HTML document (like deprecated processDocuments).
+* @return {Promise<object>} A promise resolved with an object containing status,
+* 	headers, and body attributes if the request succeeds.
+* 	If the browser is offline or the response contains a non-2XX status code,
+* 	the promise will be rejected with a Zotero.HTTP.UnexpectedStatusException.
+*/
+Zotero.Utilities.Translate.prototype.request = async function (url, options = {}) {
 	url = this._translate.resolveURL(url);
 
 	let method = options.method || 'GET';
@@ -317,8 +324,12 @@ Zotero.Utilities.Translate.prototype.request = async function(url, options = {})
 		.trim()
 		.split(/[\r\n]+/)
 		.map(line => line.split(': '))
-		.forEach(parts => headers[parts.shift()] = parts.join(': '));
+		.forEach(parts => headers[parts.shift().toLowerCase()] = parts.join(': '));
 	let body = xhr.response;
+
+	if (options.responseType === 'document' && body && !body.location) {
+		body = Zotero.HTTP.wrapDocument(body, xhr.responseURL);
+	}
 
 	return {
 		status,
@@ -332,11 +343,8 @@ Zotero.Utilities.Translate.prototype.request = async function(url, options = {})
  * @return {Promise<string>} A promise resolved with the text of a successful
  *  	response or rejected with a Zotero.HTTP.UnexpectedStatusException.
  */
-Zotero.Utilities.Translate.prototype.requestText = async function(url, options = {}) {
-	return (await this.request(url, {
-		...options,
-		responseType: 'text'
-	})).body;
+Zotero.Utilities.Translate.prototype.requestText = async function (url, options = {}) {
+	return (await this.request(url, { ...options, responseType: 'text' })).body;
 };
 
 /**
@@ -344,11 +352,8 @@ Zotero.Utilities.Translate.prototype.requestText = async function(url, options =
  * @return {Promise<any>} A promise resolved with the body of a successful
  *  	response (parsed with JSON.parse) or rejected with a Zotero.HTTP.UnexpectedStatusException.
  */
-Zotero.Utilities.Translate.prototype.requestJSON = async function(url, options = {}) {
-	return (await this.request(url, {
-		...options,
-		responseType: 'json'
-	})).body;
+Zotero.Utilities.Translate.prototype.requestJSON = async function (url, options = {}) {
+	return (await this.request(url, { ...options, responseType: 'json' })).body;
 };
 
 /**
@@ -356,69 +361,68 @@ Zotero.Utilities.Translate.prototype.requestJSON = async function(url, options =
  * @return {Promise<Document>} A promise resolved with the body of a successful
  *  	response (parsed with DOMParser) or rejected with a Zotero.HTTP.UnexpectedStatusException.
  */
-Zotero.Utilities.Translate.prototype.requestDocument = async function(url, options = {}) {
-	return (await this.request(url, {
-		...options,
-		responseType: 'document'
-	})).body;
+Zotero.Utilities.Translate.prototype.requestDocument = async function (url, options = {}) {
+	return (await this.request(url, { ...options, responseType: 'document' })).body;
 };
 
 /**
- * Send an HTTP GET request via XMLHTTPRequest
- * 
- * @deprecated in Zotero 6.0; prefer request[Text|JSON|Document]
- * @see Zotero.Utilities.Translate#request
- * @param {String|String[]} urls URL(s) to request
- * @param {Function} processor Callback to be executed for each document loaded
- * @param {Function} done Callback to be executed after all documents have been loaded
- * @param {String} responseCharset Character set to force on the response
- * @param {Object} requestHeaders HTTP headers to include with request
- * @param {Number[]} successCodes - HTTP status codes that are considered
- *     successful, or FALSE to allow all
- * @return {Boolean} True if the request was sent, or false if the browser is offline
- */
+* Send an HTTP GET request via XMLHTTPRequest
+* 
+* @deprecated in Zotero 6.0; prefer request[Text|JSON|Document]
+* @see Zotero.Utilities.Translate#request
+* @param {String|String[]} urls URL(s) to request
+* @param {Function} processor Callback to be executed for each document loaded
+* @param {Function} done Callback to be executed after all documents have been loaded
+* @param {String} responseCharset Character set to force on the response
+* @param {Object} requestHeaders HTTP headers to include with request
+* @param {Number[]} successCodes - HTTP status codes that are considered
+*     successful, or FALSE to allow all
+* @return {Boolean} True if the request was sent, or false if the browser is offline
+*/
 Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, responseCharset, requestHeaders, successCodes) {
 	var callAgain = false,
 		me = this,
 		translate = this._translate;
-
-	if (typeof(urls) == "string") {
+	
+	if(typeof(urls) == "string") {
 		var url = urls;
 	} else {
-		if (urls.length > 1) callAgain = true;
+		if(urls.length > 1) callAgain = true;
 		var url = urls.shift();
 	}
-
+	
 	url = translate.resolveURL(url);
-
+	
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#doGet");
 	var xmlhttp = Zotero.HTTP.doGet(url, function(xmlhttp) {
 		if (successCodes) {
 			var success = successCodes.includes(xmlhttp.status);
-		} else if (successCodes === false) {
+		}
+		else if (successCodes === false) {
 			var success = true;
-		} else {
+		}
+		else {
 			var success = xmlhttp.status >= 200 && xmlhttp.status < 400;
 		}
 		if (!success) {
 			translate.complete(false, `HTTP GET ${url} failed with status code ${xmlhttp.status}`);
 			return;
 		}
-
+		
 		try {
-			if (processor) {
+			if(processor) {
 				processor(xmlhttp.responseText, xmlhttp, url);
 			}
-
-			if (callAgain) {
+			
+			if(callAgain) {
 				me.doGet(urls, processor, done, responseCharset);
 			} else {
-				if (done) {
+				if(done) {
 					done();
 				}
 			}
 			translate.decrementAsyncProcesses("Zotero.Utilities.Translate#doGet");
-		} catch (e) {
+		} catch(e) {
 			translate.complete(false, e);
 		}
 	}, responseCharset, this._translate.cookieSandbox, Object.assign({}, this._translate.requestHeaders, requestHeaders));
@@ -433,25 +437,27 @@ Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, res
 Zotero.Utilities.Translate.prototype.doPost = function(url, body, onDone, headers, responseCharset, successCodes) {
 	var translate = this._translate;
 	url = translate.resolveURL(url);
-
+	
 	translate.incrementAsyncProcesses("Zotero.Utilities.Translate#doPost");
 	var xmlhttp = Zotero.HTTP.doPost(url, body, function(xmlhttp) {
 		if (successCodes) {
 			var success = successCodes.includes(xmlhttp.status);
-		} else if (successCodes === false) {
+		}
+		else if (successCodes === false) {
 			var success = true;
-		} else {
+		}
+		else {
 			var success = xmlhttp.status >= 200 && xmlhttp.status < 400;
 		}
 		if (!success) {
 			translate.complete(false, `HTTP POST ${url} failed with status code ${xmlhttp.status}`);
 			return;
 		}
-
+		
 		try {
 			onDone(xmlhttp.responseText, xmlhttp);
 			translate.decrementAsyncProcesses("Zotero.Utilities.Translate#doPost");
-		} catch (e) {
+		} catch(e) {
 			translate.complete(false, e);
 		}
 	}, Object.assign({}, translate.requestHeaders, headers), responseCharset, translate.cookieSandbox ? translate.cookieSandbox : undefined);
@@ -469,15 +475,13 @@ Zotero.Utilities.Translate.prototype.urlToProper = function(url) {
 	return url;
 };
 
-Zotero.Utilities.Translate.prototype.__exposedProps__ = {
-	"HTTP": "r"
-};
-for (var j in Zotero.Utilities.Translate.prototype) {
-	if (typeof Zotero.Utilities.Translate.prototype[j] === "function" && j[0] !== "_" && j != "Translate") {
+Zotero.Utilities.Translate.prototype.__exposedProps__ = {"HTTP":"r"};
+for(var j in Zotero.Utilities.Translate.prototype) {
+	if(typeof Zotero.Utilities.Translate.prototype[j] === "function" && j[0] !== "_" && j != "Translate") {
 		Zotero.Utilities.Translate.prototype.__exposedProps__[j] = "r";
 	}
 }
 
-if (typeof process === 'object' && process + '' === '[object process]') {
+if (typeof process === 'object' && process + '' === '[object process]'){
 	module.exports = Zotero.Utilities.Translate;
 }

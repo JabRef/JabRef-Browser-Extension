@@ -27,7 +27,7 @@
  * Functions for performing HTTP requests, both via XMLHTTPRequest and using a hidden browser
  * @namespace
  */
-if (!Zotero.HTTP) Zotero.HTTP = {};
+if(!Zotero.HTTP) Zotero.HTTP = {};
 
 /**
  * Determines whether the page to be loaded has the same origin as the current page
@@ -37,13 +37,13 @@ Zotero.HTTP.isSameOrigin = function(url) {
 	if (url.includes('www.nature.com/') || url.includes('www-nature-com.')) {
 		return false;
 	}
-
+	
 	const hostPortRe = /^([^:\/]+:)\/\/([^\/]+)/i;
 	var m = hostPortRe.exec(url);
-	if (!m) {
+	if(!m) {
 		return true;
 	} else {
-		var location = Zotero.isBookmarklet ? window.parent.location : window.location;
+		var location = window.location;
 		return m[1].toLowerCase() === location.protocol.toLowerCase() &&
 			m[2].toLowerCase() === location.host.toLowerCase();
 	}
@@ -53,12 +53,12 @@ Zotero.HTTP.isSameOrigin = function(url) {
  * Determing if trying to load non-HTTPs URLs from HTTPS pages
  */
 Zotero.HTTP.isLessSecure = function(url) {
-	if (url.substr(0, 8).toLowerCase() == 'https://') return false;
-
-	var location = Zotero.isBookmarklet ? window.parent.location : window.location;
+	if (url.substr(0,8).toLowerCase() == 'https://') return false;
+	
+	var location = window.location;
 	return location.protocol.toLowerCase() == 'https:';
 }
-
+ 
 /**
  * Load one or more documents via XMLHttpRequest
  *
@@ -68,28 +68,36 @@ Zotero.HTTP.isLessSecure = function(url) {
  * @param {Function} processor - Callback to be executed for each document loaded
  * @return {Promise<Array>} - A promise for an array of results from the processor runs
  */
-Zotero.HTTP.processDocuments = async function(urls, processor, options = {}) {
+Zotero.HTTP.processDocuments = async function (urls, processor, options = {}) {
 	// Handle old signature: urls, processor, onDone, onError
 	if (typeof arguments[2] == 'function' || typeof arguments[3] == 'function') {
 		Zotero.debug("Zotero.HTTP.processDocuments() no longer takes onDone or onError -- update your code");
 		var onDone = arguments[2];
 		var onError = arguments[3];
 	}
-
+	
 	if (typeof urls == "string") urls = [urls];
 	var funcs = urls.map(url => () => {
-		return Zotero.HTTP.request(
-				"GET",
-				url, {
-					responseType: 'document'
-				}
-			)
-			.then((xhr) => {
-				var doc = Zotero.HTTP.wrapDocument(xhr.response, url);
-				return processor(doc, url);
-			});
+		return Zotero.COHTTP.request(
+			"GET",
+			url,
+			{
+				responseType: 'text'
+			}
+		)
+		.then((xhr) => {
+			Zotero.debug("Parsing cross-origin response for " + url);
+			let parser = new DOMParser();
+			let contentType = xhr.getResponseHeader("Content-Type");
+			if (contentType != 'application/xml' && contentType != 'text/xml') {
+				contentType = 'text/html';
+			}
+			let doc = parser.parseFromString(xhr.responseText, contentType);
+			doc = Zotero.HTTP.wrapDocument(doc, url);
+			return processor(doc, url);
+		});
 	});
-
+	
 	// Run processes serially
 	// TODO: Add some concurrency?
 	var f;
@@ -97,29 +105,28 @@ Zotero.HTTP.processDocuments = async function(urls, processor, options = {}) {
 	while (f = funcs.shift()) {
 		try {
 			results.push(await f());
-		} catch (e) {
+		}
+		catch (e) {
 			if (onError) {
 				onError(e);
 			}
 			throw e;
 		}
 	}
-
+	
 	// Deprecated
 	if (onDone) {
 		onDone();
 	}
-
+	
 	return results;
 }
 
 Zotero.Browser = {
 	createHiddenBrowser: function() {
 		var hiddenBrowser = document.createElement("iframe");
-		if (!Zotero.isBookmarklet) {
-			hiddenBrowser.style.display = "none";
-		}
-		if (document.domain == document.location.hostname) {
+		hiddenBrowser.style.display = "none";
+		if(document.domain == document.location.hostname) {
 			// Since sandboxed iframes cannot set document.domain, if
 			// document.domain is set on this page, then SOP will
 			// definitely prevent us from accessing the document

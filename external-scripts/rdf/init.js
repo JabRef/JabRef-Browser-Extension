@@ -18,11 +18,11 @@
 
 var $rdf = {
 	Util: {
-		ArrayIndexOf: function(arr, item, i) {
+		ArrayIndexOf: function (arr, item, i) {
 			//supported in all browsers except IE<9
 			return arr.indexOf(item, i);
 		},
-		RDFArrayRemove: function(a, x) { //removes all statements equal to x from a
+		RDFArrayRemove: function (a, x) { //removes all statements equal to x from a
 			for (var i = 0; i < a.length; i++) {
 				//TODO: This used to be the following, which didnt always work..why
 				//if(a[i] == x)
@@ -37,7 +37,7 @@ var $rdf = {
 	log: Zotero.debug
 };
 
-if (typeof process === 'object' && process + '' === '[object process]') {
+if (typeof process === 'object' && process + '' === '[object process]'){
 	module.exports = $rdf;
 	$rdf.Util = require('./uri');
 	$rdf = Object.assign($rdf, require('./term'));
@@ -45,12 +45,12 @@ if (typeof process === 'object' && process + '' === '[object process]') {
 	$rdf.N3Parser = require('./n3parser');
 	$rdf.RDFParser = require('./rdfparser');
 	$rdf.Serializer = require('./serialize');
-} else {
+}
+else {
 	if (Zotero.RDF) {
 		Zotero.RDF.AJAW = $rdf;
-	} else {
-		Zotero.RDF = {
-			AJAW: $rdf
-		};
+	}
+	else {
+		Zotero.RDF = { AJAW: $rdf };
 	}
 }

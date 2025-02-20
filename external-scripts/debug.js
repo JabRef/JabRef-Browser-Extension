@@ -23,36 +23,36 @@
     ***** END LICENSE BLOCK *****
 */
 
-Zotero.Debug = new function() {
+Zotero.Debug = new function () {
 	var _console, _store, _level, _lastTime, _output = [];
-	var _slowTime = false;
+	var _slowTime = 1e3;
 	var _consoleViewer = false;
-
+	
 	/**
 	 * Initialize debug logging
 	 */
-	this.init = function(enabled = true) {
+	this.init = function (enabled=true) {
 		this.enabled = enabled;
 	}
-
-	this.log = function(message, level, maxDepth, stack) {
+	
+	this.log = function (message, level, maxDepth, stack) {
 		if (!this.enabled) {
 			return;
 		}
-
+		
 		if (typeof message != 'string') {
 			message = Zotero.Utilities.varDump(message, 0, maxDepth);
 		}
-
+		
 		if (!level) {
 			level = 3;
 		}
-
+		
 		// If level above debug.level value, don't display
 		if (level > _level) {
 			return;
 		}
-
+		
 		var deltaStr = '';
 		var deltaStrStore = '';
 		var delta = 0;
@@ -63,31 +63,37 @@ Zotero.Debug = new function() {
 		_lastTime = d;
 		var slowPrefix = "";
 		var slowSuffix = "";
-		if (_slowTime && delta > _slowTime) {
-			slowPrefix = "\x1b[31;40m";
-			slowSuffix = "\x1b[0m";
+		var isSlow = _slowTime && delta > _slowTime
+		if (isSlow) {
+			slowPrefix = "%c";
+			slowSuffix = "%c";
 		}
-
+		
 		delta = ("" + delta).padStart(7, "0");
-
+		
 		deltaStr = "(" + slowPrefix + "+" + delta + slowSuffix + ")";
 		if (_store) {
 			deltaStrStore = "(+" + delta + ")";
 		}
-
+		
 		if (stack === true) {
 			stack = new Error().stack.substr('Error'.length);
 		}
-
+		
 		if (stack) {
 			message += '\n' + this.stackToString(stack);
 		}
-
+		
 		var output = '(' + level + ')' + deltaStr + ': ' + message;
-		console.log(output + "\n");
-
+		if (isSlow) {
+			console.log(output, "color: red;", "");
+		}
+		else {
+			console.log(output);
+		}
+		
 		if (_store) {
-			if (Math.random() < 1 / 1000) {
+			if (Math.random() < 1/1000) {
 				// Remove initial lines if over limit
 				var overage = this.count() - Zotero.Prefs.get('debug.store.limit');
 				if (overage > 0) {
@@ -97,26 +103,26 @@ Zotero.Debug = new function() {
 			_output.push('(' + level + ')' + deltaStrStore + ': ' + message);
 		}
 	}
-
-
+	
+	
 	this.get = Zotero.Promise.method(function(maxChars, maxLineLength) {
 		var output = _output;
 		var total = output.length;
-
+		
 		if (total == 0) {
 			return "";
 		}
-
+		
 		if (maxLineLength) {
-			for (var i = 0, len = output.length; i < len; i++) {
+			for (var i=0, len=output.length; i<len; i++) {
 				if (output[i].length > maxLineLength) {
 					output[i] = Zotero.Utilities.ellipsize(output[i], maxLineLength, false, true);
 				}
 			}
 		}
-
+		
 		output = output.join('\n\n');
-
+		
 		if (maxChars) {
 			output = output.substr(maxChars * -1);
 			// Cut at two newlines
@@ -128,9 +134,9 @@ Zotero.Debug = new function() {
 
 		return output;
 	});
-
-
-	this.setStore = function(enable) {
+	
+	
+	this.setStore = function (enable) {
 		if (enable) {
 			this.clear();
 		}
@@ -138,49 +144,49 @@ Zotero.Debug = new function() {
 		this.updateEnabled();
 		this.storing = _store;
 	}
-
-
-	this.updateEnabled = function() {
+	
+	
+	this.updateEnabled = function () {
 		this.enabled = _console || _consoleViewer || _store;
 	};
-
-
-	this.count = function() {
+	
+	
+	this.count = function () {
 		return _output.length;
 	}
-
-
-	this.clear = function() {
+	
+	
+	this.clear = function () {
 		_output = [];
 	}
-
+	
 	/**
 	 * Format a stack trace for output in the same way that Error.stack does
 	 * @param {Components.stack} stack
 	 * @param {Integer} [lines=5] Number of lines to format
 	 */
-	this.stackToString = function(stack, lines) {
+	this.stackToString = function (stack, lines) {
 		if (!lines) lines = 5;
 		var str = '';
-		while (stack && lines--) {
-			str += '\n  ' + (stack.name || '') + '@' + stack.filename +
-				':' + stack.lineNumber;
+		while(stack && lines--) {
+			str += '\n  ' + (stack.name || '') + '@' + stack.filename
+				+ ':' + stack.lineNumber;
 			stack = stack.caller;
 		}
 		return this.filterStack(str).substr(1);
 	};
-
-
+	
+	
 	/**
 	 * Strip Bluebird lines from a stack trace
 	 *
 	 * @param {String} stack
 	 */
-	this.filterStack = function(stack) {
+	this.filterStack = function (stack) {
 		return stack.split(/\n/).filter(line => line.indexOf('zotero/bluebird') == -1).join('\n');
 	}
 }
 
-if (typeof process === 'object' && process + '' === '[object process]') {
+if (typeof process === 'object' && process + '' === '[object process]'){
 	module.exports = Zotero.Debug;
 }

@@ -24,25 +24,18 @@
 */
 
 // Enumeration of types of translators
-var TRANSLATOR_TYPES = {
-	"import": 1,
-	"export": 2,
-	"web": 4,
-	"search": 8
-};
+var TRANSLATOR_TYPES = {"import":1, "export":2, "web":4, "search":8};
 
 // Properties required for every translator
 var TRANSLATOR_REQUIRED_PROPERTIES = ["translatorID", "translatorType", "label", "creator",
-	"target", "priority", "lastUpdated"
-];
+	"target", "priority", "lastUpdated"];
 // Properties that are preserved if present
 var TRANSLATOR_OPTIONAL_PROPERTIES = ["targetAll", "browserSupport", "minVersion", "maxVersion",
 	"inRepository", "configOptions", "displayOptions",
-	"hiddenPrefs", "itemType"
-];
+	"hiddenPrefs", "itemType", "proxy"];
 // Properties that are passed from background to inject page in connector
 var TRANSLATOR_PASSING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES
-	.concat(["targetAll", "browserSupport", "code", "runMode", "itemType", "inRepository"]);
+	.concat(["targetAll", "browserSupport", "code", "runMode", "itemType", "inRepository", "proxy"]);
 
 var TRANSLATOR_CACHING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES
 	.concat(["browserSupport", "targetAll"]);
@@ -87,7 +80,7 @@ Zotero.Translator.prototype.init = function(info) {
 	// make sure we have all the properties
 	for (let property of TRANSLATOR_REQUIRED_PROPERTIES) {
 		if (info[property] === undefined) {
-			this.logError(new Error('Missing property "' + property + '" in translator metadata JSON object in ' + info.label));
+			this.logError(new Error('Missing property "'+property+'" in translator metadata JSON object in ' + info.label));
 			break;
 		} else {
 			this[property] = info[property];
@@ -95,7 +88,12 @@ Zotero.Translator.prototype.init = function(info) {
 	}
 	for (let property of TRANSLATOR_OPTIONAL_PROPERTIES) {
 		if (info[property] !== undefined) {
-			this[property] = info[property];
+			if (property === 'proxy' && info.proxy) {
+				this.proxy = new Zotero.Proxy(info.proxy);
+			}
+			else {
+				this[property] = info[property];
+			}
 		}
 	}
 
@@ -112,7 +110,7 @@ Zotero.Translator.prototype.init = function(info) {
 
 	if (this.translatorType & TRANSLATOR_TYPES["import"]) {
 		// compile import regexp to match only file extension
-		this.importRegexp = this.target ? new RegExp("\\." + this.target + "$", "i") : null;
+		this.importRegexp = this.target ? new RegExp("\\."+this.target+"$", "i") : null;
 	} else if (this.hasOwnProperty("importRegexp")) {
 		delete this.importRegexp;
 	}
@@ -151,9 +149,13 @@ Zotero.Translator.prototype.init = function(info) {
  */
 Zotero.Translator.prototype.serialize = function(properties) {
 	var info = {};
-	for (var i in properties) {
-		var property = properties[i];
-		info[property] = this[property];
+	for (let key of properties) {
+		if (key === 'proxy' && this[key]?.toJSON) {
+			info[key] = this[key].toJSON();
+		}
+		else {
+			info[key] = this[key];
+		}
 	}
 	return info;
 }
@@ -188,6 +190,6 @@ Zotero.Translator.TRANSLATOR_OPTIONAL_PROPERTIES = TRANSLATOR_OPTIONAL_PROPERTIE
 Zotero.Translator.TRANSLATOR_PASSING_PROPERTIES = TRANSLATOR_PASSING_PROPERTIES;
 Zotero.Translator.TRANSLATOR_CACHING_PROPERTIES = TRANSLATOR_CACHING_PROPERTIES;
 
-if (typeof process === 'object' && process + '' === '[object process]') {
+if (typeof process === 'object' && process + '' === '[object process]'){
 	module.exports = Zotero.Translator;
 }

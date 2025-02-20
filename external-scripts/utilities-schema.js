@@ -23,7 +23,7 @@
 	***** END LICENSE BLOCK *****
 */
 
-Zotero.Schema = {
+const Schema = {
 	/**
 	 * This must be called before translation
 	 * @param data - Zotero schema from https://github.com/zotero/zotero-schema or
@@ -58,6 +58,8 @@ Zotero.Schema = {
 	}
 };
 
-if (typeof process === 'object' && process + '' === '[object process]') {
-	module.exports = Zotero.Schema;
+if (typeof module != 'undefined') {
+	module.exports = Schema;
+} else if (typeof Zotero != 'undefined') {
+	Zotero.Schema = Schema;
 }
