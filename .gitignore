@@ -212,3 +212,5 @@ fabric.properties
 # Support for Project snippet scope
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,visualstudiocode
+
+zotero-connectors/src
