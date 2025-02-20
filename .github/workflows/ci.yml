@@ -1,0 +1,29 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    name: Build, Upload, Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      
+      - name: Cache Node modules
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+        
+      - name: Install Node modules
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm install
+        
+      - name: Run tests
+        run: npm test
