@@ -113,7 +113,6 @@
 			"external-scripts/openurl.js",
 			"external-scripts/xregexp-all.js",
 			"external-scripts/xregexp-unicode-zotero.js",
-			"external-scripts/zoteroTypeSchemaData.js",
 			"external-scripts/cachedTypes.js",
 			"external-scripts/schema.js",
 			"external-scripts/rdf/init.js",
@@ -124,19 +123,16 @@
 			"external-scripts/translate.js",
 			"external-scripts/translator.js",
 			"external-scripts/translate_item.js",
-			"external-scripts/connectorTypeSchemaData.js",
 			"external-scripts/utilities.js",
 			"external-scripts/utilities_item.js",
 			"external-scripts/utilities_translate.js",
 			"external-scripts/utilities-common.js",
 			"external-scripts/http_inject.js",
-			"external-scripts/translate_inject.js",
 			"external-scripts/messages.js",
 			"external-scripts/messaging_inject.js",
-			"external-scripts/inject.js",
 			"bibtexConverter.js"
 		]
 	}],
 
-	"version": "2.5"
+	"version": "3.0"
 }
