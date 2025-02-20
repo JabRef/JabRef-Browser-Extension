@@ -46,7 +46,7 @@ Preparation:
 5. Install development dependencies via `npm install`.
 6. Start browser with the add-on activated:
    Firefox: `npm run dev:firefox`
-   Chrome: `npm run dev:opera`
+   Chrome: `npm run dev:chrome`
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
