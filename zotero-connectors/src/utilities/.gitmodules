@@ -1,0 +1,3 @@
+[submodule "resource/schema/global"]
+	path = resource/schema/global
+	url = https://github.com/zotero/zotero-schema.git
