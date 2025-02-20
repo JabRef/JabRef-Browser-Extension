@@ -21,6 +21,7 @@
 		"chai": "^4.5.0",
 		"chalk": "^5.4.1",
 		"chromedriver": "^109.0.0",
+		"del": "^8.0.0",
 		"geckodriver": "^3.2.0",
 		"gulp": "^4.0.2",
 		"gulp-jsbeautify": "^0.1.1",

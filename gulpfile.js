@@ -7,7 +7,7 @@ const path = require('path');
 let rename = require("gulp-rename");
 let beautify = require('gulp-jsbeautify');
 const babel = require('babel-core');
-const del = require('del');
+const { deleteSync} = require('del');
 
 function processJSX(file) {
 	try {
@@ -35,12 +35,12 @@ function processFile() {
 	});
 }
 
-gulp.task('clean-external-scripts', function() {
-	del('./utilities/resource/**', {force: true});
-	return del('./external-scripts/**', {force: true});
+gulp.task('clean-external-scripts', async function() {
+	deleteSync('./utilities/resource/**', {force: true});
+	return deleteSync('./external-scripts/**', {force: true});
 })
 
-gulp.task('copy-external-scripts', function() {
+gulp.task('copy-external-scripts', async function() {
 	// Zotero expects this to be in this particular location
 	gulp.src('./zotero-connectors/src/utilities/resource/dateFormats.json')
 		.pipe(gulp.dest('utilities/resource/'));
@@ -55,11 +55,11 @@ gulp.task('copy-external-scripts', function() {
 		// './zotero-connectors/src/common/connector.js', // backgroundInclude, we override this in our own connector.js file
 		'./zotero-connectors/src/common/repo.js', // backgroundInclude
 		'./zotero-connectors/src/common/utilities.js',
-		'./zotero-connectors/src/common/translate_item.js',
+		'./zotero-connectors/src/translate/src/translation/translate_item.js',
 		'./zotero-connectors/src/common/translators.js', // backgroundInclude
 		'./zotero-connectors/src/common/inject/http.js',
 		'./zotero-connectors/src/common/inject/inject.jsx', // injectIncludeLast
-		'./zotero-connectors/src/common/inject/translate_inject.js',
+		// './zotero-connectors/src/common/inject/translate_inject.js', no longer available
 		'./zotero-connectors/src/common/cachedTypes.js',
 		'./zotero-connectors/src/common/errors_webkit.js', // backgroundInclude
 		'./zotero-connectors/src/common/schema.js', // not needed?
@@ -68,7 +68,7 @@ gulp.task('copy-external-scripts', function() {
 		'./zotero-connectors/src/browserExt/background.js', // process-custom-scripts
 		'./zotero-connectors/src/browserExt/messaging_inject.js',
 		'./zotero-connectors/src/browserExt/prefs.js',
-		'./zotero-connectors/src/zotero/resource/schema/connectorTypeSchemaData.js',
+		// './zotero-connectors/src/zotero/resource/schema/connectorTypeSchemaData.js', no longer existing
 		'./zotero-connectors/src/utilities/openurl.js',
 		'./zotero-connectors/src/utilities/date.js',
 		'./zotero-connectors/src/utilities/xregexp-all.js',
@@ -124,7 +124,7 @@ gulp.task('copy-external-scripts', function() {
 		.pipe(gulp.dest("./external-scripts"));
 });
 
-gulp.task('process-external-scripts', function() {
+gulp.task('process-external-scripts', async function() {
 	let sources = [
 		'./external-scripts/**/*'
 	];
