@@ -1,0 +1,3 @@
+[submodule "modules/utilities"]
+	path = modules/utilities
+	url = https://github.com/zotero/utilities.git
