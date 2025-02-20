@@ -1,0 +1,18 @@
+[submodule "src/zotero"]
+	path = src/zotero
+	url = https://github.com/zotero/zotero.git
+	branch = master
+
+[submodule "src/zotero-google-docs-integration"]
+	path = src/zotero-google-docs-integration
+	url = https://github.com/zotero/zotero-google-docs-integration.git
+	branch = master
+[submodule "src/translate"]
+	path = src/translate
+	url = https://github.com/zotero/translate.git
+[submodule "src/utilities"]
+	path = src/utilities
+	url = https://github.com/zotero/utilities.git
+[submodule "lib/SingleFile-Lite"]
+	path = lib/SingleFile-Lite
+	url = https://github.com/gildas-lormeau/SingleFile-Lite.git
