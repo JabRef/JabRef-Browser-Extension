@@ -71,8 +71,11 @@ If you execute it for the first time you have to use git subtree add and delete 
     git subtree pull --prefix zotero-connectors/src/zotero https://github.com/zotero/zotero.git main --squash
     git subtree pull --prefix zotero-connectors/src/translate https://github.com/zotero/translate.git master --squash
     git subtree pull --prefix zotero-connectors/src/utilities https://github.com/zotero/utilities.git master --squash
-    git subtree pull --prefix zotero-connectors/lib/SingleFile-Lite https://github.com/gildas-lormeau/SingleFile-Lite.git 5e653124c1cfc58cb5209b9bd2db93f5f1020c11
-    git subtree pull --prefix zotero-connectors/lib/translate https://github.com/zotero/translate.git master --squash
+    git subtree pull --prefix zotero-connectors/lib/SingleFile-Lite https://github.com/gildas-lormeau/SingleFile-Lite.git 5e653124c1cfc58cb5209b9bd2db93f5f1020c11 --squash
+    git subtree pull --prefix zotero-connectors/src/zotero/src/resource/schema/global 
+    https://github.com/zotero/zotero-schema.git  1b12272d44134a652519e9192e5a936ac9fcd707 --squash
+    git subtree pull --prefix zotero-connectors/lib/translate 
+    https://github.com/zotero/translate.git master --squash
     git subtree pull --prefix zotero-scholar-citations https://github.com/MaxKuehn/zotero-scholar-citations.git master --squash
    ```
 
