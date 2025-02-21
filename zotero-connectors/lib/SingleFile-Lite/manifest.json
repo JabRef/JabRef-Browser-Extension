@@ -1,0 +1,140 @@
+{
+	"name": "SingleFile MV3",
+	"author": "Gildas Lormeau",
+	"homepage_url": "https://github.com/gildas-lormeau/SingleFile-MV3",
+	"icons": {
+		"16": "src/ui/resources/icon_16.png",
+		"48": "src/ui/resources/icon_48.png",
+		"64": "src/ui/resources/icon_64.png",
+		"128": "src/ui/resources/icon_128.png"
+	},
+	"version": "1.0.0",
+	"description": "__MSG_extensionDescription__",
+	"content_scripts": [
+		{
+			"matches": [
+				"<all_urls>"
+			],
+			"run_at": "document_start",
+			"js": [
+				"lib/chrome-browser-polyfill.js",
+				"lib/single-file-frames.js",
+				"lib/single-file-extension-frames.js"
+			],
+			"all_frames": true,
+			"match_about_blank": true,
+			"match_origin_as_fallback": true
+		},
+		{
+			"matches": [
+				"<all_urls>"
+			],
+			"run_at": "document_start",
+			"js": [
+				"lib/single-file-hooks-frames.js"
+			],
+			"all_frames": true,
+			"match_about_blank": true,
+			"match_origin_as_fallback": true,
+			"world": "MAIN"
+		},
+		{
+			"matches": [
+				"<all_urls>"
+			],
+			"run_at": "document_start",
+			"js": [
+				"lib/chrome-browser-polyfill.js",
+				"lib/single-file-bootstrap.js",
+				"lib/single-file-extension-bootstrap.js",
+				"lib/single-file-infobar.js"
+			]
+		}
+	],
+	"background": {
+		"service_worker": "lib/single-file-extension-background.js"
+	},
+	"side_panel": {
+		"default_path": "src/ui/pages/panel.html"
+	},
+	"options_ui": {
+		"browser_style": true,
+		"page": "src/ui/pages/options.html",
+		"open_in_tab": false
+	},
+	"action": {
+		"default_icon": {
+			"16": "src/ui/resources/icon_16.png",
+			"48": "src/ui/resources/icon_48.png",
+			"64": "src/ui/resources/icon_64.png",
+			"128": "src/ui/resources/icon_128.png"
+		},
+		"default_title": "__MSG_buttonDefaultTooltip__"
+	},
+	"commands": {
+		"save-selected-tabs": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+Y"
+			},
+			"description": "__MSG_commandSaveSelectedTabs__"
+		},
+		"save-all-tabs": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+U"
+			},
+			"description": "__MSG_commandSaveAllTabs__"
+		}
+	},
+	"web_accessible_resources": [
+		{
+			"matches": [
+				"<all_urls>"
+			],
+			"resources": [
+				"lib/single-file-infobar.js",
+				"lib/single-file-hooks-frames.js",
+				"lib/single-file-extension-editor-init.js",
+				"lib/single-file-extension-editor.js",
+				"lib/single-file-extension-editor-helper.js",
+				"lib/single-file-zip.min.js",
+				"lib/single-file-z-worker.js",
+				"src/lib/readability/Readability.js",
+				"src/lib/readability/Readability-readerable.js",
+				"src/ui/pages/editor-note-web.css",
+				"src/ui/pages/editor-mask-web.css",
+				"src/ui/pages/editor-frame-web.css"
+			]
+		}
+	],
+	"oauth2": {
+		"client_id": "207618107333-7tjs1im1pighftpoepea2kvkubnfjj44.apps.googleusercontent.com",
+		"scopes": [
+			"https://www.googleapis.com/auth/drive.file"
+		]
+	},
+	"permissions": [
+		"identity",
+		"contextMenus",
+		"downloads",
+		"storage",
+		"tabs",
+		"activeTab",
+		"scripting",
+		"offscreen",
+		"sidePanel",
+		"declarativeNetRequest"
+	],
+	"optional_permissions": [
+		"identity",
+		"clipboardWrite",
+		"nativeMessaging",
+		"bookmarks"
+	],
+	"host_permissions": [
+		"<all_urls>"
+	],
+	"devtools_page": "src/core/devtools/devtools.html",
+	"incognito": "spanning",
+	"manifest_version": 3,
+	"default_locale": "en"
+}
