@@ -62,7 +62,7 @@ To update dependencies:
 - `npm-upgrade` updates all packages
 - `npm install` install updated packages
 
-If you execute it for the first time you have to use git subtree add and delete the module subdirs under zotero-connectors/src/
+If you execute it for the first time you have to use git subtree add and delete the module subdirs under zotero-connectors/src/ and zotero-connectors/lib
 
 - running
 
@@ -71,7 +71,8 @@ If you execute it for the first time you have to use git subtree add and delete 
     git subtree pull --prefix zotero-connectors/src/zotero https://github.com/zotero/zotero.git main --squash
     git subtree pull --prefix zotero-connectors/src/translate https://github.com/zotero/translate.git master --squash
     git subtree pull --prefix zotero-connectors/src/utilities https://github.com/zotero/utilities.git master --squash
-    git subtree pull --prefix zotero-connectors/src/zotero-google-docs-integration  https://github.com/zotero/zotero-google-docs-integration.git master
+    git subtree pull --prefix zotero-connectors/lib/SingleFile-Lite https://github.com/gildas-lormeau/SingleFile-Lite.git 5e653124c1cfc58cb5209b9bd2db93f5f1020c11
+    git subtree pull --prefix zotero-connectors/lib/translate https://github.com/zotero/translate.git master --squash
     git subtree pull --prefix zotero-scholar-citations https://github.com/MaxKuehn/zotero-scholar-citations.git master --squash
    ```
 

@@ -2,7 +2,7 @@
     Initialize
 */
 Zotero.Debug.init(1)
-Zotero.Repo.init()
+// Zotero.Repo.init()
 Zotero.Messaging.init()
 Zotero.Connector_Types.init()
 Zotero.Translators.init()
