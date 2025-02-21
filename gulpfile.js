@@ -55,6 +55,7 @@ gulp.task('copy-external-scripts', async function() {
 		// './zotero-connectors/src/common/connector.js', // backgroundInclude, we override this in our own connector.js file
 		'./zotero-connectors/src/common/repo.js', // backgroundInclude
 		'./zotero-connectors/src/common/utilities.js',
+		'./zotero-connectors/src/translate/src/promise.js',
 		'./zotero-connectors/src/translate/src/translation/translate_item.js',
 		'./zotero-connectors/src/common/translators.js', // backgroundInclude
 		'./zotero-connectors/src/common/inject/http.js',
@@ -77,6 +78,7 @@ gulp.task('copy-external-scripts', async function() {
 		'./zotero-connectors/src/utilities/utilities.js',
 		'./zotero-connectors/src/utilities/utilities_item.js',
 		'./zotero-connectors/src/utilities/schema.js',
+
 		'./zotero-connectors/src/translate/src/promise.js',
 		'./zotero-connectors/src/translate/src/debug.js',
 		'./zotero-connectors/src/translate/src/rdf/init.js',
