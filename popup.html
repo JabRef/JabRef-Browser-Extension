@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JabRef Connector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>JabRef Connector</h1>
+    
+    <div class="status-section">
+      <p>Connection Status: <span id="status" class="status-disconnected">Disconnected</span></p>
+    </div>
+
+    <div class="input-section">
+      <label for="wsUrl">JabRef WebSocket URL:</label>
+      <input type="text" id="wsUrl" value="ws://localhost:23116" />
+    </div>
+
+    <div class="button-section">
+      <button id="connectBtn" class="btn btn-primary">Connect to JabRef</button>
+      <button id="sendBtn" class="btn btn-success" disabled>Send Sample BibTeX</button>
+      <button id="disconnectBtn" class="btn btn-danger" disabled>Disconnect</button>
+    </div>
+
+    <div class="sample-section">
+      <h3>Sample BibTeX Entry:</h3>
+      <textarea id="bibEntry" rows="10">@article{Example2024,
+  author = {John Doe and Jane Smith},
+  title = {An Example Article Title},
+  journal = {Journal of Examples},
+  year = {2024},
+  volume = {42},
+  number = {7},
+  pages = {123--456},
+  doi = {10.1000/example.2024}
+}</textarea>
+    </div>
+
+    <div class="log-section">
+      <h3>Log:</h3>
+      <div id="log" class="log-box"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
