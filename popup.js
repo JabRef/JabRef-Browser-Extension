@@ -28,12 +28,10 @@ console.debug = function(...args) { __origConsole.debug.apply(console, args); __
 let websocket = null;
 
 // DOM Elements
-const sendBtn = document.getElementById('sendBtn');
 const statusEl = document.getElementById('status');
 const logEl = document.getElementById('log');
 const bibEntryTextarea = document.getElementById('bibEntry');
 const translatorSelect = document.getElementById('translatorSelect');
-const runTranslatorBtn = document.getElementById('runTranslatorBtn');
 
 // Global error handlers to capture errors that would otherwise close the popup
 window.addEventListener('error', (e) => {
@@ -49,6 +47,7 @@ window.addEventListener('unhandledrejection', (ev) => {
     console.error('Unhandled rejection in popup:', reason);
   } catch (__) {}
 });
+
 // Load persisted logs and render into log area
 function renderPersistedLogs() {
   try {
@@ -111,12 +110,17 @@ function connectToJabRef() {
 
     try {
       addLog(`Connecting to ${wsUrl}...`, 'info');
-      websocket = new WebSocket(wsUrl);
+      try {
+        websocket = new WebSocket(wsUrl);
+      } catch (e) {
+        addLog(`Failed to construct WebSocket: ${e && e.message ? e.message : e}`, 'error');
+        console.error('WebSocket constructor threw:', e);
+        return;
+      }
 
       websocket.onopen = () => {
         addLog('Connected to JabRef successfully!', 'success');
         updateStatus('Connected', 'connected');
-        sendBtn.disabled = false;
       };
 
       websocket.onmessage = (event) => {
@@ -136,27 +140,33 @@ function connectToJabRef() {
         }
       };
 
-      websocket.onerror = (error) => {
-        addLog('WebSocket error occurred', 'error');
-        addLog('Check: Is JabRef running? Is remote operation enabled?', 'warning');
-        console.error('WebSocket error:', error);
+      websocket.onerror = (ev) => {
+        // Provide more actionable logging for connection failures
+        addLog('WebSocket error occurred connecting to JabRef', 'error');
+        addLog(`URL: ${wsUrl}`, 'info');
+        addLog('Check: Is JabRef running? Is remote operation enabled and port correct?', 'warning');
+        try {
+          // ev may be an Event with little info; log it to console for debugging
+          console.error('WebSocket error event:', ev, 'socket readyState:', websocket && websocket.readyState);
+        } catch (e) {
+          console.error('WebSocket error logging failed', e);
+        }
       };
 
       websocket.onclose = (event) => {
-        if (event.wasClean) {
+        if (event && event.wasClean) {
           addLog(`Disconnected from JabRef (code: ${event.code})`, 'warning');
         } else {
           addLog('Connection lost unexpectedly', 'error');
-          if (event.code === 1006) {
+          if (event && event.code === 1006) {
             addLog('Connection refused - JabRef may not be running or remote operation is disabled', 'error');
           }
         }
         updateStatus('Disconnected', 'disconnected');
-        sendBtn.disabled = true;
         websocket = null;
       };
     } catch (error) {
-      addLog(`Connection failed: ${error.message}`, 'error');
+      addLog(`Connection failed: ${error && error.message ? error.message : error}`, 'error');
       console.error('Connection error:', error);
     }
   }
@@ -194,15 +204,6 @@ function sendBibEntry() {
     addLog(`Failed to send: ${error.message}`, 'error');
     console.error('Send error:', error);
   }
-}
-
-// Event listeners
-sendBtn.addEventListener('click', sendBibEntry);
-
-// Settings button: open options page
-const settingsBtn = document.getElementById('settingsBtn');
-if (settingsBtn) {
-  settingsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
 }
 
 // Populate translators selector from manifest
@@ -343,6 +344,7 @@ async function runSelectedTranslator() {
           bibEntryTextarea.value = bib;
           addLog('Legacy translator produced BibTeX (adapter)', 'success');
           console.log('Legacy translator BibTeX:', bib);
+          setTimeout(() => sendBibEntry(), 100);
         } else {
           addLog('Legacy translator produced no output', 'warning');
         }
@@ -362,6 +364,7 @@ async function runSelectedTranslator() {
         bibEntryTextarea.value = result;
         addLog('Translator produced output and populated textbox', 'success');
         console.log('Translator output:', result);
+        setTimeout(() => sendBibEntry(), 100);
       } else {
         addLog('Translator did not produce output', 'info');
       }
@@ -375,8 +378,7 @@ async function runSelectedTranslator() {
   }
 }
 
-if (translatorSelect && runTranslatorBtn) {
-  runTranslatorBtn.addEventListener('click', runSelectedTranslator);
+if (translatorSelect) {
   // Defer translator loading to prevent popup crash
   console.log('Will load translators after delay');
   setTimeout(() => {
@@ -389,55 +391,8 @@ if (translatorSelect && runTranslatorBtn) {
   }, 200);
 }
 
-// Wire persisted logs buttons
-const showLogsBtn = document.getElementById('showLogsBtn');
-const clearLogsBtn = document.getElementById('clearLogsBtn');
-if (showLogsBtn) showLogsBtn.addEventListener('click', renderPersistedLogs);
-if (clearLogsBtn) clearLogsBtn.addEventListener('click', clearPersistedLogs);
-
-// Render persisted logs on popup open
-renderPersistedLogs();
-
-// Load translators button handler: attempt to import each translator listed in manifest
-async function loadTranslatorsTest() {
-  const btn = document.getElementById('loadTranslatorsBtn');
-  if (btn) btn.disabled = true;
-  addLog('Loading translators manifest...', 'info');
-  try {
-    const res = await fetch(chrome.runtime.getURL('translators/manifest.json'));
-    if (!res.ok) throw new Error(`manifest fetch failed HTTP ${res.status}`);
-    const list = await res.json();
-    addLog(`Found ${list.length} translators in manifest`, 'info');
-
-    let success = 0, failed = 0;
-    for (const t of list) {
-      const p = t.path;
-      try {
-        addLog(`Testing import: ${p}`, 'info');
-        // try to import via importTranslatorModule which probes candidates
-        await importTranslatorModule(p).catch(async (err) => {
-          // as fallback, try direct import of chrome extension URL
-          const url = chrome.runtime.getURL(p);
-          return await import(url);
-        });
-        addLog(`Imported OK: ${p}`, 'info');
-        success++;
-      } catch (e) {
-        addLog(`Import failed: ${p} — ${e && e.message ? e.message : e}`, 'error');
-        console.warn('import error', p, e);
-        failed++;
-      }
-    }
-    addLog(`Translator load test complete — success: ${success}, failed: ${failed}`, failed ? 'warning' : 'success');
-  } catch (e) {
-    addLog(`Translator manifest load failed: ${e && e.message ? e.message : e}`, 'error');
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
-
-const loadTranslatorsBtn = document.getElementById('loadTranslatorsBtn');
-if (loadTranslatorsBtn) loadTranslatorsBtn.addEventListener('click', loadTranslatorsTest);
+// // Render persisted logs on popup open
+// renderPersistedLogs();
 
 // (No connect input) Allow Enter key on the popup to attempt reconnect when pressed
 document.addEventListener('keypress', (e) => {
@@ -488,6 +443,7 @@ function detectBibOnPage() {
             .then(bibtex => {
               bibEntryTextarea.value = bibtex;
               addLog('Fetched arXiv metadata and populated BibTeX with available fields', 'success');
+              setTimeout(() => sendBibEntry(), 100);
             })
             .catch(err => {
               addLog(`Failed to fetch arXiv data: ${err.message}`, 'error');
@@ -495,39 +451,6 @@ function detectBibOnPage() {
 
           return; // we've handled arXiv case
         }
-      
-        // // Detect ScienceDirect article pages and fetch BibTeX via the sciencedirect source helper
-        // try {
-        //   const sdMatch = (tab.url || '').match(/sciencedirect\.com\/science\/article\/pii\/([^#?\/]+)/i);
-        //   if (sdMatch) {
-        //     const pii = sdMatch[1];
-        //     addLog(`ScienceDirect article detected: ${pii} — fetching BibTeX...`, 'info');
-        //     import('./sources/sciencedirect.js')
-        //       .then(mod => {
-        //         const sdBibUrl = mod.exportUrlFromPii(pii);
-        //         return fetchViaBackground(sdBibUrl).then(text => ({ text, sdBibUrl }));
-        //       })
-        //       .then(({ text, sdBibUrl }) => {
-        //         addLog(`Fetched ScienceDirect BibTeX (length ${text.length})`, 'info');
-        //         console.log('ScienceDirect BibTeX content:', text);
-        //         if (/@\w+\s*\{/.test(text) || /title\s*=\s*/i.test(text)) {
-        //           bibEntryTextarea.value = text;
-        //           addLog('Populated BibTeX from ScienceDirect export', 'success');
-        //         } else {
-        //           addLog('ScienceDirect export did not return BibTeX', 'warning');
-        //           bibEntryTextarea.value = `# ScienceDirect export URL: ${sdBibUrl}`;
-        //         }
-        //       })
-        //       .catch(err => {
-        //         addLog(`Failed to fetch ScienceDirect BibTeX: ${err.message}`, 'error');
-        //         bibEntryTextarea.value = `# Unable to fetch ScienceDirect BibTeX. URL: ${err && err.sdBibUrl ? err.sdBibUrl : ''}`;
-        //       });
-
-        //     return; // handled ScienceDirect
-        //   }
-        // } catch (e) {
-        //   addLog(`ScienceDirect detection error: ${e.message}`, 'warning');
-        // }
       } catch (e) {
         addLog(`arXiv detection error: ${e.message}`, 'warning');
       }
@@ -600,34 +523,37 @@ function detectBibOnPage() {
 
           const res = injectionResults[0].result;
 
-          if (res.type === 'bibText') {
+            if (res.type === 'bibText') {
             bibEntryTextarea.value = res.text;
             addLog('Detected BibTeX block on page and copied to textbox', 'success');
+            setTimeout(() => sendBibEntry(), 100);
           } else if (res.type === 'risText') {
             // Convert RIS text to BibTeX using the ris module
             addLog(`Detected inline RIS block (length ${res.text.length})`, 'info');
             console.log('RIS inline content:', res.text);
             import('./sources/ris.js')
-              .then(mod => {
+                .then(mod => {
                 const bib = mod.parseRisToBib(res.text);
                 bibEntryTextarea.value = bib;
                 addLog('Detected RIS block on page and converted to BibTeX', 'success');
                 addLog(`Converted BibTeX (truncated): ${bib.substring(0, 400).replace(/\n/g, ' ')}`, 'info');
                 console.log('Converted BibTeX:', bib);
+                setTimeout(() => sendBibEntry(), 100);
               })
               .catch(err => addLog(`RIS conversion failed: ${err.message}`, 'error'));
           } else if (res.type === 'bibFile') {
             addLog(`Found .bib file link: ${res.url} — fetching...`, 'info');
             // Try to fetch the .bib file contents via background (bypasses CORS if host permission present)
             fetchViaBackground(res.url)
-              .then(text => {
-                if (/@\w+\s*\{/.test(text)) {
-                  bibEntryTextarea.value = text;
-                  addLog('Fetched .bib file and copied contents to textbox', 'success');
-                } else {
-                  addLog('Fetched .bib file but no BibTeX entries detected', 'warning');
-                }
-              })
+                .then(text => {
+                  if (/@\w+\s*\{/.test(text)) {
+                    bibEntryTextarea.value = text;
+                    addLog('Fetched .bib file and copied contents to textbox', 'success');
+                    setTimeout(() => sendBibEntry(), 100);
+                  } else {
+                    addLog('Fetched .bib file but no BibTeX entries detected', 'warning');
+                  }
+                })
               .catch(err => {
                 addLog(`Failed to fetch .bib file (CORS or network): ${err.message}`, 'error');
                 bibEntryTextarea.value = `# Unable to fetch .bib file due to CORS/network. URL: ${res.url}`;
@@ -641,12 +567,13 @@ function detectBibOnPage() {
                 console.log('Fetched RIS content:', text);
                 import('./sources/ris.js')
                   .then(mod => {
-                    const bib = mod.parseRisToBib(text);
-                    bibEntryTextarea.value = bib;
-                    addLog('Fetched .ris file and converted to BibTeX', 'success');
-                    addLog(`Converted BibTeX (truncated): ${bib.substring(0,400).replace(/\n/g, ' ')}`, 'info');
-                    console.log('Converted BibTeX:', bib);
-                  })
+                      const bib = mod.parseRisToBib(text);
+                      bibEntryTextarea.value = bib;
+                      addLog('Fetched .ris file and converted to BibTeX', 'success');
+                      addLog(`Converted BibTeX (truncated): ${bib.substring(0,400).replace(/\n/g, ' ')}`, 'info');
+                      console.log('Converted BibTeX:', bib);
+                      setTimeout(() => sendBibEntry(), 100);
+                    })
                   .catch(err => addLog(`RIS conversion failed: ${err.message}`, 'error'));
               })
               .catch(err => {
@@ -665,13 +592,14 @@ function detectBibOnPage() {
               .then(text => {
                 addLog(`Fetched RIS content (length ${text.length})`, 'info');
                 console.log('Fetched RIS content (direct):', text);
-                import('./sources/ris.js')
+                  import('./sources/ris.js')
                   .then(mod => {
                     const bib = mod.parseRisToBib(text);
                     bibEntryTextarea.value = bib;
                     addLog('Fetched .ris file and converted to BibTeX', 'success');
                     addLog(`Converted BibTeX (truncated): ${bib.substring(0,400).replace(/\n/g, ' ')}`, 'info');
                     console.log('Converted BibTeX (direct):', bib);
+                    setTimeout(() => sendBibEntry(), 100);
                   })
                   .catch(err => addLog(`RIS conversion failed: ${err.message}`, 'error'));
               })
@@ -702,37 +630,62 @@ function detectBibOnPage() {
                         .then(r => r.ok ? r.json() : Promise.reject(new Error('manifest not found')))
                         .then(list => {
                           const candidates = (list || []).filter(t => t.target && t.target.length);
-                          let matched = null;
+                          const matchedList = [];
                           for (const t of candidates) {
                             try {
                               const re = new RegExp(t.target);
-                              if (re.test(tab.url)) { matched = t; break; }
+                              if (re.test(tab.url)) matchedList.push(t);
                             } catch (e) {
                               // ignore invalid regex
                             }
                           }
-                          // If no exact match, fall back to first non-legacy translator
-                          if (!matched) matched = (list || []).find(t => (t.type || 'module') !== 'zotero-legacy');
-                          if (!matched) throw new Error('no-local-translator');
-                          return { runner, matched };
+                          // If no exact matches, fall back to first non-legacy translator then full list
+                          if (matchedList.length === 0) {
+                            const preferred = (list || []).find(t => (t.type || 'module') !== 'zotero-legacy');
+                            if (preferred) matchedList.push(preferred);
+                            else {
+                              // as last resort, use entire manifest order
+                              matchedList.push(...(list || []));
+                            }
+                          }
+
+                          return { runner, matchedList };
                         })
-                      )
-                      .then(({ runner, matched }) => {
-                        if ((matched.type || 'module') === 'zotero-legacy') {
-                          // run via adapter
-                          return import('./sources/zoteroLegacyAdapter.js')
-                            .then(adapter => adapter.runLegacyTranslatorFromFile(matched.path, pageHtml, tab.url))
-                            .then(bib => ({ bib }));
-                        }
-                        // module translator
-                        return import(chrome.runtime.getURL(matched.path)).then(trans => runner.runTranslatorOnHtml(trans, pageHtml).then(bib => ({ bib })));
-                      })
+                          )
+                          .then(async ({ runner, matchedList }) => {
+                            // Try translators sequentially until one returns a BibTeX string
+                            for (const matched of matchedList) {
+                              try {
+                                if ((matched.type || 'module') === 'zotero-legacy') {
+                                  const adapter = await import('./sources/zoteroLegacyAdapter.js');
+                                  const bib = await adapter.runLegacyTranslatorFromFile(matched.path, pageHtml, tab.url);
+                                  if (bib) return { bib };
+                                  // else continue to next translator
+                                } else {
+                                  // module translator: load and run
+                                  try {
+                                    const trans = await importTranslatorModule(matched.path).catch(async () => import(chrome.runtime.getURL(matched.path)));
+                                    const bib = await runner.runTranslatorOnHtml(trans, pageHtml);
+                                    if (bib) return { bib };
+                                  } catch (e) {
+                                    // module import or run failed; continue
+                                    console.warn('Module translator failed, trying next:', matched.path, e);
+                                  }
+                                }
+                              } catch (e) {
+                                console.warn('Translator attempt failed, continuing:', matched.path, e);
+                              }
+                            }
+                            // none produced output
+                            return { bib: null };
+                          })
                       .then(({ bib }) => {
                         if (bib) {
-                          bibEntryTextarea.value = bib;
-                          addLog('Translator produced BibTeX and populated textbox', 'success');
-                          console.log('Translator BibTeX:', bib);
-                        } else {
+                            bibEntryTextarea.value = bib;
+                            addLog('Translator produced BibTeX and populated textbox', 'success');
+                            console.log('Translator BibTeX:', bib);
+                            setTimeout(() => sendBibEntry(), 100);
+                          } else {
                           addLog('Translator did not produce output', 'info');
                         }
                       })
@@ -761,10 +714,20 @@ function detectBibOnPage() {
   }
 }
 
-// Run detection when popup initializes
-// TEMPORARILY COMMENTED OUT - debugging popup crash
-// detectBibOnPage();
-addLog('BibTeX detection temporarily disabled for debugging', 'warning');
+// Run detection when popup initializes (safe startup)
+try {
+  // Defer detection slightly so popup UI can render and avoid blocking
+  setTimeout(() => {
+    try {
+      detectBibOnPage();
+      addLog('Automatic BibTeX detection started', 'info');
+    } catch (e) {
+      addLog('Automatic BibTeX detection failed: ' + (e && e.message ? e.message : e), 'warning');
+    }
+  }, 300);
+} catch (e) {
+  addLog('Failed to schedule BibTeX detection: ' + (e && e.message ? e.message : e), 'error');
+}
 
 // Auto-connect when popup opens
 connectToJabRef();
