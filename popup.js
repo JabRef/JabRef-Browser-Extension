@@ -1,3 +1,30 @@
+// Capture console messages and persist to chrome.storage.local for debugging
+const __popup_log_buffer = [];
+const __origConsole = { log: console.log, info: console.info, warn: console.warn, error: console.error, debug: console.debug };
+function __serializeArgs(args) {
+  try {
+    return args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+  } catch (e) { return String(args); }
+}
+function __persistLog(level, text) {
+  const entry = { ts: Date.now(), level, text };
+  __popup_log_buffer.push(entry);
+  try {
+    chrome && chrome.storage && chrome.storage.local && chrome.storage.local.get({ popupLogs: [] }, (res) => {
+      const arr = res.popupLogs || [];
+      arr.push(entry);
+      chrome.storage.local.set({ popupLogs: arr });
+    });
+  } catch (e) {
+    // ignore
+  }
+}
+console.log = function(...args) { __origConsole.log.apply(console, args); __persistLog('log', __serializeArgs(args)); };
+console.info = function(...args) { __origConsole.info.apply(console, args); __persistLog('info', __serializeArgs(args)); };
+console.warn = function(...args) { __origConsole.warn.apply(console, args); __persistLog('warn', __serializeArgs(args)); };
+console.error = function(...args) { __origConsole.error.apply(console, args); __persistLog('error', __serializeArgs(args)); };
+console.debug = function(...args) { __origConsole.debug.apply(console, args); __persistLog('debug', __serializeArgs(args)); };
+
 let websocket = null;
 
 // DOM Elements
@@ -5,6 +32,49 @@ const sendBtn = document.getElementById('sendBtn');
 const statusEl = document.getElementById('status');
 const logEl = document.getElementById('log');
 const bibEntryTextarea = document.getElementById('bibEntry');
+const translatorSelect = document.getElementById('translatorSelect');
+const runTranslatorBtn = document.getElementById('runTranslatorBtn');
+
+// Global error handlers to capture errors that would otherwise close the popup
+window.addEventListener('error', (e) => {
+  try {
+    addLog(`Uncaught error: ${e && e.message ? e.message : e}`, 'error');
+    console.error('Popup error captured:', e.error || e.message || e);
+  } catch (__) {}
+});
+window.addEventListener('unhandledrejection', (ev) => {
+  try {
+    const reason = ev && ev.reason ? ev.reason : ev;
+    addLog(`Unhandled promise rejection: ${reason && reason.message ? reason.message : reason}`, 'error');
+    console.error('Unhandled rejection in popup:', reason);
+  } catch (__) {}
+});
+// Load persisted logs and render into log area
+function renderPersistedLogs() {
+  try {
+    if (!chrome || !chrome.storage) return;
+    chrome.storage.local.get({ popupLogs: [] }, (res) => {
+      const arr = res.popupLogs || [];
+      for (const e of arr) {
+        const t = new Date(e.ts).toLocaleTimeString();
+        addLog(`[saved ${t}] ${e.level}: ${e.text}`, e.level === 'error' ? 'error' : 'info');
+      }
+    });
+  } catch (e) {
+    console.warn('Failed to read persisted logs', e);
+  }
+}
+
+function clearPersistedLogs() {
+  try {
+    if (!chrome || !chrome.storage) return;
+    chrome.storage.local.set({ popupLogs: [] }, () => {
+      addLog('Cleared persisted logs', 'info');
+    });
+  } catch (e) {
+    console.warn('Failed to clear persisted logs', e);
+  }
+}
 
 // Add log message to the log box
 function addLog(message, type = 'info') {
@@ -135,6 +205,240 @@ if (settingsBtn) {
   settingsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
 }
 
+// Populate translators selector from manifest
+function loadTranslatorsManifest() {
+  console.log('loadTranslatorsManifest starting');
+  setTimeout(() => {
+    Promise.all([
+      fetch(chrome.runtime.getURL('translators/manifest.json')).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
+      new Promise((res) => chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => res(tabs && tabs[0] ? tabs[0].url : null)))
+    ])
+      .then(([list, activeUrl]) => {
+        console.log('Manifest loaded, total translators:', list.length);
+        translatorSelect.innerHTML = '';
+
+        const candidates = (list || []).filter(t => t.target && t.target.length > 0);
+        const matches = [];
+        for (const t of candidates) {
+          if (!activeUrl) break;
+          try {
+            const re = new RegExp(t.target, 'i');
+            if (re.test(activeUrl)) matches.push(t);
+          } catch (e) {
+            console.warn('Invalid regex in manifest for', t.path, t.target, e);
+          }
+        }
+
+        const toShow = (matches.length ? matches : candidates).slice(0, 100);
+
+        // Populate in batches to avoid blocking UI
+        let idx = 0;
+        function addBatch() {
+          const batchSize = 20;
+          const end = Math.min(idx + batchSize, toShow.length);
+          for (let i = idx; i < end; i++) {
+            const t = toShow[i];
+            const opt = document.createElement('option');
+            opt.value = t.path;
+            opt.dataset.type = t.type || 'module';
+            opt.textContent = t.label || t.path;
+            translatorSelect.appendChild(opt);
+          }
+          idx = end;
+          if (idx < toShow.length) setTimeout(addBatch, 0);
+          else addLog(`Loaded ${toShow.length} translators (matched ${matches.length} for URL)`, 'info');
+        }
+        addBatch();
+      })
+      .catch(err => {
+        console.error('loadTranslatorsManifest error:', err);
+        addLog(`Failed to load translators manifest: ${err && err.message ? err.message : err}`, 'warning');
+      });
+  }, 100); // Defer to allow popup to render first
+}
+
+// Run the selected translator on the active tab
+// Helper: try several candidate extension paths and import the first that exists
+async function importTranslatorModule(path) {
+  const candidates = [];
+  const basename = (path || '').split('/').pop();
+  candidates.push(path);
+  if (!path.startsWith('translators/')) candidates.push(`translators/${path}`);
+  if (!path.startsWith('translators/zotero/')) candidates.push(`translators/zotero/${path}`);
+  if (basename) {
+    candidates.push(basename);
+    candidates.push(`translators/${basename}`);
+    candidates.push(`translators/zotero/${basename}`);
+  }
+  const errors = [];
+  for (const cand of candidates) {
+    if (!cand) continue;
+    const url = chrome.runtime.getURL(cand);
+    // Try direct dynamic import first (fastest path)
+    try {
+      return await import(url);
+    } catch (impErr) {
+      // If direct import fails, try fetching and importing from a blob URL
+      try {
+        const r = await fetch(url, { method: 'GET' });
+        if (!r.ok) {
+          errors.push(`${url} fetch HTTP ${r.status}`);
+          continue;
+        }
+        const text = await r.text();
+        try {
+          const blob = new Blob([text], { type: 'text/javascript' });
+          const blobUrl = URL.createObjectURL(blob);
+          try {
+            const mod = await import(blobUrl);
+            URL.revokeObjectURL(blobUrl);
+            return mod;
+          } catch (blobImpErr) {
+            URL.revokeObjectURL(blobUrl);
+            errors.push(`${url} blob-import-failed: ${blobImpErr && blobImpErr.message ? blobImpErr.message : blobImpErr}`);
+            continue;
+          }
+        } catch (blobErr) {
+          errors.push(`${url} blob-creation-failed: ${blobErr && blobErr.message ? blobErr.message : blobErr}`);
+          continue;
+        }
+      } catch (fetchErr) {
+        errors.push(`${url} fetch-error: ${fetchErr && fetchErr.message ? fetchErr.message : fetchErr}`);
+        continue;
+      }
+    }
+  }
+  throw new Error(`Translator file not found or import failed. Tried: ${candidates.join(', ')}. Errors: ${errors.join(' | ')}`);
+}
+
+async function runSelectedTranslator() {
+  try {
+    const opt = translatorSelect && translatorSelect.options[translatorSelect.selectedIndex];
+    if (!opt) { addLog('No translator selected', 'warning'); return; }
+    const path = opt.value;
+    const type = opt.dataset.type || 'module';
+
+    // Helper to get active tab and page HTML
+    const getActiveTabAndHtml = () => new Promise((resolve, reject) => {
+      try {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const tab = tabs && tabs[0];
+          if (!tab) return reject(new Error('No active tab'));
+          chrome.scripting.executeScript({ target: { tabId: tab.id }, func: () => document.documentElement.outerHTML }, (htmlResults) => {
+            if (!htmlResults || !htmlResults[0] || !htmlResults[0].result) return reject(new Error('Could not retrieve page HTML'));
+            resolve({ tab, pageHtml: htmlResults[0].result });
+          });
+        });
+      } catch (e) { reject(e); }
+    });
+
+    const { tab, pageHtml } = await getActiveTabAndHtml();
+
+    if (type === 'zotero-legacy') {
+      addLog(`Running legacy Zotero translator via adapter: ${opt.textContent}`, 'info');
+      try {
+        const adapter = await import('./sources/zoteroLegacyAdapter.js');
+        const bib = await adapter.runLegacyTranslatorFromFile(path, pageHtml, tab.url);
+        if (bib) {
+          bibEntryTextarea.value = bib;
+          addLog('Legacy translator produced BibTeX (adapter)', 'success');
+          console.log('Legacy translator BibTeX:', bib);
+        } else {
+          addLog('Legacy translator produced no output', 'warning');
+        }
+      } catch (err) {
+        addLog(`Legacy translator adapter failed: ${err && err.message ? err.message : err}`, 'error');
+        console.error('Adapter error:', err);
+      }
+      return;
+    }
+
+    // module translator path
+    try {
+      const runnerModule = await import('./sources/translatorRunner.js');
+      const trans = await importTranslatorModule(path);
+      const result = await runnerModule.runTranslatorOnHtml(trans, pageHtml);
+      if (result) {
+        bibEntryTextarea.value = result;
+        addLog('Translator produced output and populated textbox', 'success');
+        console.log('Translator output:', result);
+      } else {
+        addLog('Translator did not produce output', 'info');
+      }
+    } catch (err) {
+      addLog(`Translator execution failed: ${err && err.message ? err.message : err}`, 'error');
+      console.warn('Translator error:', err);
+    }
+  } catch (err) {
+    addLog(`runSelectedTranslator error: ${err && err.message ? err.message : err}`, 'error');
+    console.error('runSelectedTranslator threw', err);
+  }
+}
+
+if (translatorSelect && runTranslatorBtn) {
+  runTranslatorBtn.addEventListener('click', runSelectedTranslator);
+  // Defer translator loading to prevent popup crash
+  console.log('Will load translators after delay');
+  setTimeout(() => {
+    try {
+      loadTranslatorsManifest();
+    } catch (e) {
+      console.error('loadTranslatorsManifest threw:', e);
+      addLog('Translator loading failed: ' + (e.message || e), 'error');
+    }
+  }, 200);
+}
+
+// Wire persisted logs buttons
+const showLogsBtn = document.getElementById('showLogsBtn');
+const clearLogsBtn = document.getElementById('clearLogsBtn');
+if (showLogsBtn) showLogsBtn.addEventListener('click', renderPersistedLogs);
+if (clearLogsBtn) clearLogsBtn.addEventListener('click', clearPersistedLogs);
+
+// Render persisted logs on popup open
+renderPersistedLogs();
+
+// Load translators button handler: attempt to import each translator listed in manifest
+async function loadTranslatorsTest() {
+  const btn = document.getElementById('loadTranslatorsBtn');
+  if (btn) btn.disabled = true;
+  addLog('Loading translators manifest...', 'info');
+  try {
+    const res = await fetch(chrome.runtime.getURL('translators/manifest.json'));
+    if (!res.ok) throw new Error(`manifest fetch failed HTTP ${res.status}`);
+    const list = await res.json();
+    addLog(`Found ${list.length} translators in manifest`, 'info');
+
+    let success = 0, failed = 0;
+    for (const t of list) {
+      const p = t.path;
+      try {
+        addLog(`Testing import: ${p}`, 'info');
+        // try to import via importTranslatorModule which probes candidates
+        await importTranslatorModule(p).catch(async (err) => {
+          // as fallback, try direct import of chrome extension URL
+          const url = chrome.runtime.getURL(p);
+          return await import(url);
+        });
+        addLog(`Imported OK: ${p}`, 'info');
+        success++;
+      } catch (e) {
+        addLog(`Import failed: ${p} — ${e && e.message ? e.message : e}`, 'error');
+        console.warn('import error', p, e);
+        failed++;
+      }
+    }
+    addLog(`Translator load test complete — success: ${success}, failed: ${failed}`, failed ? 'warning' : 'success');
+  } catch (e) {
+    addLog(`Translator manifest load failed: ${e && e.message ? e.message : e}`, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+const loadTranslatorsBtn = document.getElementById('loadTranslatorsBtn');
+if (loadTranslatorsBtn) loadTranslatorsBtn.addEventListener('click', loadTranslatorsTest);
+
 // (No connect input) Allow Enter key on the popup to attempt reconnect when pressed
 document.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
@@ -192,38 +496,38 @@ function detectBibOnPage() {
           return; // we've handled arXiv case
         }
       
-        // Detect ScienceDirect article pages and fetch BibTeX via the sciencedirect source helper
-        try {
-          const sdMatch = (tab.url || '').match(/sciencedirect\.com\/science\/article\/pii\/([^#?\/]+)/i);
-          if (sdMatch) {
-            const pii = sdMatch[1];
-            addLog(`ScienceDirect article detected: ${pii} — fetching BibTeX...`, 'info');
-            import('./sources/sciencedirect.js')
-              .then(mod => {
-                const sdBibUrl = mod.exportUrlFromPii(pii);
-                return fetchViaBackground(sdBibUrl).then(text => ({ text, sdBibUrl }));
-              })
-              .then(({ text, sdBibUrl }) => {
-                addLog(`Fetched ScienceDirect BibTeX (length ${text.length})`, 'info');
-                console.log('ScienceDirect BibTeX content:', text);
-                if (/@\w+\s*\{/.test(text) || /title\s*=\s*/i.test(text)) {
-                  bibEntryTextarea.value = text;
-                  addLog('Populated BibTeX from ScienceDirect export', 'success');
-                } else {
-                  addLog('ScienceDirect export did not return BibTeX', 'warning');
-                  bibEntryTextarea.value = `# ScienceDirect export URL: ${sdBibUrl}`;
-                }
-              })
-              .catch(err => {
-                addLog(`Failed to fetch ScienceDirect BibTeX: ${err.message}`, 'error');
-                bibEntryTextarea.value = `# Unable to fetch ScienceDirect BibTeX. URL: ${err && err.sdBibUrl ? err.sdBibUrl : ''}`;
-              });
+        // // Detect ScienceDirect article pages and fetch BibTeX via the sciencedirect source helper
+        // try {
+        //   const sdMatch = (tab.url || '').match(/sciencedirect\.com\/science\/article\/pii\/([^#?\/]+)/i);
+        //   if (sdMatch) {
+        //     const pii = sdMatch[1];
+        //     addLog(`ScienceDirect article detected: ${pii} — fetching BibTeX...`, 'info');
+        //     import('./sources/sciencedirect.js')
+        //       .then(mod => {
+        //         const sdBibUrl = mod.exportUrlFromPii(pii);
+        //         return fetchViaBackground(sdBibUrl).then(text => ({ text, sdBibUrl }));
+        //       })
+        //       .then(({ text, sdBibUrl }) => {
+        //         addLog(`Fetched ScienceDirect BibTeX (length ${text.length})`, 'info');
+        //         console.log('ScienceDirect BibTeX content:', text);
+        //         if (/@\w+\s*\{/.test(text) || /title\s*=\s*/i.test(text)) {
+        //           bibEntryTextarea.value = text;
+        //           addLog('Populated BibTeX from ScienceDirect export', 'success');
+        //         } else {
+        //           addLog('ScienceDirect export did not return BibTeX', 'warning');
+        //           bibEntryTextarea.value = `# ScienceDirect export URL: ${sdBibUrl}`;
+        //         }
+        //       })
+        //       .catch(err => {
+        //         addLog(`Failed to fetch ScienceDirect BibTeX: ${err.message}`, 'error');
+        //         bibEntryTextarea.value = `# Unable to fetch ScienceDirect BibTeX. URL: ${err && err.sdBibUrl ? err.sdBibUrl : ''}`;
+        //       });
 
-            return; // handled ScienceDirect
-          }
-        } catch (e) {
-          addLog(`ScienceDirect detection error: ${e.message}`, 'warning');
-        }
+        //     return; // handled ScienceDirect
+        //   }
+        // } catch (e) {
+        //   addLog(`ScienceDirect detection error: ${e.message}`, 'warning');
+        // }
       } catch (e) {
         addLog(`arXiv detection error: ${e.message}`, 'warning');
       }
@@ -377,6 +681,77 @@ function detectBibOnPage() {
               });
           } else {
             addLog('No BibTeX or RIS content detected on the current page', 'info');
+
+            // Try running a local translator as a fallback to extract metadata
+            try {
+              chrome.scripting.executeScript(
+                {
+                  target: { tabId: tab.id },
+                  func: () => document.documentElement.outerHTML
+                },
+                (htmlResults) => {
+                  try {
+                    if (!htmlResults || !htmlResults[0] || !htmlResults[0].result) {
+                      addLog('Could not retrieve page HTML for translators', 'warning');
+                      return;
+                    }
+                    const pageHtml = htmlResults[0].result;
+                    // Fallback: select translator from manifest.json by matching `target` against page URL
+                    import('./sources/translatorRunner.js')
+                      .then(runner => fetch('translators/manifest.json')
+                        .then(r => r.ok ? r.json() : Promise.reject(new Error('manifest not found')))
+                        .then(list => {
+                          const candidates = (list || []).filter(t => t.target && t.target.length);
+                          let matched = null;
+                          for (const t of candidates) {
+                            try {
+                              const re = new RegExp(t.target);
+                              if (re.test(tab.url)) { matched = t; break; }
+                            } catch (e) {
+                              // ignore invalid regex
+                            }
+                          }
+                          // If no exact match, fall back to first non-legacy translator
+                          if (!matched) matched = (list || []).find(t => (t.type || 'module') !== 'zotero-legacy');
+                          if (!matched) throw new Error('no-local-translator');
+                          return { runner, matched };
+                        })
+                      )
+                      .then(({ runner, matched }) => {
+                        if ((matched.type || 'module') === 'zotero-legacy') {
+                          // run via adapter
+                          return import('./sources/zoteroLegacyAdapter.js')
+                            .then(adapter => adapter.runLegacyTranslatorFromFile(matched.path, pageHtml, tab.url))
+                            .then(bib => ({ bib }));
+                        }
+                        // module translator
+                        return import(chrome.runtime.getURL(matched.path)).then(trans => runner.runTranslatorOnHtml(trans, pageHtml).then(bib => ({ bib })));
+                      })
+                      .then(({ bib }) => {
+                        if (bib) {
+                          bibEntryTextarea.value = bib;
+                          addLog('Translator produced BibTeX and populated textbox', 'success');
+                          console.log('Translator BibTeX:', bib);
+                        } else {
+                          addLog('Translator did not produce output', 'info');
+                        }
+                      })
+                      .catch(err => {
+                        if (err && err.message === 'no-local-translator') {
+                          addLog('No local translators available for fallback', 'info');
+                        } else {
+                          addLog(`Translator runner failed: ${err && err.message ? err.message : err}`, 'warning');
+                          console.warn('Translator error:', err);
+                        }
+                      });
+                  } catch (e) {
+                    addLog(`Translator HTML retrieval error: ${e.message}`, 'warning');
+                  }
+                }
+              );
+            } catch (e) {
+              addLog(`Translator scheduling failed: ${e.message}`, 'warning');
+            }
           }
         }
       );
@@ -387,7 +762,9 @@ function detectBibOnPage() {
 }
 
 // Run detection when popup initializes
-detectBibOnPage();
+// TEMPORARILY COMMENTED OUT - debugging popup crash
+// detectBibOnPage();
+addLog('BibTeX detection temporarily disabled for debugging', 'warning');
 
 // Auto-connect when popup opens
 connectToJabRef();

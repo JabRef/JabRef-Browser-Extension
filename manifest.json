@@ -6,12 +6,16 @@
   "permissions": [
     "storage",
     "scripting",
-    "activeTab"
+    "activeTab",
+    "offscreen"
   ],
   "host_permissions": [
     "<all_urls>",
     "ws://localhost/*"
   ],
+  "sandbox": {
+    "pages": ["translator_sandbox.html"]
+  },
   "background": {
     "service_worker": "background.js"
   },
@@ -31,5 +35,15 @@
     "16": "icon16.png",
     "48": "icon48.png",
     "128": "icon128.png"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "translators/*.js",
+        "translators/zotero/*.js",
+        "sources/*.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
