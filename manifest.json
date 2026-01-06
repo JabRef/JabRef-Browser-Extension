@@ -4,11 +4,21 @@
   "version": "1.0.0",
   "description": "Connect to JabRef via WebSocket and send bibliography entries",
   "permissions": [
-    "storage"
+    "storage",
+    "scripting",
+    "activeTab"
   ],
   "host_permissions": [
+    "<all_urls>",
     "ws://localhost/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": true
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

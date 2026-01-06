@@ -14,15 +14,8 @@
       <p>Connection Status: <span id="status" class="status-disconnected">Disconnected</span></p>
     </div>
 
-    <div class="input-section">
-      <label for="wsUrl">JabRef WebSocket URL:</label>
-      <input type="text" id="wsUrl" value="ws://localhost:23116" />
-    </div>
-
     <div class="button-section">
-      <button id="connectBtn" class="btn btn-primary">Connect to JabRef</button>
       <button id="sendBtn" class="btn btn-success" disabled>Send Sample BibTeX</button>
-      <button id="disconnectBtn" class="btn btn-danger" disabled>Disconnect</button>
     </div>
 
     <div class="sample-section">
@@ -39,10 +32,10 @@
 }</textarea>
     </div>
 
-    <div class="log-section">
-      <h3>Log:</h3>
+    <details>
+      <summary>Logs</summary>
       <div id="log" class="log-box"></div>
-    </div>
+    </details>
   </div>
 
   <script src="popup.js"></script>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JabRef Connector Settings</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 16px; }
+    label { display:block; margin-bottom:8px; }
+    input { padding:6px; width:120px; }
+    button { margin-top:12px; padding:6px 10px; }
+    .msg { margin-top:10px; color: green }
+  </style>
+</head>
+<body>
+  <h1>JabRef Connector — Settings</h1>
+  <label for="portInput">JabRef WebSocket port (localhost)</label>
+  <input id="portInput" type="number" min="1" max="65535" value="23116" />
+  <div style="font-size:0.9em;color:#666;margin-top:6px">Default: 23116</div>
+  <div>
+    <button id="saveBtn">Save</button>
+    <button id="cancelBtn">Cancel</button>
+  </div>
+  <div id="msg" class="msg" role="status" aria-live="polite"></div>
+
+  <script src="settings.js"></script>
+</body>
+</html>
