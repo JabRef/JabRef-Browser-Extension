@@ -13,11 +13,11 @@
     "<all_urls>",
     "ws://localhost/*"
   ],
-  "sandbox": {
-    "pages": ["translator_sandbox.html"]
-  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": [
+      "background.js"
+    ]
   },
   "options_ui": {
     "page": "settings.html",
@@ -39,11 +39,17 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "translators/*.js",
-        "translators/zotero/*.js",
+        "offscreen.html",
+        "offscreen.js",
+        "translators/**/*.js",
         "sources/*.js"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:* http://localhost:* https://*"
+  }
 }

@@ -3,6 +3,71 @@
 
 console.log('[Offscreen] Offscreen document loaded');
 
+// If opened as a tab fallback, connect a named port so the background can
+// forward messages into this page. The adapter opens the tab with
+// ?offscreen_token=<token> and expects a port named `offscreen_<token>`.
+try {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('offscreen_token');
+  if (token) {
+    const portName = `offscreen_${token}`;
+    try {
+      const port = chrome.runtime.connect({ name: portName });
+      console.log('[Offscreen] Connected runtime port with name:', portName);
+      port.onMessage.addListener((message) => {
+        console.log('[Offscreen] Received port message:', message && message.type);
+        if (message && message.type === 'RUN_TRANSLATOR_OFFSCREEN') {
+          runTranslator(message.payload)
+            .then(result => { try { port.postMessage({ success: true, result }); } catch (e) { console.error('[Offscreen] port.postMessage failed', e); } })
+            .catch(error => { try { port.postMessage({ success: false, error: error.message || String(error) }); } catch (e) { console.error('[Offscreen] port.postMessage failed', e); } });
+        }
+      });
+      port.onDisconnect.addListener(() => { console.log('[Offscreen] Port disconnected'); });
+    } catch (e) {
+      console.warn('[Offscreen] Failed to connect port for token', token, e);
+    }
+  }
+} catch (e) { console.warn('[Offscreen] Failed to parse URL token', e); }
+
+// Establish a dedicated fetch port to background for reliable proxied fetches
+let __fetchPort = null;
+const __pendingFetches = new Map();
+let __fetchCounter = 1;
+try {
+  __fetchPort = chrome.runtime.connect({ name: 'fetch' });
+  console.log('[Offscreen] Connected fetch port to background');
+  __fetchPort.onMessage.addListener((m) => {
+    if (!m || m.type !== 'fetch_result' || !m.id) return;
+    const cb = __pendingFetches.get(m.id);
+    if (!cb) return;
+    __pendingFetches.delete(m.id);
+    if (m.ok) cb.resolve(m.text);
+    else cb.reject(new Error(m.error || `HTTP ${m.status || 'error'}`));
+  });
+  __fetchPort.onDisconnect.addListener(() => { console.warn('[Offscreen] fetch port disconnected'); __fetchPort = null; });
+} catch (e) {
+  console.warn('[Offscreen] Failed to connect fetch port', e && e.message);
+  __fetchPort = null;
+}
+
+// Add window listener for Firefox iframe communication
+window.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'RUN_TRANSLATOR_OFFSCREEN') {
+    console.log('[Offscreen] window message RUN_TRANSLATOR_OFFSCREEN received');
+    runTranslator(event.data.payload)
+      .then(result => {
+        try {
+          event.source.postMessage({ type: 'OFFSCREEN_RESPONSE', response: { success: true, result } }, '*');
+        } catch (e) { console.error('[Offscreen] Failed posting OFFSCREEN_RESPONSE to window', e); }
+      })
+      .catch(error => {
+        try {
+          event.source.postMessage({ type: 'OFFSCREEN_RESPONSE', response: { success: false, error: error.message || String(error) } }, '*');
+        } catch (e) { console.error('[Offscreen] Failed posting OFFSCREEN_RESPONSE error to window', e); }
+      });
+  }
+});
+
 // Listen for translator execution requests from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('[Offscreen] Received message:', message && message.type);
@@ -50,8 +115,7 @@ async function runTranslator({ translatorPath, htmlString, url }) {
       return el ? el.textContent.trim() : '';
     },
     requestDocument: async (u) => {
-      const res = await fetch(u);
-      const txt = await res.text();
+      const txt = await requestText(u);
       return new DOMParser().parseFromString(txt, 'text/html');
     },
     cleanISBN: (s) => {
@@ -77,6 +141,15 @@ async function runTranslator({ translatorPath, htmlString, url }) {
       }
     }
   };
+
+  // Add logging around fetch proxy
+  function logFetchProxy(absolute, response) {
+    if (chrome && chrome.runtime && chrome.runtime.lastError) {
+      console.error('[Offscreen] runtime.lastError during fetch proxy:', chrome.runtime.lastError.message);
+    } else if (!response || !response.ok) {
+      console.error('[Offscreen] background fetch failed:', absolute, response);
+    }
+  }
 
   // Minimal author name parser used by many translators. Returns a creator object.
   ZU.cleanAuthor = function(name, creatorType = 'author', preserveComma = false) {
@@ -119,6 +192,14 @@ async function runTranslator({ translatorPath, htmlString, url }) {
   // Support both `new Zotero.Item(type)` and `Zotero.Item(type)` usage.
   Zotero.Item = function(itemType) {
     if (!(this instanceof Zotero.Item)) return new Zotero.Item(itemType);
+      // Add logging around fetch proxy
+      const logFetchProxy = (absolute, response) => {
+        if (chrome.runtime.lastError) {
+          console.error('[Offscreen] runtime.lastError during fetch proxy:', chrome.runtime.lastError.message);
+        } else if (!response || !response.ok) {
+          console.error('[Offscreen] background fetch failed:', absolute, response);
+        }
+      };
     this.itemType = itemType || 'book';
     this.creators = [];
     this.attachments = [];
@@ -179,6 +260,64 @@ async function runTranslator({ translatorPath, htmlString, url }) {
   
   const requestText = async (u, opts) => {
     const absolute = new URL(u, url).href;
+    // Prefer proxying fetches through the background to avoid CSP/CORS issues
+    if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
+        // Prefer using the persistent fetch port if available (avoids sendMessage races)
+        if (__fetchPort) {
+          return await new Promise((resolve, reject) => {
+            const id = `${Date.now()}_${__fetchCounter++}`;
+            __pendingFetches.set(id, { resolve, reject });
+            try {
+              __fetchPort.postMessage({ type: 'fetch', id, url: absolute });
+            } catch (e) {
+              __pendingFetches.delete(id);
+              console.warn('[Offscreen] fetch port postMessage failed, falling back to sendMessage:', e && e.message);
+              // Fall back to sendMessage path below
+            }
+            // Timeout fallback
+            setTimeout(() => {
+              if (__pendingFetches.has(id)) {
+                __pendingFetches.delete(id);
+                reject(new Error('Fetch via port timed out'));
+              }
+            }, 15000);
+          }).catch(async (err) => {
+            // If port-based fetch failed, try sendMessage then direct fetch
+            console.warn('[Offscreen] port-based fetch failed, err:', err && err.message);
+          });
+        }
+
+        return await new Promise((resolve, reject) => {
+          try {
+            console.log('[Offscreen] proxying fetch to background (sendMessage):', absolute);
+            chrome.runtime.sendMessage({ action: 'fetch', url: absolute }, (response) => {
+              if (chrome.runtime.lastError) {
+                console.warn('[Offscreen] runtime.lastError during fetch proxy:', chrome.runtime.lastError.message);
+                // If there's no receiver, fall back to direct fetch
+                const lastErrMsg = chrome.runtime.lastError && chrome.runtime.lastError.message;
+                if (lastErrMsg && lastErrMsg.includes('Receiving end does not exist')) {
+                  console.log('[Offscreen] Falling back to direct fetch due to missing receiver:', absolute);
+                  fetch(absolute, opts).then(async (r) => {
+                    if (!r.ok) return reject(new Error(`HTTP ${r.status}`));
+                    const txt = await r.text();
+                    resolve(txt);
+                  }).catch((fe) => {
+                    console.error('[Offscreen] Direct fetch fallback failed:', fe && fe.message);
+                    return reject(new Error(lastErrMsg || fe && fe.message || 'Fetch failed'));
+                  });
+                  return;
+                }
+                return reject(new Error(lastErrMsg || 'No response from runtime'));
+              }
+              if (!response || !response.ok) {
+                console.error('[Offscreen] background fetch failed:', absolute, response);
+                return reject(new Error(response?.error || `HTTP ${response?.status || 'error'}`));
+              }
+              resolve(response.text);
+            });
+          } catch (e) { console.error('[Offscreen] exception proxying fetch', e); reject(e); }
+        });
+    }
     const r = await fetch(absolute, opts);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return await r.text();
@@ -242,6 +381,8 @@ async function runTranslator({ translatorPath, htmlString, url }) {
     document.head.appendChild(script);
   });
 
+  console.log('[Offscreen] Translator script loaded, checking exports');
+
   const exports = {
     detectWeb: (typeof window.detectWeb === 'function') ? window.detectWeb : null,
     doWeb: (typeof window.doWeb === 'function') ? window.doWeb : null
@@ -251,7 +392,14 @@ async function runTranslator({ translatorPath, htmlString, url }) {
     throw new Error('Translator missing detectWeb');
   }
   
-  const kind = exports.detectWeb(doc, url);
+  let kind;
+  try {
+    kind = exports.detectWeb(doc, url);
+    console.log('[Offscreen] detectWeb result:', kind);
+  } catch (e) {
+    console.error('[Offscreen] detectWeb threw error:', e);
+    throw e;
+  }
   
   if (kind === 'multiple') {
     throw new Error('Multiple items not supported');
@@ -262,7 +410,12 @@ async function runTranslator({ translatorPath, htmlString, url }) {
   }
   
   // Run the translator
-  await exports.doWeb(doc, url);
+  try {
+    await exports.doWeb(doc, url);
+  } catch (e) {
+    console.error('[Offscreen] doWeb threw error:', e);
+    throw e;
+  }
   
   console.log('[Offscreen] doWeb completed, checking _lastItem:', Zotero._lastItem);
   

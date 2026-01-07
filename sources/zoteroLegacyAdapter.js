@@ -68,7 +68,7 @@ function createZU(doc) {
 
 export async function runLegacyTranslatorFromFile(translatorPath, htmlString, url) {
   if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.getURL) {
-    throw new Error('chrome.runtime.getURL is not available to resolve translator path');
+    throw new Error('chrome.runtime.getURL is not available');
   }
 
   // Normalize translator path
@@ -78,53 +78,73 @@ export async function runLegacyTranslatorFromFile(translatorPath, htmlString, ur
     candidate = `translators/zotero/${candidate}`;
   }
 
-  const fileUrl = chrome.runtime.getURL(candidate);
-  console.log('[Adapter] Fetching translator from:', fileUrl, 'original path:', translatorPath);
+  const isChrome = typeof chrome !== 'undefined' && !!chrome.offscreen;
 
-  // We'll let the offscreen document load the translator directly from the extension URL
-  console.log('[Adapter] Translator extension URL:', fileUrl);
+  if (isChrome) {
+    // --- CHROME PATH: Offscreen API ---
+    try {
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['WORKERS'],
+        justification: 'Run legacy Zotero translator code'
+      });
+    } catch (e) { /* Document exists */ }
 
-  // Create offscreen document if needed
-  console.log('[Adapter] Creating offscreen document');
-  try {
-    await chrome.offscreen.createDocument({
-      url: 'offscreen.html',
-      reasons: ['WORKERS'],
-      justification: 'Run legacy Zotero translator code that requires eval'
-    });
-    console.log('[Adapter] Offscreen document created');
-  } catch (e) {
-    // Document may already exist
-    console.log('[Adapter] Offscreen document already exists or creation failed:', e.message);
-  }
-
-  // Send translator code to offscreen document
-  console.log('[Adapter] Sending translator to offscreen document');
-  try {
     const response = await chrome.runtime.sendMessage({
       type: 'RUN_TRANSLATOR_OFFSCREEN',
       payload: { translatorPath: candidate, htmlString, url }
     });
-    
-    console.log('[Adapter] Received response from offscreen:', response);
-    
-    if (!response || !response.success) {
-      throw new Error(response?.error || 'Offscreen translator execution failed');
-    }
-    
-    const result = response.result;
-    
-    // If offscreen returned RIS data, parse it here
-    if (result.needsRisParsing && result.ris) {
-      const risMod = await import('./ris.js');
-      return risMod.parseRisToBib(result.ris);
-    }
-    
-    return result.bibtex;
-  } catch (e) {
-    console.error('[Adapter] Offscreen execution error:', e);
-    throw new Error('Offscreen translator failed: ' + (e.message || e));
+    return await handleAdapterResponse(response);
+  } else {
+    // --- FIREFOX PATH: Hidden Iframe (Sandbox) ---
+    return new Promise((resolve, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.src = chrome.runtime.getURL('offscreen.html');
+      iframe.style.display = 'none';
+
+      const cleanup = () => {
+        window.removeEventListener('message', messageHandler);
+        if (iframe.parentNode) document.body.removeChild(iframe);
+      };
+
+      const messageHandler = async (event) => {
+        // Only listen for messages from our iframe
+        if (event.data && event.data.type === 'OFFSCREEN_RESPONSE') {
+          cleanup();
+          try {
+            const result = await handleAdapterResponse(event.data.response);
+            resolve(result);
+          } catch (err) {
+            reject(err);
+          }
+        }
+      };
+
+      window.addEventListener('message', messageHandler);
+      document.body.appendChild(iframe);
+
+      // Once loaded, tell the iframe to run the translator
+      iframe.onload = () => {
+        iframe.contentWindow.postMessage({
+          type: 'RUN_TRANSLATOR_OFFSCREEN',
+          payload: { translatorPath: candidate, htmlString, url }
+        }, '*');
+      };
+    });
   }
+}
+
+async function handleAdapterResponse(response) {
+  if (!response || !response.success) {
+    console.error('[Adapter] Offscreen response error:', response);
+    throw new Error(response?.error || 'Translator execution failed');
+  }
+  const result = response.result;
+  if (result.needsRisParsing && result.ris) {
+    const risMod = await import('./ris.js');
+    return risMod.parseRisToBib(result.ris);
+  }
+  return result.bibtex;
 }
 
 // Fetch a translator file (packaged in the extension) and parse its leading

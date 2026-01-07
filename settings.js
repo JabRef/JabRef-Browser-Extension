@@ -1,4 +1,4 @@
-const DEFAULT_PORT = 23116;
+const DEFAULT_PORT = 23119;
 
 const portInput = document.getElementById('portInput');
 const saveBtn = document.getElementById('saveBtn');

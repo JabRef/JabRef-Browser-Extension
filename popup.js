@@ -94,9 +94,9 @@ function updateStatus(status, className) {
 // Connect to JabRef WebSocket
 function getWsUrl() {
   return new Promise((resolve) => {
-    chrome.storage.local.get({ jabrefPort: 23116 }, (res) => {
-      const port = res.jabrefPort || 23116;
-      resolve(`ws://localhost:${port}`);
+    chrome.storage.local.get({ jabrefPort: 23119 }, (res) => {
+      const port = res.jabrefPort || 23119;
+      resolve(`ws://localhost:${port}/ws`);
     });
   });
 }

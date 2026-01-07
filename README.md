@@ -14,7 +14,7 @@ A browser extension that extracts or converts bibliographic metadata from the ac
 
 1. JabRef running locally with remote operation (WebSocket) enabled.
    - In JabRef: **Options → Preferences → Advanced → Remote operation** → enable the WebSocket server.
-2. The popup assumes JabRef is reachable at `ws://localhost:<port>` (default port stored in extension settings, default 23116).
+2. The popup assumes JabRef is reachable at `ws://localhost:<port>` (default port stored in extension settings, default 23119).
 
 ## Install (Developer)
 
