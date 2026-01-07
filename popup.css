@@ -1,27 +1,62 @@
 /* Minimal MVP styles for popup */
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #fff;
-  color: #111;
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #fff;
+    color: #111;
 }
 
 .container {
-  padding: 12px;
-  width: 420px;
+    padding: 12px;
+    width: 420px;
 }
 
-h1 { font-size: 16px; margin: 0 0 8px 0; }
+h1 {
+    font-size: 16px;
+    margin: 0 0 8px 0;
+}
 
-.button-section { display:flex; gap:8px; margin:8px 0; }
-.btn { padding:8px 10px; border:1px solid #ccc; background:#f0f0f0; cursor:pointer; }
-.btn:disabled { opacity:0.6; cursor:not-allowed; }
+.button-section {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+}
+.btn {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    background: #f0f0f0;
+    cursor: pointer;
+}
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 
-#bibEntry { width:100%; min-height:140px; font-family: monospace; font-size:12px; padding:8px; border:1px solid #ccc; }
+#bibEntry {
+    width: 100%;
+    min-height: 140px;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 8px;
+    border: 1px solid #ccc;
+}
 
-#log { margin-top:10px; max-height:180px; overflow:auto; font-family: monospace; font-size:12px; background:#f8f8f8; padding:8px; border:1px solid #eee; }
+#log {
+    margin-top: 10px;
+    max-height: 180px;
+    overflow: auto;
+    font-family: monospace;
+    font-size: 12px;
+    background: #f8f8f8;
+    padding: 8px;
+    border: 1px solid #eee;
+}
 
-.status-connected { color: green; }
-.status-disconnected { color: red; }
-
+.status-connected {
+    color: green;
+}
+.status-disconnected {
+    color: red;
+}
