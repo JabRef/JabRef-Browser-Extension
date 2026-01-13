@@ -1,124 +1,76 @@
-// Background service worker: perform cross-origin fetches on behalf of popup
-const offscreenPorts = new Map();
+// background.js (sketch)
+chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+  if (!msg || msg.type !== 'runTranslator') return;
 
-// Register long-lived ports from offscreen/tab pages so we can forward messages to them
-chrome.runtime.onConnect.addListener((port) => {
-  try {
-    if (port && port.name && port.name.startsWith("offscreen_")) {
-      console.log("[Background] Registered offscreen port:", port.name);
-      offscreenPorts.set(port.name, port);
-      port.onDisconnect.addListener(() => {
-        offscreenPorts.delete(port.name);
-        console.log("[Background] Offscreen port disconnected:", port.name);
-      });
-    }
-  } catch (e) {
-    console.warn("[Background] onConnect handler error", e);
-  }
-});
+  const { translatorPath, translators, url } = msg;
 
-// Support a dedicated fetch port to avoid runtime.sendMessage race conditions
-chrome.runtime.onConnect.addListener((port) => {
-  try {
-    if (port && port.name === "fetch") {
-      console.log("[Background] fetch port connected");
-      port.onMessage.addListener(async (msg) => {
-        if (!msg || msg.type !== "fetch" || !msg.id || !msg.url) return;
-        const id = msg.id;
-        const url = msg.url;
-        try {
-          console.log("[Background] fetch(port) requested:", url);
-          const resp = await fetch(url);
-          const text = await resp.text();
-          try {
-            port.postMessage({
-              type: "fetch_result",
-              id,
-              ok: resp.ok,
-              status: resp.status,
-              text,
-            });
-          } catch (pmErr) {
-            console.warn(
-              "[Background] Unable to postMessage to fetch port (disconnected):",
-              pmErr && pmErr.message,
-            );
-          }
-        } catch (err) {
-          console.error(
-            "[Background] fetch(port) error:",
-            url,
-            err && err.message,
-          );
-          try {
-            port.postMessage({
-              type: "fetch_result",
-              id,
-              ok: false,
-              error: err && err.message,
-            });
-          } catch (pmErr) {
-            console.warn(
-              "[Background] Unable to postMessage error to fetch port (disconnected):",
-              pmErr && pmErr.message,
-            );
-          }
-        }
-      });
-      port.onDisconnect.addListener(() => {
-        console.log("[Background] fetch port disconnected");
-      });
-    }
-  } catch (e) {
-    console.warn("[Background] fetch port onConnect error", e);
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!message) return;
-
-  if (message.type === "FORWARD_OFFSCREEN") {
-    const token = message.token;
-    const portName = `offscreen_${token}`;
-    const port = offscreenPorts.get(portName);
-    if (!port) {
-      sendResponse({ ok: false, error: "Offscreen port not found" });
-      return true;
-    }
-    // Forward payload to the port and wait for a single response
-    const payload = message.payload;
-    const listener = (resp) => {
-      try {
-        port.onMessage.removeListener(listener);
-      } catch (e) {}
-      sendResponse(resp);
-    };
-    port.onMessage.addListener(listener);
+  // If offscreen is available (Chrome), forward the request so the offscreen
+  // document runs the translator. If not (Firefox), run the translator
+  // directly from the background page which has a DOM.
+  if (chrome.offscreen) {
     try {
-      port.postMessage(payload);
+      sendResponse({ ok: true });
     } catch (e) {
-      try {
-        port.onMessage.removeListener(listener);
-      } catch (e2) {}
-      sendResponse({ ok: false, error: e.message });
+      sendResponse({ ok: false, error: String(e) });
     }
     return true;
   }
 
-  if (message.action === "fetch") {
-    const url = message.url;
-    console.log("[Background] fetch requested:", url);
-    fetch(url)
-      .then(async (resp) => {
-        const text = await resp.text();
-        console.log("[Background] fetch result:", url, "status:", resp.status);
-        sendResponse({ ok: resp.ok, status: resp.status, text });
-      })
-      .catch((err) => {
-        console.error("[Background] fetch error:", url, err && err.message);
-        sendResponse({ ok: false, error: err.message });
+  // Firefox / no offscreen: fetch page HTML and run translator here.
+  try {
+    const resp = await fetch(url, { credentials: 'omit' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const html = await resp.text();
+
+    // Import the runner from the extension bundle.
+    const runnerModule = await import(chrome.runtime.getURL('sources/translatorRunner.js'));
+    const { runTranslatorOnHtml } = runnerModule;
+
+    // Normalize translators list: accept either `translators` array or single `translatorPath`.
+    const list = Array.isArray(translators) && translators.length ? translators : (translatorPath ? [translatorPath] : []);
+    if (!list.length) throw new Error('No translator paths provided');
+
+    // Run all translator attempts in parallel and resolve with the first
+    // successful (non-null/defined) result. We don't attempt to cancel other
+    // promises; they will continue running in the background.
+    const attempts = list.map((t) => (async () => {
+      try {
+        const result = await runTranslatorOnHtml(t, html, url);
+        if (result !== null && typeof result !== 'undefined') return { result, translator: t };
+        throw new Error('No result');
+      } catch (e) {
+        // Wrap error with translator id for diagnostics
+        throw { err: e, translator: t };
+      }
+    })());
+
+    // Custom Promise.any fallback to collect first fulfilled promise
+    const firstFulfilled = (proms) => new Promise((resolve, reject) => {
+      let pending = proms.length;
+      const errors = [];
+      proms.forEach(p => {
+        p.then(resolve).catch(e => {
+          errors.push(e);
+          pending -= 1;
+          if (pending === 0) reject(errors);
+        });
       });
-    // indicate we'll respond asynchronously
-    return true;
+    });
+
+    try {
+      const { result, translator: successful } = await firstFulfilled(attempts);
+      chrome.runtime.sendMessage({ type: 'offscreenResult', url, result, translator: successful });
+      sendResponse({ ok: true });
+    } catch (errors) {
+      // All attempts failed
+      const last = Array.isArray(errors) && errors.length ? errors[errors.length - 1] : errors;
+      const msg = last && last.err ? String(last.err) : String(last || 'All translators failed');
+      chrome.runtime.sendMessage({ type: 'offscreenResult', url, error: msg });
+      sendResponse({ ok: false, error: msg });
+    }
+  } catch (e) {
+    chrome.runtime.sendMessage({ type: 'offscreenResult', url, error: String(e) });
+    sendResponse({ ok: false, error: String(e) });
   }
+  return true;
 });

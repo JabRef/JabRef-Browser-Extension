@@ -1,46 +1,36 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>JabRef Connector</title>
-        <link rel="stylesheet" href="popup.css" />
-    </head>
-    <body>
-        <div class="container">
-            <h1>JabRef Connector</h1>
 
-            <div class="status-section">
-                <p>
-                    Connection Status:
-                    <span id="status" class="status-disconnected"
-                        >Disconnected</span
-                    >
-                </p>
-            </div>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JabRef Connector</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
 
-            <div class="sample-section">
-                <h3>Sample BibTeX Entry:</h3>
-                <textarea id="bibEntry" rows="10">
-@article{Example2024,
-  author = {John Doe and Jane Smith},
-  title = {An Example Article Title},
-  journal = {Journal of Examples},
-  year = {2024},
-  volume = {42},
-  number = {7},
-  pages = {123--456},
-  doi = {10.1000/example.2024}
-}</textarea
-                >
-            </div>
+<body>
+    <div class="container">
+        <h1>JabRef Connector</h1>
 
-            <details open>
-                <summary>Logs</summary>
-                <div id="log" class="log-box"></div>
-            </details>
+        <div class="status-section">
+            <p>
+                Connection Status:
+                <span id="status" class="status-disconnected">Disconnected</span>
+            </p>
         </div>
 
-        <script src="popup.js"></script>
-    </body>
+        <div class="sample-section">
+            <h3>Sample BibTeX Entry:</h3>
+            <textarea id="bibEntry" rows="10"></textarea>
+        </div>
+
+        <details open>
+            <summary>Logs</summary>
+            <div id="log" class="log-box"></div>
+        </details>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
 </html>
