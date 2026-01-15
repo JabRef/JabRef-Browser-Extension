@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "JabRef Connector",
     "version": "1.0.0",
-    "description": "Connect to JabRef via WebSocket and send bibliography entries",
+    "description": "Connect to JabRef via HTTP POST and send bibliography entries",
     "permissions": [
         "tabs",
         "offscreen",
@@ -34,8 +34,5 @@
         "16": "icon16.png",
         "48": "icon48.png",
         "128": "icon128.png"
-    },
-    "content_security_policy": {
-        "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:* http://localhost:* https://*"
     }
 }

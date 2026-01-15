@@ -102,104 +102,48 @@ function updateStatus(status, className) {
     statusEl.className = `status-${className}`;
 }
 
-// Connect to JabRef WebSocket
-function getWsUrl() {
+// Connect to JabRef via HTTP POST
+let jabrefBaseUrl = null;
+function getBaseUrl() {
     return new Promise((resolve) => {
         chrome.storage.local.get({ jabrefPort: 23119 }, (res) => {
             const port = res.jabrefPort || 23119;
-            resolve(`ws://localhost:${port}/ws`);
+            const base = `http://localhost:${port}/`;
+            resolve(base);
         });
     });
 }
 
 async function connectToJabRef() {
-    const wsUrl = await getWsUrl();
-    if (!wsUrl) {
-        appendLog("No WebSocket URL configured", "error");
+    const base = await getBaseUrl();
+    if (!base) {
+        appendLog("No JabRef base URL configured", "error");
         return;
     }
+    jabrefBaseUrl = base;
+    appendLog(`Checking JabRef at ${base}...`, "info");
     try {
-        appendLog(`Connecting to ${wsUrl}...`, "info");
-        try {
-            websocket = new WebSocket(wsUrl);
-        } catch (e) {
-            appendLog(
-                `Failed to construct WebSocket: ${e && e.message ? e.message : e}`,
-                "error");
-            console.error("WebSocket constructor threw:", e);
-            return;
-        }
-
-        websocket.onopen = () => {
-            appendLog("Connected to JabRef successfully!", "success");
+        // Try a simple GET to the base URL to detect availability.
+        const resp = await fetch(base, { method: 'GET', cache: 'no-store' });
+        if (resp && (resp.ok || resp.status === 404)) {
+            appendLog("JabRef reachable (HTTP)", "success");
             updateStatus("Connected", "connected");
-        };
-
-        websocket.onmessage = (event) => {
-            try {
-                const response = JSON.parse(event.data);
-                if (response.type === "success") {
-                    appendLog(response.message, "success");
-                } else if (response.type === "error") {
-                    appendLog(response.message, "error");
-                } else if (response.type === "connected") {
-                    appendLog(response.message, "success");
-                } else {
-                    appendLog(`Received: ${event.data}`, "info");
-                }
-            } catch (e_1) {
-                appendLog(`Received: ${event.data}`, "info");
-            }
-        };
-
-        websocket.onerror = (ev) => {
-            // Provide more actionable logging for connection failures
-            appendLog("WebSocket error occurred connecting to JabRef", "error");
-            appendLog(`URL: ${wsUrl}`, "info");
-            appendLog(
-                "Check: Is JabRef running? Is remote operation enabled and port correct?",
-                "warning");
-            try {
-                // ev may be an Event with little info; log it to console for debugging
-                console.error(
-                    "WebSocket error event:",
-                    ev,
-                    "socket readyState:",
-                    websocket && websocket.readyState);
-            } catch (e_2) {
-                console.error("WebSocket error logging failed", e_2);
-            }
-        };
-
-        websocket.onclose = (event_1) => {
-            if (event_1 && event_1.wasClean) {
-                appendLog(`Disconnected from JabRef (code: ${event_1.code})`, "warning");
-            } else {
-                appendLog("Connection lost unexpectedly", "error");
-                if (event_1 && event_1.code === 1006) {
-                    appendLog(
-                        "Connection refused - JabRef may not be running or remote operation is disabled",
-                        "error");
-                }
-            }
-            updateStatus("Disconnected", "disconnected");
-            websocket = null;
-        };
+        } else {
+            appendLog(`JabRef responded with status ${resp.status}`, "warning");
+            updateStatus("Connected (no OK)", "connected");
+        }
     } catch (error) {
         appendLog(
             `Connection failed: ${error && error.message ? error.message : error}`,
             "error");
-        console.error("Connection error:", error);
+        console.error("HTTP connection error:", error);
+        updateStatus("Disconnected", "disconnected");
+        jabrefBaseUrl = null;
     }
 }
 
 // Send BibTeX entry to JabRef
-function sendBibEntry() {
-    if (!websocket || websocket.readyState !== WebSocket.OPEN) {
-        appendLog("Not connected to JabRef", "error");
-        return;
-    }
-
+async function sendBibEntry() {
     const bibEntryTextarea = document.getElementById('bibEntry');
     const bibEntry = bibEntryTextarea.value.trim();
 
@@ -208,21 +152,40 @@ function sendBibEntry() {
         return;
     }
 
+    const base = jabrefBaseUrl || await getBaseUrl();
+    if (!base) {
+        appendLog("JabRef base URL not configured", "error");
+        return;
+    }
+
+    const url = base + "libraries/current/entries";
+    appendLog(`Sending BibTeX entry to JabRef at ${url}...`, "info");
+
+    if (!bibEntry.startsWith('@')) {
+        appendLog("BibTeX entry does not start with '@'", "error");
+        return;
+    }
+
     try {
-        // JabRef WebSocket API format
-        const message = JSON.stringify({
-            command: "add",
-            argument: bibEntry,
+        console.log("Sending to JabRef (HTTP POST):", bibEntry);
+
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-bibtex' },
+            body: bibEntry,
         });
 
-        // Log exact payload to console for debugging
-        console.log("Sending to JabRef WebSocket:", message);
-
-        websocket.send(message);
-        appendLog("BibTeX entry sent successfully!", "success");
-        appendLog(`Sent: ${bibEntry.substring(0, 50)}...`, "info");
+        if (resp.ok) {
+            appendLog("BibTeX entry sent successfully!", "success");
+            appendLog(`Sent: ${bibEntry.substring(0, 50)}...`, "info");
+        } else {
+            let text;
+            try { text = await resp.text(); } catch (e) { text = String(e); }
+            appendLog(`Failed to send (HTTP ${resp.status}): ${text}`, "error");
+            console.error('HTTP send failed', resp.status, text);
+        }
     } catch (error) {
-        appendLog(`Failed to send: ${error.message}`, "error");
+        appendLog(`Failed to send: ${error && error.message ? error.message : error}`, "error");
         console.error("Send error:", error);
     }
 }

@@ -1,20 +1,19 @@
 # JabRef Connector Browser Extension
 
-A browser extension that extracts or converts bibliographic metadata from the active page and sends BibTeX entries directly to a running JabRef instance via WebSocket.
+A browser extension that extracts or converts bibliographic metadata from the active page and sends BibTeX entries directly to a running JabRef instance via HTTP POST.
 
 ## Key Features
 
-- Direct WebSocket connection to JabRef (no external bridge required).
+ - Direct HTTP POST to JabRef (no external bridge required).
 - Automatic detection and conversion: detects embedded BibTeX or RIS blocks, and can run local translators matched via `translators/manifest.json`.
 - Legacy Zotero translators: many Zotero legacy translators run in an offscreen runner with small `ZU`/`Zotero` shims.
-- Auto-send: when a BibTeX entry is produced, the popup will forward it to JabRef if a WebSocket connection is active.
+- Auto-send: when a BibTeX entry is produced, the popup will forward it to JabRef if JabRef is reachable over HTTP.
 - Persistent logs: popup console messages are persisted to `chrome.storage.local` to aid debugging.
 
 ## Prerequisites
 
-1. JabRef running locally with remote operation (WebSocket) enabled.
-   - In JabRef: **Options → Preferences → Advanced → Remote operation** → enable the WebSocket server.
-2. The popup assumes JabRef is reachable at `ws://localhost:<port>` (default port stored in extension settings, default 23119).
+1. JabRef running locally and reachable over HTTP on a configurable port.
+2. The popup assumes JabRef is reachable at `http://localhost:<port>` (default port stored in extension settings, default 23119).
 
 ## Install (Developer)
 
@@ -32,7 +31,7 @@ For Firefox development use `about:debugging#/runtime/this-firefox` and load a t
 4. You can also select and run local translators from the manifest via the popup UI.
 
 Notes:
-- If the popup cannot connect to JabRef, check the configured port in the extension settings and that JabRef is running.
+- If the popup cannot connect to JabRef, check the configured port in the extension settings and that JabRef is running and listening for HTTP requests.
 - Open the popup DevTools (right-click → Inspect) to view logs when debugging translators or connection issues.
 
 ## Project Structure (high level)
@@ -40,7 +39,7 @@ Notes:
 ```
 JabRef-Connector/
 ├── popup.html
-├── popup.js            # UI, translator loading, WebSocket send logic
+├── popup.js            # UI, translator loading, HTTP send logic
 ├── popup.css
 ├── offscreen.html      # Offscreen context used to run legacy translators
 ├── offscreen.js
@@ -63,6 +62,6 @@ If a translator does not work as intended the tests can help identify issues (e.
 
 ## Troubleshooting
 
-- If connection fails, open popup DevTools and inspect the console. The popup provides extended WebSocket error logging.
+- If connection fails, open popup DevTools and inspect the console. The popup provides extended HTTP error logging.
 - Some legacy translators may need extra small shims; errors will be logged to the popup console and persisted to storage.
 - If translators fail to run due to Manifest V3 CSP, the code attempts to run legacy translators in the offscreen runner to avoid unsafe-eval.
