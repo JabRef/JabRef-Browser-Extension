@@ -92,7 +92,7 @@ function appendLog(text) {
     d.className = 'log-line';
     // Convert URLs in the text into clickable links
     // Split the text keeping URLs (captures https?://...)
-    const parts = text.split(/(https?:\/\/docs.jabref.org[^\s]+)/);
+    const parts = text.split(/(https?:\/\/(docs.jabref.org|github.com)[^\s]+)/);
     for (const part of parts) {
         if (!part) continue;
         if (part.startsWith('http://') || part.startsWith('https://')) {
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlEl = document.getElementById('url');
     if (!connected) {
         appendLog(
-            "If JabRef is running, enable the HTTP server (Options → Preferences → Advanced → Remote operation → enable) and ensure the configured port is correct: https://docs.jabref.org/collect/jabref-browser-extension",
+            "If JabRef is running, enable the HTTP server (Options → Preferences → Advanced → Remote operation → enable) and ensure the configured port is correct: https://github.com/LyzardKing/JabRef-Connector/blob/main/SETUP.md",
             "warning");
         document.getElementById('log-box').open = true;
         // show fallback UI
