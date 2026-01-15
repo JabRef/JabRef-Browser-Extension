@@ -23,10 +23,25 @@ export async function runTranslatorOnHtml(
   try {
     if (typeof translatorModuleOrPath === "string") {
       console.debug(
-        "[translatorRunner] importing module",
+        "[translatorRunner] translator path provided (string)",
         translatorModuleOrPath,
       );
-      loaded = await import(translatorModuleOrPath);
+      // For security and linting reasons we DO NOT perform a direct
+      // dynamic `import()` on arbitrary string values. Supported string
+      // forms are:
+      // - file://...  (Node.js test harnesses; handled by the legacy
+      //   evaluation fallback below)
+      // - chrome-extension://, moz-extension://, ms-browser-extension://
+      //   (handled by the browser script injection fallback below)
+      // Other callers should pass an already-imported module object.
+      const p = translatorModuleOrPath;
+      if (
+        !(p && (p.startsWith('file://') || p.startsWith('chrome-extension://') || p.startsWith('moz-extension://') || p.startsWith('ms-browser-extension://')))
+      ) {
+        throw new Error('Unsafe/unsupported translator path string; pass a module object instead for non-extension/local paths');
+      }
+      // Defer actual handling to the legacy/file/extension code paths below.
+      loaded = null;
     } else {
       loaded = translatorModuleOrPath;
       console.debug("[translatorRunner] using provided module object");
@@ -53,10 +68,16 @@ export async function runTranslatorOnHtml(
         // Evaluate in global scope so legacy scripts attach functions to globalThis
         try {
           const vmModule = await import('vm');
-          vmModule.runInThisContext(src, { filename: p });
+          if (vmModule && typeof vmModule.runInThisContext === 'function') {
+            vmModule.runInThisContext(src, { filename: p });
+          } else {
+            throw new Error('vm.runInThisContext unavailable');
+          }
         } catch (e) {
-          // Fallback to eval in case vm isn't available
-          eval(src);
+          // Do NOT use `eval` as a fallback — it's unsafe. Log and abort
+          console.warn('[translatorRunner] vm unavailable — cannot evaluate legacy translator securely', e);
+          // Let outer handler detect that fallback failed; do not attempt insecure evaluation.
+          throw e;
         }
         module = {
           detect: root.detect,
