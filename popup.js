@@ -90,7 +90,22 @@ function appendLog(text) {
     if (!log) return;
     const d = document.createElement('div');
     d.className = 'log-line';
-    d.textContent = text;
+    // Convert URLs in the text into clickable links
+    // Split the text keeping URLs (captures https?://...)
+    const parts = text.split(/(https?:\/\/docs.jabref.org[^\s]+)/);
+    for (const part of parts) {
+        if (!part) continue;
+        if (part.startsWith('http://') || part.startsWith('https://')) {
+            const a = document.createElement('a');
+            a.href = part;
+            a.textContent = part;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            d.appendChild(a);
+        } else {
+            d.appendChild(document.createTextNode(part));
+        }
+    }
     log.appendChild(d);
     log.scrollTop = log.scrollHeight;
 }
@@ -139,7 +154,9 @@ async function connectToJabRef() {
         console.error("HTTP connection error:", error);
         updateStatus("Disconnected", "disconnected");
         jabrefBaseUrl = null;
+        return false;
     }
+    return true;
 }
 
 // Send BibTeX entry to JabRef
@@ -192,7 +209,19 @@ async function sendBibEntry() {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Auto-connect when popup opens
+    const connected = await connectToJabRef();
     const urlEl = document.getElementById('url');
+    if (!connected) {
+        appendLog(
+            "If JabRef is running, enable the HTTP server (Options → Preferences → Advanced → Remote operation → enable) and ensure the configured port is correct: https://docs.jabref.org/collect/jabref-browser-extension",
+            "warning");
+        document.getElementById('log-box').open = true;
+        // show fallback UI
+        const noneEl = document.getElementById('none');
+        if (noneEl) noneEl.style.display = 'block';
+        return;
+    }
     try {
         if (!window.chrome || !chrome.tabs) {
             urlEl.textContent = 'Chrome extension APIs not available.';
@@ -234,6 +263,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('none').style.display = 'block';
     }
 });
-
-// Auto-connect when popup opens
-connectToJabRef();
