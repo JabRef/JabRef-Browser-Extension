@@ -1,10 +1,10 @@
-# JabRef Browser Extension Browser Extension
+# JabRef Browser Extension
 
 A browser extension that extracts or converts bibliographic metadata from the active page and sends BibTeX entries directly to a running JabRef instance via HTTP POST.
 
 ## Key Features
 
- - Direct HTTP POST to JabRef (no external bridge required).
+- Direct HTTP POST to JabRef (no external bridge required).
 - Automatic detection and conversion: detects embedded BibTeX or RIS blocks, and can run local translators matched via `translators/manifest.json`.
 - Legacy Zotero translators: many Zotero legacy translators run in an offscreen runner with small `ZU`/`Zotero` shims.
 - Auto-send: when a BibTeX entry is produced, the popup will forward it to JabRef if JabRef is reachable over HTTP.
@@ -38,7 +38,7 @@ Notes:
 
 ## Project Structure (high level)
 
-```
+```text
 JabRef Browser Extension/
 ├── popup.html
 ├── popup.js            # UI, translator loading, HTTP send logic
