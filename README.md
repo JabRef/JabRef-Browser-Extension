@@ -1,4 +1,4 @@
-# JabRef Connector Browser Extension
+# JabRef Browser Extension Browser Extension
 
 A browser extension that extracts or converts bibliographic metadata from the active page and sends BibTeX entries directly to a running JabRef instance via HTTP POST.
 
@@ -39,7 +39,7 @@ Notes:
 ## Project Structure (high level)
 
 ```
-JabRef-Connector/
+JabRef Browser Extension/
 ├── popup.html
 ├── popup.js            # UI, translator loading, HTTP send logic
 ├── popup.css

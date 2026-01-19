@@ -1,4 +1,4 @@
-# Setup — JabRef and JabRef-Connector Extension
+# Setup — JabRef and JabRef Browser Extension
 
 This guide helps a regular user install JabRef, enable its HTTP/remote listener so it can accept bibliographic entries, and install the browser extension from this repository.
 

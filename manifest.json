@@ -1,46 +1,37 @@
 {
-    "manifest_version": 3,
-    "name": "JabRef Connector",
-    "version": "1.0.0",
-    "description": "Connect to JabRef via HTTP POST and send bibliography entries",
-    "permissions": [
-        "tabs",
-        "offscreen",
-        "storage",
-        "activeTab"
-    ],
-    "host_permissions": [
-        "<all_urls>"
-    ],
-    "options_ui": {
-        "page": "settings.html",
-        "open_in_tab": false
-    },
-    "background": {
-        "service_worker": "background.js",
-        "scripts": [
-            "background.js"
-        ]
-    },
-    "action": {
-        "default_popup": "popup.html",
-        "default_icon": {
-            "16": "icon16.png",
-            "48": "icon48.png",
-            "128": "icon128.png"
-        }
-    },
-    "icons": {
-        "16": "icon16.png",
-        "48": "icon48.png",
-        "128": "icon128.png"
-    },
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "jabref-connector@example.com",
-            "data_collection_permissions": {
-                "required": ["none"]
-            }
-        }
+  "manifest_version": 3,
+  "name": "JabRef Browser Extension",
+  "version": "1.0.2",
+  "description": "Connect to JabRef via HTTP POST and send bibliography entries",
+  "permissions": ["tabs", "offscreen", "storage", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": false
+  },
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
     }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "browser-extension@jabref",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
 }
