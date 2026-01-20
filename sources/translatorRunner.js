@@ -81,7 +81,7 @@ export async function runTranslatorOnHtml(
                 DOMParser: typeof DOMParser !== 'undefined' ? DOMParser : undefined,
                 // Expose a harmless global for translation scripts that
                 // assume some environment properties exist.
-                globalThis: undefined,
+                globalThis: {},
               };
               const ctx = vm.createContext(ctxObj);
               const script = new vm.Script(src, { filename: p });
@@ -137,7 +137,7 @@ export async function runTranslatorOnHtml(
           script.src = translatorModuleOrPath;
           script.type = 'text/javascript';
           script.onload = () => { try { script.remove(); resolve(); } catch (e) { resolve(); } };
-          script.onerror = (err) => { try { script.remove(); } catch (e) {} ; reject(err || new Error('Script load error')); };
+          script.onerror = (err) => { try { script.remove(); } catch (e) { }; reject(err || new Error('Script load error')); };
           (document.head || document.documentElement).appendChild(script);
         });
         module = {
@@ -181,12 +181,12 @@ export async function runTranslatorOnHtml(
       // Expose `doc` and `document` globals for legacy translators that
       // reference `doc`/`document` from nested callbacks executed outside
       // the original `doWeb` stack.
-      try { root.doc = doc; } catch (e) {}
-      try { root.document = doc; } catch (e) {}
+      try { root.doc = doc; } catch (e) { }
+      try { root.document = doc; } catch (e) { }
       // fresh Z state
-      root.Z = { debug: () => {}, monitorDOMChanges: () => {}, getHiddenPref: () => false };
+      root.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false };
       // Clear any previous last item so produced item is from this run only
-      try { root.Zotero._lastItem = null; } catch (e) {}
+      try { root.Zotero._lastItem = null; } catch (e) { }
       root.attr = ((d, selector, name) => {
         try {
           const el = (d || doc).querySelector(selector);
@@ -203,19 +203,21 @@ export async function runTranslatorOnHtml(
       try {
         if (module && module.__vmContext) {
           const ctx = module.__vmContext;
-          try { ctx.ZU = ZU; } catch (e) {}
-          try { ctx.Zotero = Zotero; } catch (e) {}
-          try { ctx.doc = doc; } catch (e) {}
-          try { ctx.document = doc; } catch (e) {}
-          try { ctx.Z = { debug: () => {}, monitorDOMChanges: () => {}, getHiddenPref: () => false }; } catch (e) {}
-          try { ctx.Zotero && (ctx.Zotero._lastItem = null); } catch (e) {}
-          try { ctx.attr = ((d, selector, name) => {
-            try {
-              const el = (d || doc).querySelector(selector);
-              return el ? el.getAttribute(name) : "";
-            } catch (e) { return ""; }
-          }); } catch (e) {}
-          try { ctx.text = ((d, selector) => ZU.text(d, selector)); } catch (e) {}
+          try { ctx.ZU = ZU; } catch (e) { }
+          try { ctx.Zotero = Zotero; } catch (e) { }
+          try { ctx.doc = doc; } catch (e) { }
+          try { ctx.document = doc; } catch (e) { }
+          try { ctx.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false }; } catch (e) { }
+          try { ctx.Zotero && (ctx.Zotero._lastItem = null); } catch (e) { }
+          try {
+            ctx.attr = ((d, selector, name) => {
+              try {
+                const el = (d || doc).querySelector(selector);
+                return el ? el.getAttribute(name) : "";
+              } catch (e) { return ""; }
+            });
+          } catch (e) { }
+          try { ctx.text = ((d, selector) => ZU.text(d, selector)); } catch (e) { }
         }
       } catch (e) {
         // non-fatal if VM context cannot be decorated
@@ -303,13 +305,13 @@ export async function runTranslatorOnHtml(
       root.ZU = ZU;
       root.Zotero = Zotero;
       root.Z = {
-        debug: () => {},
-        monitorDOMChanges: () => {},
+        debug: () => { },
+        monitorDOMChanges: () => { },
         getHiddenPref: () => false,
       };
-      try { root.doc = doc; } catch (e) {}
-      try { root.document = doc; } catch (e) {}
-      try { root.Zotero._lastItem = null; } catch (e) {}
+      try { root.doc = doc; } catch (e) { }
+      try { root.document = doc; } catch (e) { }
+      try { root.Zotero._lastItem = null; } catch (e) { }
 
       // small helpers used by many translators
       root.attr = ((d, selector, name) => {
@@ -340,21 +342,23 @@ export async function runTranslatorOnHtml(
       try {
         if (module && module.__vmContext) {
           const ctx = module.__vmContext;
-          try { ctx.ZU = ZU; } catch (e) {}
-          try { ctx.Zotero = Zotero; } catch (e) {}
-          try { ctx.Z = { debug: () => {}, monitorDOMChanges: () => {}, getHiddenPref: () => false }; } catch (e) {}
-          try { ctx.doc = doc; } catch (e) {}
-          try { ctx.document = doc; } catch (e) {}
-          try { ctx.Zotero && (ctx.Zotero._lastItem = null); } catch (e) {}
-          try { ctx.attr = ((d, selector, name) => {
-            try {
-              const el = (d || doc).querySelector(selector);
-              return el ? el.getAttribute(name) : "";
-            } catch (e) { return ""; }
-          }); } catch (e) {}
-          try { ctx.text = ((d, selector) => ctx.ZU.text(d, selector)); } catch (e) {}
-          try { ctx.requestText = root.requestText; } catch (e) {}
-          try { ctx.requestDocument = root.requestDocument; } catch (e) {}
+          ctx.ZU = ZU;
+          ctx.Zotero = Zotero;
+          ctx.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false };
+          ctx.doc = doc;
+          ctx.document = doc;
+          ctx.Zotero && (ctx.Zotero._lastItem = null);
+                      ctx.attr = ((d, selector, name) => {
+              try {
+                const el = (d || doc).querySelector(selector);
+                return el ? el.getAttribute(name) : "";
+              } catch (e) { return ""; }
+            });
+            if (ctx.ZU) { // This should never fail
+              ctx.text = ((d, selector) => ctx.ZU.text(d, selector));
+            }
+          ctx.requestText = root.requestText;
+          ctx.requestDocument = root.requestDocument;
         }
       } catch (e) {
         // continue if decorating VM context fails
