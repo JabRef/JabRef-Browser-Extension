@@ -12,8 +12,9 @@ A browser extension that extracts or converts bibliographic metadata from the ac
 
 ## Prerequisites
 
-1. JabRef running locally and reachable over HTTP on a configurable port.
-2. The popup assumes JabRef is reachable at `http://localhost:<port>` (default port stored in extension settings, default 23119).
+1. After cloning the repo execute the python script `scripts/import_and_patch_translators.py`
+2. JabRef running locally and reachable over HTTP on a configurable port.
+3. The popup assumes JabRef is reachable at `http://localhost:<port>` (default port stored in extension settings, default 23119).
 
 See [SETUP.md](SETUP.md) for step-by-step instructions for regular users (installing JabRef, enabling JabRef's HTTP/remote listener, and installing the extension).
 
