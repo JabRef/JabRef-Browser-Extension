@@ -11,6 +11,10 @@ jobs:
     - uses: actions/checkout@v6
     - name: Set up Node.js
       uses: actions/setup-node@v6
+    - name: Set up Python
+      uses: actions/setup-python@v6
+    - name: Run import_and_patch_translators
+      run: python3 scripts/import_and_patch_translators.py
     - name: Install dependencies
       run: npm install
     - name: Run tests
