@@ -81,7 +81,7 @@ Note that this browser extension does not make any changes to the Zotero databas
 1. Install [Node.js](https://nodejs.org) (e.g., `choco install nodejs`)
 2. Install [gulp](https://gulpjs.com/) and [web-ext](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext): `npm install --global gulp-cli web-ext`
 3. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
-4. Checkout the repository.
+4. Clone the repository **with submodules**: `git clone --recursive git@github.com:{your-username}/JabRef-Browser-Extension.git`
 5. Install development dependencies via `npm install`.
 6. **After cloning the repo execute the python script `scripts/import_and_patch_translators.py`**
 7. JabRef running locally and reachable over HTTP on a configurable port.
