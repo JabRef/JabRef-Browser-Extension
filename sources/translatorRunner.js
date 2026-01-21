@@ -68,10 +68,45 @@ export async function runTranslatorOnHtml(
         // Evaluate in global scope so legacy scripts attach functions to globalThis
         try {
           const vmModule = await import('vm');
-          if (vmModule && typeof vmModule.runInThisContext === 'function') {
-            vmModule.runInThisContext(src, { filename: p });
+          if (vmModule) {
+            try {
+              const vm = vmModule;
+              // Create an isolated context for this translator run with a
+              // minimal set of globals. We'll inject richer shims (ZU, Zotero,
+              // doc, etc.) below once the DOM is created.
+              const ctxObj = {
+                console,
+                URL,
+                fetch: typeof fetch !== 'undefined' ? fetch : undefined,
+                DOMParser: typeof DOMParser !== 'undefined' ? DOMParser : undefined,
+                // Expose a harmless global for translation scripts that
+                // assume some environment properties exist.
+                globalThis: {},
+              };
+              const ctx = vm.createContext(ctxObj);
+              const script = new vm.Script(src, { filename: p });
+              script.runInContext(ctx);
+
+              const bindFn = (name) => {
+                if (typeof ctx[name] === 'function') {
+                  return (...args) => ctx[name].apply(ctx, args);
+                }
+                return undefined;
+              };
+
+              module = {
+                detect: bindFn('detect'),
+                detectWeb: bindFn('detectWeb'),
+                translate: bindFn('translate'),
+                doWeb: bindFn('doWeb'),
+                __vmContext: ctx,
+              };
+            } catch (e) {
+              console.warn('[translatorRunner] vm fallback evaluation failed', e);
+              throw e;
+            }
           } else {
-            throw new Error('vm.runInThisContext unavailable');
+            throw new Error('vm module unavailable');
           }
         } catch (e) {
           // Do NOT use `eval` as a fallback — it's unsafe. Log and abort
@@ -79,12 +114,6 @@ export async function runTranslatorOnHtml(
           // Let outer handler detect that fallback failed; do not attempt insecure evaluation.
           throw e;
         }
-        module = {
-          detect: root.detect,
-          detectWeb: root.detectWeb,
-          translate: root.translate,
-          doWeb: root.doWeb,
-        };
       } catch (e) {
         console.warn('[translatorRunner] legacy eval fallback failed', e);
       }
@@ -108,7 +137,7 @@ export async function runTranslatorOnHtml(
           script.src = translatorModuleOrPath;
           script.type = 'text/javascript';
           script.onload = () => { try { script.remove(); resolve(); } catch (e) { resolve(); } };
-          script.onerror = (err) => { try { script.remove(); } catch (e) {} ; reject(err || new Error('Script load error')); };
+          script.onerror = (err) => { try { script.remove(); } catch (e) { }; reject(err || new Error('Script load error')); };
           (document.head || document.documentElement).appendChild(script);
         });
         module = {
@@ -152,12 +181,12 @@ export async function runTranslatorOnHtml(
       // Expose `doc` and `document` globals for legacy translators that
       // reference `doc`/`document` from nested callbacks executed outside
       // the original `doWeb` stack.
-      try { root.doc = doc; } catch (e) {}
-      try { root.document = doc; } catch (e) {}
+      try { root.doc = doc; } catch (e) { }
+      try { root.document = doc; } catch (e) { }
       // fresh Z state
-      root.Z = { debug: () => {}, monitorDOMChanges: () => {}, getHiddenPref: () => false };
+      root.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false };
       // Clear any previous last item so produced item is from this run only
-      try { root.Zotero._lastItem = null; } catch (e) {}
+      try { root.Zotero._lastItem = null; } catch (e) { }
       root.attr = ((d, selector, name) => {
         try {
           const el = (d || doc).querySelector(selector);
@@ -167,6 +196,32 @@ export async function runTranslatorOnHtml(
         }
       });
       root.text = ((d, selector) => ZU.text(d, selector));
+
+      // If the translator was evaluated into an isolated VM context, inject
+      // the same shims into that context so legacy global references resolve
+      // inside the VM instead of polluting the runner global scope.
+      try {
+        if (module && module.__vmContext) {
+          const ctx = module.__vmContext;
+          try { ctx.ZU = ZU; } catch (e) { }
+          try { ctx.Zotero = Zotero; } catch (e) { }
+          try { ctx.doc = doc; } catch (e) { }
+          try { ctx.document = doc; } catch (e) { }
+          try { ctx.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false }; } catch (e) { }
+          try { ctx.Zotero && (ctx.Zotero._lastItem = null); } catch (e) { }
+          try {
+            ctx.attr = ((d, selector, name) => {
+              try {
+                const el = (d || doc).querySelector(selector);
+                return el ? el.getAttribute(name) : "";
+              } catch (e) { return ""; }
+            });
+          } catch (e) { }
+          try { ctx.text = ((d, selector) => ZU.text(d, selector)); } catch (e) { }
+        }
+      } catch (e) {
+        // non-fatal if VM context cannot be decorated
+      }
     } catch (e) {
       console.warn('[translatorRunner] failed to create ZU/Zotero shims for detection', e);
     }
@@ -250,13 +305,13 @@ export async function runTranslatorOnHtml(
       root.ZU = ZU;
       root.Zotero = Zotero;
       root.Z = {
-        debug: () => {},
-        monitorDOMChanges: () => {},
+        debug: () => { },
+        monitorDOMChanges: () => { },
         getHiddenPref: () => false,
       };
-      try { root.doc = doc; } catch (e) {}
-      try { root.document = doc; } catch (e) {}
-      try { root.Zotero._lastItem = null; } catch (e) {}
+      try { root.doc = doc; } catch (e) { }
+      try { root.document = doc; } catch (e) { }
+      try { root.Zotero._lastItem = null; } catch (e) { }
 
       // small helpers used by many translators
       root.attr = ((d, selector, name) => {
@@ -281,6 +336,33 @@ export async function runTranslatorOnHtml(
 
       // Ensure ZU.requestDocument resolves relative URLs as well
       root.ZU.requestDocument = root.requestDocument;
+
+      // Also install shims into the VM context for translators evaluated in
+      // an isolated VM so their globals resolve correctly there.
+      try {
+        if (module && module.__vmContext) {
+          const ctx = module.__vmContext;
+          ctx.ZU = ZU;
+          ctx.Zotero = Zotero;
+          ctx.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false };
+          ctx.doc = doc;
+          ctx.document = doc;
+          ctx.Zotero && (ctx.Zotero._lastItem = null);
+                      ctx.attr = ((d, selector, name) => {
+              try {
+                const el = (d || doc).querySelector(selector);
+                return el ? el.getAttribute(name) : "";
+              } catch (e) { return ""; }
+            });
+            if (ctx.ZU) { // This should never fail
+              ctx.text = ((d, selector) => ctx.ZU.text(d, selector));
+            }
+          ctx.requestText = root.requestText;
+          ctx.requestDocument = root.requestDocument;
+        }
+      } catch (e) {
+        // continue if decorating VM context fails
+      }
 
       try {
         await module.doWeb(doc, url);

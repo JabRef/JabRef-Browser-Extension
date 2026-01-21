@@ -53,15 +53,6 @@ async function run_on_file(filename) {
     // Expose XPathResult from jsdom so xpath evaluation constants are available
     global.XPathResult = dom.window.XPathResult;
 
-    if (!global.fetch) {
-        try {
-            global.fetch = require('node-fetch');
-        } catch (e) {
-            console.error('Please install node-fetch: npm install node-fetch');
-            process.exit(1);
-        }
-    }
-
     // Dynamic import of the ES module translator runner
     const trPath = path.join(__dirname, 'sources/translatorRunner.js');
     const trModule = await import('file://' + trPath);

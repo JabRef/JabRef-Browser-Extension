@@ -1,6 +1,10 @@
 {
+  "name": "jabref-browser-extension",
+  "description": "Tests for JabRef Connector Extension",
+  "scripts": {
+    "test": "node test.js arXiv.org.js"
+  },
   "dependencies": {
-    "jsdom": "^27.4.0",
-    "node-fetch": "^3.3.2"
+    "jsdom": "^27.4.0"
   }
 }
