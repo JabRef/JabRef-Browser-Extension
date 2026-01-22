@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "JabRef Browser Extension",
   "version": "1.0.2",
-  "description": "Connect to JabRef via HTTP POST and send bibliography entries",
+  "description": "Connect to JabRef via 6.0 HTTP Interface and send bibliography entries",
   "permissions": ["tabs", "offscreen", "storage", "activeTab"],
   "host_permissions": ["<all_urls>"],
   "options_ui": {
@@ -16,15 +16,15 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icon16.png",
-      "48": "icon48.png",
-      "128": "icon128.png"
+      "16": "JabRef-icon-16.png",
+      "48": "JabRef-icon-48.png",
+      "128": "JabRef-icon-128.png"
     }
   },
   "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+    "16": "JabRef-icon-16.png",
+    "48": "JabRef-icon-48.png",
+    "128": "JabRef-icon-128.png"
   },
   "browser_specific_settings": {
     "gecko": {
