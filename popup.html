@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>JabRef Browser Extension</title>
+        <link rel="stylesheet" href="popup.css" />
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>JabRef Browser Extension</h1>
+
+            <div class="status-section">
+                <p>
+                    Connection Status:
+                    <span id="status" class="status-disconnected"
+                        >Disconnected</span
+                    >
+                </p>
+            </div>
+
+            <div class="sample-section">
+                <h3>Sample BibTeX Entry:</h3>
+                <textarea id="bibEntry" rows="10"></textarea>
+            </div>
+
+            <details id="log-box">
+                <summary>Logs</summary>
+                <div id="log" class="log-box"></div>
+            </details>
+        </div>
+
+        <script src="popup.js"></script>
+    </body>
+</html>

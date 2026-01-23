@@ -1,19 +1,27 @@
+# Basic `dependabot.yml` file with
+# minimum configuration for three package managers
+
 version: 2
 updates:
-- package-ecosystem: npm
-  directory: "/"
-  schedule:
-    interval: weekly
-    day: friday
-    time: "18:00"
-  open-pull-requests-limit: 10
-  labels:
-  - type:dependency
-- package-ecosystem: "github-actions"
-  directory: "/"
-  schedule:
-    interval: weekly
-    day: friday
-    time: "18:00"
-  labels:
-  - type:dependency
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: sunday
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    # Workflow files stored in the default location of `.github/workflows`
+    # You don't need to specify `/.github/workflows` for `directory`. You can use `directory: "/"`.
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: sunday
+  
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+    labels: [ ]
