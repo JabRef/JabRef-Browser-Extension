@@ -5,19 +5,18 @@
 		"dev:chrome": "web-ext run -t chromium",
 		"dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
 		"build": "web-ext build",
-		"lint": "pnpm lint:eslint && pnpm lint:firefox",
+		"lint": "pnpm lint:oxlint && pnpm lint:firefox",
 		"lint:firefox": "web-ext lint",
-		"lint:eslint": "eslint . --ignore-pattern 'translators/*'",
+		"lint:oxlint": "oxlint",
 		"submit:firefox": "web-ext sign",
 		"test": "node test.js arXiv.org.js"
 	},
-	"dependencies": {
-	},
 	"devDependencies": {
-		"jsdom": "^27.4.0",
 		"@eslint/js": "^9.39.2",
 		"eslint": "^9.39.2",
 		"globals": "^17.0.0",
+		"jsdom": "^27.4.0",
+		"oxlint": "^1.41.0",
 		"web-ext": "^9.2.0"
 	},
 	"repository": {
