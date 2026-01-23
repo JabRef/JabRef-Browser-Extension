@@ -1,55 +1,24 @@
 {
 	"name": "jabrefbrowserextension",
 	"scripts": {
-		"prepare": "ncp node_modules/webextension-polyfill/dist/browser-polyfill.min.js browser-polyfill.min.js",
 		"dev:firefox": "web-ext run",
 		"dev:chrome": "web-ext run -t chromium",
 		"dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
 		"build": "web-ext build",
+		"lint": "pnpm lint:oxlint && pnpm lint:firefox",
 		"lint:firefox": "web-ext lint",
-		"submit:firefox": "web-ext sign"
+		"lint:oxlint": "oxlint",
+		"submit:firefox": "web-ext sign",
+		"test": "node test.js arXiv.org.js"
 	},
 	"devDependencies": {
-		"babel-cli": "^6.26.0",
-		"babel-core": "^6.26.3",
-		"babel-plugin-transform-react-jsx": "^6.24.1",
-		"babel-preset-env": "^1.7.0",
-		"bluebird": "^3.7.2",
-		"browserify": "^17.0.0",
-		"chai": "^4.3.7",
-		"chalk": "^5.2.0",
-		"chromedriver": "^109.0.0",
-		"geckodriver": "^3.2.0",
-		"gulp": "^4.0.2",
-		"gulp-jsbeautify": "^0.1.1",
-		"gulp-plumber": "^1.2.1",
-		"gulp-rename": "^2.0.0",
-		"mocha": "^10.2.0",
-		"ncp": "^2.0.0",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"selenium-webdriver": "^4.8.0",
-		"sinon": "^15.0.1",
-		"through2": "^4.0.2",
-		"web-ext": "^7.5.0",
-		"webextension-polyfill": "^0.10.0",
-		"yargs": "^17.6.2",
-		"jsdom": "^21.1.0",
-		"canvas": "^2.11.0",
-		"bufferutil": "^4.0.7",
-		"utf-8-validate": "^6.0.2"
+		"@eslint/js": "^9.39.2",
+		"eslint": "^9.39.2",
+		"globals": "^17.0.0",
+		"jsdom": "^27.4.0",
+		"oxlint": "^1.41.0",
+		"web-ext": "^9.2.0"
 	},
-	"babel": {
-		"presets": [
-			[
-				"env",
-				{
-					"modules": false
-				}
-			]
-		]
-	},
-	"dependencies": {},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/JabRef/JabRef-Browser-Extension.git"
@@ -67,5 +36,6 @@
 		"JabRef",
 		"reference management"
 	],
-	"author": "JabRef"
+	"author": "JabRef",
+	"packageManager": "pnpm@10.20.0"
 }

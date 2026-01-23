@@ -1,49 +1,19 @@
 {
 	"browser_specific_settings": {
 		"gecko": {
-			"id": "@jabfox"
+			"id": "@jabfox",
+			"data_collection_permissions": {
+        "required": ["none"]
+      }
 		}
 	},
 
 	"author": "JabRef",
 
-	"background": {
-		"scripts": [
-			"browser-polyfill.min.js",
-			"external-scripts/zotero_config.js",
-			"external-scripts/zotero.js",
-			"external-scripts/promise.js",
-			"external-scripts/date.js",
-			"external-scripts/openurl.js",
-			"external-scripts/prefs.js",
-			"external-scripts/errors_webkit.js",
-			"external-scripts/http.js",
-			"external-scripts/proxy.js",
-			"connector.js",
-			"external-scripts/debug.js",
-			"external-scripts/xregexp-all.js",
-			"external-scripts/xregexp-unicode-zotero.js",
-			"external-scripts/zoteroTypeSchemaData.js",
-			"external-scripts/cachedTypes.js",
-			"external-scripts/repo.js",
-			"external-scripts/translate.js",
-			"external-scripts/translate_inject.js",
-			"external-scripts/tlds.js",
-			"external-scripts/translator.js",
-			"external-scripts/translators.js",
-			"external-scripts/connectorTypeSchemaData.js",
-			"external-scripts/utilities.js",
-			"external-scripts/utilities_item.js",
-			"external-scripts/utilities_translate.js",
-			"external-scripts/messages.js",
-			"external-scripts/messaging.js",
-			"external-scripts/background.js",
-			"zsc_misc_pre.js",
-			"external-scripts/zsc/zsc.js",
-			"wsClient.js",
-			"background.js"
-		]
-	},
+  	"background": {
+    	"service_worker": "background.js",
+    	"scripts": ["background.js"]
+  	},
 
 	"page_action": {
 		"default_icon": {
@@ -61,8 +31,6 @@
 		}
 	},
 
-	"content_security_policy": "script-src 'self' https://cdn.tailwindcss.com; object-src 'self'",
-
 	"description": "The JabRef browser extension imports new bibliographic information directly from the browser into JabRef.",
 
 	"developer": {
@@ -73,20 +41,21 @@
 	"homepage_url": "http://www.jabref.org/",
 
 	"icons": {
+		"16": "data/JabRef-icon-16.png",
 		"48": "data/JabRef-icon-48.png",
-		"96": "data/JabRef-icon-96.png"
+		"96": "data/JabRef-icon-96.png",
+		"128": "data/JabRef-icon-128.png"
 	},
 
 	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAimiMLZZCsf+p92UUzQRWYljtoUk0a9AuN+D3TJTFcm1BEDXKIDVmWG20S4yLQyYs8kWao3eTSdYykgsZLPtay1pFKtoM4csGB6sEOO+h25Nv/AU7pN5yH5PqcTIGkuH6AsQQQTPS1Y+vDfz+548oVXzK033l6ernhKRj4dngueZyQX89U38zkorq0/PPWfE8ppPzXiWo1Pn5C5scgzaHSfavIkbBpWuiJw6moSoYw4UxzmU6FmzjM/c8Ags/QPU/8M3BeC1eigStifBDkuIIDQtMtiTXEgCqHjIacB3uB7SJKL+0wsoREqoz3cX7uNLnB+DKu+s0OZKVah8gkliBLQIDAQAB",
 
-	"manifest_version": 2,
+	"manifest_version": 3,
 
 	"name": "JabRef Browser Extension",
 
 	"options_ui": {
-		"page": "data/options.html",
-		"browser_style": true,
-		"chrome_style": true
+		"page": "settings.html",
+    	"open_in_tab": false
 	},
 
 	"permissions": [
@@ -94,49 +63,20 @@
 		"activeTab",
 		"tabs",
 		"storage",
-		"nativeMessaging"
+		"nativeMessaging",
+		"offscreen"
 	],
 
-	"content_scripts": [{
-		"matches": ["http://*/*", "https://*/*"],
-		"run_at": "document_start",
-		"js": [
-			"browser-polyfill.min.js",
-			"external-scripts/zotero_config.js",
-			"external-scripts/zotero.js",
-			"external-scripts/promise.js",
-			"external-scripts/http.js",
-			"external-scripts/proxy.js",
-			"external-scripts/date.js",
-			"external-scripts/debug.js",
-			"external-scripts/utilities-schema.js",
-			"external-scripts/openurl.js",
-			"external-scripts/xregexp-all.js",
-			"external-scripts/xregexp-unicode-zotero.js",
-			"external-scripts/zoteroTypeSchemaData.js",
-			"external-scripts/cachedTypes.js",
-			"external-scripts/schema.js",
-			"external-scripts/rdf/init.js",
-			"external-scripts/rdf/uri.js",
-			"external-scripts/rdf/term.js",
-			"external-scripts/rdf/identity.js",
-			"external-scripts/rdf/rdfparser.js",
-			"external-scripts/translate.js",
-			"external-scripts/translator.js",
-			"external-scripts/translate_item.js",
-			"external-scripts/connectorTypeSchemaData.js",
-			"external-scripts/utilities.js",
-			"external-scripts/utilities_item.js",
-			"external-scripts/utilities_translate.js",
-			"external-scripts/utilities-common.js",
-			"external-scripts/http_inject.js",
-			"external-scripts/translate_inject.js",
-			"external-scripts/messages.js",
-			"external-scripts/messaging_inject.js",
-			"external-scripts/inject.js",
-			"bibtexConverter.js"
-		]
-	}],
+	"action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"16": "data/JabRef-icon-16.png",
+			"48": "data/JabRef-icon-48.png",
+			"128": "data/JabRef-icon-128.png"
+		}
+	},
 
-	"version": "2.5"
+	"version": "2.5",
+	"host_permissions": ["<all_urls>"]
+  
 }

@@ -8,7 +8,7 @@
             "reAttach": true,
             "reloadOnChange": {
                 "watch": "${workspaceFolder}/**/*.js",
-                "ignore": ["**/node_modules/**", "{workspaceFolder}/zotero-connectors/**"]
+                "ignore": ["**/node_modules/**"]
             },
             "addonPath": "${workspaceFolder}",
             "firefoxArgs": ["https://arxiv.org/a/diez_t_1.html", "about:debugging#/runtime/this-firefox"]
