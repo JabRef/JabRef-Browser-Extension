@@ -1,11 +1,9 @@
 module.exports = {
     ignoreFiles: [
-        'zotero-connectors',
         'circle.yml',
-        'gulpfile.js',
         'package-lock.json',
         'install_linux.sh',
-        'zotero-scholar-citations',
+        'translators',
         '.idea',
         'workspace.code-workspace',
     ],
