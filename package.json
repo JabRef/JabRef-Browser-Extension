@@ -5,10 +5,11 @@
 		"dev:chrome": "web-ext run -t chromium",
 		"dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
 		"build": "web-ext build",
+		"lint": "npm run lint:eslint && npm run lint:firefox",
 		"lint:firefox": "web-ext lint",
+		"lint:eslint": "eslint . --ignore-pattern 'translators/*'",
 		"submit:firefox": "web-ext sign",
-		"test": "node test.js arXiv.org.js",
-		"lint:eslint": "eslint . --ignore-pattern 'translators/*'"
+		"test": "node test.js arXiv.org.js"
 	},
 	"dependencies": {
 		"jsdom": "^27.4.0"
