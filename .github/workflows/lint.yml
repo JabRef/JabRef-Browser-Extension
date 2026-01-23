@@ -1,0 +1,25 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+jobs:
+  run:
+    name: Run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx eslint

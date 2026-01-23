@@ -1,14 +1,18 @@
-name: Test Workflow
+name: Tests
 
 on:
   pull_request:
   push:
+  merge_group:
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
+      with:
+        submodules: true
     - name: Set up Node.js
       uses: actions/setup-node@v6
     - name: Set up Python

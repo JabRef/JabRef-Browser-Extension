@@ -2,7 +2,7 @@ export function parseRisToBib(risText) {
   const lines = risText.split(/\r?\n/);
   const record = {};
   for (const line of lines) {
-    const m = line.match(/^([A-Z0-9]{2})  -\s?(.*)$/);
+    const m = line.match(/^([A-Z0-9]{2}) {2}-\s?(.*)$/);
     if (!m) continue;
     const tag = m[1];
     const value = m[2].trim();

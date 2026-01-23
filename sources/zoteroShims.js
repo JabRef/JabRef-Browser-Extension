@@ -206,7 +206,7 @@ export function createZoteroShim() {
             if (!itemHandler) return;
             try {
               let bib = storedString;
-              if (storedString && /^TY  - /m.test(storedString)) {
+              if (storedString && /^TY {2}- /m.test(storedString)) {
                 try {
                   const risMod = await import('./ris.js');
                   if (risMod && typeof risMod.parseRisToBib === 'function') {
