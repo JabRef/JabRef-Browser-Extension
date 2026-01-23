@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     ignoreFiles: [
         'circle.yml',
         'package-lock.json',

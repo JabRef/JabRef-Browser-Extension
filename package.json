@@ -16,7 +16,8 @@
 	"devDependencies": {
 		"@eslint/js": "^9.39.2",
 		"eslint": "^9.39.2",
-		"globals": "^17.0.0"
+		"globals": "^17.0.0",
+		"web-ext": "^9.2.0"
 	},
 	"repository": {
 		"type": "git",

@@ -37,11 +37,10 @@ JabRef browser extension uses the [WebExtensions API](https://developer.mozilla.
 
 Preparation:
 1. Install [Node.js](https://nodejs.org) (e.g., `choco install nodejs`)
-2. Install [gulp](https://gulpjs.com/) and [web-ext](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Getting_started_with_web-ext): `npm install --global gulp-cli web-ext`
-3. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
-4. Checkout the repository.
-5. Install development dependencies via `npm install`.
-6. Start browser with the add-on activated:
+2. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
+3. Checkout the repository.
+4. Install development dependencies via `npm install`.
+5. Start browser with the add-on activated:
    Firefox: `npm run dev:firefox`
    Chrome: `npm run dev:opera`
 
