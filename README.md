@@ -39,10 +39,10 @@ Preparation:
 1. Install [Node.js](https://nodejs.org) (e.g., `choco install nodejs`)
 2. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
 3. Checkout the repository.
-4. Install development dependencies via `npm install`.
+4. Install development dependencies via `pnpm install`.
 5. Start browser with the add-on activated:
-   Firefox: `npm run dev:firefox`
-   Chrome: `npm run dev:opera`
+  Firefox: `pnpm dev:firefox`
+  Chrome: `pnpm dev:opera`
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 1. Create your feature branch: `git checkout -b my-new-feature`
@@ -53,13 +53,13 @@ Now just follow the typical steps to [contribute code](https://guides.github.com
 
 To update dependencies:
 
- - `npm outdated` gives an overview of outdated packages ([doc](https://docs.npmjs.com/cli/outdated))
- - `npm-upgrade` updates all packages 
- - `npm install` install updated packages
+ - `pnpm outdated` gives an overview of outdated packages ([doc](https://pnpm.io/cli/outdated))
+ - `pnpm update --latest` updates all packages
+ - `pnpm install` installs updated packages
  
 ## Release of new version
 - Increase version number in `manifest.json`
-- `npm run build`
+- `pnpm build`
 - Upload to:
   - https://addons.mozilla.org/en-US/developers/addon/jabref/versions/submit/
   - https://chrome.google.com/u/2/webstore/devconsole/26c4c347-9aa1-48d8-8a22-1c79fd3a597e/bifehkofibaamoeaopjglfkddgkijdlh/edit/package

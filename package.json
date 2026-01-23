@@ -5,16 +5,16 @@
 		"dev:chrome": "web-ext run -t chromium",
 		"dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
 		"build": "web-ext build",
-		"lint": "npm run lint:eslint && npm run lint:firefox",
+		"lint": "pnpm lint:eslint && pnpm lint:firefox",
 		"lint:firefox": "web-ext lint",
 		"lint:eslint": "eslint . --ignore-pattern 'translators/*'",
 		"submit:firefox": "web-ext sign",
 		"test": "node test.js arXiv.org.js"
 	},
 	"dependencies": {
-		"jsdom": "^27.4.0"
 	},
 	"devDependencies": {
+		"jsdom": "^27.4.0",
 		"@eslint/js": "^9.39.2",
 		"eslint": "^9.39.2",
 		"globals": "^17.0.0",
@@ -37,5 +37,6 @@
 		"JabRef",
 		"reference management"
 	],
-	"author": "JabRef"
+	"author": "JabRef",
+	"packageManager": "pnpm@10.20.0"
 }

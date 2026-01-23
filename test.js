@@ -80,7 +80,7 @@ async function run_on_file(filename, singleTestIndex) {
         const jsdomMod = await import('jsdom');
         JSDOM = jsdomMod.JSDOM;
     } catch (e) {
-        console.error('Please install jsdom: npm install jsdom');
+        console.error('Please install jsdom: pnpm add jsdom');
         process.exit(1);
     }
     const dom = new JSDOM('<!doctype html><html><body></body></html>');
