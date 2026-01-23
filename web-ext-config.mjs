@@ -6,6 +6,8 @@ export default {
         'translators',
         '.idea',
         'workspace.code-workspace',
+        'test.js',
+        'scripts/**',
     ],
     run: {
         startUrl: [
