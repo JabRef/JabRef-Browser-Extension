@@ -2,7 +2,12 @@ import { runTranslatorOnHtml } from './sources/translatorRunner.js';
 
 console.debug('[offscreen] started');
 
-chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+// Provide a minimal compatibility shim: if `browser` is missing, alias it to `chrome`.
+if (typeof browser === "undefined" && typeof chrome !== "undefined") {
+  globalThis.browser = chrome;
+}
+
+browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
   if (!msg || msg.type !== 'runTranslator') return;
   const { url, translatorPath, translators } = msg;
   try {
@@ -17,11 +22,10 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       try {
         const result = await runTranslatorOnHtml(t, html, url);
         if (result !== null && typeof result !== 'undefined') {
-          chrome.runtime.sendMessage({ type: 'offscreenResult', url, result });
+          await browser.runtime.sendMessage({ type: 'offscreenResult', url, result });
           sendResponse({ ok: true });
           return true;
         }
-        // null result -> try next translator
       } catch (e) {
         lastError = e;
         console.warn('[offscreen] translator failed, trying next:', t, e);
@@ -29,16 +33,15 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       }
     }
 
-    // none produced a result
     if (lastError) {
-      chrome.runtime.sendMessage({ type: 'offscreenResult', url, error: String(lastError) });
+      await browser.runtime.sendMessage({ type: 'offscreenResult', url, error: String(lastError) });
       sendResponse({ ok: false, error: String(lastError) });
     } else {
-      chrome.runtime.sendMessage({ type: 'offscreenResult', url, result: null });
+      await browser.runtime.sendMessage({ type: 'offscreenResult', url, result: null });
       sendResponse({ ok: true, result: null });
     }
   } catch (e) {
-    chrome.runtime.sendMessage({ type: 'offscreenResult', url, error: String(e) });
+    await browser.runtime.sendMessage({ type: 'offscreenResult', url, error: String(e) });
     sendResponse({ ok: false, error: String(e) });
   }
   return true;

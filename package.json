@@ -2,6 +2,7 @@
   "name": "jabref-browser-extension",
   "description": "Tests for JabRef Connector Extension",
   "scripts": {
+    "lint": "eslint . --ignore-pattern 'translators/*'",
     "test": "node test.js arXiv.org.js"
   },
   "dependencies": {

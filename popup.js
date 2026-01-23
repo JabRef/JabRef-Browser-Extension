@@ -1,5 +1,10 @@
+// Provide a minimal compatibility shim: if `browser` is missing, alias it to `chrome`.
+if (typeof browser === "undefined" && typeof chrome !== "undefined") {
+  globalThis.browser = chrome;
+}
+
 async function findMatchesForUrl(url) {
-  const manifestUrl = chrome.runtime.getURL("translators/manifest.json");
+  const manifestUrl = browser.runtime.getURL("translators/manifest.json");
   const resp = await fetch(manifestUrl);
   const list = await resp.json();
 
@@ -19,8 +24,6 @@ async function findMatchesForUrl(url) {
 }
 
 function renderResults(url, matches) {
-  const log = document.getElementById("log");
-  const bib = document.getElementById("bibEntry");
   // Log the URL
   appendLog(`URL: ${url}`);
   if (!matches || !matches.length) {
@@ -30,12 +33,12 @@ function renderResults(url, matches) {
 }
 
 async function ensureOffscreen() {
-  if (!chrome.offscreen) return false;
-  const has = await chrome.offscreen.hasDocument();
+  if (!browser.offscreen) return false;
+  const has = await browser.offscreen.hasDocument();
   if (has) return true;
   try {
-    await chrome.offscreen.createDocument({
-      url: chrome.runtime.getURL("offscreen.html"),
+    await browser.offscreen.createDocument({
+      url: browser.runtime.getURL("offscreen.html"),
       reasons: ["DOM_PARSER"],
       justification: "Run translators offscreen",
     });
@@ -47,33 +50,20 @@ async function ensureOffscreen() {
 }
 
 async function runTranslatorOffscreen(translatorPaths, url) {
-  const ok = await ensureOffscreen();
+  await ensureOffscreen();
   const payload = { type: "runTranslator", translators: translatorPaths, url };
   try {
     appendLog(`Requesting translator run for ${url}`, "info");
-    chrome.runtime.sendMessage(payload, (resp) => {
-      if (chrome.runtime.lastError) {
-        appendLog(
-          `Background sendMessage failed: ${chrome.runtime.lastError.message}`,
-          "error",
-        );
-        return;
-      }
-      if (resp && resp.ok)
-        appendLog("Background acknowledged run request", "info");
-      else
-        appendLog(
-          `Background error: ${resp && resp.error ? resp.error : "unknown"}`,
-          "error",
-        );
-    });
+    const resp = await browser.runtime.sendMessage(payload);
+    if (resp && resp.ok) appendLog("Background acknowledged run request", "info");
+    else appendLog(`Background error: ${resp && resp.error ? resp.error : "unknown"}`, "error");
   } catch (e) {
     console.error("Failed to send runTranslator message", e);
   }
 }
 
 // Listen for offscreen results
-chrome.runtime.onMessage.addListener((msg) => {
+browser.runtime.onMessage.addListener((msg) => {
   if (!msg || msg.type !== "offscreenResult") return;
   const bib = document.getElementById("bibEntry");
   const error = msg.error;
@@ -129,14 +119,10 @@ function updateStatus(status, className) {
 
 // Connect to JabRef via HTTP POST
 let jabrefBaseUrl = null;
-function getBaseUrl() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get({ jabrefPort: 23119 }, (res) => {
-      const port = res.jabrefPort || 23119;
-      const base = `http://localhost:${port}/`;
-      resolve(base);
-    });
-  });
+async function getBaseUrl() {
+  const res = await browser.storage.local.get({ jabrefPort: 23119 });
+  const port = res.jabrefPort || 23119;
+  return `http://localhost:${port}/`;
 }
 
 async function connectToJabRef() {
@@ -240,18 +226,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (noneEl) noneEl.style.display = "block";
     return;
   }
-  try {
-    if (!window.chrome || !chrome.tabs) {
-      urlEl.textContent = "Chrome extension APIs not available.";
-      document.getElementById("none").style.display = "block";
-      return;
-    }
+    try {
+      if (!window.browser || !browser.tabs) {
+        urlEl.textContent = "Extension APIs not available.";
+        document.getElementById("none").style.display = "block";
+        return;
+      }
 
-    const tab = await new Promise((resolve) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        resolve(tabs && tabs[0]);
-      });
-    });
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const tab = tabs && tabs[0];
     const url = tab && tab.url ? tab.url : "";
     if (!url) {
       urlEl.textContent = "Unable to determine active tab URL.";
@@ -274,9 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderResults(url, matches || []);
     if (matches && matches.length) {
       // Build array of translator URLs and request background/offscreen
-      const translatorPaths = matches.map((m) =>
-        chrome.runtime.getURL(m.path || ""),
-      );
+      const translatorPaths = matches.map((m) => browser.runtime.getURL(m.path || ""));
       runTranslatorOffscreen(translatorPaths, url);
     }
   } catch (e) {

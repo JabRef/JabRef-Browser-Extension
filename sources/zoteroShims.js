@@ -57,8 +57,8 @@ export function createZU(doc, { baseUrl } = {}) {
     try {
       if (!u) return u;
       return new URL(u, baseUrl || (doc && doc.location && doc.location.href) || undefined).href;
-    } catch (e) {
-      try { return new URL(u, location.href).href; } catch (ee) { return u; }
+    } catch {
+      try { return new URL(u, location.href).href; } catch { return u; }
     }
   };
 
@@ -69,7 +69,7 @@ export function createZU(doc, { baseUrl } = {}) {
           try {
             return (doc.documentElement && doc.documentElement.lookupNamespaceURI(prefix)) ||
               (doc.lookupNamespaceURI && doc.lookupNamespaceURI(prefix)) || null;
-          } catch (e) { return null; }
+          } catch { return null; }
         }
       };
       const result = doc.evaluate(xp, d || doc, resolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -82,19 +82,19 @@ export function createZU(doc, { baseUrl } = {}) {
       try {
         const resolver = {
           lookupNamespaceURI: (prefix) => {
-            try { return (doc.documentElement && doc.documentElement.lookupNamespaceURI(prefix)) || (doc.lookupNamespaceURI && doc.lookupNamespaceURI(prefix)) || null; } catch (e) { return null; }
+            try { return (doc.documentElement && doc.documentElement.lookupNamespaceURI(prefix)) || (doc.lookupNamespaceURI && doc.lookupNamespaceURI(prefix)) || null; } catch { return null; }
           }
         };
         const r = doc.evaluate(xp, d || doc, resolver, XPathResult.STRING_TYPE, null);
         return r.stringValue || '';
-      } catch (e) { return ''; }
+      } catch { return ''; }
     },
 
     trimInternal: (s) => s ? s.replace(/\s+/g, ' ').trim() : s,
 
     text: (d, selector) => {
       const el = (d || doc).querySelector(selector);
-      try { return el ? (el.textContent || '').trim() : ''; } catch (e) { return ''; }
+      try { return el ? (el.textContent || '').trim() : ''; } catch { return ''; }
     },
 
     // Basic requestDocument which uses fetch and DOMParser; resolves relative URLs
@@ -127,7 +127,7 @@ export function createZU(doc, { baseUrl } = {}) {
         const text = await res.text();
         const responseDoc = new DOMParser().parseFromString(text, 'text/html');
         if (callback) callback(text, responseDoc, u);
-      } catch (e) {
+      } catch {
         if (callback) callback(null, null, u);
       }
     },
@@ -153,7 +153,7 @@ export function createZU(doc, { baseUrl } = {}) {
           return `${mMatch[2]}-${mm}-01`;
         }
         return '';
-      } catch (e) { return ''; }
+      } catch { return ''; }
     },
 
     // Helper to parse a simple author string into Zotero creator object
@@ -177,7 +177,7 @@ export function createZU(doc, { baseUrl } = {}) {
         const last = parts.pop();
         const first = parts.join(' ');
         return { lastName: last, firstName: first, creatorType };
-      } catch (e) {
+      } catch {
         return { lastName: String(name), firstName: '', creatorType };
       }
     }
@@ -194,12 +194,12 @@ export function createZoteroShim() {
     // loadTranslator supports 'import' translators and a minimal 'search' translator
     loadTranslator: (type) => {
       if (type === 'import') {
-        let translatorId = null;
+        // translatorId not required in this minimal shim
         let storedString = null;
         let itemHandler = null;
 
         return {
-          setTranslator: (id) => { translatorId = id; },
+          setTranslator: () => {},
           setString: (s) => { storedString = s; },
           setHandler: (name, handler) => { if (name === 'itemDone') itemHandler = handler; },
           translate: async () => {
@@ -212,8 +212,8 @@ export function createZoteroShim() {
                   if (risMod && typeof risMod.parseRisToBib === 'function') {
                     bib = risMod.parseRisToBib(storedString);
                   }
-                } catch (e) {
-                  // ignore
+                } catch {
+                  // ignore RIS parse/import errors
                 }
               }
               const baseItem = bib ? bibtexToItem(bib) : { title: storedString || '', creators: [] };
@@ -233,22 +233,23 @@ export function createZoteroShim() {
                 // globals not present in the test runner; fall back to using
                 // the base item parsed from the import string.
                 Zotero._lastItem = item;
-                try { resolveComplete(item); } catch (ee) {}
+                try { resolveComplete(item); } catch { /* ignore resolve failures */ }
               }
               const timeout = new Promise((res) => setTimeout(res, 1000));
               await Promise.race([completePromise, timeout]);
               return;
-            } catch (e) { console.warn('Legacy translator translate() error', e); }
+              } catch (err) { console.warn('Legacy translator translate() error', err); }
           }
         };
       }
 
+      // This might not be necessary any more.
       if (type === 'search') {
-        let translatorId = null;
+        // translatorId not required in this minimal shim
         let searchObj = null;
         const handlers = {};
         return {
-          setTranslator: (id) => { translatorId = id; },
+          setTranslator: () => {},
           setSearch: (obj) => { searchObj = obj; },
           setHandler: (name, handler) => { handlers[name] = handler; },
           translate: async () => {
@@ -269,10 +270,10 @@ export function createZoteroShim() {
                     };
                     if (typeof handlers.itemDone === 'function') handlers.itemDone(null, item);
                   }
-                } catch (e) { /* ignore DOI resolution errors */ }
+                } catch { /* ignore DOI resolution errors */ }
               }
               if (typeof handlers.done === 'function') handlers.done();
-            } catch (e) { if (typeof handlers.error === 'function') handlers.error(e); }
+            } catch (err) { if (typeof handlers.error === 'function') handlers.error(err); }
           }
         };
       }
@@ -296,4 +297,66 @@ export function createZoteroShim() {
   };
 
   return Zotero;
+}
+
+// Install common shims (ZU, Zotero, Z, doc/document helpers) onto the
+// provided target object (usually `window`/`globalThis` or a VM context).
+export function installShims(target, doc, url, ZU, Zotero) {
+  // Assign properties safely: some global objects expose non-writable
+  // or getter-only properties (e.g., `document` on some extension scopes).
+  // Use `safeAssign` to avoid throwing and ensure we still provide as many
+  // shims as possible.
+  //This is mainly to avoid issues in Firefox extension contexts.
+  const safeAssign = (obj, prop, value) => {
+    try {
+      const desc = Object.getOwnPropertyDescriptor(obj, prop);
+      if (!desc) {
+        obj[prop] = value;
+        return true;
+      }
+      if (desc.writable || desc.configurable) {
+        try { obj[prop] = value; return true; } catch { /* fallthrough */ }
+      }
+      // If property exists and isn't writable/configurable, try defineProperty
+      if (desc.configurable) {
+        Object.defineProperty(obj, prop, { value, writable: true, configurable: true, enumerable: true });
+        return true;
+      }
+    } catch {
+      // ignore assignment errors
+    }
+    return false;
+  };
+
+  // Provide core shims as best-effort.
+  safeAssign(target, 'ZU', ZU);
+  safeAssign(target, 'Zotero', Zotero);
+  safeAssign(target, 'Z', { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false });
+  safeAssign(target, 'doc', doc);
+  // `document` may be a getter-only property in some contexts; attempt
+  // to install but don't let it abort shim setup.
+  safeAssign(target, 'document', doc);
+  if (Zotero) Zotero._lastItem = null;
+
+  // helpers used by many translators
+  safeAssign(target, 'attr', ((d, selector, name) => {
+    try {
+      const el = (d || doc).querySelector(selector);
+      return el ? el.getAttribute(name) : "";
+    } catch { return ""; }
+  }));
+
+  safeAssign(target, 'text', ((d, selector) => ZU && ZU.text ? ZU.text(d, selector) : ''));
+
+  safeAssign(target, 'requestText', (async (u, opts) => {
+    const absolute = new URL(u, url || (typeof location !== 'undefined' ? location.href : '')).href;
+    const r = await fetch(absolute, opts);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.text();
+  }));
+
+  safeAssign(target, 'requestDocument', (async (u, opts) => {
+    const txt = await ((target.requestText) ? target.requestText : (async () => { throw new Error('requestText unavailable'); }))(u, opts);
+    return new DOMParser().parseFromString(txt, "text/html");
+  }));
 }
