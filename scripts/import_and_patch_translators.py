@@ -35,40 +35,7 @@ def run(cmd, **kwargs):
 
 
 def ensure_repo():
-    # Ensure translators dir exists
-    (ROOT / "translators").mkdir(parents=True, exist_ok=True)
-
-    if TARGET.exists() and (TARGET / ".git").exists():
-        print("Found existing git repo at", TARGET)
-        print("Updating...")
-        run(["git", "-C", str(TARGET), "pull", "--ff-only"])
-        return
-
-    # Try to add as submodule if current repo is a git repo
-    if (ROOT / ".git").exists():
-        try:
-            run(["git", "submodule", "add", ZOTERO_REPO, str(TARGET)])
-            print("Added submodule at", TARGET)
-            return
-        except subprocess.CalledProcessError:
-            print("git submodule add failed, falling back to clone")
-
-    # Fallback to clone
-    if TARGET.exists():
-        print("Removing existing target and recloning")
-        for child in TARGET.iterdir():
-            try:
-                if child.is_file():
-                    child.unlink()
-                else:
-                    # naive rmdir
-                    import shutil
-
-                    shutil.rmtree(child)
-            except Exception:
-                pass
-    run(["git", "clone", ZOTERO_REPO, str(TARGET)])
-
+    run(["git", "submodule", "update", "--init"])
 
 def comment_initial_json(text: str) -> tuple[str, bool]:
     # If file already starts with // or /*, assume header is commented
