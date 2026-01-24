@@ -6,15 +6,21 @@ const cancelBtn = document.getElementById("cancelBtn");
 const msg = document.getElementById("msg");
 
 function loadSettings() {
-  chrome.storage.local.get({ jabrefPort: DEFAULT_PORT }, (res) => {
+  browser.storage.local.get({ jabrefPort: DEFAULT_PORT }).then((res) => {
     portInput.value = res.jabrefPort;
+  }).catch((e) => {
+    console.warn('Failed to load settings', e);
   });
 }
 
 function saveSettings() {
   const port = parseInt(portInput.value, 10) || DEFAULT_PORT;
-  chrome.storage.local.set({ jabrefPort: port }, () => {
+  browser.storage.local.set({ jabrefPort: port }).then(() => {
     msg.textContent = "Saved.";
+    setTimeout(() => (msg.textContent = ""), 1500);
+  }).catch((e) => {
+    console.warn('Failed to save settings', e);
+    msg.textContent = "Save failed.";
     setTimeout(() => (msg.textContent = ""), 1500);
   });
 }

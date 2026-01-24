@@ -11,7 +11,7 @@
   translator APIs and used to resolve relative requests.
 */
 
-import { createZU, createZoteroShim } from "./zoteroShims.js";
+import { createZU, createZoteroShim, installShims } from "./zoteroShims.js";
 
 export async function runTranslatorOnHtml(
   translatorModuleOrPath,
@@ -136,8 +136,8 @@ export async function runTranslatorOnHtml(
           const script = document.createElement('script');
           script.src = translatorModuleOrPath;
           script.type = 'text/javascript';
-          script.onload = () => { try { script.remove(); resolve(); } catch (e) { resolve(); } };
-          script.onerror = (err) => { try { script.remove(); } catch (e) { }; reject(err || new Error('Script load error')); };
+          script.onload = () => { try { script.remove(); resolve(); } catch (err) { console.debug('[translatorRunner] script.remove failed', err); resolve(); } };
+          script.onerror = (err) => { try { script.remove(); } catch (err2) { console.debug('[translatorRunner] script.remove failed', err2); } ; reject(err || new Error('Script load error')); };
           (document.head || document.documentElement).appendChild(script);
         });
         module = {
@@ -161,8 +161,8 @@ export async function runTranslatorOnHtml(
       } else if (!doc.location) {
         doc.location = { href: '', pathname: '' };
       }
-    } catch (e) {
-      // ignore
+    } catch {
+      // ignore invalid URL or doc.location assignment errors
     }
     console.debug(
       "[translatorRunner] created DOM for HTML (length:",
@@ -174,54 +174,8 @@ export async function runTranslatorOnHtml(
     try {
       const ZU = createZU(doc, { baseUrl: url });
       const Zotero = createZoteroShim();
-      // Always provide fresh shims and doc globals per run to avoid leaking
-      // state between consecutive translator executions.
-      root.ZU = ZU;
-      root.Zotero = Zotero;
-      // Expose `doc` and `document` globals for legacy translators that
-      // reference `doc`/`document` from nested callbacks executed outside
-      // the original `doWeb` stack.
-      try { root.doc = doc; } catch (e) { }
-      try { root.document = doc; } catch (e) { }
-      // fresh Z state
-      root.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false };
-      // Clear any previous last item so produced item is from this run only
-      try { root.Zotero._lastItem = null; } catch (e) { }
-      root.attr = ((d, selector, name) => {
-        try {
-          const el = (d || doc).querySelector(selector);
-          return el ? el.getAttribute(name) : "";
-        } catch (e) {
-          return "";
-        }
-      });
-      root.text = ((d, selector) => ZU.text(d, selector));
-
-      // If the translator was evaluated into an isolated VM context, inject
-      // the same shims into that context so legacy global references resolve
-      // inside the VM instead of polluting the runner global scope.
-      try {
-        if (module && module.__vmContext) {
-          const ctx = module.__vmContext;
-          try { ctx.ZU = ZU; } catch (e) { }
-          try { ctx.Zotero = Zotero; } catch (e) { }
-          try { ctx.doc = doc; } catch (e) { }
-          try { ctx.document = doc; } catch (e) { }
-          try { ctx.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false }; } catch (e) { }
-          try { ctx.Zotero && (ctx.Zotero._lastItem = null); } catch (e) { }
-          try {
-            ctx.attr = ((d, selector, name) => {
-              try {
-                const el = (d || doc).querySelector(selector);
-                return el ? el.getAttribute(name) : "";
-              } catch (e) { return ""; }
-            });
-          } catch (e) { }
-          try { ctx.text = ((d, selector) => ZU.text(d, selector)); } catch (e) { }
-        }
-      } catch (e) {
-        // non-fatal if VM context cannot be decorated
-      }
+      installShims(root, doc, url, ZU, Zotero);
+      if (module && module.__vmContext) installShims(module.__vmContext, doc, url, ZU, Zotero);
     } catch (e) {
       console.warn('[translatorRunner] failed to create ZU/Zotero shims for detection', e);
     }
@@ -298,71 +252,14 @@ export async function runTranslatorOnHtml(
 
       const ZU = createZU(doc, { baseUrl: url });
       const Zotero = createZoteroShim();
-
-      // Install minimal globals expected by many translators. Provide fresh
-      // shims and clear previous state to avoid cross-run contamination.
       const root = typeof window !== "undefined" ? window : globalThis;
-      root.ZU = ZU;
-      root.Zotero = Zotero;
-      root.Z = {
-        debug: () => { },
-        monitorDOMChanges: () => { },
-        getHiddenPref: () => false,
-      };
-      try { root.doc = doc; } catch (e) { }
-      try { root.document = doc; } catch (e) { }
-      try { root.Zotero._lastItem = null; } catch (e) { }
-
-      // small helpers used by many translators
-      root.attr = ((d, selector, name) => {
-        try {
-          const el = (d || doc).querySelector(selector);
-          return el ? el.getAttribute(name) : "";
-        } catch (e) {
-          return "";
-        }
-      });
-      root.text = ((d, selector) => root.ZU.text(d, selector));
-      root.requestText = (async (u, opts) => {
-        const absolute = new URL(u, url || (typeof location !== 'undefined' ? location.href : '')).href;
-        const r = await fetch(absolute, opts);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return await r.text();
-      });
-      root.requestDocument = (async (u, opts) => {
-        const txt = await root.requestText(u, opts);
-        return new DOMParser().parseFromString(txt, "text/html");
-      });
-
-      // Ensure ZU.requestDocument resolves relative URLs as well
-      root.ZU.requestDocument = root.requestDocument;
-
-      // Also install shims into the VM context for translators evaluated in
-      // an isolated VM so their globals resolve correctly there.
+      installShims(root, doc, url, ZU, Zotero);
+      // Ensure ZU.requestDocument resolves relative URLs as well and
+      // install shims into the VM context if present.
       try {
-        if (module && module.__vmContext) {
-          const ctx = module.__vmContext;
-          ctx.ZU = ZU;
-          ctx.Zotero = Zotero;
-          ctx.Z = { debug: () => { }, monitorDOMChanges: () => { }, getHiddenPref: () => false };
-          ctx.doc = doc;
-          ctx.document = doc;
-          ctx.Zotero && (ctx.Zotero._lastItem = null);
-                      ctx.attr = ((d, selector, name) => {
-              try {
-                const el = (d || doc).querySelector(selector);
-                return el ? el.getAttribute(name) : "";
-              } catch (e) { return ""; }
-            });
-            if (ctx.ZU) { // This should never fail
-              ctx.text = ((d, selector) => ctx.ZU.text(d, selector));
-            }
-          ctx.requestText = root.requestText;
-          ctx.requestDocument = root.requestDocument;
-        }
-      } catch (e) {
-        // continue if decorating VM context fails
-      }
+        root.ZU.requestDocument = root.requestDocument;
+        if (module && module.__vmContext) installShims(module.__vmContext, doc, url, ZU, Zotero);
+      } catch (err) { console.debug('[translatorRunner] non-fatal shim setup issue', err); }
 
       try {
         await module.doWeb(doc, url);
@@ -397,7 +294,7 @@ export async function runTranslatorOnHtml(
             })();
           });
         await waitForLastItem(2000);
-      } catch (e) {
+      } catch {
         // ignore wait errors
       }
 
@@ -414,7 +311,7 @@ export async function runTranslatorOnHtml(
             try {
               const el = doc.querySelector(`meta[name="${name}"]`);
               return el ? (el.getAttribute('content') || '').trim() : '';
-            } catch (e) { return ''; }
+            } catch { return ''; }
           };
           const title = meta('citation_title') || meta('dc.title') || (doc.querySelector('h1') && doc.querySelector('h1').textContent.trim()) || '';
           const authors = [];
@@ -476,7 +373,7 @@ export async function runTranslatorOnHtml(
             try {
               const el = doc.querySelector(`meta[name="${name}"]`);
               return el ? (el.getAttribute('content') || '').trim() : '';
-            } catch (e) { return ''; }
+            } catch { return ''; }
           };
 
           if (!produced.title) produced.title = meta('citation_title') || meta('dc.title') || (doc.querySelector('h1') && doc.querySelector('h1').textContent.trim()) || produced.title;

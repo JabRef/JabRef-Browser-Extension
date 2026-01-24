@@ -231,5 +231,6 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,node
 
+# Temporary files
 dist/
-
+test_cache/

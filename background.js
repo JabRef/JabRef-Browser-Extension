@@ -1,5 +1,10 @@
 // background.js (sketch)
-chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+// Provide a minimal compatibility shim: if `browser` is missing, alias it to `chrome`.
+if (typeof browser === "undefined" && typeof chrome !== "undefined") {
+  globalThis.browser = chrome;
+}
+
+browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
   if (!msg || msg.type !== 'runTranslator') return;
 
   const { translatorPath, translators, url } = msg;
@@ -7,7 +12,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
   // If offscreen is available (Chrome), forward the request so the offscreen
   // document runs the translator. If not (Firefox), run the translator
   // directly from the background page which has a DOM.
-  if (chrome.offscreen) {
+  if (browser.offscreen) {
     try {
       sendResponse({ ok: true });
     } catch (e) {
@@ -23,7 +28,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
     const html = await resp.text();
 
     // Import the runner from the extension bundle.
-    const runnerModule = await import(chrome.runtime.getURL('sources/translatorRunner.js'));
+    const runnerModule = await import(browser.runtime.getURL('sources/translatorRunner.js'));
     const { runTranslatorOnHtml } = runnerModule;
 
     // Normalize translators list: accept either `translators` array or single `translatorPath`.
@@ -59,17 +64,17 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
 
     try {
       const { result, translator: successful } = await firstFulfilled(attempts);
-      chrome.runtime.sendMessage({ type: 'offscreenResult', url, result, translator: successful });
+      await browser.runtime.sendMessage({ type: 'offscreenResult', url, result, translator: successful });
       sendResponse({ ok: true });
     } catch (errors) {
       // All attempts failed
       const last = Array.isArray(errors) && errors.length ? errors[errors.length - 1] : errors;
       const msg = last && last.err ? String(last.err) : String(last || 'All translators failed');
-      chrome.runtime.sendMessage({ type: 'offscreenResult', url, error: msg });
+      await browser.runtime.sendMessage({ type: 'offscreenResult', url, error: msg });
       sendResponse({ ok: false, error: msg });
     }
   } catch (e) {
-    chrome.runtime.sendMessage({ type: 'offscreenResult', url, error: String(e) });
+    await browser.runtime.sendMessage({ type: 'offscreenResult', url, error: String(e) });
     sendResponse({ ok: false, error: String(e) });
   }
   return true;
