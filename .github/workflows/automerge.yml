@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
-      - name: 'Wait for status checks'
+      - name: "Wait for status checks"
         id: waitforstatuschecks
         uses: "WyriHaximus/github-action-wait-for-status@v1.8"
         with:

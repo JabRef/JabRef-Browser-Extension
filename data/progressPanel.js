@@ -1,35 +1,41 @@
 var mainList = document.getElementById("itemList");
 var status = document.getElementById("status");
 
-window.addEventListener("load", function load(event) {
-	window.removeEventListener("load", load, false); // Remove listener, invoke only once
-	browser.runtime.sendMessage({
-		"popupOpened": "opened"
-	});
+window.addEventListener(
+  "load",
+  function load(event) {
+    window.removeEventListener("load", load, false); // Remove listener, invoke only once
+    browser.runtime.sendMessage({
+      popupOpened: "opened",
+    });
 
-	console.log("JabRef: Popup opened")
-}, false);
+    console.log("JabRef: Popup opened");
+  },
+  false,
+);
 
-browser.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	if (message.popupClose) {
-		// The popup should be closed
-		setTimeout(function() { window.close(); }, 3000);
-		console.log("JabRef: Popup closed");
-	} else if (message.onCitationCount) {
-		document.getElementById("citationCountNumber").innerHTML = '' + message.onCitationCount;
-		document.getElementById("citationCount").style.display = "block";
-	} else if (message.itemIncomplete) {
-		document.getElementById("itemIncomplete").style.display = "block";
-	} else if (message.onGoogleScholarCaptcha) {
-		document.getElementById("googleScholarCaptchaLink").href = message.onGoogleScholarCaptcha;
-		document.getElementById("googleScholarCaptcha").style.display = "block";
-	} else if (message.tooManyRequests) {
-		document.getElementById("tooManyRequests").style.display = "block";
-	} else if (message.onConvertToBibtex) {
-		document.getElementById("status").innerHTML = 'Converting to BibTeX...';
-	} else if (message.onSendToJabRef) {
-		document.getElementById("status").innerHTML = 'Sending to JabRef...';
-	}
+browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  if (message.popupClose) {
+    // The popup should be closed
+    setTimeout(function () {
+      window.close();
+    }, 3000);
+    console.log("JabRef: Popup closed");
+  } else if (message.onCitationCount) {
+    document.getElementById("citationCountNumber").innerHTML = "" + message.onCitationCount;
+    document.getElementById("citationCount").style.display = "block";
+  } else if (message.itemIncomplete) {
+    document.getElementById("itemIncomplete").style.display = "block";
+  } else if (message.onGoogleScholarCaptcha) {
+    document.getElementById("googleScholarCaptchaLink").href = message.onGoogleScholarCaptcha;
+    document.getElementById("googleScholarCaptcha").style.display = "block";
+  } else if (message.tooManyRequests) {
+    document.getElementById("tooManyRequests").style.display = "block";
+  } else if (message.onConvertToBibtex) {
+    document.getElementById("status").innerHTML = "Converting to BibTeX...";
+  } else if (message.onSendToJabRef) {
+    document.getElementById("status").innerHTML = "Sending to JabRef...";
+  }
 });
 
 /*

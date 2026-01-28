@@ -79,9 +79,7 @@ browser.runtime.onMessage.addListener((msg) => {
     // Send to JabRef automatically
     sendBibEntry();
   } else {
-    appendLog(
-      typeof result === "string" ? result : JSON.stringify(result, null, 2),
-    );
+    appendLog(typeof result === "string" ? result : JSON.stringify(result, null, 2));
   }
 });
 
@@ -144,10 +142,7 @@ async function connectToJabRef() {
       updateStatus("Connected (no OK)", "connected");
     }
   } catch (error) {
-    appendLog(
-      `Connection failed: ${error && error.message ? error.message : error}`,
-      "error",
-    );
+    appendLog(`Connection failed: ${error && error.message ? error.message : error}`, "error");
     console.error("HTTP connection error:", error);
     updateStatus("Disconnected", "disconnected");
     jabrefBaseUrl = null;
@@ -203,10 +198,7 @@ async function sendBibEntry() {
       console.error("HTTP send failed", resp.status, text);
     }
   } catch (error) {
-    appendLog(
-      `Failed to send: ${error && error.message ? error.message : error}`,
-      "error",
-    );
+    appendLog(`Failed to send: ${error && error.message ? error.message : error}`, "error");
     console.error("Send error:", error);
   }
 }
@@ -226,15 +218,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (noneEl) noneEl.style.display = "block";
     return;
   }
-    try {
-      if (!window.browser || !browser.tabs) {
-        urlEl.textContent = "Extension APIs not available.";
-        document.getElementById("none").style.display = "block";
-        return;
-      }
+  try {
+    if (!window.browser || !browser.tabs) {
+      urlEl.textContent = "Extension APIs not available.";
+      document.getElementById("none").style.display = "block";
+      return;
+    }
 
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-      const tab = tabs && tabs[0];
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    const tab = tabs && tabs[0];
     const url = tab && tab.url ? tab.url : "";
     if (!url) {
       urlEl.textContent = "Unable to determine active tab URL.";
@@ -248,8 +240,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) {
       console.error("Error fetching translators manifest", e);
       urlEl.textContent =
-        "Error reading translators manifest: " +
-        (e && e.message ? e.message : String(e));
+        "Error reading translators manifest: " + (e && e.message ? e.message : String(e));
       document.getElementById("none").style.display = "block";
       return;
     }
@@ -262,8 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (e) {
     console.error("Popup initialization error", e);
-    urlEl.textContent =
-      "Popup error: " + (e && e.message ? e.message : String(e));
+    urlEl.textContent = "Popup error: " + (e && e.message ? e.message : String(e));
     document.getElementById("none").style.display = "block";
   }
 });

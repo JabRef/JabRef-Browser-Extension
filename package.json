@@ -1,41 +1,43 @@
 {
-	"name": "jabrefbrowserextension",
-	"scripts": {
-		"dev:firefox": "web-ext run",
-		"dev:chrome": "web-ext run -t chromium",
-		"dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
-		"build": "web-ext build",
-		"lint": "pnpm lint:oxlint && pnpm lint:firefox",
-		"lint:firefox": "web-ext lint",
-		"lint:oxlint": "oxlint",
-		"submit:firefox": "web-ext sign",
-		"test": "node test.js arXiv.org.js"
-	},
-	"devDependencies": {
-		"@eslint/js": "^9.39.2",
-		"eslint": "^9.39.2",
-		"globals": "^17.0.0",
-		"jsdom": "^27.4.0",
-		"oxlint": "^1.41.0",
-		"web-ext": "^9.2.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/JabRef/JabRef-Browser-Extension.git"
-	},
-	"license": "AGPL-3.0-or-later",
-	"description": "Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.",
-	"bugs": {
-		"url": "https://github.com/JabRef/JabRef-Browser-Extension/issues"
-	},
-	"homepage": "https://github.com/JabRef/JabRef-Browser-Extension#readme",
-	"main": "background.js",
-	"keywords": [
-		"bibliographic information extraction",
-		"collect references",
-		"JabRef",
-		"reference management"
-	],
-	"author": "JabRef",
-	"packageManager": "pnpm@10.20.0"
+  "name": "jabrefbrowserextension",
+  "description": "Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.",
+  "keywords": [
+    "JabRef",
+    "bibliographic information extraction",
+    "collect references",
+    "reference management"
+  ],
+  "homepage": "https://github.com/JabRef/JabRef-Browser-Extension#readme",
+  "bugs": {
+    "url": "https://github.com/JabRef/JabRef-Browser-Extension/issues"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "JabRef",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JabRef/JabRef-Browser-Extension.git"
+  },
+  "main": "background.js",
+  "scripts": {
+    "dev:firefox": "web-ext run",
+    "dev:chrome": "web-ext run -t chromium",
+    "dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
+    "build": "web-ext build",
+    "lint": "pnpm lint:oxlint && pnpm lint:oxfmt && pnpm lint:firefox",
+    "lint:firefox": "web-ext lint",
+    "lint:oxlint": "oxlint",
+    "lint:oxfmt": "oxfmt --check",
+    "submit:firefox": "web-ext sign",
+    "test": "node test.js arXiv.org.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "globals": "^17.0.0",
+    "jsdom": "^27.4.0",
+    "oxfmt": "^0.27.0",
+    "oxlint": "^1.41.0",
+    "web-ext": "^9.2.0"
+  },
+  "packageManager": "pnpm@10.20.0"
 }

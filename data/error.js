@@ -1,21 +1,21 @@
 // Get message from query parameter URL
-const parameter = new URLSearchParams(window.location.search)
-let message = parameter.get('message')
-let details = parameter.get('details')
-const stacktrace = parameter.get('stacktrace')
+const parameter = new URLSearchParams(window.location.search);
+let message = parameter.get("message");
+let details = parameter.get("details");
+const stacktrace = parameter.get("stacktrace");
 
-if (details !== '') {
-  details = `${details}<br><br>`
+if (details !== "") {
+  details = `${details}<br><br>`;
 }
-if (stacktrace !== '') {
-  details = `${details}${stacktrace}<br><br>`
+if (stacktrace !== "") {
+  details = `${details}${stacktrace}<br><br>`;
 }
 
-let message_to_user = ''
-const referToGithub = `If the error persists, please open an issue on <a class="text-indigo-600" target="_blank" href="https://github.com/JabRef/JabRef-Browser-Extension/issues">GitHub</a>.`
+let message_to_user = "";
+const referToGithub = `If the error persists, please open an issue on <a class="text-indigo-600" target="_blank" href="https://github.com/JabRef/JabRef-Browser-Extension/issues">GitHub</a>.`;
 if (
-  message === 'An unexpected error occurred' || // Firefox
-  message === 'Error when communicating with the native messaging host.' // Chrome
+  message === "An unexpected error occurred" || // Firefox
+  message === "Error when communicating with the native messaging host." // Chrome
 ) {
   // The browser doesn't tell us what the error is
   // Firefox at least prints it to the browser console prefixed by 'stderr output from native app'
@@ -35,20 +35,20 @@ if (
     </ul>
     <br>
     ${referToGithub}
-    `
-} else if (message === 'jarNotFound') {
+    `;
+} else if (message === "jarNotFound") {
   // This error is thrown by the powershell/python script if the JabRef executable is not found
-  message = `Could not find JabRef executable`
+  message = `Could not find JabRef executable`;
   message_to_user = `
     ${details}
     Please follow the <a class="text-indigo-600" target="_blank" href="https://docs.jabref.org/collect/jabref-browser-extension#installation-and-configuration">manual installation instructions</a>
     to make sure your setup is correct.
     In particular, ensure that the correct file name of the <span class="rounded-lg text-lg bg-gray-100 px-1.5 py-0.5">JabRef.bat</span> file is specified in <span class="rounded-lg text-lg bg-gray-100 px-1.5 py-0.5">JabRefHost.ps1</span> under $jabRefExe.
     <br><br>${referToGithub}
-    `
+    `;
 } else if (
-  message === 'Attempt to postMessage on disconnected port' || // Firefox
-  message === 'Specified native messaging host not found.' // Chrome
+  message === "Attempt to postMessage on disconnected port" || // Firefox
+  message === "Specified native messaging host not found." // Chrome
 ) {
   // This error is thrown by the browser if the batch script or the jabref-firefox.json is not in the right place
   // Sadly, we don't get more information than this from the browser
@@ -66,10 +66,10 @@ if (
         <li>The path to <span class="rounded-lg text-lg bg-gray-100 px-1.5 py-0.5">jabref-firefox.json</span> or <span class="rounded-lg text-lg bg-gray-100 px-1.5 py-0.5">jabref-chrome.json</span> specified in the registry is not correct.</li>
     </ul>
     <br>${referToGithub}
-    `
-} else if (message === 'flatpakPermissionsError') {
+    `;
+} else if (message === "flatpakPermissionsError") {
   // This error is thrown by the powershell/python script if the JabRef executable is not found
-  message = `Flatpak is missing the permissions to access the JabRef executable`
+  message = `Flatpak is missing the permissions to access the JabRef executable`;
   message_to_user = `
     ${details}
     For flatpak based browsers you have to enable the org.freedesktop.Flatpak permission.<br>
@@ -85,13 +85,13 @@ if (
     to make sure your setup is correct.
     In particular, verify that the Flatpak permissions are set.
     <br><br>${referToGithub}
-    `
+    `;
 } else {
   // We have no idea what the error is
   // Usually, this is caused by some bug in the powershell/python script and the error message is usually helpful
-  message_to_user = `${details}<br><br>${referToGithub}`
+  message_to_user = `${details}<br><br>${referToGithub}`;
 }
 
 // Set message and details to the corresponding elements
-document.getElementById('message').innerHTML = message
-document.getElementById('details').innerHTML = message_to_user
+document.getElementById("message").innerHTML = message;
+document.getElementById("details").innerHTML = message_to_user;

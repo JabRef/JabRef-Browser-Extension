@@ -1,10 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "unicorn",
-    "typescript",
-    "oxc"
-  ],
+  "plugins": ["unicorn", "typescript", "oxc"],
   "categories": {},
   "rules": {
     "constructor-super": "warn",
@@ -144,7 +140,5 @@
     "builtin": true
   },
   "globals": {},
-  "ignorePatterns": [
-    "translators/zotero/**",
-  ]
+  "ignorePatterns": ["translators/zotero/**"]
 }

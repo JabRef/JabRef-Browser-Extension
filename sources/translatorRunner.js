@@ -13,19 +13,12 @@
 
 import { createZU, createZoteroShim, installShims } from "./zoteroShims.js";
 
-export async function runTranslatorOnHtml(
-  translatorModuleOrPath,
-  htmlString,
-  url = "",
-) {
+export async function runTranslatorOnHtml(translatorModuleOrPath, htmlString, url = "") {
   console.debug("[translatorRunner] runTranslatorOnHtml start");
   let loaded;
   try {
     if (typeof translatorModuleOrPath === "string") {
-      console.debug(
-        "[translatorRunner] translator path provided (string)",
-        translatorModuleOrPath,
-      );
+      console.debug("[translatorRunner] translator path provided (string)", translatorModuleOrPath);
       // For security and linting reasons we DO NOT perform a direct
       // dynamic `import()` on arbitrary string values. Supported string
       // forms are:
@@ -36,9 +29,17 @@ export async function runTranslatorOnHtml(
       // Other callers should pass an already-imported module object.
       const p = translatorModuleOrPath;
       if (
-        !(p && (p.startsWith('file://') || p.startsWith('chrome-extension://') || p.startsWith('moz-extension://') || p.startsWith('ms-browser-extension://')))
+        !(
+          p &&
+          (p.startsWith("file://") ||
+            p.startsWith("chrome-extension://") ||
+            p.startsWith("moz-extension://") ||
+            p.startsWith("ms-browser-extension://"))
+        )
       ) {
-        throw new Error('Unsafe/unsupported translator path string; pass a module object instead for non-extension/local paths');
+        throw new Error(
+          "Unsafe/unsupported translator path string; pass a module object instead for non-extension/local paths",
+        );
       }
       // Defer actual handling to the legacy/file/extension code paths below.
       loaded = null;
@@ -57,7 +58,11 @@ export async function runTranslatorOnHtml(
     // available. This is primarily for test harnesses running in Node.
     const root = typeof window !== "undefined" ? window : globalThis;
     if (
-      (!module || (typeof module.detect !== "function" && typeof module.detectWeb !== "function" && typeof module.translate !== "function" && typeof module.doWeb !== "function")) &&
+      (!module ||
+        (typeof module.detect !== "function" &&
+          typeof module.detectWeb !== "function" &&
+          typeof module.translate !== "function" &&
+          typeof module.doWeb !== "function")) &&
       typeof translatorModuleOrPath === "string" &&
       translatorModuleOrPath.startsWith("file://")
     ) {
@@ -67,7 +72,7 @@ export async function runTranslatorOnHtml(
         const src = fs.readFileSync(p, "utf8");
         // Evaluate in global scope so legacy scripts attach functions to globalThis
         try {
-          const vmModule = await import('vm');
+          const vmModule = await import("vm");
           if (vmModule) {
             try {
               const vm = vmModule;
@@ -77,8 +82,8 @@ export async function runTranslatorOnHtml(
               const ctxObj = {
                 console,
                 URL,
-                fetch: typeof fetch !== 'undefined' ? fetch : undefined,
-                DOMParser: typeof DOMParser !== 'undefined' ? DOMParser : undefined,
+                fetch: typeof fetch !== "undefined" ? fetch : undefined,
+                DOMParser: typeof DOMParser !== "undefined" ? DOMParser : undefined,
                 // Expose a harmless global for translation scripts that
                 // assume some environment properties exist.
                 globalThis: {},
@@ -88,34 +93,37 @@ export async function runTranslatorOnHtml(
               script.runInContext(ctx);
 
               const bindFn = (name) => {
-                if (typeof ctx[name] === 'function') {
+                if (typeof ctx[name] === "function") {
                   return (...args) => ctx[name].apply(ctx, args);
                 }
                 return undefined;
               };
 
               module = {
-                detect: bindFn('detect'),
-                detectWeb: bindFn('detectWeb'),
-                translate: bindFn('translate'),
-                doWeb: bindFn('doWeb'),
+                detect: bindFn("detect"),
+                detectWeb: bindFn("detectWeb"),
+                translate: bindFn("translate"),
+                doWeb: bindFn("doWeb"),
                 __vmContext: ctx,
               };
             } catch (e) {
-              console.warn('[translatorRunner] vm fallback evaluation failed', e);
+              console.warn("[translatorRunner] vm fallback evaluation failed", e);
               throw e;
             }
           } else {
-            throw new Error('vm module unavailable');
+            throw new Error("vm module unavailable");
           }
         } catch (e) {
           // Do NOT use `eval` as a fallback — it's unsafe. Log and abort
-          console.warn('[translatorRunner] vm unavailable — cannot evaluate legacy translator securely', e);
+          console.warn(
+            "[translatorRunner] vm unavailable — cannot evaluate legacy translator securely",
+            e,
+          );
           // Let outer handler detect that fallback failed; do not attempt insecure evaluation.
           throw e;
         }
       } catch (e) {
-        console.warn('[translatorRunner] legacy eval fallback failed', e);
+        console.warn("[translatorRunner] legacy eval fallback failed", e);
       }
     }
 
@@ -124,20 +132,42 @@ export async function runTranslatorOnHtml(
     // it into the current document so legacy globals (detectWeb/doWeb/etc.)
     // become available on `window`.
     if (
-      (!module || (typeof module.detect !== "function" && typeof module.detectWeb !== "function" && typeof module.translate !== "function" && typeof module.doWeb !== "function")) &&
+      (!module ||
+        (typeof module.detect !== "function" &&
+          typeof module.detectWeb !== "function" &&
+          typeof module.translate !== "function" &&
+          typeof module.doWeb !== "function")) &&
       typeof translatorModuleOrPath === "string" &&
-      (translatorModuleOrPath.startsWith('chrome-extension://') || translatorModuleOrPath.startsWith('moz-extension://') || translatorModuleOrPath.startsWith('ms-browser-extension://')) &&
-      typeof document !== 'undefined' && typeof document.createElement === 'function'
+      (translatorModuleOrPath.startsWith("chrome-extension://") ||
+        translatorModuleOrPath.startsWith("moz-extension://") ||
+        translatorModuleOrPath.startsWith("ms-browser-extension://")) &&
+      typeof document !== "undefined" &&
+      typeof document.createElement === "function"
     ) {
       try {
         // Create a non-inline script element pointing to the translator file URL
         // so execution complies with CSP 'script-src "self"'. Wait for it to load.
         await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
+          const script = document.createElement("script");
           script.src = translatorModuleOrPath;
-          script.type = 'text/javascript';
-          script.onload = () => { try { script.remove(); resolve(); } catch (err) { console.debug('[translatorRunner] script.remove failed', err); resolve(); } };
-          script.onerror = (err) => { try { script.remove(); } catch (err2) { console.debug('[translatorRunner] script.remove failed', err2); } ; reject(err || new Error('Script load error')); };
+          script.type = "text/javascript";
+          script.onload = () => {
+            try {
+              script.remove();
+              resolve();
+            } catch (err) {
+              console.debug("[translatorRunner] script.remove failed", err);
+              resolve();
+            }
+          };
+          script.onerror = (err) => {
+            try {
+              script.remove();
+            } catch (err2) {
+              console.debug("[translatorRunner] script.remove failed", err2);
+            }
+            reject(err || new Error("Script load error"));
+          };
           (document.head || document.documentElement).appendChild(script);
         });
         module = {
@@ -147,7 +177,7 @@ export async function runTranslatorOnHtml(
           doWeb: root.doWeb,
         };
       } catch (e) {
-        console.warn('[translatorRunner] browser script-src fallback failed', e);
+        console.warn("[translatorRunner] browser script-src fallback failed", e);
       }
     }
 
@@ -159,7 +189,7 @@ export async function runTranslatorOnHtml(
       if (url) {
         doc.location = new URL(url);
       } else if (!doc.location) {
-        doc.location = { href: '', pathname: '' };
+        doc.location = { href: "", pathname: "" };
       }
     } catch {
       // ignore invalid URL or doc.location assignment errors
@@ -177,7 +207,7 @@ export async function runTranslatorOnHtml(
       installShims(root, doc, url, ZU, Zotero);
       if (module && module.__vmContext) installShims(module.__vmContext, doc, url, ZU, Zotero);
     } catch (e) {
-      console.warn('[translatorRunner] failed to create ZU/Zotero shims for detection', e);
+      console.warn("[translatorRunner] failed to create ZU/Zotero shims for detection", e);
     }
 
     // Two detection styles supported:
@@ -221,13 +251,8 @@ export async function runTranslatorOnHtml(
     } else {
       // If translator does not provide any detection function, be permissive:
       // allow execution if it provides translate() or doWeb()
-      if (
-        typeof module.translate !== "function" &&
-        typeof module.doWeb !== "function"
-      ) {
-        throw new Error(
-          "Translator missing detect/ detectWeb and translate/ doWeb",
-        );
+      if (typeof module.translate !== "function" && typeof module.doWeb !== "function") {
+        throw new Error("Translator missing detect/ detectWeb and translate/ doWeb");
       }
     }
 
@@ -259,7 +284,9 @@ export async function runTranslatorOnHtml(
       try {
         root.ZU.requestDocument = root.requestDocument;
         if (module && module.__vmContext) installShims(module.__vmContext, doc, url, ZU, Zotero);
-      } catch (err) { console.debug('[translatorRunner] non-fatal shim setup issue', err); }
+      } catch (err) {
+        console.debug("[translatorRunner] non-fatal shim setup issue", err);
+      }
 
       try {
         await module.doWeb(doc, url);
@@ -270,8 +297,11 @@ export async function runTranslatorOnHtml(
         // the runner can still attempt to produce a best-effort item from
         // available page metadata. Re-throw other errors.
         const msg = e && e.message ? String(e.message) : String(e);
-        if (msg.includes('HTTP 404') || msg.includes('404')) {
-          console.warn('[translatorRunner] doWeb encountered 404 — continuing with best-effort extraction', e);
+        if (msg.includes("HTTP 404") || msg.includes("404")) {
+          console.warn(
+            "[translatorRunner] doWeb encountered 404 — continuing with best-effort extraction",
+            e,
+          );
         } else {
           console.error("[translatorRunner] doWeb threw", e);
           throw e;
@@ -300,9 +330,8 @@ export async function runTranslatorOnHtml(
 
       // After doWeb, many translators call Zotero.loadTranslator('import') and then item.complete().
       // Use Zotero._lastItem (provided by the shim) as the produced item and create a BibTeX fallback.
-      let produced =
-        root.Zotero && root.Zotero._lastItem ? root.Zotero._lastItem : null;
-      console.debug('[translatorRunner] produced item raw:', produced);
+      let produced = root.Zotero && root.Zotero._lastItem ? root.Zotero._lastItem : null;
+      console.debug("[translatorRunner] produced item raw:", produced);
       if (!produced) {
         // No produced item from translator flows; attempt to build a
         // best-effort item from page metadata (meta[citation_*], DC, etc.)
@@ -310,31 +339,37 @@ export async function runTranslatorOnHtml(
           const meta = (name) => {
             try {
               const el = doc.querySelector(`meta[name="${name}"]`);
-              return el ? (el.getAttribute('content') || '').trim() : '';
-            } catch { return ''; }
+              return el ? (el.getAttribute("content") || "").trim() : "";
+            } catch {
+              return "";
+            }
           };
-          const title = meta('citation_title') || meta('dc.title') || (doc.querySelector('h1') && doc.querySelector('h1').textContent.trim()) || '';
+          const title =
+            meta("citation_title") ||
+            meta("dc.title") ||
+            (doc.querySelector("h1") && doc.querySelector("h1").textContent.trim()) ||
+            "";
           const authors = [];
           const authorMetas = doc.querySelectorAll('meta[name="citation_author"]');
           if (authorMetas && authorMetas.length) {
             for (const a of authorMetas) {
-              const name = (a.getAttribute('content') || '').trim();
-              if (name) authors.push(root.ZU.cleanAuthor(name, 'author'));
+              const name = (a.getAttribute("content") || "").trim();
+              if (name) authors.push(root.ZU.cleanAuthor(name, "author"));
             }
           }
-          const doi = meta('citation_doi') || meta('dc.identifier') || '';
-          const journal = meta('citation_journal_title') || meta('citation_conference_title') || '';
-          let year = '';
-          if (meta('citation_publication_date')) {
-            const m = meta('citation_publication_date').match(/(\d{4})/);
+          const doi = meta("citation_doi") || meta("dc.identifier") || "";
+          const journal = meta("citation_journal_title") || meta("citation_conference_title") || "";
+          let year = "";
+          if (meta("citation_publication_date")) {
+            const m = meta("citation_publication_date").match(/(\d{4})/);
             if (m) year = m[1];
           }
-          let pages = '';
-          const fp = meta('citation_firstpage');
-          const lp = meta('citation_lastpage');
+          let pages = "";
+          const fp = meta("citation_firstpage");
+          const lp = meta("citation_lastpage");
           if (fp && lp) pages = `${fp}-${lp}`;
-          else pages = meta('citation_pages') || '';
-          const abstractNote = meta('citation_abstract') || meta('description') || '';
+          else pages = meta("citation_pages") || "";
+          const abstractNote = meta("citation_abstract") || meta("description") || "";
 
           // If we gathered anything, use it as the produced item
           if (title || authors.length || doi || journal || year || pages || abstractNote) {
@@ -343,20 +378,23 @@ export async function runTranslatorOnHtml(
               title: title,
               DOI: doi,
               journal: journal,
-              volume: meta('citation_volume') || '',
-              issue: meta('citation_issue') || '',
+              volume: meta("citation_volume") || "",
+              issue: meta("citation_issue") || "",
               pages: pages,
               year: year,
               abstractNote: abstractNote,
-              url: url || (doc.location && doc.location.href) || ''
+              url: url || (doc.location && doc.location.href) || "",
             };
-            console.debug('[translatorRunner] built fallback produced item from doc meta:', produced);
+            console.debug(
+              "[translatorRunner] built fallback produced item from doc meta:",
+              produced,
+            );
           } else {
             // nothing we can extract — return null
             return null;
           }
         } catch (e) {
-          console.warn('[translatorRunner] failed to build fallback produced item', e);
+          console.warn("[translatorRunner] failed to build fallback produced item", e);
           return null;
         }
       }
@@ -365,44 +403,60 @@ export async function runTranslatorOnHtml(
       // metadata from the parsed `doc` (meta tags, citation_* tags, etc.).
       try {
         const isMostlyEmpty =
-          (!produced.title || produced.title === '') &&
+          (!produced.title || produced.title === "") &&
           (!produced.creators || produced.creators.length === 0) &&
-          (!produced.DOI || produced.DOI === '');
+          (!produced.DOI || produced.DOI === "");
         if (isMostlyEmpty && doc) {
           const meta = (name) => {
             try {
               const el = doc.querySelector(`meta[name="${name}"]`);
-              return el ? (el.getAttribute('content') || '').trim() : '';
-            } catch { return ''; }
+              return el ? (el.getAttribute("content") || "").trim() : "";
+            } catch {
+              return "";
+            }
           };
 
-          if (!produced.title) produced.title = meta('citation_title') || meta('dc.title') || (doc.querySelector('h1') && doc.querySelector('h1').textContent.trim()) || produced.title;
+          if (!produced.title)
+            produced.title =
+              meta("citation_title") ||
+              meta("dc.title") ||
+              (doc.querySelector("h1") && doc.querySelector("h1").textContent.trim()) ||
+              produced.title;
 
-          if ((!produced.creators || produced.creators.length === 0)) {
+          if (!produced.creators || produced.creators.length === 0) {
             const authorMeta = doc.querySelectorAll('meta[name="citation_author"]');
             if (authorMeta && authorMeta.length) {
-              produced.creators = [...authorMeta].map(a => root.ZU.cleanAuthor(a.getAttribute('content') || '', 'author'));
+              produced.creators = [...authorMeta].map((a) =>
+                root.ZU.cleanAuthor(a.getAttribute("content") || "", "author"),
+              );
             }
           }
 
-          if (!produced.DOI) produced.DOI = meta('citation_doi') || meta('dc.identifier') || produced.DOI;
-          if (!produced.journal) produced.journal = meta('citation_journal_title') || meta('citation_conference_title') || produced.journal;
-          if (!produced.year && meta('citation_publication_date')) {
-            const m = meta('citation_publication_date').match(/(\d{4})/);
+          if (!produced.DOI)
+            produced.DOI = meta("citation_doi") || meta("dc.identifier") || produced.DOI;
+          if (!produced.journal)
+            produced.journal =
+              meta("citation_journal_title") ||
+              meta("citation_conference_title") ||
+              produced.journal;
+          if (!produced.year && meta("citation_publication_date")) {
+            const m = meta("citation_publication_date").match(/(\d{4})/);
             if (m) produced.year = m[1];
           }
-          if (!produced.volume) produced.volume = meta('citation_volume') || produced.volume;
-          if (!produced.issue) produced.issue = meta('citation_issue') || produced.issue;
+          if (!produced.volume) produced.volume = meta("citation_volume") || produced.volume;
+          if (!produced.issue) produced.issue = meta("citation_issue") || produced.issue;
           if (!produced.pages) {
-            const fp = meta('citation_firstpage');
-            const lp = meta('citation_lastpage');
+            const fp = meta("citation_firstpage");
+            const lp = meta("citation_lastpage");
             if (fp && lp) produced.pages = `${fp}-${lp}`;
-            else produced.pages = meta('citation_pages') || produced.pages;
+            else produced.pages = meta("citation_pages") || produced.pages;
           }
-          if (!produced.abstractNote) produced.abstractNote = meta('citation_abstract') || meta('description') || produced.abstractNote;
+          if (!produced.abstractNote)
+            produced.abstractNote =
+              meta("citation_abstract") || meta("description") || produced.abstractNote;
         }
       } catch (e) {
-        console.warn('[translatorRunner] supplement from doc failed', e);
+        console.warn("[translatorRunner] supplement from doc failed", e);
       }
 
       // If the translator returned RIS text placed into title (some import stubs do), detect and return RIS wrapper
@@ -423,10 +477,20 @@ export async function runTranslatorOnHtml(
       const fields = [];
       if (authors.length) fields.push(`  author = {${authors.join(" and ")}}`);
       // Title - try multiple common property names
-      const title = produced.title || produced.itemTitle || produced.shortTitle || produced.publicationTitle || produced.name;
+      const title =
+        produced.title ||
+        produced.itemTitle ||
+        produced.shortTitle ||
+        produced.publicationTitle ||
+        produced.name;
       if (title) fields.push(`  title = {${title}}`);
       // Journal / publication title
-      const journal = produced.journal || produced.publicationTitle || produced.publication || produced.containerTitle || produced.journalTitle;
+      const journal =
+        produced.journal ||
+        produced.publicationTitle ||
+        produced.publication ||
+        produced.containerTitle ||
+        produced.journalTitle;
       if (journal) fields.push(`  journal = {${journal}}`);
       // Year - prefer explicit year, otherwise derive from date
       let year = produced.year;
@@ -439,8 +503,7 @@ export async function runTranslatorOnHtml(
       if (produced.issue) fields.push(`  number = {${produced.issue}}`);
       if (produced.pages) fields.push(`  pages = {${produced.pages}}`);
       if (produced.DOI) fields.push(`  doi = {${produced.DOI}}`);
-      if (produced.abstractNote)
-        fields.push(`  abstract = {${produced.abstractNote}}`);
+      if (produced.abstractNote) fields.push(`  abstract = {${produced.abstractNote}}`);
 
       const bib = `@article{item${Date.now()},\n${fields.join(",\n")}\n}`;
       return bib;

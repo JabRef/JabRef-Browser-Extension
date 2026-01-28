@@ -11,13 +11,9 @@ export function parseRisToBib(risText) {
   }
 
   // Map RIS tags to BibTeX fields
-  const authors = (record["AU"] || record["A1"] || [])
-    .map((a) => a.trim())
-    .filter(Boolean);
+  const authors = (record["AU"] || record["A1"] || []).map((a) => a.trim()).filter(Boolean);
   const title = (record["TI"] || record["T1"] || [""]).join(" ").trim();
-  const journal = (record["JO"] || record["JF"] || record["JA"] || [])
-    .join(" ")
-    .trim();
+  const journal = (record["JO"] || record["JF"] || record["JA"] || []).join(" ").trim();
   const yearRaw = (record["PY"] || record["Y1"] || []).join(" ").trim();
   const yearMatch = yearRaw.match(/(\d{4})/);
   const year = yearMatch ? yearMatch[1] : "";
