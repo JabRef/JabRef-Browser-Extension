@@ -17,7 +17,10 @@ label {
 
 .grid-container {
   display: grid;
-  grid-template-columns: minmax(15em, 1fr) 2fr;
+  grid-template-columns: minmax(23em, 1fr) 2fr;
+  grid-template-areas:
+    "header header"
+    "menu content";
 }
 
 .grid-item {
@@ -28,6 +31,11 @@ label {
   text-shadow: 0 1px 1px #fefffe;
   padding-top: 6px;
   padding-bottom: 7px;
+}
+
+.grid-container .grid-header {
+  grid-area: header;
+  text-align: center;
 }
 
 input[type="radio"] {

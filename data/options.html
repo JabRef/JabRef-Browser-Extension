@@ -10,20 +10,6 @@
   <body>
     <div class="grid-container">
       <div class="grid-item">
-        <label>Connection Status</label>
-      </div>
-      <div class="grid-item">
-        <span id="connectionStatus">Testing connection...</span>
-      </div>
-
-      <div class="grid-item">
-        <label>Websocket Status</label>
-      </div>
-      <div class="grid-item">
-        <span id="wsClientStatus">pending...</span>
-      </div>
-
-      <div class="grid-item">
         <label>Export Format</label>
       </div>
       <div class="grid-item">
@@ -68,6 +54,38 @@
           checked="checked"
         />
         <label for="retrieveCitationCountsOff">Off</label>
+      </div>
+
+      <div class="grid-item">
+        <label for="portInput">JabRef connection port</label>
+      </div>
+      <div class="grid-item">
+        <input
+          type="number"
+          id="portInput"
+          name="jabrefPort"
+          min="1"
+          max="65535"
+          inputmode="numeric"
+        />
+      </div>
+    </div>
+    <div class="grid-container">
+      <div class="grid-header">
+        <h3>Connection Status</h3>
+      </div>
+      <div class="grid-item">
+        <label>Direct app connection (Native Messaging)</label>
+      </div>
+      <div class="grid-item">
+        <span id="connectionStatusNative">Testing connection...</span>
+      </div>
+
+      <div class="grid-item">
+        <label>Local network connection (HTTP)</label>
+      </div>
+      <div class="grid-item">
+        <span id="connectionStatusHttp">Testing connection...</span>
       </div>
     </div>
     <script type="application/javascript" src="../browser-polyfill.min.js"></script>
