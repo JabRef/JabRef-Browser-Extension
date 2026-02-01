@@ -17,7 +17,9 @@
 
   "page_action": {
     "default_icon": {
-      "48": "data/JabRef-icon-48.png"
+      "16": "data/JabRef-icon-16.png",
+      "48": "data/JabRef-icon-48.png",
+      "128": "data/JabRef-icon-128.png"
     },
     "default_title": "Import references into JabRef",
     "default_popup": "data/progressPanel.html"
@@ -57,16 +59,15 @@
     "page": "data/options.html"
   },
 
-  "permissions": ["<all_urls>", "activeTab", "tabs", "storage", "nativeMessaging", "offscreen"],
-
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "data/JabRef-icon-16.png",
-      "48": "data/JabRef-icon-48.png",
-      "128": "data/JabRef-icon-128.png"
-    }
-  },
+  "permissions": [
+    "<all_urls>",
+    "scripting",
+    "activeTab",
+    "tabs",
+    "storage",
+    "nativeMessaging",
+    "offscreen"
+  ],
 
   "version": "2.5",
   "host_permissions": ["<all_urls>"]

@@ -246,6 +246,9 @@ def generate_manifest():
                 entry["translatorID"] = header.get("translatorID")
             if "target" in header:
                 entry["target"] = header.get("target")
+            if "browserSupport" in header:
+                # Corresponds to runMode = RUN_MODE_IN_BROWSER in Zotero
+                entry["runInBrowser"] = "b" in header.get("browserSupport", "")
             if "translatorType" in header:
                 entry["translatorType"] = header.get("translatorType")
 
