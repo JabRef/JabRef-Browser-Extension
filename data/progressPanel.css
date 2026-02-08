@@ -1,7 +1,7 @@
 body {
   margin: 0;
   padding: 10px;
-  min-width: 260px;
+  min-width: 420px;
 }
 
 ul {
@@ -39,6 +39,9 @@ li.inprogress:after {
   height: 14px;
   content: "";
 }
+#progressStatus {
+  margin: 0 0 0.5em 0;
+}
 #citationCount {
   display: none;
   font-size: small;
@@ -57,4 +60,35 @@ li.inprogress:after {
   display: none;
   color: red;
   font-size: small;
+}
+
+h1 {
+  font-size: 16px;
+  margin: 0 0 8px 0;
+}
+
+.connection-section p {
+  margin: 3px 0px;
+}
+
+.status-disconnected {
+  color: #b00;
+}
+.status-connected {
+  color: #080;
+}
+
+.log-box {
+  max-height: 240px;
+  overflow: auto;
+  background: #f7f7f7;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.log-line {
+  margin: 6px 0;
+  white-space: pre-wrap;
 }

@@ -134,6 +134,49 @@ async function lookForTranslators(tab) {
 
   onTranslators(matches, tab.id);
 }
+
+async function evalInTab(tabsId, code) {
+  try {
+    result = await browser.tabs.executeScript(tabsId, {
+      code: code,
+    });
+    console.log(`JabRef: code executed with result ${result}`);
+    return result;
+  } catch (error) {
+    console.log(`JabRef: Error executing script: ${error}`);
+  }
+}
+
+saveAsWebpage = function (tab) {
+  var title = tab.title;
+  var url = tab.url;
+  var date = new Date().toISODate();
+
+  // Construct a manual Bibtex Entry for the webpage
+  var bibtexString = `@misc{,\
+		title={${title}},\
+		url = {${url}},\
+		urlDate={${date}},\
+		}`;
+  Zotero.Connector.sendBibTexToJabRef(bibtexString);
+};
+
+savePdf = function (tab) {
+  var title = tab.title.replace(".pdf", "");
+  var url = tab.url;
+  var urlEscaped = tab.url.replace(":", "\\:");
+  var date = new Date().toISODate();
+
+  // Construct a manual Bibtex Entry for the PDF
+  var bibtexString = `@misc{,\
+		title={${title}},\
+		file={:${urlEscaped}:PDF},\
+		url = {${url}},\
+		urlDate={${date}},\
+		}`;
+  Zotero.Connector.sendBibTexToJabRef(bibtexString);
+};
+
 /*
     Is called after lookForTranslators found matching translators.
     We need to hide or show the page action accordingly.
@@ -141,7 +184,7 @@ async function lookForTranslators(tab) {
 onTranslators = function (translators, tabId) {
   if (translators.length === 0) {
     console.log(`JabRef: Found no suitable translators for tab ${tabId}`);
-    tabInfo.set(tabId, { ...tabInfo.get(tabId), hasTranslator: false });
+    tabInfo.set(tabId, { ...tabInfo.get(tabId), translators });
     browser.pageAction.show(tabId);
     browser.pageAction.setTitle({
       tabId: tabId,
@@ -149,7 +192,7 @@ onTranslators = function (translators, tabId) {
     });
   } else {
     console.log(`JabRef: Found translators %o for tab ${tabId}`, translators);
-    tabInfo.set(tabId, { ...tabInfo.get(tabId), hasTranslator: true });
+    tabInfo.set(tabId, { ...tabInfo.get(tabId), translators });
     browser.pageAction.show(tabId);
     browser.pageAction.setTitle({
       tabId: tabId,
@@ -158,26 +201,50 @@ onTranslators = function (translators, tabId) {
   }
 };
 
-browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
-  if (!msg || msg.type !== "runTranslator") return;
+async function initOffscreenDocument() {
+  if (!browser.offscreen) return false;
+  const has = await browser.offscreen.hasDocument();
+  if (has) return true;
+  try {
+    await browser.offscreen.createDocument({
+      url: browser.runtime.getURL("offscreen.html"),
+      reasons: ["DOM_PARSER"],
+      justification: "Scraping the document for bibliographic data",
+    });
+    return true;
+  } catch (e) {
+    console.warn("Failed to create offscreen document", e);
+    return false;
+  }
+}
 
-  const { translatorPath, translators, url } = msg;
+async function onPopupOpened(tab, info, sendResponse) {
+  const translators = info.translators.map((translator) =>
+    browser.runtime.getURL(translator.path || ""),
+  );
+  if (!translators.length) throw new Error("No translator paths provided");
 
   // If offscreen is available (Chrome), forward the request so the offscreen
   // document runs the translator. If not (Firefox), run the translator
   // directly from the background page which has a DOM.
   if (browser.offscreen) {
     try {
+      await initOffscreenDocument();
+      await browser.runtime.sendMessage({
+        type: "offscreenRunTranslators",
+        url: tab.url,
+        translators,
+      });
       sendResponse({ ok: true });
     } catch (e) {
       sendResponse({ ok: false, error: String(e) });
     }
-    return true;
+    return;
   }
 
-  // Firefox / no offscreen: fetch page HTML and run translator here.
+  // Firefox / no offscreen: run translators directly in background page
   try {
-    const resp = await fetch(url, { credentials: "omit" });
+    const resp = await fetch(tab.url, { credentials: "omit" });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const html = await resp.text();
 
@@ -185,27 +252,17 @@ browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
     const runnerModule = await import(browser.runtime.getURL("sources/translatorRunner.js"));
     const { runTranslatorOnHtml } = runnerModule;
 
-    // Normalize translators list: accept either `translators` array or single `translatorPath`.
-    const list =
-      Array.isArray(translators) && translators.length
-        ? translators
-        : translatorPath
-          ? [translatorPath]
-          : [];
-    if (!list.length) throw new Error("No translator paths provided");
-
     // Run all translator attempts in parallel and resolve with the first
     // successful (non-null/defined) result. We don't attempt to cancel other
     // promises; they will continue running in the background.
-    const attempts = list.map((t) =>
+    const attempts = translators.map((translator) =>
       (async () => {
         try {
-          const result = await runTranslatorOnHtml(t, html, url);
-          if (result !== null && typeof result !== "undefined") return { result, translator: t };
+          const result = await runTranslatorOnHtml(translator, html, tab.url);
+          if (result !== null && typeof result !== "undefined") return { result, translator };
           throw new Error("No result");
         } catch (e) {
-          // Wrap error with translator id for diagnostics
-          throw { err: e, translator: t };
+          throw { err: e, translator };
         }
       })(),
     );
@@ -228,7 +285,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       const { result, translator: successful } = await firstFulfilled(attempts);
       await browser.runtime.sendMessage({
         type: "offscreenResult",
-        url,
+        url: tab.url,
         result,
         translator: successful,
       });
@@ -237,12 +294,49 @@ browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       // All attempts failed
       const last = Array.isArray(errors) && errors.length ? errors[errors.length - 1] : errors;
       const msg = last && last.err ? String(last.err) : String(last || "All translators failed");
-      await browser.runtime.sendMessage({ type: "offscreenResult", url, error: msg });
+      await browser.runtime.sendMessage({ type: "offscreenResult", url: tab.url, error: msg });
       sendResponse({ ok: false, error: msg });
     }
   } catch (e) {
-    await browser.runtime.sendMessage({ type: "offscreenResult", url, error: String(e) });
+    await browser.runtime.sendMessage({ type: "offscreenResult", url: tab.url, error: String(e) });
     sendResponse({ ok: false, error: String(e) });
   }
-  return true;
+  return;
+}
+
+browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  if (message.type === "popupOpened") {
+    // The popup opened, i.e. the user clicked on the page action button
+    console.log("JabRef: Popup opened confirmed");
+
+    browser.tabs
+      .query({
+        active: true,
+        currentWindow: true,
+      })
+      .then(async (tabs) => {
+        var tab = tabs[0];
+        var info = tabInfo.get(tab.id);
+
+        if (info && info.isPDF) {
+          console.log("JabRef: Export PDF in tab %o", JSON.parse(JSON.stringify(tab)));
+          savePdf(tab);
+        } else if (!info.translators) {
+          console.log("JabRef: No translators, simple saving %o", JSON.parse(JSON.stringify(tab)));
+          saveAsWebpage(tab);
+        } else {
+          console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
+          await onPopupOpened(tab, info, sendResponse);
+        }
+      });
+  } else if (message.eval) {
+    console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
+    return evalInTab(sender.tab.id, message.eval);
+  } else if (message[0] === "Debug.log") {
+    console.log(message[1]);
+  } else if (message[0] === "Errors.log") {
+    console.log(message[1]);
+  } else {
+    console.log("JabRef: other message in background.js: %o", JSON.parse(JSON.stringify(message)));
+  }
 });

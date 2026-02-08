@@ -8,24 +8,16 @@ if (typeof browser === "undefined" && typeof chrome !== "undefined") {
 }
 
 browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
-  if (!msg || msg.type !== "runTranslator") return;
-  const { url, translatorPath, translators } = msg;
+  if (!msg || msg.type !== "offscreenRunTranslators") return;
+  const { url, translators } = msg;
   try {
     const resp = await fetch(url, { credentials: "omit" });
     const html = await resp.text();
 
-    const list =
-      Array.isArray(translators) && translators.length
-        ? translators
-        : translatorPath
-          ? [translatorPath]
-          : [];
-    if (!list.length) throw new Error("No translator paths provided");
-
     let lastError = null;
-    for (const t of list) {
+    for (const translator of translators) {
       try {
-        const result = await runTranslatorOnHtml(t, html, url);
+        const result = await runTranslatorOnHtml(translator, html, url);
         if (result !== null && typeof result !== "undefined") {
           await browser.runtime.sendMessage({ type: "offscreenResult", url, result });
           sendResponse({ ok: true });
@@ -33,7 +25,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
         }
       } catch (e) {
         lastError = e;
-        console.warn("[offscreen] translator failed, trying next:", t, e);
+        console.warn("[offscreen] translator failed, trying next:", translator, e);
         continue;
       }
     }
