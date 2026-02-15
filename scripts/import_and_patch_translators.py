@@ -2,7 +2,7 @@
 """
 Clone or add Zotero translators as a submodule under translators/zotero
 and patch each .js file to ensure the initial JSON is commented and
-append ES module exports for legacy translators.
+append ES module exports.
 
 Usage: python3 scripts/import_and_patch_translators.py
 """
@@ -91,7 +91,7 @@ def comment_initial_json(text: str) -> tuple[str, bool]:
 
 
 def append_exports(text: str) -> tuple[str, bool]:
-    export_snippet = "\n// Export legacy translator functions as ES module bindings for adapter\nexport { detectWeb, doWeb };\n"
+    export_snippet = "\n// Export translator functions as ES module bindings for adapter\nexport { detectWeb, doWeb };\n"
     if "export { detectWeb, doWeb }" in text:
         return text, False
     return text.rstrip() + export_snippet, True
@@ -238,7 +238,7 @@ def generate_manifest():
             header = extract_json_from_text(cleaned) or None
 
         rel = f.relative_to(ROOT).as_posix()
-        entry = {"path": rel, "label": f.stem, "type": "zotero-legacy"}
+        entry = {"path": rel, "label": f.stem}
         if header:
             if "label" in header:
                 entry["label"] = header.get("label")

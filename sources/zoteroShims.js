@@ -1,5 +1,5 @@
 // Shared Zotero shims and helper functions extracted to reduce duplication
-// Used by both the offscreen runner and the legacy adapter.
+// Used by both the offscreen runner and the background script adapter.
 //
 // Exports:
 // - createZU(doc): returns a ZU-like helper object bound to `doc`
@@ -232,7 +232,7 @@ export function createZU(doc, { baseUrl } = {}) {
   };
 }
 
-// Create a minimal Zotero shim suitable for running legacy import translators.
+// Create a minimal Zotero shim suitable for running import translators.
 // The shim focuses on providing `loadTranslator('import')` and capturing the
 // produced item via `item.complete()` so callers can retrieve Zotero._lastItem.
 export function createZoteroShim() {
@@ -304,7 +304,7 @@ export function createZoteroShim() {
               await Promise.race([completePromise, timeout]);
               return;
             } catch (err) {
-              console.warn("Legacy translator translate() error", err);
+              console.warn("Translator translate() error", err);
             }
           },
         };

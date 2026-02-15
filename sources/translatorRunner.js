@@ -51,8 +51,8 @@ export async function runTranslatorOnHtml(translatorModuleOrPath, htmlString, ur
     // Prefer default export when present
     let module = loaded && loaded.default ? loaded.default : loaded;
 
-    // If the imported module did not export translator functions (legacy
-    // translators often define globals instead), and we were given a file://
+    // If the imported module did not export translator functions (eg sometimes they
+    // define globals instead), and we were given a file://
     // path, try a Node-specific fallback: read and evaluate the source into
     // the global scope so legacy globals (detectWeb/doWeb/etc.) become
     // available. This is primarily for test harnesses running in Node.
@@ -116,7 +116,7 @@ export async function runTranslatorOnHtml(translatorModuleOrPath, htmlString, ur
         } catch (e) {
           // Do NOT use `eval` as a fallback — it's unsafe. Log and abort
           console.warn(
-            "[translatorRunner] vm unavailable — cannot evaluate legacy translator securely",
+            "[translatorRunner] vm unavailable — cannot evaluate translator securely",
             e,
           );
           // Let outer handler detect that fallback failed; do not attempt insecure evaluation.
@@ -184,7 +184,7 @@ export async function runTranslatorOnHtml(translatorModuleOrPath, htmlString, ur
     // create a DOM from the html string
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString || "", "text/html");
-    // Ensure `doc.location` exists so legacy translators can access href/pathname
+    // Ensure `doc.location` exists so translators can access href/pathname
     try {
       if (url) {
         doc.location = new URL(url);
@@ -308,7 +308,7 @@ export async function runTranslatorOnHtml(translatorModuleOrPath, htmlString, ur
         }
       }
 
-      // Some legacy translators call `Zotero.loadTranslator(...).translate()`
+      // Some translators call `Zotero.loadTranslator(...).translate()`
       // without awaiting its completion. In Zotero's environment that often
       // completes synchronously, but in this runner the shimmed translate()
       // may be asynchronous. Wait briefly for any asynchronous import/search
