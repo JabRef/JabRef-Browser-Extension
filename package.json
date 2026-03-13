@@ -28,7 +28,8 @@
     "lint:oxlint": "oxlint",
     "lint:oxfmt": "oxfmt --check",
     "submit:firefox": "web-ext sign",
-    "test": "node test.js arXiv.org.js"
+    "test": "vitest run",
+    "test:legacy": "node test.js arXiv.org.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -37,6 +38,7 @@
     "jsdom": "^27.4.0",
     "oxfmt": "^0.27.0",
     "oxlint": "^1.41.0",
+    "vitest": "^3.2.4",
     "web-ext": "^9.2.0"
   },
   "packageManager": "pnpm@10.20.0"

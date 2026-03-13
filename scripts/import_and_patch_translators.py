@@ -8,6 +8,7 @@ Usage: python3 scripts/import_and_patch_translators.py
 """
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -16,6 +17,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = ROOT / "translators" / "zotero"
 ZOTERO_REPO = "https://github.com/zotero/translators"
+
+SANDBOX_PATH = "../../sources/sandbox.js"
+REQUIRED_SANDBOX_IMPORTS = [
+    "ZU",
+    "Zotero",
+    "Z",
+    "text",
+    "requestJSON",
+    "requestText",
+    "attr",
+    "DOMParser",
+]
+FW_LINE_PREFIX = "/* FW LINE 59:b820c6d */"
 
 
 def should_ignore(path: Path) -> bool:
@@ -97,6 +111,44 @@ def append_exports(text: str) -> tuple[str, bool]:
     return text.rstrip() + export_snippet, True
 
 
+def ensure_sandbox_import(text: str) -> tuple[str, bool]:
+    import_re = re.compile(
+        r"^\s*import\s*\{\s*([^}]*)\}\s*from\s*[\"']\.\./\.\./sources/sandbox\.js[\"'];?\s*$",
+        re.MULTILINE,
+    )
+    match = import_re.search(text)
+
+    if match:
+        new_line = f'import {{ {", ".join(REQUIRED_SANDBOX_IMPORTS)} }} from "{SANDBOX_PATH}";'
+        old_line = match.group(0)
+        if old_line.strip() == new_line:
+            return text, False
+        return text.replace(old_line, new_line), True
+
+    import_line = (
+        f'import {{ {", ".join(REQUIRED_SANDBOX_IMPORTS)} }} from "{SANDBOX_PATH}";\n\n'
+    )
+
+    line_header_re = re.compile(r"^((?:\s*//.*\n)+\s*\n*)")
+    block_header_re = re.compile(r"^(\s*/\*[\s\S]*?\*/\s*\n*)")
+
+    line_match = line_header_re.match(text)
+    if line_match:
+        idx = line_match.end(1)
+        return text[:idx] + import_line + text[idx:], True
+
+    block_match = block_header_re.match(text)
+    if block_match:
+        idx = block_match.end(1)
+        return text[:idx] + import_line + text[idx:], True
+
+    return import_line + text, True
+
+
+def has_fw_line(text: str) -> bool:
+    return any(line.lstrip().startswith(FW_LINE_PREFIX) for line in text.splitlines())
+
+
 def extract_json_from_text(text: str):
     """
     Try to parse JSON from the provided text. First attempt a direct json.loads,
@@ -148,24 +200,23 @@ def extract_json_from_text(text: str):
             return None
 
 
-def process_file(path: Path) -> tuple[bool, bool]:
-    changed = False
+def process_file(path: Path) -> tuple[bool, bool, bool]:
     commented = False
-    appended = False
+    imported = False
 
     text = path.read_text(encoding="utf-8")
-    new_text, did_comment = comment_initial_json(text)
-    if did_comment:
-        commented = True
-        changed = True
 
-    # new_text2, did_append = append_exports(new_text)
-    # if did_append:
-    #     appended = True
-    #     changed = True
-    new_text2 = new_text
+    # Delete old translators that still use the deprecated "Zotero Framework"
+    # These are not valid esm, and are deprecated anyway: https://github.com/zotero/translators/issues/3105
+    if has_fw_line(text):
+        path.unlink()
+        return commented, imported, True
 
-    if changed:
+    text, commented = comment_initial_json(text)
+    
+    text, imported = ensure_sandbox_import(text)
+
+    if commented or imported:
         # backup original
         # bak = path.with_suffix(path.suffix + '.bak')
         # try:
@@ -173,9 +224,9 @@ def process_file(path: Path) -> tuple[bool, bool]:
         #         bak.write_text(text, encoding='utf-8')
         # except Exception:
         #     pass
-        path.write_text(new_text2, encoding="utf-8")
+        path.write_text(text, encoding="utf-8")
 
-    return commented, appended
+    return commented, imported, False
 
 
 def patch_all():
@@ -186,20 +237,23 @@ def patch_all():
 
     total = 0
     commented_count = 0
-    appended_count = 0
+    imported_count = 0
+    deleted_count = 0
     for f in js_files:
         total += 1
         try:
-            c, a = process_file(f)
-            if c:
+            commented, imported, deleted = process_file(f)
+            if commented:
                 commented_count += 1
-            if a:
-                appended_count += 1
+            if imported:
+                imported_count += 1
+            if deleted:
+                deleted_count += 1
         except Exception as e:
             print("Error processing", f, e)
 
     print(
-        f"Processed {total} files: commented {commented_count}, appended exports {appended_count}"
+        f"Processed {total} files: deleted {deleted_count}, commented {commented_count}, sandbox imports updated {imported_count}"
     )
 
 
@@ -217,7 +271,6 @@ def generate_manifest():
             continue
 
         header = None
-        import re
 
         # 2) Try to parse a sequence of leading line comments // ... at the top of file
         lines = txt.splitlines()
