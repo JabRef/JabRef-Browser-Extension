@@ -59,57 +59,20 @@ def run(cmd, **kwargs):
 def ensure_repo():
     run(["git", "submodule", "update", "--init"])
 
-def comment_initial_json(text: str) -> tuple[str, bool]:
-    # If file already starts with // or /*, assume header is commented
-    s = text.lstrip()
-    prefix_ws = text[: len(text) - len(s)]
-    if s.startswith("//") or s.startswith("/*"):
+
+def export_translator_info(text: str) -> tuple[str, bool]:
+    # Keep idempotent if already prefixed
+    if re.match(r"^\s*export\s+const\s+ZOTERO_TRANSLATOR_INFO\s*=", text):
         return text, False
 
-    # If it starts with '{', try to find the matching closing brace
+    # If it starts with '{', convert that leading object to an exported declaration
+    s = text.lstrip()
+    prefix_ws = text[: len(text) - len(s)]
     if not s.startswith("{"):
         return text, False
 
-    i = 0
-    depth = 0
-    in_str = None
-    esc = False
-    while i < len(s):
-        ch = s[i]
-        if in_str:
-            if esc:
-                esc = False
-            elif ch == "\\":
-                esc = True
-            elif ch == in_str:
-                in_str = None
-        else:
-            if ch == '"' or ch == "'":
-                in_str = ch
-            elif ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    end = i
-                    break
-        i += 1
-    else:
-        return text, False
-
-    header = s[: end + 1]
-    # Heuristic: check for translator-specific keys
-    if "translatorID" in header or "label" in header:
-        # Use line comments (//) for the header to avoid issues with nested comment blocks
-        header_lines = header.splitlines()
-        commented_lines = []
-        for ln in header_lines:
-            # preserve existing indentation for the first line
-            commented_lines.append(prefix_ws + "// " + ln)
-        commented = "\n".join(commented_lines) + "\n\n" + s[end + 1 :]
-        return commented, True
-
-    return text, False
+    text = prefix_ws + "export const ZOTERO_TRANSLATOR_INFO = " + s
+    return text, True
 
 
 def _is_function_defined(text: str, fn_name: str) -> bool:
@@ -134,19 +97,29 @@ def append_exports(text: str) -> tuple[str, bool]:
         + "\n"
     )
 
-    # Remove a previously generated trailing export block, so reruns stay idempotent
+    # Remove a previously generated metadata+functions trailing block
+    generated_metadata_block_re = re.compile(
+        r"\n?// Export translator metadata for sandbox adapter\n"
+        r"export\s+const\s+ZOTERO_TRANSLATOR_INFO\s*=\s*[^\n]*;\n"
+        r"(?:// Export translator functions as ES module bindings for adapter\n"
+        r"export\s*\{[^}]*\};\n)?\s*\Z",
+        re.MULTILINE,
+    )
+    text_without_generated = generated_metadata_block_re.sub("", text)
+
+    # Backward compatibility: remove old generated function-only trailing block
     generated_block_re = re.compile(
         r"\n?// Export translator functions as ES module bindings for adapter\n"
         r"export\s*\{[^}]*\};\s*\Z",
         re.MULTILINE,
     )
-    new_text = generated_block_re.sub("", text).rstrip()
+    new_text = generated_block_re.sub("", text_without_generated).rstrip()
 
-    # If an identical export already exists, avoid changing file layout
-    if re.search(rf"(^|\n)\s*{re.escape(export_line)}\s*(\n|\Z)", new_text):
-        return new_text + "\n", new_text != text
+    candidate = new_text + export_snippet
+    if candidate == text or candidate + "\n" == text:
+        return text, False
 
-    return new_text + export_snippet, True
+    return candidate, True
 
 
 def ensure_sandbox_import(text: str) -> tuple[str, bool]:
@@ -166,19 +139,6 @@ def ensure_sandbox_import(text: str) -> tuple[str, bool]:
     import_line = (
         f'import {{ {", ".join(REQUIRED_SANDBOX_IMPORTS)} }} from "{SANDBOX_PATH}";\n\n'
     )
-
-    line_header_re = re.compile(r"^((?:\s*//.*\n)+\s*\n*)")
-    block_header_re = re.compile(r"^(\s*/\*[\s\S]*?\*/\s*\n*)")
-
-    line_match = line_header_re.match(text)
-    if line_match:
-        idx = line_match.end(1)
-        return text[:idx] + import_line + text[idx:], True
-
-    block_match = block_header_re.match(text)
-    if block_match:
-        idx = block_match.end(1)
-        return text[:idx] + import_line + text[idx:], True
 
     return import_line + text, True
 
@@ -238,6 +198,16 @@ def extract_json_from_text(text: str):
             return None
 
 
+def extract_declared_translator_info(text: str):
+    m = re.search(
+        r"(?:export\s+)?(?:const|let|var)\s+ZOTERO_TRANSLATOR_INFO\s*=\s*",
+        text,
+    )
+    if not m:
+        return None
+    return extract_json_from_text(text[m.end() :])
+
+
 def process_file(path: Path) -> tuple[bool, bool, bool, bool]:
     commented = False
     imported = False
@@ -251,19 +221,11 @@ def process_file(path: Path) -> tuple[bool, bool, bool, bool]:
         path.unlink()
         return commented, imported, exported, True
 
-    text, commented = comment_initial_json(text)
-    
+    text, commented = export_translator_info(text)
     text, imported = ensure_sandbox_import(text)
     text, exported = append_exports(text)
 
     if commented or imported or exported:
-        # backup original
-        # bak = path.with_suffix(path.suffix + '.bak')
-        # try:
-        #     if not bak.exists():
-        #         bak.write_text(text, encoding='utf-8')
-        # except Exception:
-        #     pass
         path.write_text(text, encoding="utf-8")
 
     return commented, imported, exported, False
@@ -313,28 +275,13 @@ def generate_manifest():
         except Exception:
             continue
 
-        header = None
-
-        # 2) Try to parse a sequence of leading line comments // ... at the top of file
-        lines = txt.splitlines()
-        collected = []
-        started = False
-        for line in lines:
-            if re.match(r"^\s*//", line):
-                started = True
-                collected.append(re.sub(r"^\s*//\s?", "", line))
-            else:
-                if started:
-                    break
-                if re.match(r"^\s*$", line):
-                    continue
-                break
-        if collected:
-            cleaned = "\n".join(collected)
-            header = extract_json_from_text(cleaned) or None
+        header = extract_declared_translator_info(txt) or None
 
         rel = f.relative_to(ROOT).as_posix()
-        entry = {"path": rel, "label": f.stem}
+        entry = {
+            "path": rel,
+            "label": f.stem,
+        }
         if header:
             if "label" in header:
                 entry["label"] = header.get("label")
@@ -352,6 +299,10 @@ def generate_manifest():
                 entry["priority"] = header.get("priority")
             if "lastUpdated" in header:
                 entry["lastUpdated"] = header.get("lastUpdated")
+            if "minVersion" in header and header.get("minVersion") is not None:
+                entry["minVersion"] = header.get("minVersion")
+            if "maxVersion" in header and header.get("maxVersion") is not None:
+                entry["maxVersion"] = header.get("maxVersion")
 
         out.append(entry)
 

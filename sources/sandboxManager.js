@@ -124,8 +124,7 @@ class SandboxManager {
       }
     }
 
-    // Not sure how this is used, but having an empty object seems to be okay
-    this.sandbox.ZOTERO_TRANSLATOR_INFO = {};
+    this.sandbox.ZOTERO_TRANSLATOR_INFO = exported.ZOTERO_TRANSLATOR_INFO;
 
     this.sandbox.exports =
       (exported && (exported.exports || (exported.default && exported.default.exports))) || {};

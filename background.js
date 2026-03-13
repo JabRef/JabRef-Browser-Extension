@@ -1,4 +1,4 @@
-import { createTranslateEngine } from "./sources/translateEngine.js";
+import { createTranslateEngine, exportItems } from "./sources/translateEngine.js";
 
 // Provide a minimal compatibility shim: if `browser` is missing, alias it to `chrome`.
 if (typeof browser === "undefined" && typeof chrome !== "undefined") {
@@ -198,91 +198,140 @@ async function initContentScript(tabId) {
   });
 }
 
-async function onPopupOpened(tab, info, sendResponse) {
+async function onPopupOpened(tab, info) {
   if (!info.translators.length) throw new Error("No translator paths provided");
 
   // If offscreen is available (Chrome), forward the request so the offscreen
   // document runs the translator. If not (Firefox), run the translator
   // from the content script (which has a DOM available, unlike the background page).
-  try {
-    if (browser.offscreen) {
-      await initOffscreenDocument();
-    } else {
-      await initContentScript(tab.id);
-    }
-    await browser.tabs.sendMessage(tab.id, {
-      type: "runTranslators",
-      url: tab.url,
-      translatorsInfo: info.translators.map((translator) => {
-        // We cannot send the full translator object as it contains functions
-        return {
-          translatorID: translator.translatorID,
-          translatorType: translator.translatorType,
-          label: translator.label,
-          creator: translator.creator,
-          target: translator.target,
-          priority: translator.priority,
-          path: translator.path,
-          file: translator.file,
-          lastUpdated: translator.lastUpdated,
-        };
-      }),
-    });
-  } catch (e) {
-    sendResponse({ ok: false, error: String(e) });
-    console.log(`JabRef: Failed to run translators for tab ${tab.id}: ${e}`);
-    return;
+  if (browser.offscreen) {
+    await initOffscreenDocument();
+  } else {
+    await initContentScript(tab.id);
   }
-  return;
+  await browser.tabs.sendMessage(tab.id, {
+    type: "runTranslators",
+    url: tab.url,
+    translatorsInfo: info.translators.map((translator) => {
+      // We cannot send the full translator object as it contains functions
+      return {
+        translatorID: translator.translatorID,
+        translatorType: translator.translatorType,
+        label: translator.label,
+        creator: translator.creator,
+        target: translator.target,
+        priority: translator.priority,
+        path: translator.path,
+        file: translator.file,
+        lastUpdated: translator.lastUpdated,
+      };
+    }),
+  });
 }
 
-browser.runtime.onMessage.addListener(async function (message, sender, sendResponse) {
-  if (message.type === "popupOpened") {
-    // The popup opened, i.e. the user clicked on the page action button
-    console.log("JabRef: Popup opened confirmed");
+async function getConversionMode() {
+  const cfg = await browser.storage.sync.get({ exportMode: "bibtex" });
+  return cfg.exportMode || "bibtex";
+}
 
-    browser.tabs
-      .query({
+async function prepareForExport(items) {
+  const { takeSnapshots } = await browser.storage.sync.get({ takeSnapshots: false });
+
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    for (var j = 0; j < item.attachments.length; j++) {
+      var attachment = item.attachments[j];
+
+      var isLink =
+        attachment.mimeType === "text/html" || attachment.mimeType === "application/xhtml+xml";
+      if (isLink && attachment.snapshot !== false) {
+        // Snapshot
+        if (takeSnapshots && attachment.url) {
+          attachment.localPath = attachment.url;
+        } else {
+          // Ignore
+        }
+      } else {
+        // Normal file
+        // Pretend we downloaded the file since otherwise it is not exported
+        if (attachment.url) {
+          attachment.localPath = attachment.url;
+        }
+      }
+    }
+
+    // Fix date string
+    if (item.accessDate) {
+      item.accessDate = new Date().toISOString();
+    }
+  }
+}
+
+browser.runtime.onMessage.addListener(async function (message, sender, _sendResponse) {
+  try {
+    if (message.type === "popupOpened") {
+      // The popup opened, i.e. the user clicked on the page action button
+      console.log("JabRef: Popup opened confirmed");
+      const tabs = await browser.tabs.query({
         active: true,
         currentWindow: true,
-      })
-      .then(async (tabs) => {
-        var tab = tabs[0];
-        var info = tabInfo.get(tab.id);
-
-        if (info && info.isPDF) {
-          console.log("JabRef: Export PDF in tab %o", JSON.parse(JSON.stringify(tab)));
-          savePdf(tab);
-        } else if (!info.translators) {
-          console.log("JabRef: No translators, simple saving %o", JSON.parse(JSON.stringify(tab)));
-          saveAsWebpage(tab);
-        } else {
-          console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
-          await onPopupOpened(tab, info, sendResponse);
-        }
       });
-  } else if (message.type === "COHTTP.request") {
-    const { method, url, options } = message;
-    console.debug(`JabRef: COHTTP request in background.js: ${method} ${url} %o`, options);
-    const xhr = await Zotero.HTTP.request(method, url, options);
-    // From upstream: https://github.com/zotero/zotero-connectors/blob/ea060a0aa2fea1267049b5fc880e53aa6c915eeb/src/common/messages.js#L302-L316
-    let result = {
-      response: xhr.response,
-      responseType: xhr.responseType,
-      status: xhr.status,
-      statusText: xhr.statusText,
-      responseHeaders: xhr.getAllResponseHeaders(),
-      responseURL: xhr.responseURL,
-    };
-    return result;
-  } else if (message.eval) {
-    console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
-    return evalInTab(sender.tab.id, message.eval);
-  } else if (message[0] === "Debug.log") {
-    console.log(message[1]);
-  } else if (message[0] === "Errors.log") {
-    console.log(message[1]);
-  } else {
-    console.log("JabRef: other message in background.js: %o", JSON.parse(JSON.stringify(message)));
+      var tab = tabs[0];
+      var info = tabInfo.get(tab.id);
+
+      if (info && info.isPDF) {
+        console.log("JabRef: Export PDF in tab %o", JSON.parse(JSON.stringify(tab)));
+        savePdf(tab);
+      } else if (!info.translators) {
+        console.log("JabRef: No translators, simple saving %o", JSON.parse(JSON.stringify(tab)));
+        saveAsWebpage(tab);
+      } else {
+        console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
+        await onPopupOpened(tab, info);
+      }
+
+      return { ok: true };
+    } else if (message.type === "COHTTP.request") {
+      const { method, url, options } = message;
+      console.debug(`JabRef: COHTTP request in background.js: ${method} ${url} %o`, options);
+      const xhr = await Zotero.HTTP.request(method, url, options);
+      // From upstream: https://github.com/zotero/zotero-connectors/blob/ea060a0aa2fea1267049b5fc880e53aa6c915eeb/src/common/messages.js#L302-L316
+      let result = {
+        response: xhr.response,
+        responseType: xhr.responseType,
+        status: xhr.status,
+        statusText: xhr.statusText,
+        responseHeaders: xhr.getAllResponseHeaders(),
+        responseURL: xhr.responseURL,
+      };
+      return result;
+    } else if (message.type === "offscreenResult") {
+      console.debug("JabRef: offscreenResult in background.js: %o", message);
+      if (message.error) {
+        await browser.runtime.sendMessage({ type: "offscreenResult", url, error: message.error });
+        return;
+      }
+      const { url, items } = message;
+      const conversionMode = await getConversionMode();
+      await prepareForExport(items);
+      await browser.runtime.sendMessage({ onConvertToBibtex: "convertStarted" });
+      const bib = await exportItems(items, conversionMode);
+      console.debug("JabRef: Exported BibTeX: %o", bib);
+    } else if (message.eval) {
+      console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
+      return evalInTab(sender.tab.id, message.eval);
+    } else if (message[0] === "Debug.log") {
+      console.log(message[1]);
+    } else if (message[0] === "Errors.log") {
+      console.log(message[1]);
+    } else {
+      console.log(
+        "JabRef: other message in background.js: %o",
+        JSON.parse(JSON.stringify(message)),
+      );
+    }
+  } catch (e) {
+    console.error("JabRef: Error handling message in background.js", e);
+    throw e;
   }
 });

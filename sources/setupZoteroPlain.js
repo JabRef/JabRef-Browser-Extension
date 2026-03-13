@@ -1,4 +1,5 @@
 globalThis.Zotero = {
+  isConnector: true,
   logError: console.error,
   debug: console.debug,
   Prefs: {

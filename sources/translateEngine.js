@@ -1,7 +1,13 @@
 import { TranslateWeb } from "./translateWeb.js";
 import "./setupZotero.js";
 import "./zotero-translate/src/translator.js";
+import "./zotero-translate/src/translation/translate_item.js";
 //import "./zotero-translate/src/translators.js";
+
+const EXPORT_TRANSLATORS = {
+  bibtex: "9cb70025-a888-4a29-a210-93ec52da40d4",
+  biblatex: "b6e39b57-8942-4d11-8259-342c46ce395f",
+};
 
 export async function createTranslateEngine(location) {
   return {
@@ -37,6 +43,20 @@ export async function createTranslateEngine(location) {
       });
     },
   };
+}
+
+export async function exportItems(items, mode = "bibtex") {
+  if (!Array.isArray(items) || !items.length) {
+    throw new Error("No items provided for export");
+  }
+
+  const translatorId = EXPORT_TRANSLATORS[mode] || EXPORT_TRANSLATORS.bibtex;
+  const translate = new Zotero.Translate.Export();
+  translate._translatorProvider = new TranslatorProvider();
+  translate.setItems(items);
+  translate.setTranslator(translatorId);
+  await translate.translate();
+  return translate.string;
 }
 
 /**
