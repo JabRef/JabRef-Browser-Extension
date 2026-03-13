@@ -17,6 +17,14 @@ const EXPORT_CANDIDATES = [
   "doExport",
 ];
 
+// DOMParser is provided by the browser environment
+// So we mock it here
+globalThis.DOMParser = class {
+  parseFromString() {
+    return {};
+  }
+};
+
 setSandbox({
   ZU: {
     cleanAuthor: (_) => {},
@@ -29,11 +37,6 @@ setSandbox({
   requestText: async () => {},
   text: () => "",
   attr: () => "",
-  DOMParser: class {
-    parseFromString() {
-      return {};
-    }
-  },
 });
 
 describe("Zotero translator", () => {

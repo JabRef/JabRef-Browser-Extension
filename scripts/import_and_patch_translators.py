@@ -27,7 +27,6 @@ REQUIRED_SANDBOX_IMPORTS = [
     "requestJSON",
     "requestText",
     "attr",
-    "DOMParser",
 ]
 FW_LINE_PREFIX = "/* FW LINE 59:b820c6d */"
 TRANSLATOR_EXPORT_CANDIDATES = [
