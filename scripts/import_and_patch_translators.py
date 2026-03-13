@@ -30,6 +30,15 @@ REQUIRED_SANDBOX_IMPORTS = [
     "DOMParser",
 ]
 FW_LINE_PREFIX = "/* FW LINE 59:b820c6d */"
+TRANSLATOR_EXPORT_CANDIDATES = [
+    "detectWeb",
+    "doWeb",
+    "detectImport",
+    "doImport",
+    "detectSearch",
+    "doSearch",
+    "doExport",
+]
 
 
 def should_ignore(path: Path) -> bool:
@@ -104,11 +113,41 @@ def comment_initial_json(text: str) -> tuple[str, bool]:
     return text, False
 
 
+def _is_function_defined(text: str, fn_name: str) -> bool:
+    patterns = [
+        rf"(^|\n)\s*(?:async\s+)?function\s+{re.escape(fn_name)}\s*\(",
+        rf"(^|\n)\s*(?:var|let|const)\s+{re.escape(fn_name)}\s*=\s*(?:async\s+)?function\b",
+        rf"(^|\n)\s*(?:var|let|const)\s+{re.escape(fn_name)}\s*=\s*(?:async\s+)?\([^)]*\)\s*=>",
+        rf"(^|\n)\s*{re.escape(fn_name)}\s*=\s*(?:async\s+)?function\b",
+    ]
+    return any(re.search(pattern, text) for pattern in patterns)
+
+
 def append_exports(text: str) -> tuple[str, bool]:
-    export_snippet = "\n// Export translator functions as ES module bindings for adapter\nexport { detectWeb, doWeb };\n"
-    if "export { detectWeb, doWeb }" in text:
+    present = [fn for fn in TRANSLATOR_EXPORT_CANDIDATES if _is_function_defined(text, fn)]
+    if not present:
         return text, False
-    return text.rstrip() + export_snippet, True
+
+    export_line = f"export {{ {', '.join(present)} }};"
+    export_snippet = (
+        "\n// Export translator functions as ES module bindings for adapter\n"
+        + export_line
+        + "\n"
+    )
+
+    # Remove a previously generated trailing export block, so reruns stay idempotent
+    generated_block_re = re.compile(
+        r"\n?// Export translator functions as ES module bindings for adapter\n"
+        r"export\s*\{[^}]*\};\s*\Z",
+        re.MULTILINE,
+    )
+    new_text = generated_block_re.sub("", text).rstrip()
+
+    # If an identical export already exists, avoid changing file layout
+    if re.search(rf"(^|\n)\s*{re.escape(export_line)}\s*(\n|\Z)", new_text):
+        return new_text + "\n", new_text != text
+
+    return new_text + export_snippet, True
 
 
 def ensure_sandbox_import(text: str) -> tuple[str, bool]:
@@ -200,9 +239,10 @@ def extract_json_from_text(text: str):
             return None
 
 
-def process_file(path: Path) -> tuple[bool, bool, bool]:
+def process_file(path: Path) -> tuple[bool, bool, bool, bool]:
     commented = False
     imported = False
+    exported = False
 
     text = path.read_text(encoding="utf-8")
 
@@ -210,13 +250,14 @@ def process_file(path: Path) -> tuple[bool, bool, bool]:
     # These are not valid esm, and are deprecated anyway: https://github.com/zotero/translators/issues/3105
     if has_fw_line(text):
         path.unlink()
-        return commented, imported, True
+        return commented, imported, exported, True
 
     text, commented = comment_initial_json(text)
     
     text, imported = ensure_sandbox_import(text)
+    text, exported = append_exports(text)
 
-    if commented or imported:
+    if commented or imported or exported:
         # backup original
         # bak = path.with_suffix(path.suffix + '.bak')
         # try:
@@ -226,7 +267,7 @@ def process_file(path: Path) -> tuple[bool, bool, bool]:
         #     pass
         path.write_text(text, encoding="utf-8")
 
-    return commented, imported, False
+    return commented, imported, exported, False
 
 
 def patch_all():
@@ -238,22 +279,25 @@ def patch_all():
     total = 0
     commented_count = 0
     imported_count = 0
+    exported_count = 0
     deleted_count = 0
     for f in js_files:
         total += 1
         try:
-            commented, imported, deleted = process_file(f)
+            commented, imported, exported, deleted = process_file(f)
             if commented:
                 commented_count += 1
             if imported:
                 imported_count += 1
+            if exported:
+                exported_count += 1
             if deleted:
                 deleted_count += 1
         except Exception as e:
             print("Error processing", f, e)
 
     print(
-        f"Processed {total} files: deleted {deleted_count}, commented {commented_count}, sandbox imports updated {imported_count}"
+        f"Processed {total} files: deleted {deleted_count}, commented {commented_count}, sandbox imports updated {imported_count}, exports updated {exported_count}"
     )
 
 
