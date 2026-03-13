@@ -1,4 +1,4 @@
-import { runTranslatorOnHtml } from "./sources/translatorRunner.js";
+import { runTranslatorOnHtml } from "./sources/translateEngine.js";
 
 console.debug("[offscreen] started");
 
@@ -8,7 +8,7 @@ if (typeof browser === "undefined" && typeof chrome !== "undefined") {
 }
 
 browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
-  if (!msg || msg.type !== "offscreenRunTranslators") return;
+  if (!msg || msg.type !== "runTranslators") return;
   const { url, translators } = msg;
   try {
     const resp = await fetch(url, { credentials: "omit" });
@@ -19,7 +19,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       try {
         const result = await runTranslatorOnHtml(translator, html, url);
         if (result !== null && typeof result !== "undefined") {
-          await browser.runtime.sendMessage({ type: "offscreenResult", url, result });
+          await browser.runtime.sendMessage({ type: "offscreenResult", url, items: result });
           sendResponse({ ok: true });
           return true;
         }
@@ -34,7 +34,7 @@ browser.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       await browser.runtime.sendMessage({ type: "offscreenResult", url, error: String(lastError) });
       sendResponse({ ok: false, error: String(lastError) });
     } else {
-      await browser.runtime.sendMessage({ type: "offscreenResult", url, result: null });
+      await browser.runtime.sendMessage({ type: "offscreenResult", url, items: null });
       sendResponse({ ok: true, result: null });
     }
   } catch (e) {

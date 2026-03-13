@@ -94,7 +94,7 @@ async function writeCachedHtml(url, html) {
 }
 
 async function run_on_file(filename, singleTestIndex) {
-  // Ensure DOMParser and a fetch implementation are available for translatorRunner
+  // Ensure DOMParser and a fetch implementation are available for translation engine
   let JSDOM;
   try {
     const jsdomMod = await import("jsdom");
@@ -143,7 +143,7 @@ async function run_on_file(filename, singleTestIndex) {
   global.XPathResult = dom.window.XPathResult;
 
   // Dynamic import of the ES module translator runner
-  const trPath = join(ROOT_DIR, "sources", "translatorRunner.js");
+  const trPath = join(ROOT_DIR, "sources", "translateEngine.js");
   const trModule = await import("file://" + trPath);
   const { runTranslatorOnHtml } = trModule;
 

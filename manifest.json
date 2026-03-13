@@ -12,7 +12,8 @@
 
   "background": {
     "service_worker": "background.js",
-    "scripts": ["background.js"]
+    "scripts": ["background.js"],
+    "type": "module"
   },
 
   "page_action": {
@@ -67,6 +68,39 @@
     "storage",
     "nativeMessaging",
     "offscreen"
+  ],
+
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": [
+        "sources/translateEngine.js",
+        "sources/setupZotero.js",
+        "sources/setupZoteroPlain.js",
+        "sources/zotero-translate/src/promise.js",
+        "sources/zotero-translate/src/translate.js",
+        "sources/zotero-translate/src/translateWeb.js",
+        "sources/zotero-translate/src/translation/translate.js",
+        "sources/sandboxManager.js",
+        "sources/zotero-utilities/openurl.js",
+        "sources/zotero-utilities/date.js",
+        "sources/zotero-utilities/xregexp-all.js",
+        "sources/zotero-utilities/xregexp-unicode-zotero.js",
+        "sources/zotero-utilities/utilities.js",
+        "sources/zotero-utilities/utilities_item.js",
+        "sources/zotero-utilities/schema.js",
+        "sources/zotero-utilities/resource/zoteroTypeSchemaData.js",
+        "sources/zotero-utilities/cachedTypes.js",
+        "sources/zotero-translate/src/utilities_translate.js",
+        "sources/sandbox.js",
+        "sources/zotero-translate/src/translator.js",
+        "sources/zotero-translate/src/translation/translate_item.js",
+        "sources/zotero-translate/src/http.js",
+        "sources/http.js",
+        "sources/translateWeb.js",
+        "translators/zotero/*.js"
+      ]
+    }
   ],
 
   "version": "2.5",

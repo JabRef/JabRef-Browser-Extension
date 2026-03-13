@@ -247,10 +247,15 @@ def generate_manifest():
             if "target" in header:
                 entry["target"] = header.get("target")
             if "browserSupport" in header:
-                # Corresponds to runMode = RUN_MODE_IN_BROWSER in Zotero
-                entry["runInBrowser"] = "b" in header.get("browserSupport", "")
+                entry["browserSupport"] = header.get("browserSupport")
             if "translatorType" in header:
                 entry["translatorType"] = header.get("translatorType")
+            if "creator" in header:
+                entry["creator"] = header.get("creator")
+            if "priority" in header:
+                entry["priority"] = header.get("priority")
+            if "lastUpdated" in header:
+                entry["lastUpdated"] = header.get("lastUpdated")
 
         out.append(entry)
 

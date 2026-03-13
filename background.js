@@ -1,9 +1,11 @@
+import { createTranslateEngine } from "./sources/translateEngine.js";
+
 // Provide a minimal compatibility shim: if `browser` is missing, alias it to `chrome`.
 if (typeof browser === "undefined" && typeof chrome !== "undefined") {
   globalThis.browser = chrome;
 }
 
-this.tabInfo = new Map();
+var tabInfo = new Map();
 
 /*
     Show/hide import button for all tabs (when add-on is loaded).
@@ -79,7 +81,7 @@ function installInTab(tab) {
       target: { tabId: tab.id },
       func: getDocumentContentType,
     })
-    .then((result) => {
+    .then((_result) => {
       lookForTranslators(tab);
       tabInfo.set(tab.id, { isPDF: false });
     })
@@ -98,41 +100,12 @@ function installInTab(tab) {
 
 /*
     Looks for potential translators for the given tab.
-
-    Zotero.Connector_Browser.lookForTranslators is the original function from the Zotero Connector,
-    see https://github.com/zotero/zotero-connectors/blob/dac609fb9dea1e98dbcc73387b05f7af5ef7814d/src/common/translators.js#L381.
-    With the following changes:
-    - Don't use `webRegex.all` (which is set by `targetAll` in the translator) because it is actually not used (see https://github.com/zotero/translators/issues/3254#issuecomment-1972914000)
 */
 async function lookForTranslators(tab) {
   console.log("JabRef: Searching for translators for %o", tab);
-
-  const translatorsManifestUrl = browser.runtime.getURL("translators/manifest.json");
-  const translatorsManifestResponse = await fetch(translatorsManifestUrl);
-  const translatorsManifest = await translatorsManifestResponse.json();
-
-  const matches = [];
-  for (const translator of translatorsManifest) {
-    const target = translator?.target;
-    if (!target && !translator.runInBrowser) {
-      // Don't attempt to use generic translators that can't be run in this browser
-      continue;
-    }
-    if (!target) {
-      // No target: match all URLs (generic translator)
-      matches.push(translator);
-      continue;
-    }
-    try {
-      const urlRegexp = new RegExp(target, "i");
-      if (urlRegexp.test(tab.url)) matches.push(translator);
-    } catch (e) {
-      // ignore invalid regex patterns
-      console.warn("Invalid target regex", target, e);
-    }
-  }
-
-  onTranslators(matches, tab.id);
+  const engine = await createTranslateEngine(tab.url);
+  const translators = await engine.detect();
+  onTranslators(translators, tab.id);
 }
 
 async function evalInTab(tabsId, code) {
@@ -147,7 +120,7 @@ async function evalInTab(tabsId, code) {
   }
 }
 
-saveAsWebpage = function (tab) {
+function saveAsWebpage(tab) {
   var title = tab.title;
   var url = tab.url;
   var date = new Date().toISODate();
@@ -159,9 +132,9 @@ saveAsWebpage = function (tab) {
 		urlDate={${date}},\
 		}`;
   Zotero.Connector.sendBibTexToJabRef(bibtexString);
-};
+}
 
-savePdf = function (tab) {
+function savePdf(tab) {
   var title = tab.title.replace(".pdf", "");
   var url = tab.url;
   var urlEscaped = tab.url.replace(":", "\\:");
@@ -175,14 +148,14 @@ savePdf = function (tab) {
 		urlDate={${date}},\
 		}`;
   Zotero.Connector.sendBibTexToJabRef(bibtexString);
-};
+}
 
 /*
     Is called after lookForTranslators found matching translators.
     We need to hide or show the page action accordingly.
 */
-onTranslators = function (translators, tabId) {
-  if (translators.length === 0) {
+function onTranslators(translators, tabId) {
+  if (!translators || translators.length === 0) {
     console.log(`JabRef: Found no suitable translators for tab ${tabId}`);
     tabInfo.set(tabId, { ...tabInfo.get(tabId), translators });
     browser.pageAction.show(tabId);
@@ -199,7 +172,7 @@ onTranslators = function (translators, tabId) {
       title: "Import references into JabRef using " + translators[0].label,
     });
   }
-};
+}
 
 async function initOffscreenDocument() {
   if (!browser.offscreen) return false;
@@ -218,93 +191,52 @@ async function initOffscreenDocument() {
   }
 }
 
+async function initContentScript(tabId) {
+  return await browser.scripting.executeScript({
+    target: { tabId },
+    files: ["sources/contentScript.js"],
+  });
+}
+
 async function onPopupOpened(tab, info, sendResponse) {
-  const translators = info.translators.map((translator) =>
-    browser.runtime.getURL(translator.path || ""),
-  );
-  if (!translators.length) throw new Error("No translator paths provided");
+  if (!info.translators.length) throw new Error("No translator paths provided");
 
   // If offscreen is available (Chrome), forward the request so the offscreen
   // document runs the translator. If not (Firefox), run the translator
-  // directly from the background page which has a DOM.
-  if (browser.offscreen) {
-    try {
-      await initOffscreenDocument();
-      await browser.runtime.sendMessage({
-        type: "offscreenRunTranslators",
-        url: tab.url,
-        translators,
-      });
-      sendResponse({ ok: true });
-    } catch (e) {
-      sendResponse({ ok: false, error: String(e) });
-    }
-    return;
-  }
-
-  // Firefox / no offscreen: run translators directly in background page
+  // from the content script (which has a DOM available, unlike the background page).
   try {
-    const resp = await fetch(tab.url, { credentials: "omit" });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const html = await resp.text();
-
-    // Import the runner from the extension bundle.
-    const runnerModule = await import(browser.runtime.getURL("sources/translatorRunner.js"));
-    const { runTranslatorOnHtml } = runnerModule;
-
-    // Run all translator attempts in parallel and resolve with the first
-    // successful (non-null/defined) result. We don't attempt to cancel other
-    // promises; they will continue running in the background.
-    const attempts = translators.map((translator) =>
-      (async () => {
-        try {
-          const result = await runTranslatorOnHtml(translator, html, tab.url);
-          if (result !== null && typeof result !== "undefined") return { result, translator };
-          throw new Error("No result");
-        } catch (e) {
-          throw { err: e, translator };
-        }
-      })(),
-    );
-
-    // Custom Promise.any fallback to collect first fulfilled promise
-    const firstFulfilled = (proms) =>
-      new Promise((resolve, reject) => {
-        let pending = proms.length;
-        const errors = [];
-        proms.forEach((p) => {
-          p.then(resolve).catch((e) => {
-            errors.push(e);
-            pending -= 1;
-            if (pending === 0) reject(errors);
-          });
-        });
-      });
-
-    try {
-      const { result, translator: successful } = await firstFulfilled(attempts);
-      await browser.runtime.sendMessage({
-        type: "offscreenResult",
-        url: tab.url,
-        result,
-        translator: successful,
-      });
-      sendResponse({ ok: true });
-    } catch (errors) {
-      // All attempts failed
-      const last = Array.isArray(errors) && errors.length ? errors[errors.length - 1] : errors;
-      const msg = last && last.err ? String(last.err) : String(last || "All translators failed");
-      await browser.runtime.sendMessage({ type: "offscreenResult", url: tab.url, error: msg });
-      sendResponse({ ok: false, error: msg });
+    if (browser.offscreen) {
+      await initOffscreenDocument();
+    } else {
+      await initContentScript(tab.id);
     }
+    await browser.tabs.sendMessage(tab.id, {
+      type: "runTranslators",
+      url: tab.url,
+      translatorsInfo: info.translators.map((translator) => {
+        // We cannot send the full translator object as it contains functions
+        return {
+          translatorID: translator.translatorID,
+          translatorType: translator.translatorType,
+          label: translator.label,
+          creator: translator.creator,
+          target: translator.target,
+          priority: translator.priority,
+          path: translator.path,
+          file: translator.file,
+          lastUpdated: translator.lastUpdated,
+        };
+      }),
+    });
   } catch (e) {
-    await browser.runtime.sendMessage({ type: "offscreenResult", url: tab.url, error: String(e) });
     sendResponse({ ok: false, error: String(e) });
+    console.log(`JabRef: Failed to run translators for tab ${tab.id}: ${e}`);
+    return;
   }
   return;
 }
 
-browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+browser.runtime.onMessage.addListener(async function (message, sender, sendResponse) {
   if (message.type === "popupOpened") {
     // The popup opened, i.e. the user clicked on the page action button
     console.log("JabRef: Popup opened confirmed");
@@ -329,6 +261,20 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
           await onPopupOpened(tab, info, sendResponse);
         }
       });
+  } else if (message.type === "COHTTP.request") {
+    const { method, url, options } = message;
+    console.debug(`JabRef: COHTTP request in background.js: ${method} ${url} %o`, options);
+    const xhr = await Zotero.HTTP.request(method, url, options);
+    // From upstream: https://github.com/zotero/zotero-connectors/blob/ea060a0aa2fea1267049b5fc880e53aa6c915eeb/src/common/messages.js#L302-L316
+    let result = {
+      response: xhr.response,
+      responseType: xhr.responseType,
+      status: xhr.status,
+      statusText: xhr.statusText,
+      responseHeaders: xhr.getAllResponseHeaders(),
+      responseURL: xhr.responseURL,
+    };
+    return result;
   } else if (message.eval) {
     console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
     return evalInTab(sender.tab.id, message.eval);

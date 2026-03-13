@@ -100,14 +100,14 @@ async function onPopupOpened() {
 browser.runtime.onMessage.addListener((msg) => {
   if (!msg || msg.type !== "offscreenResult") return;
   const error = msg.error;
-  const result = msg.result;
+  const items = msg.items;
   if (error) {
     appendLog(`Error: ${error}`);
     return;
   }
   appendLog(`Received result for ${msg.url}`);
   // Send to JabRef automatically
-  sendBibEntry(result);
+  sendBibEntry(items);
 });
 
 function appendLog(text) {
