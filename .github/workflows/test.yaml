@@ -12,16 +12,25 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           submodules: true
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 24.14.0
+          cache: 'pnpm'
+
       - name: Set up Python
         uses: actions/setup-python@v6
       - name: Run import_and_patch_translators
         run: python3 scripts/import_and_patch_translators.py
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
       - name: Run tests
-        run: npm test
+        run: pnpm test
