@@ -13,5 +13,12 @@
   },
   "[javascript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
+  "cSpell.words": ["Zotero"],
+  "chat.tools.terminal.autoApprove": {
+    "/^python scripts/import_and_patch_translators\\.py$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }
