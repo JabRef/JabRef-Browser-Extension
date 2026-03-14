@@ -2087,7 +2087,7 @@
     "translatorType": 4,
     "creator": "Abe Jellinek",
     "priority": 100,
-    "lastUpdated": "2025-05-13 13:34:42",
+    "lastUpdated": "2026-01-23 15:59:51",
     "minVersion": "2.1.9",
     "maxVersion": ""
   },
@@ -2501,7 +2501,7 @@
     "translatorType": 4,
     "creator": "Sebastian Karcher",
     "priority": 100,
-    "lastUpdated": "2025-12-22 18:11:41",
+    "lastUpdated": "2026-03-09 16:01:06",
     "minVersion": "5.0",
     "maxVersion": ""
   },
@@ -2967,7 +2967,7 @@
     "translatorType": 4,
     "creator": "Bin Liu",
     "priority": 100,
-    "lastUpdated": "2025-10-16 16:05:06",
+    "lastUpdated": "2026-02-09 15:53:01",
     "minVersion": "5.0",
     "maxVersion": ""
   },
@@ -3403,12 +3403,12 @@
     "path": "translators/zotero/Google Scholar.js",
     "label": "Google Scholar",
     "translatorID": "57a00950-f0d1-4b41-b6ba-44ff0fc30289",
-    "target": "^https?://scholar[-.]google[-.](com|cat|(com?[-.])?[a-z]{2})(\\.[^/]+)?/(scholar(_case)?\\?|citations\\?)",
+    "target": "^https?://scholar[-.]google[-.](com|cat|(com?[-.])?[a-z]{2})(\\.[^/]+)?/(scholar(_case|_labs/search/session/\\d+)?\\?|citations\\?)",
     "browserSupport": "gcsibv",
     "translatorType": 4,
     "creator": "Simon Kornblith, Frank Bennett, Aurimas Vinckevicius",
     "priority": 100,
-    "lastUpdated": "2023-07-11 07:58:52",
+    "lastUpdated": "2025-12-11 15:26:53",
     "minVersion": "3.0",
     "maxVersion": ""
   },
@@ -4335,6 +4335,19 @@
     "maxVersion": ""
   },
   {
+    "path": "translators/zotero/KiM.js",
+    "label": "KiM",
+    "translatorID": "429936dd-ad60-4e23-b346-569c85d17e0b",
+    "target": "^https?://[^/]*kimnet\\.nl/document",
+    "browserSupport": "gcsibv",
+    "translatorType": 4,
+    "creator": "Ewout ter Hoeven",
+    "priority": 100,
+    "lastUpdated": "2026-01-02 16:28:12",
+    "minVersion": "5.0",
+    "maxVersion": ""
+  },
+  {
     "path": "translators/zotero/KitapYurdu.com.js",
     "label": "KitapYurdu.com",
     "translatorID": "d3f35d5a-55da-4e07-be7d-b4d2a821279f",
@@ -4590,7 +4603,7 @@
     "translatorType": 4,
     "creator": "Tim Sherratt (tim@timsherratt.org)",
     "priority": 100,
-    "lastUpdated": "2025-01-28 03:36:38",
+    "lastUpdated": "2026-03-04 06:44:20",
     "minVersion": "5.0",
     "maxVersion": ""
   },
@@ -5576,6 +5589,19 @@
     "maxVersion": ""
   },
   {
+    "path": "translators/zotero/National Archives UK Case Law.js",
+    "label": "National Archives UK Case Law",
+    "translatorID": "be076b36-b2ef-41e3-afd9-3ab9da626ff1",
+    "target": "^https?://caselaw\\.nationalarchives\\.gov\\.uk/",
+    "browserSupport": "gcsibv",
+    "translatorType": 4,
+    "creator": "Michael Veale",
+    "priority": 100,
+    "lastUpdated": "2026-02-03 19:39:24",
+    "minVersion": "3.0",
+    "maxVersion": ""
+  },
+  {
     "path": "translators/zotero/National Bureau of Economic Research.js",
     "label": "National Bureau of Economic Research",
     "translatorID": "99f958ab-0732-483d-833f-6bd8e42f6277",
@@ -6114,7 +6140,7 @@
     "translatorType": 12,
     "creator": "Simon Kornblith, Sebastian Karcher, Abe Jellinek",
     "priority": 100,
-    "lastUpdated": "2025-07-09 19:22:44",
+    "lastUpdated": "2026-02-12 16:29:52",
     "minVersion": "5.0",
     "maxVersion": ""
   },
@@ -6862,7 +6888,7 @@
     "translatorType": 1,
     "creator": "Simon Kornblith, Michael Berkowitz, Avram Lyon, and Rintze Zelle",
     "priority": 100,
-    "lastUpdated": "2021-07-21 03:05:39",
+    "lastUpdated": "2026-01-22 17:48:12",
     "minVersion": "2.1.9",
     "maxVersion": ""
   },
@@ -6978,7 +7004,7 @@
     "translatorType": 1,
     "creator": "Simon Kornblith",
     "priority": 100,
-    "lastUpdated": "2025-08-06 22:48:30",
+    "lastUpdated": "2026-03-06 21:44:09",
     "minVersion": "2.1.9",
     "maxVersion": ""
   },
@@ -7236,7 +7262,7 @@
     "translatorType": 4,
     "creator": "Sebastian Karcher",
     "priority": 100,
-    "lastUpdated": "2023-06-09 21:19:36",
+    "lastUpdated": "2026-02-24 16:20:02",
     "minVersion": "3.0",
     "maxVersion": ""
   },
@@ -8959,7 +8985,7 @@
     "translatorType": 4,
     "creator": "czar",
     "priority": 100,
-    "lastUpdated": "2021-03-30 19:51:18",
+    "lastUpdated": "2026-01-23 16:11:56",
     "minVersion": "3.0",
     "maxVersion": ""
   },
@@ -9153,7 +9179,7 @@
     "translatorType": 2,
     "creator": "Simon Kornblith",
     "priority": 25,
-    "lastUpdated": "2021-01-25 06:49:57",
+    "lastUpdated": "2026-03-06 21:33:15",
     "minVersion": "1.0.0b4.r1",
     "maxVersion": ""
   },

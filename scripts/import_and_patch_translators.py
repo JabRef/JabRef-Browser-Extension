@@ -17,6 +17,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = ROOT / "translators" / "zotero"
 ZOTERO_REPO = "https://github.com/zotero/translators"
+ZOTERO_SUBMODULES = {
+    "translators/zotero": "esm",
+    "sources/zotero-translate": "async-sandbox",
+    "sources/zotero-utilities": "fix-import",
+}
 
 SANDBOX_PATH = "../../sources/sandbox.js"
 REQUIRED_SANDBOX_IMPORTS = [
@@ -57,8 +62,15 @@ def run(cmd, **kwargs):
 
 
 def ensure_repo():
-    run(["git", "submodule", "update", "--init"])
-
+    for submodule, branch in ZOTERO_SUBMODULES.items():
+        submodule_path = str(ROOT / submodule)
+        run(["git", "-C", submodule_path, "fetch", "upstream", "master"])
+        run(["git", "-C", submodule_path, "checkout", "master"])
+        run(["git", "-C", submodule_path, "pull", "--ff-only", "upstream", "master"])
+        run(["git", "-C", submodule_path, "push", "origin", "master"])
+        run(["git", "-C", submodule_path, "checkout", branch])
+        
+    run(["git", "submodule", "update", "--remote", "--merge"])
 
 def export_translator_info(text: str) -> tuple[str, bool]:
     # Keep idempotent if already prefixed
@@ -313,36 +325,12 @@ def generate_manifest():
     except Exception as e:
         print("Failed to write manifest:", e)
 
-
-def delete_ignored():
-    """Delete files and directories that should be ignored under TARGET.
-    Removes dot-directories and specific files like `jsconfig.json` and `AGENTS.md`.
-    """
-    for p in sorted(TARGET.rglob("*")):
-        try:
-            if should_ignore(p):
-                if p.is_dir():
-                    print("Removing directory", p)
-                    shutil.rmtree(p)
-                elif p.is_file():
-                    print("Removing file", p)
-                    p.unlink()
-        except Exception as e:
-            print("Failed to remove", p, e)
-
-
 def main():
     try:
         ensure_repo()
     except Exception as e:
         print("Error ensuring repo:", e)
         sys.exit(1)
-
-    # Remove ignored files/directories before patching and manifest generation
-    try:
-        delete_ignored()
-    except Exception as e:
-        print("delete_ignored failed:", e)
 
     patch_all()
     generate_manifest()
