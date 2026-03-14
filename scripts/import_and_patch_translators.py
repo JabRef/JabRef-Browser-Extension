@@ -308,7 +308,7 @@ def generate_manifest():
 
     manifest_path = ROOT / "translators" / "manifest.json"
     try:
-        manifest_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+        manifest_path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
         print("Wrote manifest to", manifest_path)
     except Exception as e:
         print("Failed to write manifest:", e)
