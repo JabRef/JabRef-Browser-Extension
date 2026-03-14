@@ -120,10 +120,84 @@ async function evalInTab(tabsId, code) {
   }
 }
 
+function openErrorPage(message, details = "", stacktrace = "") {
+  browser.tabs.create({
+    url:
+      "/data/error.html?message=" +
+      encodeURIComponent(message) +
+      "&details=" +
+      encodeURIComponent(details ?? "") +
+      "&stacktrace=" +
+      encodeURIComponent(stacktrace ?? ""),
+  });
+}
+
+async function getBaseUrl() {
+  const settings = await browser.storage.sync.get({ httpPort: 23119 });
+  return `http://localhost:${settings.httpPort}/`;
+}
+
+async function sendBibEntryHttp(bibtex) {
+  const baseUrl = await getBaseUrl();
+
+  const health = await fetch(baseUrl, { method: "GET", cache: "no-store" });
+  if (!(health.ok || health.status === 404)) {
+    throw new Error(`JabRef HTTP endpoint unavailable (${health.status})`);
+  }
+
+  const resp = await fetch(baseUrl + "libraries/current/entries", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-bibtex" },
+    body: bibtex,
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => "");
+    throw new Error(`HTTP ${resp.status}${body ? `: ${body}` : ""}`);
+  }
+}
+
+async function sendBibEntryNative(bibtex) {
+  const response = await browser.runtime.sendNativeMessage("org.jabref.jabref", {
+    text: bibtex,
+  });
+  if (response?.message === "ok") {
+    return;
+  }
+
+  if (response?.message === "error") {
+    console.error(
+      `JabRef: Error connecting to JabRef: '${response.output}' at '${response.stacktrace}'`,
+    );
+    handleError(response.output, "", response.stacktrace);
+  }
+
+  console.error(
+    `JabRef: Error connecting to JabRef: '${response.message}' with details '${response.output}' at '${response.stacktrace}'`,
+  );
+  handleError(response.message, response.output, response.stacktrace);
+}
+
+async function sendBibTexToJabRef(bibtex) {
+  await browser.runtime.sendMessage({ onSendToJabRef: "sendToJabRefStarted" });
+  console.log("JabRef: Send BibTeX to JabRef: %o", bibtex);
+
+  try {
+    await sendBibEntryHttp(bibtex);
+    await browser.runtime.sendMessage({ popupClose: "close" });
+    return;
+  } catch (httpError) {
+    console.warn("JabRef: HTTP send failed, falling back to native messaging", httpError);
+  }
+
+  await sendBibEntryNative(bibtex);
+  await browser.runtime.sendMessage({ popupClose: "close" });
+}
+
 function saveAsWebpage(tab) {
   var title = tab.title;
   var url = tab.url;
-  var date = new Date().toISODate();
+  var date = new Date().toISOString();
 
   // Construct a manual Bibtex Entry for the webpage
   var bibtexString = `@misc{,\
@@ -131,14 +205,14 @@ function saveAsWebpage(tab) {
 		url = {${url}},\
 		urlDate={${date}},\
 		}`;
-  Zotero.Connector.sendBibTexToJabRef(bibtexString);
+  sendBibTexToJabRef(bibtexString);
 }
 
 function savePdf(tab) {
   var title = tab.title.replace(".pdf", "");
   var url = tab.url;
   var urlEscaped = tab.url.replace(":", "\\:");
-  var date = new Date().toISODate();
+  var date = new Date().toISOString();
 
   // Construct a manual Bibtex Entry for the PDF
   var bibtexString = `@misc{,\
@@ -147,7 +221,7 @@ function savePdf(tab) {
 		url = {${url}},\
 		urlDate={${date}},\
 		}`;
-  Zotero.Connector.sendBibTexToJabRef(bibtexString);
+  sendBibTexToJabRef(bibtexString);
 }
 
 /*
@@ -308,7 +382,7 @@ browser.runtime.onMessage.addListener(async function (message, sender, _sendResp
     } else if (message.type === "offscreenResult") {
       console.debug("JabRef: offscreenResult in background.js: %o", message);
       if (message.error) {
-        await browser.runtime.sendMessage({ type: "offscreenResult", url, error: message.error });
+        console.error("JabRef: Error in offscreen translator execution", message.error);
         return;
       }
       const { url, items } = message;
@@ -317,6 +391,7 @@ browser.runtime.onMessage.addListener(async function (message, sender, _sendResp
       await browser.runtime.sendMessage({ onConvertToBibtex: "convertStarted" });
       const bib = await exportItems(items, conversionMode);
       console.debug("JabRef: Exported BibTeX: %o", bib);
+      await sendBibTexToJabRef(bib);
     } else if (message.eval) {
       console.debug("JabRef: eval in background.js: %o", JSON.parse(JSON.stringify(message.eval)));
       return evalInTab(sender.tab.id, message.eval);
