@@ -3,7 +3,7 @@
 	url = https://github.com/zotero/translators
 [submodule "sources/zotero-translate"]
 	path = sources/zotero-translate
-	url = https://github.com/zotero/translate.git
+	url = https://github.com/tobiasdiez/translate.git
 [submodule "sources/zotero-utilities"]
 	path = sources/zotero-utilities
-	url = https://github.com/zotero/utilities.git
+	url = https://github.com/tobiasdiez/utilities.git
