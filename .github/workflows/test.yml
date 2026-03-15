@@ -26,11 +26,8 @@ jobs:
           node-version: 24.14.0
           cache: "pnpm"
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-      - name: Run import_and_patch_translators
-        run: python3 scripts/import_and_patch_translators.py
       - name: Install dependencies
         run: pnpm install
+
       - name: Run tests
         run: pnpm test
