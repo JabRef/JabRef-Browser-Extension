@@ -67,7 +67,8 @@
     "tabs",
     "storage",
     "nativeMessaging",
-    "offscreen"
+    "offscreen",
+    "webRequest"
   ],
 
   "web_accessible_resources": [
@@ -97,6 +98,7 @@
         "sources/zotero-translate/src/translation/translate_item.js",
         "sources/zotero-translate/src/http.js",
         "sources/http.js",
+        "sources/webRequestIntercept.js",
         "sources/translateWeb.js",
         "translators/zotero/*.js"
       ]

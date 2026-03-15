@@ -16,5 +16,10 @@ import "./zotero-utilities/cachedTypes.js";
 import "./zotero-translate/src/utilities_translate.js";
 import "./zotero-translate/src/http.js";
 import "./http.js";
+import "./webRequestIntercept.js";
 
 Zotero.setTypeSchema(ZOTERO_TYPE_SCHEMA);
+if (browser.webRequest) {
+  // webRequest is not available some contexts, so check before initializing
+  Zotero.WebRequestIntercept.init();
+}
