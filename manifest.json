@@ -100,7 +100,8 @@
         "sources/http.js",
         "sources/webRequestIntercept.js",
         "sources/translateWeb.js",
-        "translators/zotero/*.js"
+        "translators/zotero/*.js",
+        "translators/manifest.json"
       ]
     }
   ],

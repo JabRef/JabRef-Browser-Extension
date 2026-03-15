@@ -72,6 +72,7 @@ class SandboxManager {
 
     let cached = this._moduleCache.get(url);
     if (!cached) {
+      setSandbox(this.sandbox);
       const promise = import(url).then((mod) => {
         cached.module = mod;
         cached.loaded = true;
