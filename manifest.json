@@ -86,6 +86,7 @@
         "sources/sandboxManager.js",
         "sources/zotero-utilities/openurl.js",
         "sources/zotero-utilities/date.js",
+        "sources/zotero-utilities/resource/dateFormats.json",
         "sources/zotero-utilities/xregexp-all.js",
         "sources/zotero-utilities/xregexp-unicode-zotero.js",
         "sources/zotero-utilities/utilities.js",

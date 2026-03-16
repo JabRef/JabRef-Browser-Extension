@@ -23,3 +23,11 @@ if (browser.webRequest) {
   // webRequest is not available some contexts, so check before initializing
   Zotero.WebRequestIntercept.init();
 }
+
+Zotero.Date.init(
+  JSON.parse(
+    await (
+      await fetch(new URL("./zotero-utilities/resource/dateFormats.json", import.meta.url))
+    ).text(),
+  ),
+);
