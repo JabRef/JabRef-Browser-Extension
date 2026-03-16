@@ -384,9 +384,8 @@ Zotero.HTTP = new (function () {
         delete options.headers[header];
         return val;
       });
-      if (replaceHeaders.length) {
-        DNRRuleID = await Zotero.WebRequestIntercept.replaceHeaders(url, replaceHeaders);
-      }
+      DNRRuleID = await Zotero.WebRequestIntercept.replaceHeaders(url, replaceHeaders);
+
       try {
         let fetchOptions = {
           method,

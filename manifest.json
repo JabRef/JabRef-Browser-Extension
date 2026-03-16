@@ -68,7 +68,8 @@
     "storage",
     "nativeMessaging",
     "offscreen",
-    "webRequest"
+    "webRequest",
+    "declarativeNetRequest"
   ],
 
   "web_accessible_resources": [

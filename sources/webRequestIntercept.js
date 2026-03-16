@@ -1,28 +1,28 @@
 // Taken from https://github.com/zotero/zotero-connectors/blob/92d2c56de53c82526bc68bab378b014dcc3b007a/src/browserExt/webRequestIntercept.js
 
 /*
-	***** BEGIN LICENSE BLOCK *****
+  ***** BEGIN LICENSE BLOCK *****
 	
-	Copyright © 2016 Center for History and New Media
-					George Mason University, Fairfax, Virginia, USA
-					http://zotero.org
+  Copyright © 2016 Center for History and New Media
+          George Mason University, Fairfax, Virginia, USA
+          http://zotero.org
 	
-	This file is part of Zotero.
+  This file is part of Zotero.
 	
-	Zotero is free software: you can redistribute it and/or modify
-	it under the terms of the GNU Affero General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+  Zotero is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 	
-	Zotero is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU Affero General Public License for more details.
+  Zotero is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU Affero General Public License
-	along with Zotero.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with Zotero.  If not, see <http://www.gnu.org/licenses/>.
 	
-	***** END LICENSE BLOCK *****
+  ***** END LICENSE BLOCK *****
 */
 
 /**
@@ -191,6 +191,13 @@
           };
         }
         return { header: headerObj.name, value: headerObj.value, operation: "set" };
+      });
+      // Some pages (ie ieeexplore) check for the presence of the origin header
+      // and block requests if it's not 'correct', so remove it to avoid issues
+      // otherwise the origin header would be set to the extension id
+      requestHeaders.push({
+        header: "origin",
+        operation: "remove",
       });
       const ruleID = Math.floor(Math.random() * 100000);
       const rules = [
