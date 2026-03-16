@@ -104,7 +104,7 @@ function installInTab(tab) {
 async function lookForTranslators(tab) {
   console.log("JabRef: Searching for translators for %o", tab);
 
-  await initTranslateEngine(tab)
+  await initTranslateEngine(tab);
   const response = await browser.tabs.sendMessage(tab.id, {
     type: "detectTranslators",
     url: tab.url,
