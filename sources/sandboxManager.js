@@ -102,8 +102,7 @@ class SandboxManager {
 
     this.sandbox.ZOTERO_TRANSLATOR_INFO = exported.ZOTERO_TRANSLATOR_INFO;
 
-    this.sandbox.exports =
-      (exported && (exported.exports || (exported.default && exported.default.exports))) || {};
+    this.sandbox.exports = exported.exports;
 
     return exported;
   }

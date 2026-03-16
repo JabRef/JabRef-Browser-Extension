@@ -97,39 +97,137 @@ def _is_function_defined(text: str, fn_name: str) -> bool:
     return any(re.search(pattern, text) for pattern in patterns)
 
 
-def append_exports(text: str) -> tuple[str, bool]:
-    present = [fn for fn in TRANSLATOR_EXPORT_CANDIDATES if _is_function_defined(text, fn)]
-    if not present:
-        return text, False
+def _parse_generated_export_specs(specs_text: str) -> list[str]:
+    return [spec.strip() for spec in specs_text.split(",") if spec.strip()]
 
-    export_line = f"export {{ {', '.join(present)} }};"
-    export_snippet = (
-        "\n// Export translator functions as ES module bindings for adapter\n"
-        + export_line
-        + "\n"
-    )
 
-    # Remove a previously generated metadata+functions trailing block
-    generated_metadata_block_re = re.compile(
-        r"\n?// Export translator metadata for sandbox adapter\n"
-        r"export\s+const\s+ZOTERO_TRANSLATOR_INFO\s*=\s*[^\n]*;\n"
-        r"(?:// Export translator functions as ES module bindings for adapter\n"
-        r"export\s*\{[^}]*\};\n)?\s*\Z",
-        re.MULTILINE,
-    )
-    text_without_generated = generated_metadata_block_re.sub("", text)
+def _build_exports_body_from_specs(specs: list[str]) -> str:
+    entries = []
+    for spec in specs:
+        if " as " in spec:
+            local_name, export_name = [part.strip() for part in spec.split(" as ", 1)]
+            entries.append(f"{export_name}: {local_name}")
+        else:
+            entries.append(spec)
+    if not entries:
+        return ""
+    return " " + ", ".join(entries) + " "
 
-    # Backward compatibility: remove old generated function-only trailing block
+
+def _extract_and_remove_exports_object(text: str) -> tuple[str, str | None, bool]:
+    m = re.search(r"(?:export\s+)?(?:var|let|const)\s+exports\s*=\s*\{", text)
+    if not m:
+        return text, None, False
+
+    declaration_start = m.start()
+    open_brace_index = text.find("{", declaration_start)
+    if open_brace_index == -1:
+        return text, None, False
+
+    i = open_brace_index
+    depth = 0
+    in_str = None
+    esc = False
+    close_brace_index = None
+    while i < len(text):
+        ch = text[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == in_str:
+                in_str = None
+        else:
+            if ch == '"' or ch == "'":
+                in_str = ch
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    close_brace_index = i
+                    break
+        i += 1
+
+    if close_brace_index is None:
+        return text, None, False
+
+    body = text[open_brace_index + 1 : close_brace_index]
+
+    end = close_brace_index + 1
+    if end < len(text) and text[end] == ";":
+        end += 1
+
+    return text[:declaration_start] + text[end:], body, True
+
+
+def _remove_generated_export_blocks(text: str) -> tuple[str, list[str], str | None, bool]:
     generated_block_re = re.compile(
-        r"\n?// Export translator functions as ES module bindings for adapter\n"
-        r"export\s*\{[^}]*\};\s*\Z",
+        r"\n?(?:(?:// Export translator compatibility exports for adapter\n)+"
+        r"export\s+const\s+exports\s*=\s*\{([\s\S]*?)\};\n*)?"
+        r"// Export translator functions as ES module bindings for adapter\n"
+        r"export\s*\{([^}]*)\};\s*\Z",
         re.MULTILINE,
     )
-    new_text = generated_block_re.sub("", text_without_generated).rstrip()
+    m = generated_block_re.search(text)
+    if m:
+        return text[:m.start()].rstrip(), _parse_generated_export_specs(m.group(2)), m.group(1), True
 
-    candidate = new_text + export_snippet
-    if candidate == text or candidate + "\n" == text:
-        return text, False
+    compatibility_only_re = re.compile(
+        r"\n?(?:// Export translator compatibility exports for adapter\n)+"
+        r"export\s+const\s+exports\s*=\s*\{([\s\S]*?)\};\s*\Z",
+        re.MULTILINE,
+    )
+    m = compatibility_only_re.search(text)
+    if m:
+        return text[:m.start()].rstrip(), [], m.group(1), True
+
+    return text, [], None, False
+
+
+def append_exports(text: str) -> tuple[str, bool]:
+    original_text = text
+    text, old_generated_specs, old_generated_exports_body, removed_generated_blocks = _remove_generated_export_blocks(text)
+    text, exports_body, removed_exports_object = _extract_and_remove_exports_object(text)
+
+    present = [fn for fn in TRANSLATOR_EXPORT_CANDIDATES if _is_function_defined(text, fn)]
+    specs: list[str] = []
+    seen_specs: set[str] = set()
+
+    for fn in present:
+        if fn not in seen_specs:
+            seen_specs.add(fn)
+            specs.append(fn)
+
+    compatibility_exports_body = exports_body or old_generated_exports_body
+    if compatibility_exports_body is None and old_generated_specs:
+        extra_specs = [spec for spec in old_generated_specs if spec not in seen_specs]
+        compatibility_exports_body = _build_exports_body_from_specs(extra_specs)
+
+    snippets = []
+    if compatibility_exports_body and compatibility_exports_body.strip():
+        snippets.append(
+            "\n// Export translator compatibility exports for adapter\n"
+            + "export const exports = {"
+            + compatibility_exports_body
+            + "};\n"
+        )
+
+    if specs:
+        export_line = f"export {{ {', '.join(specs)} }};"
+        snippets.append(
+            "\n// Export translator functions as ES module bindings for adapter\n"
+            + export_line
+            + "\n"
+        )
+
+    if not snippets:
+        return text, text != original_text
+
+    candidate = text.rstrip() + "".join(snippets)
+    if candidate == original_text or candidate + "\n" == original_text:
+        return original_text, False
 
     return candidate, True
 
