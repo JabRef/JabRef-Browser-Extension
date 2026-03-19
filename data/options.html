@@ -1,61 +1,94 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JabRef Browser Extension</title>
     <link rel="stylesheet" href="options.css" />
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="grid-container">
-        <div class="grid-item">
-            <label>Connection Status</label>
-        </div>
-        <div class="grid-item">
-            <span id="connectionStatus">Testing connection...</span>
-        </div>
+      <div class="grid-item">
+        <label>Export Format</label>
+      </div>
+      <div class="grid-item">
+        <input type="radio" id="exportBiblatex" name="exportFormat" value="biblatex" />
+        <label for="exportBiblatex">BibLaTeX</label>
+        <input
+          type="radio"
+          id="exportBibtex"
+          name="exportFormat"
+          value="bibtex"
+          checked="checked"
+        />
+        <label for="exportBibtex">BibTeX</label>
+      </div>
 
-        <div class="grid-item">
-            <label>Websocket Status</label>
-        </div>
-        <div class="grid-item">
-            <span id="wsClientStatus">pending...</span>
-        </div>
+      <div class="grid-item">
+        <label>Automatically take snapshots</label>
+      </div>
+      <div class="grid-item">
+        <input type="radio" id="snapshotsOn" name="takeSnapshots" value="on" />
+        <label for="snapshotsOn">On</label>
+        <input type="radio" id="snapshotsOff" name="takeSnapshots" value="off" checked="checked" />
+        <label for="snapshotsOff">Off</label>
+      </div>
 
-        <div class="grid-item">
-            <label>Export Format</label>
-        </div>
-        <div class="grid-item">
-            <input type="radio" id="exportBiblatex" name="exportFormat" value="biblatex">
-            <label for="exportBiblatex">BibLaTeX</label>
-            <input type="radio" id="exportBibtex" name="exportFormat" value="bibtex" checked="checked">
-            <label for="exportBibtex">BibTeX</label>
-        </div>
+      <div class="grid-item">
+        <label>Retrieve citation counts</label>
+      </div>
+      <div class="grid-item">
+        <input
+          type="radio"
+          id="retrieveCitationCountsOn"
+          name="retrieveCitationCounts"
+          value="on"
+        />
+        <label for="retrieveCitationCountsOn">On</label>
+        <input
+          type="radio"
+          id="retrieveCitationCountsOff"
+          name="retrieveCitationCounts"
+          value="off"
+          checked="checked"
+        />
+        <label for="retrieveCitationCountsOff">Off</label>
+      </div>
 
-        <div class="grid-item">
-            <label>Automatically take snapshots</label>
-        </div>
-        <div class="grid-item">
-            <input type="radio" id="snapshotsOn" name="takeSnapshots" value="on">
-            <label for="snapshotsOn">On</label>
-            <input type="radio" id="snapshotsOff" name="takeSnapshots" value="off" checked="checked">
-            <label for="snapshotsOff">Off</label>
-        </div>
+      <div class="grid-item">
+        <label for="portInput">JabRef connection port</label>
+      </div>
+      <div class="grid-item">
+        <input
+          type="number"
+          id="portInput"
+          name="jabrefPort"
+          min="1"
+          max="65535"
+          inputmode="numeric"
+        />
+      </div>
+    </div>
+    <div class="grid-container">
+      <div class="grid-header">
+        <h3>Connection Status</h3>
+      </div>
+      <div class="grid-item">
+        <label>Direct app connection (Native Messaging)</label>
+      </div>
+      <div class="grid-item">
+        <span id="connectionStatusNative">Testing connection...</span>
+      </div>
 
-        <div class="grid-item">
-            <label>Retrieve citation counts</label>
-        </div>
-        <div class="grid-item">
-            <input type="radio" id="retrieveCitationCountsOn" name="retrieveCitationCounts" value="on">
-            <label for="retrieveCitationCountsOn">On</label>
-            <input type="radio" id="retrieveCitationCountsOff" name="retrieveCitationCounts" value="off" checked="checked">
-            <label for="retrieveCitationCountsOff">Off</label>
-        </div>
+      <div class="grid-item">
+        <label>Local network connection (HTTP)</label>
+      </div>
+      <div class="grid-item">
+        <span id="connectionStatusHttp">Testing connection...</span>
+      </div>
     </div>
     <script type="application/javascript" src="../browser-polyfill.min.js"></script>
     <script src="options.js"></script>
-</body>
-
+  </body>
 </html>

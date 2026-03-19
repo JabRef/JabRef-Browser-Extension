@@ -124,9 +124,6 @@ $RECYCLE.BIN/
 # *.iml
 # *.ipr
 
-# CMake
-cmake-build-*/
-
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
 
@@ -212,3 +209,7 @@ fabric.properties
 # Support for Project snippet scope
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,visualstudiocode
+
+# Temporary files
+dist/
+test_cache/

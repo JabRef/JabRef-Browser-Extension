@@ -1,1 +1,0 @@
-../node_modules/react-autosuggest/dist/dist/standalone/autosuggest.min.js
