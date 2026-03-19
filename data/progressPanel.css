@@ -42,25 +42,6 @@ li.inprogress:after {
 #progressStatus {
   margin: 0 0 0.5em 0;
 }
-#citationCount {
-  display: none;
-  font-size: small;
-}
-#itemIncomplete {
-  display: none;
-  color: red;
-  font-size: small;
-}
-#googleScholarCaptcha {
-  display: none;
-  color: red;
-  font-size: small;
-}
-#tooManyRequests {
-  display: none;
-  color: red;
-  font-size: small;
-}
 
 h1 {
   font-size: 16px;
