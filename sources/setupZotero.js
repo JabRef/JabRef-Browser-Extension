@@ -2,7 +2,6 @@ import "./setupZoteroPlain.js";
 import "./zotero-translate/src/promise.js";
 import "./zotero-translate/src/translation/translate.js";
 import "./sandboxManager.js";
-//import "./zotero-translate/src/translation/sandboxManager.js";
 // See zotero-translate/example/index.html for the following list of imports
 import "./zotero-utilities/openurl.js";
 import "./zotero-utilities/date.js";
