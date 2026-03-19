@@ -1,0 +1,43 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:best-practices",
+    ":semanticCommitTypeAll(chore)",
+    // Update lock files: https://docs.renovatebot.com/presets-default/#maintainlockfilesmonthly
+    ":maintainLockFilesMonthly",
+    // Automerge all updates once they pass tests: https://docs.renovatebot.com/presets-default/#automergeall
+    ":automergeAll",
+    // Update _VERSION variables in GitHub Action files: https://docs.renovatebot.com/presets-customManagers/#custommanagersgithubactionsversions
+    "customManagers:githubActionsVersions",
+    // Pin Github Actions versions: https://docs.renovatebot.com/presets-helpers/#helperspingithubactiondigeststosemver
+    "helpers:pinGitHubActionDigestsToSemver",
+  ],
+  schedule: [
+    // Monthly, but give a 3-day window (due to throttling not all PRs may be created on the same day): https://docs.renovatebot.com/configuration-options/#schedule
+    "on the 2nd through 5th day of the month",
+  ],
+  // Always squash PRs: https://docs.renovatebot.com/configuration-options/#automergestrategy
+  automergeStrategy: "squash",
+  // Pin all dependencies: https://docs.renovatebot.com/dependency-pinning/
+  rangeStrategy: "pin",
+  packageRules: [
+    { matchPackageNames: ["*"], matchManagers: ["npm"] },
+    {
+      matchManagers: ["docker-compose", "dockerfile"],
+      groupName: "docker",
+    },
+    {
+      matchManagers: ["devcontainer"],
+      groupName: "devcontainer",
+    },
+    {
+      matchManagers: ["github-actions"],
+      groupName: "github-actions",
+    },
+  ],
+  "github-actions": { enabled: true },
+  postUpdateOptions: [
+    // Always dedupe the lock file after updating dependencies: https://docs.renovatebot.com/configuration-options/#postupdateoptions
+    "pnpmDedupe",
+  ],
+}

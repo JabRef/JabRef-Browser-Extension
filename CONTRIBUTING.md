@@ -24,7 +24,7 @@ Now just follow the typical steps to [contribute code](https://guides.github.com
 
 - `python scripts/import_and_patch_translators.py` updates all Zotero submodules, post-processes the translators and applies the necessary patches for our extension
 
-The following commands are used to update the dependencies of the project; as we use automatic dependency updates this should not be necessary in most cases, but it is good to know how to do it manually:
+The following commands are used to update the dependencies of the project; as we use Renovate for automatic dependency updates this should not be necessary in most cases, but it is good to know how to do it manually:
 
 - `pnpm outdated` gives an overview of outdated packages ([doc](https://pnpm.io/cli/outdated))
 - `pnpm update --latest` updates all packages
