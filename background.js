@@ -174,13 +174,13 @@ async function sendBibEntryNative(bibtex) {
     console.error(
       `JabRef: Error connecting to JabRef: '${response.output}' at '${response.stacktrace}'`,
     );
-    handleError(response.output, "", response.stacktrace);
+    openErrorPage(response.output, "", response.stacktrace);
   }
 
   console.error(
     `JabRef: Error connecting to JabRef: '${response.message}' with details '${response.output}' at '${response.stacktrace}'`,
   );
-  handleError(response.message, response.output, response.stacktrace);
+  openErrorPage(response.message, response.output, response.stacktrace);
 }
 
 async function sendBibTexToJabRef(bibtex) {
