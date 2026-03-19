@@ -95,7 +95,7 @@ export let TranslateWeb = {
     if (options.translators) {
       translate.setTranslator(options.translators);
     }
-    return translate.getTranslators(true, !!options.translators);
+    return await translate.getTranslators(true, !!options.translators);
   },
 
   /**

@@ -76,10 +76,14 @@ class TranslatorProvider {
 
     const cache = { import: [], export: [], web: [], search: [] };
     for (const info of manifest) {
+      const path = info.path;
+      if (!path) {
+        throw new Error(`Translator ${info.label} is missing a path`);
+      }
       const translator = new Zotero.Translator(info);
       // Zotero expects the path to be under `file`
       translator.file = {
-        path: translator.path,
+        path: path,
       };
       const typeKeys = this._typeKey(translator.translatorType);
       for (const typeKey of typeKeys) {
@@ -161,8 +165,8 @@ class TranslatorProvider {
   */
   async getCodeForTranslator(translator) {
     if (translator.code) return translator.code;
-    if (translator.path) {
-      const url = browser.runtime.getURL(translator.path);
+    if (translator.file?.path) {
+      const url = browser.runtime.getURL(translator.file.path);
       const response = await fetch(url);
       const code = await response.text();
       translator.code = code;

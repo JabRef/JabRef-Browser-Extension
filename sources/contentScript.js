@@ -61,10 +61,14 @@ browser.runtime.onMessage.addListener(async (msg, _sender, _sendResponse) => {
   if (msg.type !== "runTranslators") return;
 
   const translators = msg.translatorsInfo.map((info) => {
+    const path = info.path;
+    if (!path) {
+      throw new Error(`Translator ${info.label} is missing a path`);
+    }
     const translator = new Zotero.Translator(info);
     // Zotero expects the path to be under `file`
     translator.file = {
-      path: translator.path,
+      path: path,
     };
     return translator;
   });
