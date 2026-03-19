@@ -1,7 +1,7 @@
 {
   "browser_specific_settings": {
     "gecko": {
-      "id": "browserextension@jabref.org",
+      "id": "@jabfox",
       "data_collection_permissions": {
         "required": ["none"]
       }
