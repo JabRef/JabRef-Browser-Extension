@@ -108,6 +108,6 @@
     }
   ],
 
-  "version": "2.5",
+  "version": "3.0",
   "host_permissions": ["<all_urls>"]
 }
