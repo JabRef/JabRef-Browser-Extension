@@ -1,7 +1,8 @@
 import { TranslateWeb } from "./translateWeb.js";
 import "./setupZotero.js";
-import "./zotero-translate/src/translator.js";
-import "./zotero-translate/src/translation/translate_item.js";
+import "../../sources/zotero-translate/src/translator.js";
+import "../../sources/zotero-translate/src/translation/translate_item.js";
+import TranslatorsManifest from "../../translators/manifest.json";
 
 const EXPORT_TRANSLATORS = {
   bibtex: "9cb70025-a888-4a29-a210-93ec52da40d4",
@@ -70,12 +71,9 @@ class TranslatorProvider {
 
   async _ensure() {
     if (this._initialized) return;
-    const manifestUrl = browser.runtime.getURL("../translators/manifest.json");
-    const manifestResponse = await fetch(manifestUrl);
-    const manifest = await manifestResponse.json();
 
     const cache = { import: [], export: [], web: [], search: [] };
-    for (const info of manifest) {
+    for (const info of TranslatorsManifest) {
       const path = info.path;
       if (!path) {
         throw new Error(`Translator ${info.label} is missing a path`);

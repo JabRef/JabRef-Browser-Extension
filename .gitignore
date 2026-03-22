@@ -1,5 +1,6 @@
 node_modules
-web-ext-artifacts
+.output
+.wxt
 
 # Ignore polyfill and fetch it with npm install
 browser-polyfill.min.js

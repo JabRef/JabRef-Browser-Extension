@@ -1,3 +1,5 @@
+import "./style.css";
+
 var ExportMode = Object.freeze({
   BibLaTeX: "biblatex",
   BibTeX: "bibtex",

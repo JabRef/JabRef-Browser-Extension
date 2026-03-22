@@ -3,7 +3,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { setSandbox } from "../sources/sandbox.js";
+import { setSandbox } from "../public/sandbox.js";
 
 const TRANSLATORS_DIR = path.resolve(process.cwd(), "translators", "zotero");
 const translatorFiles = (await readdir(TRANSLATORS_DIR)).filter((name) => name.endsWith(".js"));

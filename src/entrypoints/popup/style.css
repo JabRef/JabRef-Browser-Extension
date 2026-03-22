@@ -29,10 +29,10 @@ ul.attachmentList li {
   font-weight: normal;
   background-size: 8px 8px;
   background-position: 0.55em 0.4em;
-  background-image: url(JabRef-icon-16-gray.png);
+  background-image: url(/JabRef-icon-16-gray.png);
 }
 li.inprogress:after {
-  background-image: url("spin.gif");
+  background-image: url(/spin.gif);
   background-size: 14px 14px;
   display: inline-block;
   width: 14px;

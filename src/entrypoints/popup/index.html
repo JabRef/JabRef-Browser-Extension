@@ -1,10 +1,15 @@
 <!doctype html>
-
 <html>
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="progressPanel.css" />
+
+    <title>Import references into JabRef</title>
+    <meta
+      name="manifest.default_icon"
+      content='{"16":"JabRef-icon-16.png","48":"JabRef-icon-48.png","128":"JabRef-icon-128.png"}'
+    />
+    <meta name="manifest.type" content="page_action" />
   </head>
   <body>
     <h3 id="status">Searching for bibliographic data...</h3>
@@ -24,7 +29,6 @@
       <summary>Logs</summary>
       <div id="log" class="log-box"></div>
     </details>
-    <script type="application/javascript" src="../browser-polyfill.min.js"></script>
-    <script src="progressPanel.js"></script>
+    <script type="module" src="./main.js"></script>
   </body>
 </html>

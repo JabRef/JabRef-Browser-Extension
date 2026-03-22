@@ -1,4 +1,12 @@
-import { setSandbox } from "./sandbox.js";
+let sharedSandboxModulePromise;
+
+function getSharedSandboxModule() {
+  if (!sharedSandboxModulePromise) {
+    const url = browser.runtime.getURL("/sandbox.js");
+    sharedSandboxModulePromise = import(url);
+  }
+  return sharedSandboxModulePromise;
+}
 
 /**
  * Manages the translator sandbox
@@ -69,6 +77,7 @@ class SandboxManager {
 
   async importTranslatorByPath(path, functions = []) {
     const url = this._resolvePath(path);
+    const { setSandbox } = await getSharedSandboxModule();
 
     let cached = this._moduleCache.get(url);
     if (!cached) {
