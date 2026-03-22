@@ -18,12 +18,12 @@ ROOT = Path(__file__).resolve().parents[1]
 TARGET = ROOT / "translators" / "zotero"
 ZOTERO_REPO = "https://github.com/zotero/translators"
 ZOTERO_SUBMODULES = {
-    "translators/zotero": "esm",
-    "sources/zotero-translate": "async-sandbox",
-    "sources/zotero-utilities": "fix-import",
+    "translators/zotero": "fixes",
+    "sources/zotero-translate": "fixes",
+    "sources/zotero-utilities": "fixes",
 }
 
-SANDBOX_PATH = "../../sources/sandbox.js"
+SANDBOX_PATH = "/sandbox.js"
 REQUIRED_SANDBOX_IMPORTS = [
     "ZU",
     "Zotero",
@@ -387,9 +387,9 @@ def generate_manifest():
 
         header = extract_declared_translator_info(txt) or None
 
-        rel = f.relative_to(ROOT).as_posix()
+        rel = Path("translators") / f.name
         entry = {
-            "path": rel,
+            "path": rel.as_posix(),
             "label": f.stem,
         }
         if header:

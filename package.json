@@ -1,5 +1,6 @@
 {
   "name": "jabrefbrowserextension",
+  "version": "3.0",
   "description": "Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.",
   "keywords": [
     "JabRef",
@@ -17,27 +18,40 @@
     "type": "git",
     "url": "git+https://github.com/JabRef/JabRef-Browser-Extension.git"
   },
-  "main": "background.js",
+  "type": "module",
   "scripts": {
-    "dev:firefox": "web-ext run",
-    "dev:chrome": "web-ext run -t chromium",
-    "dev:opera": "web-ext run -t chromium --chromium-binary C:\\Users\\Tobi\\AppData\\Local\\Programs\\Opera\\64.0.3417.92\\opera.exe",
-    "build": "web-ext build",
-    "lint": "pnpm lint:oxlint && pnpm lint:oxfmt && pnpm lint:firefox",
-    "lint:firefox": "web-ext lint",
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "dev:chrome": "wxt -b chrome",
+    "dev:opera": "wxt -b opera",
+    "dev:edge": "wxt -b edge",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "vue-tsc --noEmit",
+    "lint": "pnpm lint:oxlint && pnpm lint:oxfmt",
     "lint:oxlint": "oxlint",
     "lint:oxfmt": "oxfmt --check",
-    "submit:firefox": "web-ext sign",
     "test": "vitest run",
-    "test:legacy": "node test.js arXiv.org.js"
+    "test:legacy": "node test.js arXiv.org.js",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "vue": "^3.5.29"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@wxt-dev/module-vue": "^1.0.3",
     "globals": "^17.0.0",
     "jsdom": "^27.4.0",
     "oxfmt": "^0.27.0",
     "oxlint": "^1.41.0",
+    "tailwindcss": "^4.0.9",
+    "typescript": "^5.9.3",
     "vitest": "^3.2.4",
-    "web-ext": "^9.2.0"
+    "vue-tsc": "^3.2.5",
+    "wxt": "^0.20.20"
   },
   "packageManager": "pnpm@10.20.0"
 }
