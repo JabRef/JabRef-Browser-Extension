@@ -3,7 +3,6 @@ export default {
     "circle.yml",
     "package-lock.json",
     "install_linux.sh",
-    "translators",
     ".idea",
     "workspace.code-workspace",
     "test.js",
