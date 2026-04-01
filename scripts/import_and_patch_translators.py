@@ -234,7 +234,7 @@ def append_exports(text: str) -> tuple[str, bool]:
 
 def ensure_sandbox_import(text: str) -> tuple[str, bool]:
     import_re = re.compile(
-        r"^\s*import\s*\{\s*([^}]*)\}\s*from\s*[\"']\.\./\.\./sources/sandbox\.js[\"'];?\s*$",
+        r"^\s*import\s*\{\s*([^}]*)\}\s*from\s*[\"'].*sandbox\.js[\"'];?\s*$",
         re.MULTILINE,
     )
     match = import_re.search(text)
