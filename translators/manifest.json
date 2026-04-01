@@ -2519,19 +2519,6 @@
     "maxVersion": ""
   },
   {
-    "path": "translators/zotero/Edinburgh University Press Journals.js",
-    "label": "Edinburgh University Press Journals",
-    "translatorID": "b7bd798d-e518-46d1-aa13-a69f2864fa91",
-    "target": "^https?://www\\.euppublishing\\.com/",
-    "browserSupport": "gcsibv",
-    "translatorType": 4,
-    "creator": "Sebastian Karcher",
-    "priority": 100,
-    "lastUpdated": "2016-09-13 21:55:09",
-    "minVersion": "3.0",
-    "maxVersion": ""
-  },
-  {
     "path": "translators/zotero/Education Week.js",
     "label": "Education Week",
     "translatorID": "7e51d3fb-082e-4063-8601-cda08f6004a3",
@@ -7379,7 +7366,7 @@
     "translatorType": 4,
     "creator": "Michael Berkowitz and Aurimas Vinckevicius",
     "priority": 100,
-    "lastUpdated": "2025-12-02 18:01:21",
+    "lastUpdated": "2026-03-19 20:29:30",
     "minVersion": "3.0",
     "maxVersion": ""
   },
