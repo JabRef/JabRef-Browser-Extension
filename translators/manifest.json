@@ -825,7 +825,7 @@
     "translatorType": 2,
     "creator": "Simon Kornblith, Richard Karnesky and Anders Johansson",
     "priority": 100,
-    "lastUpdated": "2024-03-25 14:49:42",
+    "lastUpdated": "2026-04-01 18:00:00",
     "minVersion": "2.1.9",
     "maxVersion": ""
   },
@@ -927,7 +927,7 @@
     "translatorType": 3,
     "creator": "Simon Kornblith, Richard Karnesky and Emiliano heyns",
     "priority": 200,
-    "lastUpdated": "2024-03-25 14:51:02",
+    "lastUpdated": "2026-04-01 18:00:00",
     "minVersion": "2.1.9",
     "maxVersion": ""
   },
@@ -2519,19 +2519,6 @@
     "maxVersion": ""
   },
   {
-    "path": "translators/Edinburgh University Press Journals.js",
-    "label": "Edinburgh University Press Journals",
-    "translatorID": "b7bd798d-e518-46d1-aa13-a69f2864fa91",
-    "target": "^https?://www\\.euppublishing\\.com/",
-    "browserSupport": "gcsibv",
-    "translatorType": 4,
-    "creator": "Sebastian Karcher",
-    "priority": 100,
-    "lastUpdated": "2016-09-13 21:55:09",
-    "minVersion": "3.0",
-    "maxVersion": ""
-  },
-  {
     "path": "translators/Education Week.js",
     "label": "Education Week",
     "translatorID": "7e51d3fb-082e-4063-8601-cda08f6004a3",
@@ -2605,7 +2592,7 @@
     "translatorType": 4,
     "creator": "Avram Lyon",
     "priority": 100,
-    "lastUpdated": "2024-07-14 15:27:57",
+    "lastUpdated": "2026-04-01 18:00:00",
     "minVersion": "2.1",
     "maxVersion": ""
   },
@@ -2670,7 +2657,7 @@
     "translatorType": 4,
     "creator": "Simon Kornblith and Avram Lyon",
     "priority": 320,
-    "lastUpdated": "2025-10-14 17:29:56",
+    "lastUpdated": "2026-04-27 15:11:51",
     "minVersion": "3.0.4",
     "maxVersion": ""
   },
@@ -4369,7 +4356,7 @@
     "translatorType": 4,
     "creator": "Sebastian Karcher",
     "priority": 100,
-    "lastUpdated": "2022-12-28 02:37:11",
+    "lastUpdated": "2026-04-01 18:00:00",
     "minVersion": "5.0",
     "maxVersion": ""
   },
@@ -7379,7 +7366,7 @@
     "translatorType": 4,
     "creator": "Michael Berkowitz and Aurimas Vinckevicius",
     "priority": 100,
-    "lastUpdated": "2025-12-02 18:01:21",
+    "lastUpdated": "2026-03-19 20:29:30",
     "minVersion": "3.0",
     "maxVersion": ""
   },
