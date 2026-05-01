@@ -72,6 +72,10 @@ def ensure_repo():
         
     run(["git", "submodule", "update", "--remote", "--merge"])
 
+    for submodule, branch in ZOTERO_SUBMODULES.items():
+        submodule_path = str(ROOT / submodule)
+        run(["git", "-C", submodule_path, "push", "origin", branch])
+
 def export_translator_info(text: str) -> tuple[str, bool]:
     # Keep idempotent if already prefixed
     if re.match(r"^\s*export\s+const\s+ZOTERO_TRANSLATOR_INFO\s*=", text):
