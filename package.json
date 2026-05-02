@@ -37,7 +37,7 @@
     "oxfmt": "0.47.0",
     "oxlint": "1.62.0",
     "vitest": "3.2.4",
-    "web-ext": "9.4.0"
+    "web-ext": "10.1.0"
   },
   "packageManager": "pnpm@10.33.2"
 }
