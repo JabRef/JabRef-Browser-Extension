@@ -9,22 +9,22 @@ importers:
   .:
     devDependencies:
       globals:
-        specifier: ^17.0.0
+        specifier: 17.5.0
         version: 17.5.0
       jsdom:
-        specifier: ^27.4.0
+        specifier: 27.4.0
         version: 27.4.0
       oxfmt:
-        specifier: ^0.27.0
+        specifier: 0.27.0
         version: 0.27.0
       oxlint:
-        specifier: ^1.41.0
+        specifier: 1.62.0
         version: 1.62.0
       vitest:
-        specifier: ^3.2.4
+        specifier: 3.2.4
         version: 3.2.4(@types/node@25.6.0)(jsdom@27.4.0)
       web-ext:
-        specifier: ^9.2.0
+        specifier: 9.4.0
         version: 9.4.0
 
 packages:
