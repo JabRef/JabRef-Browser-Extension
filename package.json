@@ -39,5 +39,5 @@
     "vitest": "3.2.4",
     "web-ext": "9.4.0"
   },
-  "packageManager": "pnpm@10.20.0"
+  "packageManager": "pnpm@10.33.2"
 }
