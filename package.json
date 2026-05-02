@@ -34,7 +34,7 @@
   "devDependencies": {
     "globals": "17.5.0",
     "jsdom": "27.4.0",
-    "oxfmt": "0.27.0",
+    "oxfmt": "0.47.0",
     "oxlint": "1.62.0",
     "vitest": "3.2.4",
     "web-ext": "9.4.0"
