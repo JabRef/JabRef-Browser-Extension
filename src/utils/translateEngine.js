@@ -78,7 +78,7 @@ class TranslatorProvider {
       if (!path) {
         throw new Error(`Translator ${info.label} is missing a path`);
       }
-      const translator = new Zotero.Translator(info);
+      const translator = new Zotero.Translator({ ...info });
       // Zotero expects the path to be under `file`
       translator.file = {
         path: path,
