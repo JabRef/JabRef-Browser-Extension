@@ -1,3 +1,7 @@
+// This file is used to share the Zotero sandbox environment with the extension's content scripts and translators.
+// To enable this, the sandbox module must be shared with both context, and thus cannot be bundled/inlined.
+// For this reason, this file is in `public` and will just be copied verbatim.
+
 export let ZU;
 export let Zotero;
 export let Z;
@@ -7,15 +11,8 @@ export let text;
 export let attr;
 export let DOMParser;
 
-import "./zotero-utilities/xregexp-all.js";
-
 export function setSandbox(sandbox) {
   ZU = sandbox.ZU;
-  if (globalThis.XRegExp !== undefined) {
-    // No idea why, but the XRegExp provided by the sandbox is not working
-    // So let's overwrite it with a freshly imported one
-    ZU.XRegExp = XRegExp;
-  }
   Zotero = sandbox.Zotero;
   Z = sandbox.Zotero;
   requestJSON = sandbox.requestJSON;

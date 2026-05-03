@@ -1,7 +1,4 @@
-// Provide a minimal compatibility shim: if `browser` is missing, alias it to `chrome`.
-if (typeof browser === "undefined" && typeof chrome !== "undefined") {
-  globalThis.browser = chrome;
-}
+import "./style.css";
 
 browser.runtime.onMessage.addListener(function (message, _sender, _sendResponse) {
   console.debug("JabRef: Received message in popup:", message);

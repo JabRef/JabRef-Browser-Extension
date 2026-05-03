@@ -1,3 +1,5 @@
+import "./style.css";
+
 var ExportMode = Object.freeze({
   BibLaTeX: "biblatex",
   BibTeX: "bibtex",
@@ -6,7 +8,7 @@ var ExportMode = Object.freeze({
 const DEFAULT_PORT = 23119;
 
 async function connectToJabRef(port) {
-  base = `http://localhost:${port}/`;
+  const base = `http://localhost:${port}/`;
   try {
     // Try a simple GET to the base URL to detect availability.
     const response = await fetch(base, { method: "GET", cache: "no-store" });

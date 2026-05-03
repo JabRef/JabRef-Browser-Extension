@@ -18,12 +18,12 @@ ROOT = Path(__file__).resolve().parents[1]
 TARGET = ROOT / "translators" / "zotero"
 ZOTERO_REPO = "https://github.com/zotero/translators"
 ZOTERO_SUBMODULES = {
-    "translators/zotero": "esm",
-    "sources/zotero-translate": "async-sandbox",
-    "sources/zotero-utilities": "fix-import",
+    "translators/zotero": "fixes",
+    "sources/zotero-translate": "fixes",
+    "sources/zotero-utilities": "fixes",
 }
 
-SANDBOX_PATH = "../../sources/sandbox.js"
+SANDBOX_PATH = "/sandbox.js"
 REQUIRED_SANDBOX_IMPORTS = [
     "ZU",
     "Zotero",
@@ -71,6 +71,10 @@ def ensure_repo():
         run(["git", "-C", submodule_path, "checkout", branch])
         
     run(["git", "submodule", "update", "--remote", "--merge"])
+
+    for submodule, branch in ZOTERO_SUBMODULES.items():
+        submodule_path = str(ROOT / submodule)
+        run(["git", "-C", submodule_path, "push", "origin", branch])
 
 def export_translator_info(text: str) -> tuple[str, bool]:
     # Keep idempotent if already prefixed
@@ -234,7 +238,7 @@ def append_exports(text: str) -> tuple[str, bool]:
 
 def ensure_sandbox_import(text: str) -> tuple[str, bool]:
     import_re = re.compile(
-        r"^\s*import\s*\{\s*([^}]*)\}\s*from\s*[\"'].*sandbox\.js[\"'];?\s*$",
+        r"^\s*import\s*\{\s*([^}]*)\}\s*from\s*[\"']" + re.escape(SANDBOX_PATH) + r"[\"'];?\s*$",
         re.MULTILINE,
     )
     match = import_re.search(text)
@@ -387,9 +391,9 @@ def generate_manifest():
 
         header = extract_declared_translator_info(txt) or None
 
-        rel = f.relative_to(ROOT).as_posix()
+        rel = Path("translators") / f.name
         entry = {
-            "path": rel,
+            "path": rel.as_posix(),
             "label": f.stem,
         }
         if header:

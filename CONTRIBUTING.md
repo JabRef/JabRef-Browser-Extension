@@ -10,7 +10,9 @@ Preparation:
 4. Install development dependencies via `pnpm install`.
 5. Start browser with the add-on activated:
    Firefox: `pnpm dev:firefox`
-   Chrome: `pnpm dev:opera`
+   Chrome: `pnpm dev:chrome`
+   Opera: `pnpm dev:opera`
+   Edge: `pnpm dev:edge`
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
@@ -32,12 +34,12 @@ The following commands are used to update the dependencies of the project; as we
 
 ## Release of new version
 
-- Increase version number in `manifest.json`
+- Increase version number in `package.json`
 - `pnpm build`
 - Upload to:
   - https://addons.mozilla.org/en-US/developers/addon/jabref/versions/submit/
   - https://chrome.google.com/u/2/webstore/devconsole/26c4c347-9aa1-48d8-8a22-1c79fd3a597e/bifehkofibaamoeaopjglfkddgkijdlh/edit/package
   - https://addons.opera.com/developer/upload/
   - https://developer.apple.com/app-store-connect/
-- Remove the `key` field in `manifest.json` and build again. Then upload to:
+- Remove the `key` field in `wxt.config.ts` and build again. Then upload to:
   - https://partner.microsoft.com/en-us/dashboard/microsoftedge/2045cdc1-808f-43c4-8091-43e2dcaff53d/packages
