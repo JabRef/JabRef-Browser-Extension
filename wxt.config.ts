@@ -12,7 +12,6 @@ export default defineConfig({
     browser_specific_settings: {
       gecko: {
         id: "@jabfox",
-        // @ts-expect-error - https://github.com/wxt-dev/wxt/issues/1975
         data_collection_permissions: {
           required: ["none"],
         },
@@ -65,21 +64,6 @@ export default defineConfig({
       "https://ieeexplore.ieee.org/abstract/document/893874",
       "https://arxiv.org/a/diez_t_1.html",
     ],
-  },
-  hooks: {
-    "build:manifestGenerated": (wxt, manifest) => {
-      if (wxt.config.browser === "firefox") {
-        manifest.page_action = {
-          default_popup: "popup.html",
-          default_icon: {
-            "16": "JabRef-icon-16.png",
-            "48": "JabRef-icon-48.png",
-            "128": "JabRef-icon-128.png",
-          },
-          default_title: "Import references into JabRef",
-        };
-      }
-    },
   },
   vite: () => ({
     plugins: [tailwindcss()],
