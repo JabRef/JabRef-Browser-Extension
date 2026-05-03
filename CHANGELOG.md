@@ -2,47 +2,8 @@
 
 ## [3.2.0](https://github.com/JabRef/JabRef-Browser-Extension/compare/v3.1.0...v3.2.0) (2026-05-03)
 
-### 🔖 Features
-
-- add esm exports for Zotero translators (and corresponding tests) ([71d61c9](https://github.com/JabRef/JabRef-Browser-Extension/commit/71d61c9dee4c58a6cc97bfda79131ef240370207))
-- add http connection check to options page ([d56f8a9](https://github.com/JabRef/JabRef-Browser-Extension/commit/d56f8a9abece3e04ddffa0a79d90412f915f167d))
-- add Zotero date initialization ([2fa1f4f](https://github.com/JabRef/JabRef-Browser-Extension/commit/2fa1f4f901bdfddab0c82ca63d89d862e22e1d2b))
-- better error message in case of flatpak permission error ([#521](https://github.com/JabRef/JabRef-Browser-Extension/issues/521)) ([33874ec](https://github.com/JabRef/JabRef-Browser-Extension/commit/33874ec507527c39d70c039bbd807728f293ff66))
-- convert to bibtex code using Zotero exporter ([d3220c9](https://github.com/JabRef/JabRef-Browser-Extension/commit/d3220c9cd79bf8509465488063e9f060056d755d))
-- Manifest v3 support, add communciation with JabRef via HTTP ([67f0990](https://github.com/JabRef/JabRef-Browser-Extension/commit/67f0990ba3b9cc6f6de957aad9c884208b6e8ef7))
-- Manifest v3 support, add communciation with JabRef via HTTP ([#624](https://github.com/JabRef/JabRef-Browser-Extension/issues/624)) ([67f0990](https://github.com/JabRef/JabRef-Browser-Extension/commit/67f0990ba3b9cc6f6de957aad9c884208b6e8ef7))
-- restore translator detection upon website load and toggling of page action status ([c8a7568](https://github.com/JabRef/JabRef-Browser-Extension/commit/c8a75681dc8a139db3ffd6bd1279e17fff3ea53d))
-- send bibtex to JabRef via HTTP and Native Messaging as fallback ([0f62c5b](https://github.com/JabRef/JabRef-Browser-Extension/commit/0f62c5b3e25518138a4f99e1fae15d5bcd6ef0ab))
-
-### 🐛 Bug Fixes
-
-- add missing web request interception functionality ([4c2aebb](https://github.com/JabRef/JabRef-Browser-Extension/commit/4c2aebb633b895d301cd3b46bf8d60ef64a54e08))
-- add vitest configuration to fix sandbox import ([b2aacf3](https://github.com/JabRef/JabRef-Browser-Extension/commit/b2aacf3909d7fa9428177cf60a47265cf043b49e))
-- correctly handle special headers (Referer, Origin) ([f767427](https://github.com/JabRef/JabRef-Browser-Extension/commit/f767427126c1f2065f88bdf85b654ff23ac9fe71))
-- declare 'base' variable ([c1b453a](https://github.com/JabRef/JabRef-Browser-Extension/commit/c1b453a030558f0056541e26a864324a735f04c1))
-- ensure translator paths are validated and correctly assigned ([84dd999](https://github.com/JabRef/JabRef-Browser-Extension/commit/84dd999d5ec999d9d48888fd521d4161b991e895))
-- expose `exports` from translator in sandbox ([8813c4d](https://github.com/JabRef/JabRef-Browser-Extension/commit/8813c4d3f0fc29d51d33fd156581483cc8ca22b2))
-- make sure all translators can be imported (and add tests for it) ([0b12a94](https://github.com/JabRef/JabRef-Browser-Extension/commit/0b12a949ebcf9c935dfff5dc91d884abcc17f070))
-- Remove translators from web-ext ignore ([#639](https://github.com/JabRef/JabRef-Browser-Extension/issues/639)) ([ee75a57](https://github.com/JabRef/JabRef-Browser-Extension/commit/ee75a571a17037ecde263a1e9e71f2dbbad99461))
-- run `detect` step also in the content script ([04113eb](https://github.com/JabRef/JabRef-Browser-Extension/commit/04113ebe73aa81ae24bcfa9429c7f71cb20644b6))
-- update browser extension id in manifest.json ([087ead9](https://github.com/JabRef/JabRef-Browser-Extension/commit/087ead91781f79fe214c0963536fb7fcdcccaba9))
-- update translator instantiation to use copy of translator info ([fd97598](https://github.com/JabRef/JabRef-Browser-Extension/commit/fd97598c3b9ca80c0a6bea3713b256d2d9e2b0b4))
-- update zotero-utilities submodule to include custom import fix of ZOTERO_TYPE_SCHEMA ([81c0407](https://github.com/JabRef/JabRef-Browser-Extension/commit/81c0407be89ebc7fd7adde842e13abb247467b96))
-- use correct method for error handling ([bbd7754](https://github.com/JabRef/JabRef-Browser-Extension/commit/bbd77543c3e5d6813bb2b0c6d7b1501cfb6ab390))
-- use DOMParser from browser (and mock it in tests) ([81a0ee8](https://github.com/JabRef/JabRef-Browser-Extension/commit/81a0ee839942f20b3014a501e1119645ea218519))
-
 ### 🧹 Miscellaneous
 
-- add `lint` alias ([d43ce81](https://github.com/JabRef/JabRef-Browser-Extension/commit/d43ce8183ff245d66f90a3ad2d17d4fa37fe940c))
-- add functionality to push Zotero submodules to their respective branches ([adaaa94](https://github.com/JabRef/JabRef-Browser-Extension/commit/adaaa94255ceaa26b25df2bffc8e467858e08a8f))
-- add release workflow ([#656](https://github.com/JabRef/JabRef-Browser-Extension/issues/656)) ([bc5f326](https://github.com/JabRef/JabRef-Browser-Extension/commit/bc5f326c674d4577df8ba01f277b55c0348f79f5))
-- add web-ext as dependency and fix its config ([fcab44d](https://github.com/JabRef/JabRef-Browser-Extension/commit/fcab44d1b0ca532f866601b087ba04da2f4a7268))
-- **deps:** bump pascalgn/automerge-action from 0.15.5 to 0.15.6 ([#549](https://github.com/JabRef/JabRef-Browser-Extension/issues/549)) ([7cb0c5f](https://github.com/JabRef/JabRef-Browser-Extension/commit/7cb0c5fd6486c359010d9f87e541a187f65ca662))
-- **deps:** bump WyriHaximus/github-action-wait-for-status ([#577](https://github.com/JabRef/JabRef-Browser-Extension/issues/577)) ([f576635](https://github.com/JabRef/JabRef-Browser-Extension/commit/f5766352ec4d8da2027f01dafd87e64c5c979532))
-- **deps:** lock file maintenance ([#640](https://github.com/JabRef/JabRef-Browser-Extension/issues/640)) ([33420c1](https://github.com/JabRef/JabRef-Browser-Extension/commit/33420c1b3ee5470c1dac3d801a342d81f9c86526))
-- **deps:** pin dependencies ([#641](https://github.com/JabRef/JabRef-Browser-Extension/issues/641)) ([b17e821](https://github.com/JabRef/JabRef-Browser-Extension/commit/b17e8215cca97e3ce1e4c638f66123fd6c2a9c2f))
-- **deps:** pin dependency vue to 3.5.30 ([#651](https://github.com/JabRef/JabRef-Browser-Extension/issues/651)) ([56752b8](https://github.com/JabRef/JabRef-Browser-Extension/commit/56752b82da385c9cce9177c814228bc8f6d802f7))
-- **deps:** update dependency jsdom to v29 ([#645](https://github.com/JabRef/JabRef-Browser-Extension/issues/645)) ([0659e50](https://github.com/JabRef/JabRef-Browser-Extension/commit/0659e50e11a28b65b180626bed513ffe3754486f))
 - **deps:** update dependency jsdom to v29.1.1 ([#650](https://github.com/JabRef/JabRef-Browser-Extension/issues/650)) ([e0d378c](https://github.com/JabRef/JabRef-Browser-Extension/commit/e0d378c090ee5272ea1cbfe6799ed9c1960881a7))
 - **deps:** update dependency oxfmt to v0.47.0 ([#643](https://github.com/JabRef/JabRef-Browser-Extension/issues/643)) ([08a9ba9](https://github.com/JabRef/JabRef-Browser-Extension/commit/08a9ba93089206947e4b41c72cec060d8c5025a8))
 - **deps:** update dependency typescript to v6 ([#655](https://github.com/JabRef/JabRef-Browser-Extension/issues/655)) ([69e449d](https://github.com/JabRef/JabRef-Browser-Extension/commit/69e449d4e296d68ff110c483e2e5f332c362aa43))
