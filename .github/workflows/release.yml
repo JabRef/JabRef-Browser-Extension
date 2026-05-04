@@ -61,7 +61,7 @@ jobs:
       pull-requests: write
       id-token: write
     needs: [release-pr]
-    if: github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true'
+    if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && always() }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - run: corepack enable
