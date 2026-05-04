@@ -1,6 +1,6 @@
 {
   "name": "jabrefbrowserextension",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.",
   "keywords": [
     "JabRef",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "4.2.4",
     "@wxt-dev/module-vue": "1.0.3",
-    "globals": "17.5.0",
+    "globals": "17.6.0",
     "jsdom": "29.1.1",
     "oxfmt": "0.47.0",
     "oxlint": "1.62.0",

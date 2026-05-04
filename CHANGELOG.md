@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.2.1](https://github.com/JabRef/JabRef-Browser-Extension/compare/v3.2.0...v3.2.1) (2026-05-04)
+
+### 🧹 Miscellaneous
+
+- fix release build ([#659](https://github.com/JabRef/JabRef-Browser-Extension/issues/659)) ([4939e34](https://github.com/JabRef/JabRef-Browser-Extension/commit/4939e34fd6e1b4b134f4d0d808d186f8f706d263))
+
 ## [3.2.0](https://github.com/JabRef/JabRef-Browser-Extension/compare/v3.1.0...v3.2.0) (2026-05-03)
 
 ### 🧹 Miscellaneous
