@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.2](https://github.com/JabRef/JabRef-Browser-Extension/compare/v3.2.1...v3.2.2) (2026-05-04)
+
+
+### 🧹 Miscellaneous
+
+* **deps:** update dependency globals to v17.6.0 ([#661](https://github.com/JabRef/JabRef-Browser-Extension/issues/661)) ([3009ecc](https://github.com/JabRef/JabRef-Browser-Extension/commit/3009ecc7cae1ac7095faeed1dd82d7c989cf185d))
+* disable jsdom improts to decrease chunk size ([#663](https://github.com/JabRef/JabRef-Browser-Extension/issues/663)) ([537454f](https://github.com/JabRef/JabRef-Browser-Extension/commit/537454f6e98c17854a95cd694e8ade5016d73a2f))
+
 ## [3.2.1](https://github.com/JabRef/JabRef-Browser-Extension/compare/v3.2.0...v3.2.1) (2026-05-04)
 
 ### 🧹 Miscellaneous
