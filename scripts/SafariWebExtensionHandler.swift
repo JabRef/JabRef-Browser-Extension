@@ -5,6 +5,7 @@ import os.log
 private let profileKeyFallback = "profile"
 private let messageKeyFallback = "message"
 private let responseKeyFallback = "message"
+private let nativeBridgeLogTag = "JBE_NATIVE_BRIDGE"
 
 private enum JabRefBridgeError: LocalizedError {
     case jabRefNotFound([String])
@@ -31,17 +32,29 @@ private enum JabRefBridgeError: LocalizedError {
 
 private struct JabRefBridge {
     func handle(message: Any, profileIdentifier: UUID?) -> [String: Any] {
-        os_log(
-            "Received native message from Safari extension. profile=%{public}@",
-            log: .default,
-            type: .default,
-            profileIdentifier?.uuidString ?? "none",
-        )
-
         do {
             guard let payload = message as? [String: Any] else {
+                os_log(
+                    "%{public}@ INVALID_PAYLOAD profile=%{public}@",
+                    log: .default,
+                    type: .error,
+                    nativeBridgeLogTag,
+                    profileIdentifier?.uuidString ?? "none",
+                )
                 throw JabRefBridgeError.invalidPayload
             }
+
+            let requestId = (payload["requestId"] as? String) ?? "none"
+            let payloadKeys = payload.keys.sorted().joined(separator: ",")
+            os_log(
+                "%{public}@ BEGIN requestId=%{public}@ profile=%{public}@ keys=%{public}@",
+                log: .default,
+                type: .default,
+                nativeBridgeLogTag,
+                requestId,
+                profileIdentifier?.uuidString ?? "none",
+                payloadKeys,
+            )
 
             if let status = payload["status"] as? String, status == "validate" {
                 let jabRefURL = try findJabRef()
@@ -49,6 +62,7 @@ private struct JabRefBridge {
                 return [
                     "message": "jarFound",
                     "output": output,
+                    "requestId": requestId,
                 ]
             }
 
@@ -61,6 +75,7 @@ private struct JabRefBridge {
             return [
                 "message": "ok",
                 "output": output,
+                "requestId": requestId,
             ]
         } catch let error as JabRefBridgeError {
             return errorResponse(for: error)
@@ -76,6 +91,13 @@ private struct JabRefBridge {
     private func errorResponse(for error: JabRefBridgeError) -> [String: Any] {
         switch error {
         case .jabRefNotFound(let attemptedPaths):
+            os_log(
+                "%{public}@ JAR_NOT_FOUND paths=%{public}@",
+                log: .default,
+                type: .error,
+                nativeBridgeLogTag,
+                attemptedPaths.joined(separator: " | "),
+            )
             return [
                 "message": "jarNotFound",
                 "path": attemptedPaths.first ?? "",
@@ -83,18 +105,39 @@ private struct JabRefBridge {
                 "stacktrace": attemptedPaths.joined(separator: "\n"),
             ]
         case .processFailed(_, let output):
+            os_log(
+                "%{public}@ PROCESS_FAILED output=%{public}@",
+                log: .default,
+                type: .error,
+                nativeBridgeLogTag,
+                output,
+            )
             return [
                 "message": "error",
                 "output": output,
                 "stacktrace": error.localizedDescription,
             ]
         case .processLaunchFailed(let reason):
+            os_log(
+                "%{public}@ PROCESS_LAUNCH_FAILED reason=%{public}@",
+                log: .default,
+                type: .error,
+                nativeBridgeLogTag,
+                reason,
+            )
             return [
                 "message": "error",
                 "output": reason,
                 "stacktrace": reason,
             ]
         default:
+            os_log(
+                "%{public}@ ERROR description=%{public}@",
+                log: .default,
+                type: .error,
+                nativeBridgeLogTag,
+                error.localizedDescription,
+            )
             return [
                 "message": "error",
                 "output": error.localizedDescription,
@@ -112,6 +155,13 @@ private struct JabRefBridge {
 
         for candidate in candidates {
             if fileManager.isExecutableFile(atPath: candidate) {
+                os_log(
+                    "%{public}@ FOUND_JABREF path=%{public}@",
+                    log: .default,
+                    type: .default,
+                    nativeBridgeLogTag,
+                    candidate,
+                )
                 return URL(fileURLWithPath: candidate)
             }
         }
@@ -120,6 +170,14 @@ private struct JabRefBridge {
     }
 
     private func runJabRef(at executableURL: URL, arguments: [String]) throws -> String {
+        os_log(
+            "%{public}@ RUN path=%{public}@ args=%{public}@",
+            log: .default,
+            type: .default,
+            nativeBridgeLogTag,
+            executableURL.path,
+            arguments.joined(separator: " "),
+        )
         let process = Process()
         process.executableURL = executableURL
         process.arguments = arguments
@@ -145,6 +203,14 @@ private struct JabRefBridge {
             throw JabRefBridgeError.processFailed(status: process.terminationStatus, output: output)
         }
 
+        os_log(
+            "%{public}@ RUN_OK path=%{public}@",
+            log: .default,
+            type: .default,
+            nativeBridgeLogTag,
+            executableURL.path,
+        )
+
         return output
     }
 }
@@ -153,8 +219,10 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     private let bridge = JabRefBridge()
 
     func beginRequest(with context: NSExtensionContext) {
+        os_log("%{public}@ BEGIN_REQUEST", log: .default, type: .default, nativeBridgeLogTag)
         guard let request = context.inputItems.first as? NSExtensionItem,
               let userInfo = request.userInfo else {
+            os_log("%{public}@ MISSING_REQUEST", log: .default, type: .error, nativeBridgeLogTag)
             context.completeRequest(returningItems: nil, completionHandler: nil)
             return
         }
@@ -174,6 +242,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
 
         guard let message else {
+            os_log("%{public}@ MISSING_MESSAGE", log: .default, type: .error, nativeBridgeLogTag)
             context.completeRequest(returningItems: nil, completionHandler: nil)
             return
         }
@@ -186,6 +255,7 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             response.userInfo = [responseKeyFallback: responsePayload]
         }
 
+        os_log("%{public}@ COMPLETE_REQUEST", log: .default, type: .default, nativeBridgeLogTag)
         context.completeRequest(returningItems: [response], completionHandler: nil)
     }
 }
