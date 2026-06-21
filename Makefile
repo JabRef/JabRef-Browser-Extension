@@ -20,6 +20,7 @@ safari:
 	cp -R "$(SAFARI_DIR)/bundle"/. "$(SAFARI_SRC_TMP)"
 	xcrun safari-web-extension-converter "$(SAFARI_SRC_TMP)" --project-location "$(SAFARI_DIR)" --macos-only --no-open --no-prompt --bundle-identifier org.jabref.JabRef-Browser-Extension --force --copy-resources --app-name "JabRef Browser Extension"
 	rm -rf "$(SAFARI_SRC_TMP)"
+	node scripts/patch_safari_project.mjs
 	xcodebuild -project "$(SAFARI_PROJECT)/JabRef Browser Extension.xcodeproj" \
 		-scheme "JabRef Browser Extension" \
 		-configuration Release \
