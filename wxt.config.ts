@@ -6,7 +6,7 @@ export default defineConfig({
   // Place source files in the `src` directory
   // https://wxt.dev/guide/essentials/project-structure.html#adding-a-src-directory
   srcDir: "src",
-  targetBrowsers: ["chrome", "firefox", "opera", "edge"],
+  targetBrowsers: ["chrome", "firefox", "opera", "edge", "safari"],
   manifestVersion: 3,
   manifest: {
     browser_specific_settings: {

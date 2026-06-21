@@ -25,10 +25,16 @@
     "dev:chrome": "wxt -b chrome",
     "dev:opera": "wxt -b opera",
     "dev:edge": "wxt -b edge",
+    "dev:safari": "wxt -b safari",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
+    "build:safari": "wxt build -b safari",
+    "safari:xcode": "make safari",
+    "sign:safari-local": "make sign-safari-local",
+    "notarize:safari-local": "make notarize-safari-local",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
+    "zip:safari": "wxt zip -b safari",
     "compile": "vue-tsc --noEmit",
     "lint": "pnpm lint:oxlint && pnpm lint:oxfmt",
     "lint:oxlint": "oxlint",
@@ -38,6 +44,8 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "esbuild": "^0.28.1",
+    "spawn-sync": "^2.0.0",
     "vue": "3.5.35"
   },
   "devDependencies": {

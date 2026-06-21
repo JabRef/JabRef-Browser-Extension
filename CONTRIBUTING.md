@@ -14,6 +14,20 @@ Preparation:
    Chrome: `pnpm dev:chrome`
    Opera: `pnpm dev:opera`
    Edge: `pnpm dev:edge`
+   Safari: `pnpm safari:xcode` (macOS with Xcode required)
+
+Safari local packaging flow:
+
+1. Build and generate the Xcode project:
+   `pnpm safari:xcode`
+2. Open:
+   `dist/safari/JabRef Browser Extension/JabRef Browser Extension.xcodeproj`
+3. Run the `JabRef Browser Extension` scheme in Xcode
+4. Enable the extension in Safari Settings
+5. Optional signing:
+   `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"`
+6. Optional notarization:
+   `pnpm notarize:safari-local PROFILE="profile-name"`
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
@@ -44,3 +58,26 @@ The following commands are used to update the dependencies of the project; as we
   - https://developer.apple.com/app-store-connect/
 - Remove the `key` field in `wxt.config.ts` and build again. Then upload to:
   - https://partner.microsoft.com/en-us/dashboard/microsoftedge/2045cdc1-808f-43c4-8091-43e2dcaff53d/packages
+
+## Safari CI and Notarization
+
+Safari CI currently has two jobs:
+
+1. `.github/workflows/test.yml`
+   - `safari-build`
+   - runs on `macos-latest`
+   - executes `make safari`
+2. `.github/workflows/release.yml`
+   - `safari-package`
+   - builds and uploads the unsigned Safari app artifact
+   - `safari-notarize`
+   - signs, notarizes, staples, and uploads the notarized Safari artifacts for actual releases
+
+GitHub Actions secrets required for Safari notarization:
+
+- `OSX_SIGNING_CERT_APPLICATION`
+- `OSX_CERT_PWD`
+- `SAFARI_DEVELOPER_IDENTITY`
+- `APPLE_NOTARY_APPLE_ID`
+- `APPLE_NOTARY_TEAM_ID`
+- `APPLE_NOTARY_PASSWORD`
