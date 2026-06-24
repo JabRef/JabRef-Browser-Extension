@@ -10,6 +10,7 @@ SAFARI_DERIVED_DATA := $(SAFARI_DIR)/build
 safari:
 	rm -rf "$(SAFARI_DIR)"
 	rm -rf "$(SAFARI_BUNDLE)"
+	mkdir -p "$(DIST)"
 	pnpm build:safari
 	mkdir -p "$(SAFARI_DIR)"
 	node scripts/prepare_safari_bundle.mjs

@@ -37,7 +37,7 @@
     "zip:safari": "wxt zip -b safari",
     "compile": "vue-tsc --noEmit",
     "lint": "pnpm lint:oxlint && pnpm lint:oxfmt",
-    "lint:oxlint": "oxlint",
+    "lint:oxlint": "oxlint --ignore-pattern 'sources/**' --ignore-pattern 'translators/zotero/**'",
     "lint:oxfmt": "oxfmt --check",
     "test": "vitest run",
     "test:legacy": "node test.js arXiv.org.js",
