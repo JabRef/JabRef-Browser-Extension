@@ -51,6 +51,9 @@ importers:
       wxt:
         specifier: 0.20.26
         version: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
+      wxt-module-safari-xcode:
+        specifier: 0.2.2
+        version: 0.2.2(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
 
 packages:
 
@@ -2987,6 +2990,9 @@ packages:
     resolution: {integrity: sha512-g/eziiSUNBSsdDJtCLB8bdYEUMj4jR7AGeUo96p/3dTafgjHhpF4RiCFPiRILwjQoDXx5MqkBr4fwWtR3Ky4Wg==}
     engines: {node: '>=20'}
 
+  wxt-module-safari-xcode@0.2.2:
+    resolution: {integrity: sha512-NRywJk/RSv5IO8zql1+mh3Hu6bsRq4ZCfXxE1L5FB376axG+4xW63dVJ+LuGFMVOf4hOJcRc9vQs5ZnWGSDwzA==}
+
   wxt@0.20.26:
     resolution: {integrity: sha512-PMGz7sAlONJgwBkOriInXOoEU6/jlGKrhSFvZfiBPHZocyYPfnw1lod9rGDra957H83WO+TnGjYwJiGYciSIqA==}
     engines: {bun: '>=1.2.0', node: '>=20.12.0'}
@@ -3037,6 +3043,11 @@ packages:
 
   zod@4.4.1:
     resolution: {integrity: sha512-a6ENMBBGZBsnlSebQ/eKCguSBeGKSf4O7BPnqVPmYGtpBYI7VSqoVqw+QcB7kPRjbqPwhYTpFbVj/RqNz/CT0Q==}
+
+  zx@8.8.5:
+    resolution: {integrity: sha512-SNgDF5L0gfN7FwVOdEFguY3orU5AkfFZm9B5YSHog/UDHv+lvmd82ZAsOenOkQixigwH2+yyH198AwNdKhj+RA==}
+    engines: {node: '>= 12.17.0'}
+    hasBin: true
 
 snapshots:
 
@@ -5693,6 +5704,29 @@ snapshots:
       is-wsl: 3.1.1
       powershell-utils: 0.1.0
 
+  wxt-module-safari-xcode@0.2.2(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0):
+    dependencies:
+      zx: 8.8.5
+    optionalDependencies:
+      wxt: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - '@vitejs/devtools'
+      - canvas
+      - eslint
+      - jiti
+      - less
+      - oxc-parser
+      - rollup
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - tsx
+      - yaml
+
   wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0):
     dependencies:
       '@1natsu/wait-element': 4.2.0
@@ -5792,3 +5826,5 @@ snapshots:
       jszip: 3.10.1
 
   zod@4.4.1: {}
+
+  zx@8.8.5: {}

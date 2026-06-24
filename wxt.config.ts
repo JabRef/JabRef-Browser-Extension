@@ -3,11 +3,20 @@ import tailwindcss from "@tailwindcss/vite";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
+  modules: ["wxt-module-safari-xcode"],
   // Place source files in the `src` directory
   // https://wxt.dev/guide/essentials/project-structure.html#adding-a-src-directory
   srcDir: "src",
   targetBrowsers: ["chrome", "firefox", "opera", "edge", "safari"],
   manifestVersion: 3,
+  safariXcode: {
+    projectName: "JabRef Browser Extension",
+    appCategory: "public.app-category.productivity",
+    bundleIdentifier: "org.jabref.JabRef-Browser-Extension",
+    outputPath: "dist/safari",
+    projectType: "macos",
+    openProject: false,
+  },
   manifest: {
     browser_specific_settings: {
       gecko: {

@@ -26,16 +26,16 @@ Safari builds are available for local development via WXT:
 
 For the Apple packaging step:
 
-- `pnpm safari:xcode` builds the WXT Safari bundle, converts it with `xcrun safari-web-extension-converter`, and generates the Xcode project in `dist/safari/`
+- `pnpm safari:xcode` builds the Safari target and generates the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode)
 - `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"` signs the generated app
 - `pnpm notarize:safari-local PROFILE="profile-name"` notarizes and zips the signed app
 
-WXT builds the extension bundle, and the Safari/Xcode flow wraps that bundle into the macOS app structure Apple expects.
+WXT builds the extension bundle, and `wxt-module-safari-xcode` converts that bundle into the Xcode project and macOS app structure Apple expects.
 
 To test the Safari build locally:
 
 1. Run `pnpm safari:xcode`
-2. Open `dist/safari/JabRef Browser Extension/JabRef Browser Extension.xcodeproj`
+2. Open `dist/safari/JabRef Browser Extension.xcodeproj`
 3. Run the `JabRef Browser Extension` scheme in Xcode
 4. Enable the extension in Safari Settings
 
@@ -46,7 +46,7 @@ Safari CI is split into two parts:
 1. `Tests` workflow:
    - `safari-build` runs on `macos-latest`
    - it executes `make safari`
-   - this validates the converter and Xcode packaging path on pull requests and on `main`
+   - this validates the WXT build, Xcode packaging, and Safari app bundle path on pull requests and on `main`
 2. `release` workflow:
    - `safari-package` builds and uploads the unsigned Safari app artifact
    - `safari-publish` rebuilds the Xcode project on `macos-26` and publishes it to App Store Connect with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action)

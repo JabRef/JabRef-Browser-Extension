@@ -21,7 +21,7 @@ Safari local packaging flow:
 1. Build and generate the Xcode project:
    `pnpm safari:xcode`
 2. Open:
-   `dist/safari/JabRef Browser Extension/JabRef Browser Extension.xcodeproj`
+   `dist/safari/JabRef Browser Extension.xcodeproj`
 3. Run the `JabRef Browser Extension` scheme in Xcode
 4. Enable the extension in Safari Settings
 5. Optional signing:
@@ -70,14 +70,18 @@ Safari CI currently has two jobs:
 2. `.github/workflows/release.yml`
    - `safari-package`
    - builds and uploads the unsigned Safari app artifact
-   - `safari-notarize`
-   - signs, notarizes, staples, and uploads the notarized Safari artifacts for actual releases
+   - `safari-publish`
+   - publishes the Safari project to App Store Connect for actual releases
 
-GitHub Actions secrets required for Safari notarization:
+GitHub Actions secrets required for Safari publishing:
 
-- `OSX_SIGNING_CERT_APPLICATION`
-- `OSX_CERT_PWD`
-- `SAFARI_DEVELOPER_IDENTITY`
-- `APPLE_NOTARY_APPLE_ID`
-- `APPLE_NOTARY_TEAM_ID`
-- `APPLE_NOTARY_PASSWORD`
+- `APPLE_TEAM_ID`
+- `APPLE_CERTIFICATE_BASE64`
+- `APPLE_CERTIFICATE_PASSWORD`
+- `SAFARI_APP_SIGNING_IDENTITY`
+- `SAFARI_INSTALLER_SIGNING_IDENTITY`
+- `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`
+- `APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64`
+- `APPLE_API_KEY`
+- `APPLE_API_KEY_ID`
+- `APPLE_API_ISSUER`

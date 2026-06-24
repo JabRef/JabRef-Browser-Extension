@@ -119,7 +119,7 @@ jobs:
       - name: Upload Safari to App Store Connect
         uses: rxliuli/safari-webext-publish-action@624701331ecbeb38464a09d3cac6d246b6efb006
         with:
-          project-path: "dist/safari/JabRef Browser Extension"
+          project-path: "dist/safari"
           bundle-identifier: "org.jabref.JabRef-Browser-Extension"
           team-id: ${{ secrets.APPLE_TEAM_ID }}
           app-signing-identity: ${{ secrets.SAFARI_APP_SIGNING_IDENTITY }}
