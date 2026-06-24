@@ -30,7 +30,7 @@ export default defineConfig({
             },
         },
         commands: {
-            _execute_page_action: {
+            _execute_action: {
                 suggested_key: {
                     default: "Alt+Shift+J",
                 },
@@ -39,10 +39,6 @@ export default defineConfig({
         description:
             "The JabRef browser extension imports new bibliographic information directly from the browser into JabRef.",
         homepage_url: "http://www.jabref.org/",
-        developer: {
-            name: "JabRef e.V.",
-            url: "http://www.jabref.org/",
-        },
         host_permissions: ["<all_urls>"],
         icons: {
             "16": "/JabRef-icon-16.png",
