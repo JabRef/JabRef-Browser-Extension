@@ -49,16 +49,22 @@ Safari CI is split into two parts:
    - this validates the converter and Xcode packaging path on pull requests and on `main`
 2. `release` workflow:
    - `safari-package` builds and uploads the unsigned Safari app artifact
-   - `safari-notarize` signs, notarizes, staples, and uploads the notarized Safari artifacts for real releases
+   - `safari-publish` rebuilds the Xcode project on `macos-26` and publishes it to App Store Connect with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action)
 
-The Safari notarization job expects these GitHub Actions secrets:
+The Safari publish job expects these GitHub Actions secrets:
 
-- `OSX_SIGNING_CERT_APPLICATION`: base64-encoded `.p12` Developer ID Application certificate
-- `OSX_CERT_PWD`: password for that `.p12`
-- `SAFARI_DEVELOPER_IDENTITY`: full codesigning identity, for example `Developer ID Application: JabRef e.V. (TEAMID)`
-- `APPLE_NOTARY_APPLE_ID`: Apple ID used for notarization
-- `APPLE_NOTARY_TEAM_ID`: Apple Developer team ID
-- `APPLE_NOTARY_PASSWORD`: app-specific password for the Apple ID
+- `APPLE_TEAM_ID`: Apple Developer team ID
+- `APPLE_CERTIFICATE_BASE64`: base64-encoded `.p12` certificate containing the App Store signing identities
+- `APPLE_CERTIFICATE_PASSWORD`: password for that `.p12`
+- `SAFARI_APP_SIGNING_IDENTITY`: full app signing identity, for example `3rd Party Mac Developer Application: JabRef e.V. (TEAMID)`
+- `SAFARI_INSTALLER_SIGNING_IDENTITY`: full installer signing identity, for example `3rd Party Mac Developer Installer: JabRef e.V. (TEAMID)`
+- `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the app bundle ID
+- `APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the extension bundle ID
+- `APPLE_API_KEY`: base64-encoded App Store Connect API key (`.p8`)
+- `APPLE_API_KEY_ID`: App Store Connect API key ID
+- `APPLE_API_ISSUER`: App Store Connect API issuer ID
+
+The local `pnpm sign:safari-local` and `pnpm notarize:safari-local` commands still exist for manual Developer ID packaging outside the App Store flow.
 
 ## Usage
 

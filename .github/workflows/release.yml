@@ -90,9 +90,9 @@ jobs:
           name: safari-unsigned-app
           path: dist/safari/JabRef Browser Extension.app.zip
 
-  safari-notarize:
-    name: Safari Notarize
-    runs-on: macos-latest
+  safari-publish:
+    name: Safari Publish
+    runs-on: macos-26
     needs: [release-pr, safari-package]
     if: ${{ github.event_name != 'pull_request' && needs.release-pr.outputs.release_created == 'true' }}
     steps:
@@ -101,49 +101,37 @@ jobs:
         with:
           submodules: true
 
-      - name: Download Unsigned Safari App
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
+      - name: Install pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          name: safari-unsigned-app
-          path: dist/safari
+          node-version: 24.16.0
+          cache: "pnpm"
 
-      - name: Unpack Safari App
-        run: |
-          cd dist/safari
-          ditto -x -k "JabRef Browser Extension.app.zip" .
-          rm "JabRef Browser Extension.app.zip"
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Import Signing Certificate
-        uses: slidoapp/import-codesign-certs@1923310662e8682dd05b76b612b53301f431cd5d
+      - name: Build Safari project
+        run: make safari
+
+      - name: Upload Safari to App Store Connect
+        uses: rxliuli/safari-webext-publish-action@624701331ecbeb38464a09d3cac6d246b6efb006
         with:
-          p12-file-base64: ${{ secrets.OSX_SIGNING_CERT_APPLICATION }}
-          p12-password: ${{ secrets.OSX_CERT_PWD }}
-          keychain-password: ${{ secrets.OSX_CERT_PWD }}
-
-      - name: Sign Safari App
-        run: |
-          chmod +x scripts/sign_safari_local.sh
-          ./scripts/sign_safari_local.sh "${{ secrets.SAFARI_DEVELOPER_IDENTITY }}"
-
-      - name: Store Notarytool Credentials
-        run: |
-          xcrun notarytool store-credentials "jabref-ci-notary" \
-            --apple-id "${{ secrets.APPLE_NOTARY_APPLE_ID }}" \
-            --team-id "${{ secrets.APPLE_NOTARY_TEAM_ID }}" \
-            --password "${{ secrets.APPLE_NOTARY_PASSWORD }}"
-
-      - name: Notarize Safari App
-        run: |
-          chmod +x scripts/notarize_safari_local.sh
-          ./scripts/notarize_safari_local.sh "jabref-ci-notary"
-
-      - name: Upload Notarized Safari App
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: safari-notarized-app
-          path: |
-            dist/safari/JabRef Browser Extension.app.zip
-            dist/safari/jabref-browser-extension-safari.zip
+          project-path: "dist/safari/JabRef Browser Extension"
+          bundle-identifier: "org.jabref.JabRef-Browser-Extension"
+          team-id: ${{ secrets.APPLE_TEAM_ID }}
+          app-signing-identity: ${{ secrets.SAFARI_APP_SIGNING_IDENTITY }}
+          installer-signing-identity: ${{ secrets.SAFARI_INSTALLER_SIGNING_IDENTITY }}
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_MACOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
 
   publish:
     name: Publish
