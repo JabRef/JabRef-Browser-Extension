@@ -12,7 +12,8 @@ safari:
 	rm -rf "$(SAFARI_BUNDLE)"
 	pnpm build:safari
 	mkdir -p "$(SAFARI_DIR)"
-	cp -R .output/safari-mv3 "$(SAFARI_BUNDLE)"
+	node scripts/prepare_safari_bundle.mjs
+	node scripts/patch_safari_project.mjs
 	xcodebuild -project "$(SAFARI_PROJECT)" \
 		-scheme "JabRef Browser Extension" \
 		-configuration Release \

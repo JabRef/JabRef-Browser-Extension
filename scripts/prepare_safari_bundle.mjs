@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const sourceDir = path.join(root, ".output", "safari-mv3");
-const targetDir = path.join(root, "dist", "safari", "bundle");
+const targetDir = path.join(root, "dist", "safari-mv3");
 
 await fs.rm(targetDir, { recursive: true, force: true });
 await fs.cp(sourceDir, targetDir, { recursive: true });

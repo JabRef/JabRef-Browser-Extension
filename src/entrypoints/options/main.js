@@ -6,7 +6,7 @@ var ExportMode = Object.freeze({
 });
 
 const DEFAULT_PORT = 23119;
-const NATIVE_MESSAGE_TIMEOUT_MS = 5000;
+const NATIVE_MESSAGE_TIMEOUT_MS = 15000;
 const NATIVE_MESSAGE_TEST_LOG_TAG = "JBE_NATIVE_TEST";
 
 function raceWithTimeout(promise, timeoutMs, label) {
