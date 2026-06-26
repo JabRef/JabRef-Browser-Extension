@@ -38,6 +38,25 @@ jobs:
       - name: Build Safari project
         run: make safari
 
+      - name: Set unique build number
+        shell: bash
+        run: |
+          build_number="$(date -u +%Y%m%d%H%M%S)${GITHUB_RUN_ATTEMPT}"
+          project_pbxproj='dist/safari/JabRef Browser Extension.xcodeproj/project.pbxproj'
+          perl -0pi -e "s/CURRENT_PROJECT_VERSION = [0-9]+;/CURRENT_PROJECT_VERSION = ${build_number};/g" "$project_pbxproj"
+
+          for plist in \
+            'dist/safari/JabRef Browser Extension/Info.plist' \
+            'dist/safari/JabRef Browser Extension Extension/Info.plist' \
+            'dist/safari/JabRef Browser Extension.app/Contents/Info.plist' \
+            'dist/safari/JabRef Browser Extension.app/Contents/PlugIns/JabRef Browser Extension Extension.appex/Contents/Info.plist'
+          do
+            if [ -f "$plist" ]; then
+              /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${build_number}" "$plist" >/dev/null 2>&1 || \
+                /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string ${build_number}" "$plist"
+            fi
+          done
+
       - name: Upload Safari to App Store Connect
         uses: rxliuli/safari-webext-publish-action@624701331ecbeb38464a09d3cac6d246b6efb006
         with:
