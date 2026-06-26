@@ -333,7 +333,10 @@ export default defineBackground({
       return Promise.race([
         promise,
         new Promise((_, reject) => {
-          setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs} ms`)), timeoutMs);
+          setTimeout(
+            () => reject(new Error(`${label} timed out after ${timeoutMs} ms`)),
+            timeoutMs,
+          );
         }),
       ]);
     }

@@ -55,12 +55,12 @@
     "jsdom": "29.1.1",
     "oxfmt": "0.53.0",
     "oxlint": "1.68.0",
-    "wxt-module-safari-xcode": "0.2.2",
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",
     "vitest": "4.1.8",
     "vue-tsc": "3.3.3",
-    "wxt": "0.20.26"
+    "wxt": "0.20.26",
+    "wxt-module-safari-xcode": "0.2.2"
   },
   "packageManager": "pnpm@10.34.1"
 }
