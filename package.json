@@ -25,19 +25,27 @@
     "dev:chrome": "wxt -b chrome",
     "dev:opera": "wxt -b opera",
     "dev:edge": "wxt -b edge",
+    "dev:safari": "wxt -b safari",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
+    "build:safari": "wxt build -b safari",
+    "safari:xcode": "wxt build -b safari",
+    "sign:safari-local": "make sign-safari-local",
+    "notarize:safari-local": "make notarize-safari-local",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
+    "zip:safari": "wxt zip -b safari",
     "compile": "vue-tsc --noEmit",
     "lint": "pnpm lint:oxlint && pnpm lint:oxfmt",
-    "lint:oxlint": "oxlint",
+    "lint:oxlint": "oxlint --ignore-pattern 'sources/**' --ignore-pattern 'translators/zotero/**'",
     "lint:oxfmt": "oxfmt --check",
     "test": "vitest run",
     "test:legacy": "node test.js arXiv.org.js",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "esbuild": "^0.28.1",
+    "spawn-sync": "^2.0.0",
     "vue": "3.5.35"
   },
   "devDependencies": {
@@ -51,7 +59,8 @@
     "typescript": "6.0.3",
     "vitest": "4.1.8",
     "vue-tsc": "3.3.3",
-    "wxt": "0.20.26"
+    "wxt": "0.20.26",
+    "wxt-module-safari-xcode": "0.2.2"
   },
   "packageManager": "pnpm@10.34.1"
 }
