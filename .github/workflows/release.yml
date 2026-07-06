@@ -67,10 +67,13 @@ jobs:
           - target: safari
             runs-on: macos-latest
     steps:
-      - name: Setup build environment
-        uses: ./.github/actions/setup-browser-extension
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: true
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-browser-extension
 
       - name: Build browser store packages
         if: ${{ matrix.target == 'browser-stores' }}
@@ -127,11 +130,15 @@ jobs:
           - target: safari
             runs-on: macos-26
     steps:
+      - name: Checkout
+        if: ${{ matrix.target == 'browser-stores' }}
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          submodules: true
+
       - name: Setup build environment
         if: ${{ matrix.target == 'browser-stores' }}
         uses: ./.github/actions/setup-browser-extension
-        with:
-          submodules: true
 
       - name: Download browser store packages
         if: ${{ matrix.target == 'browser-stores' }}
@@ -139,6 +146,12 @@ jobs:
         with:
           name: browser-store-packages
           path: .output
+
+      - name: Checkout
+        if: ${{ matrix.target == 'safari' }}
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          submodules: true
 
       - name: Submit to Firefox Add-ons
         if: ${{ matrix.target == 'browser-stores' }}
