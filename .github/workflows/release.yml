@@ -53,119 +53,95 @@ jobs:
           github_token: ${{ secrets.RELEASE_PR_TOKEN }}
           branch: ${{ fromJson(steps.release.outputs.pr).headBranchName }}
 
-  safari-package:
-    name: Safari Package
-    runs-on: macos-latest
+  package:
+    name: Package (${{ matrix.target }})
+    runs-on: ${{ matrix.runs-on }}
     needs: [release-pr]
     if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && always() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: browser-stores
+            runs-on: ubuntu-latest
+          - target: safari
+            runs-on: macos-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Setup build environment
+        uses: ./.github/actions/setup-browser-extension
         with:
           submodules: true
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+      - name: Build browser store packages
+        if: ${{ matrix.target == 'browser-stores' }}
+        run: |
+          pnpm zip
+          pnpm zip:firefox
 
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - name: Upload browser store packages
+        if: ${{ matrix.target == 'browser-stores' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          node-version: 24.16.0
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install
+          name: browser-store-packages
+          path: .output/*.zip
 
       - name: Build Safari app
+        if: ${{ matrix.target == 'safari' }}
         run: make safari
 
       - name: Archive Safari app
+        if: ${{ matrix.target == 'safari' }}
         run: |
           cd dist/safari
           ditto -c -k --keepParent "JabRef Browser Extension.app" "JabRef Browser Extension.app.zip"
 
-      - name: Upload Safari Artifact
+      - name: Upload Safari project artifact
+        if: ${{ matrix.target == 'safari' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: safari-project
+          path: dist/safari
+
+      - name: Upload Safari app artifact
+        if: ${{ matrix.target == 'safari' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: safari-unsigned-app
           path: dist/safari/JabRef Browser Extension.app.zip
 
-  safari-publish:
-    name: Safari Publish
-    runs-on: macos-26
-    needs: [release-pr, safari-package]
-    if: ${{ github.event_name != 'pull_request' && needs.release-pr.outputs.release_created == 'true' }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          submodules: true
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: 24.16.0
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build Safari project
-        run: make safari
-
-      - name: Upload Safari to App Store Connect
-        uses: rxliuli/safari-webext-publish-action@624701331ecbeb38464a09d3cac6d246b6efb006
-        with:
-          project-path: "dist/safari"
-          bundle-identifier: "org.jabref.JabRef-Browser-Extension"
-          team-id: ${{ secrets.APPLE_TEAM_ID }}
-          app-signing-identity: ${{ secrets.SAFARI_APP_SIGNING_IDENTITY }}
-          installer-signing-identity: ${{ secrets.SAFARI_INSTALLER_SIGNING_IDENTITY }}
-        env:
-          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_MACOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_PROVISIONING_PROFILE_BASE64 }}
-          APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64 }}
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-
   publish:
-    name: Publish
-    runs-on: ubuntu-latest
+    name: Publish (${{ matrix.target }})
+    runs-on: ${{ matrix.runs-on }}
     permissions:
       contents: write
       pull-requests: write
       id-token: write
-    needs: [release-pr]
-    if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && always() }}
+    needs: [release-pr, package]
+    if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && (matrix.target != 'safari' || github.event_name != 'pull_request') && always() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: browser-stores
+            runs-on: ubuntu-latest
+          - target: safari
+            runs-on: macos-26
     steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Setup build environment
+        if: ${{ matrix.target == 'browser-stores' }}
+        uses: ./.github/actions/setup-browser-extension
         with:
           submodules: true
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - name: Download browser store packages
+        if: ${{ matrix.target == 'browser-stores' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
         with:
-          node-version: 24.16.0
-          cache: "pnpm"
+          name: browser-store-packages
+          path: .output
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build
-        run: |
-          pnpm zip
-          pnpm zip:firefox
-
-      - name: Submit to stores
+      - name: Submit to Firefox Add-ons
+        if: ${{ matrix.target == 'browser-stores' }}
         run: |
           pnpm wxt submit \
             ${{ github.event_name == 'pull_request' && '--dry-run' || '' }} \
@@ -181,3 +157,28 @@ jobs:
           FIREFOX_EXTENSION_ID: "@jabfox"
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+
+      - name: Download Safari project artifact
+        if: ${{ matrix.target == 'safari' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
+        with:
+          name: safari-project
+          path: dist/safari
+
+      - name: Upload Safari to App Store Connect
+        if: ${{ matrix.target == 'safari' }}
+        uses: rxliuli/safari-webext-publish-action@624701331ecbeb38464a09d3cac6d246b6efb006
+        with:
+          project-path: "dist/safari"
+          bundle-identifier: "org.jabref.JabRef-Browser-Extension"
+          team-id: ${{ secrets.APPLE_TEAM_ID }}
+          app-signing-identity: ${{ secrets.SAFARI_APP_SIGNING_IDENTITY }}
+          installer-signing-identity: ${{ secrets.SAFARI_INSTALLER_SIGNING_IDENTITY }}
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_MACOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
