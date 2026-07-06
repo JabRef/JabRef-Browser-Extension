@@ -48,8 +48,8 @@ Safari CI is split into two parts:
    - it executes `make safari`
    - this validates the WXT build, Xcode packaging, and Safari app bundle path on pull requests and on `main`
 2. `release` workflow:
-   - `safari-package` builds and uploads the unsigned Safari app artifact
-   - `safari-publish` rebuilds the Xcode project on `macos-26` and publishes it to App Store Connect with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action)
+   - `package` builds Safari, uploads the unsigned Safari app artifact, and on release pushes also signs and notarizes a direct-distribution zip
+   - `publish (safari)` rebuilds the Xcode project on `macos-26` and publishes it to App Store Connect with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action)
 3. `Safari Signing Test` workflow:
    - manual `workflow_dispatch` workflow with a `run_safari_signing_test` checkbox
    - it builds the Safari project and runs the App Store signing/publish step without touching the release workflow
@@ -59,13 +59,21 @@ The Safari publish job expects these GitHub Actions secrets:
 - `APPLE_TEAM_ID`: Apple Developer team ID
 - `APPLE_CERTIFICATE_BASE64`: base64-encoded `.p12` certificate containing the App Store signing identities
 - `APPLE_CERTIFICATE_PASSWORD`: password for that `.p12`
-- `SAFARI_APP_SIGNING_IDENTITY`: full app signing identity, for example `Apple Distribution: JabRef e.V. (TEAMID)`
-- `SAFARI_INSTALLER_SIGNING_IDENTITY`: full installer signing identity, for example `Mac Installer Distribution: JabRef e.V. (TEAMID)`
+- `SAFARI_APP_SIGNING_IDENTITY`: full app signing identity exactly as shown by `security find-identity -v -p basic`, for example `3rd Party Mac Developer Application: JabRef e.V. (TEAMID)`
+- `SAFARI_INSTALLER_SIGNING_IDENTITY`: full installer signing identity exactly as shown by `security find-identity -v -p basic`, for example `3rd Party Mac Developer Installer: JabRef e.V. (TEAMID)`
 - `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the app bundle ID
 - `APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the extension bundle ID
 - `APPLE_API_KEY`: base64-encoded App Store Connect API key (`.p8`)
 - `APPLE_API_KEY_ID`: App Store Connect API key ID
 - `APPLE_API_ISSUER`: App Store Connect API issuer ID
+
+The direct-distribution Safari artifact additionally expects:
+
+- `APPLE_DEVELOPER_ID_CERTIFICATE_BASE64`: base64-encoded `.p12` certificate containing the Developer ID Application identity
+- `APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD`: password for that `.p12`
+- `SAFARI_DEVELOPER_ID_SIGNING_IDENTITY`: full Developer ID signing identity exactly as shown by `security find-identity -v -p basic`, for example `Developer ID Application: JabRef e.V. (TEAMID)`
+
+The newer Apple Developer portal may label these certificates as `Apple Distribution`, `Mac App Distribution`, or `Mac Installer Distribution`, but the secret values used by `codesign` and `productbuild` must match the installed Keychain identity strings exactly.
 
 The local `pnpm sign:safari-local` and `pnpm notarize:safari-local` commands still exist for manual Developer ID packaging outside the App Store flow.
 

@@ -14,6 +14,7 @@ jobs:
     if: github.event_name == 'push'
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
@@ -54,18 +55,10 @@ jobs:
           branch: ${{ fromJson(steps.release.outputs.pr).headBranchName }}
 
   package:
-    name: Package (${{ matrix.target }})
-    runs-on: ${{ matrix.runs-on }}
+    name: Package Safari
+    runs-on: macos-latest
     needs: [release-pr]
     if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && always() }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: browser-stores
-            runs-on: ubuntu-latest
-          - target: safari
-            runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -75,42 +68,101 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-browser-extension
 
-      - name: Build browser store packages
-        if: ${{ matrix.target == 'browser-stores' }}
-        run: |
-          pnpm zip
-          pnpm zip:firefox
-
-      - name: Upload browser store packages
-        if: ${{ matrix.target == 'browser-stores' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: browser-store-packages
-          path: .output/*.zip
-
       - name: Build Safari app
-        if: ${{ matrix.target == 'safari' }}
         run: make safari
 
       - name: Archive Safari app
-        if: ${{ matrix.target == 'safari' }}
         run: |
           cd dist/safari
           ditto -c -k --keepParent "JabRef Browser Extension.app" "JabRef Browser Extension.app.zip"
 
       - name: Upload Safari project artifact
-        if: ${{ matrix.target == 'safari' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: safari-project
           path: dist/safari
 
       - name: Upload Safari app artifact
-        if: ${{ matrix.target == 'safari' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: safari-unsigned-app
           path: dist/safari/JabRef Browser Extension.app.zip
+
+      - name: Setup macOS key chain
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: slidoapp/import-codesign-certs@1923310662e8682dd05b76b612b53301f431cd5d
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          keychain-password: tEmPoRaRY-PaeSWD
+
+      - name: Setup macOS key chain for app id cert
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: slidoapp/import-codesign-certs@1923310662e8682dd05b76b612b53301f431cd5d
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          create-keychain: false
+          keychain-password: tEmPoRaRY-PaeSWD
+
+      - name: Sign Safari app for direct distribution
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          IDENTITY: ${{ secrets.SAFARI_DEVELOPER_ID_SIGNING_IDENTITY }}
+        run: pnpm sign:safari-local
+
+      - name: Upload signed Safari app artifact
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: safari-signed-app
+          path: dist/safari/JabRef Browser Extension.app
+
+  notarize-safari:
+    name: Notarize Safari
+    runs-on: macos-latest
+    needs: [release-pr, package]
+    if: ${{ github.event_name != 'pull_request' && needs.release-pr.outputs.release_created == 'true' }}
+    steps:
+      - name: Download signed Safari app artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
+        with:
+          name: safari-signed-app
+          path: dist/safari
+
+      - name: Notarize Safari app for direct distribution
+        shell: bash
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          app_path='dist/safari/JabRef Browser Extension.app'
+          archive_path='dist/safari/JabRef Browser Extension.zip'
+          final_zip='dist/safari/jabref-browser-extension-safari.zip'
+          key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+
+          echo "$APPLE_API_KEY" | base64 --decode > "$key_path"
+          chmod 600 "$key_path"
+
+          codesign -vvv --deep --strict "$app_path"
+          rm -f "$archive_path" "$final_zip"
+          ditto -c -k --keepParent "$app_path" "$archive_path"
+
+          xcrun notarytool submit "$archive_path" \
+            --key "$key_path" \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait
+
+          xcrun stapler staple "$app_path"
+          ditto -c -k --keepParent "$app_path" "$final_zip"
+
+      - name: Upload signed Safari distribution artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: safari-signed-distribution
+          path: dist/safari/jabref-browser-extension-safari.zip
 
   publish:
     name: Publish (${{ matrix.target }})
@@ -119,7 +171,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
-    needs: [release-pr, package]
+    needs: [release-pr, package, notarize-safari]
     if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && always() }}
     strategy:
       fail-fast: false
@@ -129,6 +181,8 @@ jobs:
             runs-on: ubuntu-latest
           - target: safari
             runs-on: macos-26
+          - target: safari-distribution
+            runs-on: ubuntu-latest
     steps:
       - name: Checkout
         if: ${{ matrix.target == 'browser-stores' }}
@@ -140,18 +194,28 @@ jobs:
         if: ${{ matrix.target == 'browser-stores' }}
         uses: ./.github/actions/setup-browser-extension
 
-      - name: Download browser store packages
+      - name: Build browser store packages
         if: ${{ matrix.target == 'browser-stores' }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
-        with:
-          name: browser-store-packages
-          path: .output
+        run: |
+          pnpm zip
+          pnpm zip:firefox
 
       - name: Checkout
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: true
+
+      - name: Setup build environment
+        if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
+        uses: ./.github/actions/setup-browser-extension
+
+      - name: Download signed Safari distribution artifact
+        if: ${{ matrix.target == 'safari-distribution' && github.event_name != 'pull_request' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
+        with:
+          name: safari-signed-distribution
+          path: dist/safari
 
       - name: Submit to Firefox Add-ons
         if: ${{ matrix.target == 'browser-stores' }}
@@ -171,12 +235,9 @@ jobs:
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
 
-      - name: Download Safari project artifact
+      - name: Build Safari app
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
-        with:
-          name: safari-project
-          path: dist/safari
+        run: make safari
 
       - name: Upload Safari to App Store Connect
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
@@ -195,3 +256,9 @@ jobs:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+
+      - name: Publish Safari distribution artifact
+        if: ${{ matrix.target == 'safari-distribution' && github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ needs.release-pr.outputs.tag_name }}" dist/safari/jabref-browser-extension-safari.zip --clobber
