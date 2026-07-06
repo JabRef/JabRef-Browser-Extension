@@ -120,7 +120,7 @@ jobs:
       pull-requests: write
       id-token: write
     needs: [release-pr, package]
-    if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && (matrix.target != 'safari' || github.event_name != 'pull_request') && always() }}
+    if: ${{ (github.event_name == 'pull_request' || needs.release-pr.outputs.release_created == 'true') && always() }}
     strategy:
       fail-fast: false
       matrix:
@@ -148,7 +148,7 @@ jobs:
           path: .output
 
       - name: Checkout
-        if: ${{ matrix.target == 'safari' }}
+        if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: true
@@ -172,14 +172,14 @@ jobs:
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
 
       - name: Download Safari project artifact
-        if: ${{ matrix.target == 'safari' }}
+        if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
         with:
           name: safari-project
           path: dist/safari
 
       - name: Upload Safari to App Store Connect
-        if: ${{ matrix.target == 'safari' }}
+        if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
         uses: rxliuli/safari-webext-publish-action@624701331ecbeb38464a09d3cac6d246b6efb006
         with:
           project-path: "dist/safari"
