@@ -8,8 +8,8 @@ SAFARI_DERIVED_DATA := $(SAFARI_DIR)/build
 .PHONY: safari sign-safari-local notarize-safari-local clean-safari
 
 safari:
-	rm -rf "$(SAFARI_DIR)"
-	rm -rf "$(SAFARI_BUNDLE)"
+	rm -rf "$(DIST)"
+	rm -rf ".output"
 	mkdir -p "$(DIST)"
 	pnpm build:safari
 	mkdir -p "$(SAFARI_DIR)"
@@ -34,4 +34,5 @@ notarize-safari-local:
 	./scripts/notarize_safari_local.sh "$(PROFILE)"
 
 clean-safari:
-	rm -rf "$(SAFARI_DIR)"
+	rm -rf "$(DIST)"
+	rm -rf ".output"
