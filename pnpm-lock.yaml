@@ -17,7 +17,7 @@ importers:
         version: 4.3.0(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))
       '@wxt-dev/module-vue':
         specifier: 1.0.3
-        version: 1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.39(typescript@6.0.3))(wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0))
+        version: 1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.39(typescript@6.0.3))(wxt@0.20.27(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0))
       globals:
         specifier: 17.6.0
         version: 17.6.0
@@ -43,8 +43,8 @@ importers:
         specifier: 3.3.6
         version: 3.3.6(typescript@6.0.3)
       wxt:
-        specifier: 0.20.26
-        version: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
+        specifier: 0.20.27
+        version: 0.20.27(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
 
 packages:
 
@@ -1121,6 +1121,9 @@ packages:
 
   '@wxt-dev/browser@0.1.42':
     resolution: {integrity: sha512-BSb0H09i4+0WlqFnN7LnZW0M6uCPH9KndciGx7mwOFKRVjNCorqwPk3hiVB58yQ+cyJNpDvYWL6IoPBxvP8qEA==}
+
+  '@wxt-dev/browser@0.2.2':
+    resolution: {integrity: sha512-QqLOdEE1UQxieRuMbv9rwczD+xUv45fy+i5gw1eo+/vlPtGX+/rBd6tlIfLFCU3xAN/UTH57bxqOeU2IZg7dEg==}
 
   '@wxt-dev/module-vue@1.0.3':
     resolution: {integrity: sha512-xUNygcj4w0b1MzQGOQIp5V2ZwFE4y+5AwKPi/IPKyo2aNeFVJTfItIxzWI5vTj7031WCLzHgQrrBRS5C63D5iw==}
@@ -2817,8 +2820,8 @@ packages:
     resolution: {integrity: sha512-g/eziiSUNBSsdDJtCLB8bdYEUMj4jR7AGeUo96p/3dTafgjHhpF4RiCFPiRILwjQoDXx5MqkBr4fwWtR3Ky4Wg==}
     engines: {node: '>=20'}
 
-  wxt@0.20.26:
-    resolution: {integrity: sha512-PMGz7sAlONJgwBkOriInXOoEU6/jlGKrhSFvZfiBPHZocyYPfnw1lod9rGDra957H83WO+TnGjYwJiGYciSIqA==}
+  wxt@0.20.27:
+    resolution: {integrity: sha512-dm6yixz2awM4YMqpTJnsCa8aOPiTrjiIjbWslgR5hCjgwhuft+hLlla339Dt7gIKwQloee4oOruoK++vaX0APA==}
     engines: {bun: '>=1.2.0', node: '>=20.12.0'}
     hasBin: true
     peerDependencies:
@@ -3662,10 +3665,15 @@ snapshots:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
 
-  '@wxt-dev/module-vue@1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.39(typescript@6.0.3))(wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0))':
+  '@wxt-dev/browser@0.2.2':
+    dependencies:
+      '@types/filesystem': 0.0.36
+      '@types/har-format': 1.2.16
+
+  '@wxt-dev/module-vue@1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.39(typescript@6.0.3))(wxt@0.20.27(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0))':
     dependencies:
       '@vitejs/plugin-vue': 6.0.5(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.39(typescript@6.0.3))
-      wxt: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
+      wxt: 0.20.27(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
     transitivePeerDependencies:
       - vite
       - vue
@@ -5401,14 +5409,14 @@ snapshots:
       is-wsl: 3.1.1
       powershell-utils: 0.1.0
 
-  wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0):
+  wxt@0.20.27(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0):
     dependencies:
       '@1natsu/wait-element': 4.2.0
       '@aklinker1/rollup-plugin-visualizer': 5.12.0(rollup@4.59.0)
       '@webext-core/fake-browser': 1.3.4
       '@webext-core/isolated-element': 1.1.5
       '@webext-core/match-patterns': 1.0.3
-      '@wxt-dev/browser': 0.1.42
+      '@wxt-dev/browser': 0.2.2
       '@wxt-dev/storage': 1.2.8
       async-mutex: 0.5.0
       c12: 3.3.4(magicast@0.5.2)
