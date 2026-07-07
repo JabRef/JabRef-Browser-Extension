@@ -1,0 +1,20 @@
+name: Dependabot and Renovate auto merge
+
+on:
+  pull_request_target:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' || github.actor == 'renovate[bot]' }}
+    steps:
+      - name: Auto-merge for Dependabot/Renovate PRs
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
