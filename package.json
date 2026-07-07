@@ -50,7 +50,7 @@
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",
     "vitest": "4.1.9",
-    "vue-tsc": "3.3.3",
+    "vue-tsc": "3.3.6",
     "wxt": "0.20.26"
   },
   "packageManager": "pnpm@10.34.1"
