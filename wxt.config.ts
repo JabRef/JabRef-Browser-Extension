@@ -8,7 +8,7 @@ export default defineConfig({
   srcDir: "src",
   targetBrowsers: ["chrome", "firefox", "opera", "edge"],
   manifestVersion: 3,
-  manifest: {
+  manifest: ({ browser }) => ({
     browser_specific_settings: {
       gecko: {
         id: "@jabfox",
@@ -38,18 +38,22 @@ export default defineConfig({
       "96": "/JabRef-icon-96.png",
       "128": "/JabRef-icon-128.png",
     },
+    ...(browser !== "firefox"
+      ? {
     key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAimiMLZZCsf+p92UUzQRWYljtoUk0a9AuN+D3TJTFcm1BEDXKIDVmWG20S4yLQyYs8kWao3eTSdYykgsZLPtay1pFKtoM4csGB6sEOO+h25Nv/AU7pN5yH5PqcTIGkuH6AsQQQTPS1Y+vDfz+548oVXzK033l6ernhKRj4dngueZyQX89U38zkorq0/PPWfE8ppPzXiWo1Pn5C5scgzaHSfavIkbBpWuiJw6moSoYw4UxzmU6FmzjM/c8Ags/QPU/8M3BeC1eigStifBDkuIIDQtMtiTXEgCqHjIacB3uB7SJKL+0wsoREqoz3cX7uNLnB+DKu+s0OZKVah8gkliBLQIDAQAB",
+        }
+      : {}),
     name: "JabRef Browser Extension",
     permissions: [
-      "<all_urls>",
       "scripting",
       "activeTab",
       "tabs",
       "storage",
       "nativeMessaging",
-      "offscreen",
+      "downloads",
       "webRequest",
       "declarativeNetRequest",
+      ...(browser !== "firefox" ? ["offscreen"] : []),
     ],
     web_accessible_resources: [
       {
@@ -57,7 +61,7 @@ export default defineConfig({
         resources: ["sandbox.js", "translators/*.js"],
       },
     ],
-  },
+  }),
   webExt: {
     openDevtools: true,
     startUrls: [
