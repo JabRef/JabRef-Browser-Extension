@@ -2,9 +2,6 @@ import "./style.css";
 
 browser.runtime.onMessage.addListener(function (message, _sender, _sendResponse) {
   console.debug("JabRef: Received message in popup:", message);
-  if (message.popupLog) {
-    appendLog(message.popupLog, "info");
-  }
   if (message.popupClose) {
     // The popup should be closed
     setTimeout(function () {
@@ -13,10 +10,8 @@ browser.runtime.onMessage.addListener(function (message, _sender, _sendResponse)
     console.log("JabRef: Popup closed");
   } else if (message.onConvertToBibtex) {
     document.getElementById("status").innerHTML = "Converting to BibTeX...";
-    appendLog("Translation done, converting item data to BibTeX", "info");
   } else if (message.onSendToJabRef) {
     document.getElementById("status").innerHTML = "Sending to JabRef...";
-    appendLog("BibTeX ready, sending data to JabRef", "info");
   }
 });
 

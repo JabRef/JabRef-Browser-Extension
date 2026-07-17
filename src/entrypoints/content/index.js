@@ -6,11 +6,6 @@ export default defineContentScript({
   matches: [],
 
   async main() {
-    if (globalThis.__JABREF_CONTENT_SCRIPT_INITIALIZED__) {
-      console.debug("[contentScript] already initialized");
-      return;
-    }
-    globalThis.__JABREF_CONTENT_SCRIPT_INITIALIZED__ = true;
     console.debug("[contentScript] started");
 
     browser.runtime.onMessage.addListener(async (msg, _sender, _sendResponse) => {
@@ -81,17 +76,7 @@ export default defineContentScript({
       );
       const result = await translateEngine.translate(document, translators);
       console.debug("Content script obtained translation result %o", result);
-      console.debug(
-        "Content script sending offscreenResult with %o item(s) for %o",
-        result.items?.length ?? 0,
-        url,
-      );
-      const response = await browser.runtime.sendMessage({
-        type: "offscreenResult",
-        url,
-        items: result.items,
-      });
-      console.debug("Content script received background ack for offscreenResult %o", response);
+      await browser.runtime.sendMessage({ type: "offscreenResult", url, items: result.items });
     });
   },
 });

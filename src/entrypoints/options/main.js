@@ -6,50 +6,6 @@ var ExportMode = Object.freeze({
 });
 
 const DEFAULT_PORT = 23119;
-const NATIVE_MESSAGE_TIMEOUT_MS = 5000;
-const NATIVE_MESSAGE_TEST_LOG_TAG = "JBE_NATIVE_TEST";
-
-function raceWithTimeout(promise, timeoutMs, label) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs} ms`)), timeoutMs);
-    }),
-  ]);
-}
-
-function formatError(error) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
-}
-
-async function sendNativeValidation() {
-  const requestId = `${NATIVE_MESSAGE_TEST_LOG_TAG}-${Date.now()}`;
-  console.log(`${NATIVE_MESSAGE_TEST_LOG_TAG} sending requestId=${requestId}`);
-  return raceWithTimeout(
-    browser.runtime.sendNativeMessage("org.jabref.jabref", {
-      status: "validate",
-      requestId,
-    }),
-    NATIVE_MESSAGE_TIMEOUT_MS,
-    "Native messaging",
-  );
-}
-
-function renderNativeStatus(statusElement, response) {
-  if (response.message === "jarNotFound") {
-    statusElement.setAttribute("class", "alert-error");
-    statusElement.textContent = `Unable to locate JabRef at: ${response.path}`;
-  } else if (response.message === "jarFound") {
-    statusElement.setAttribute("class", "alert-positive");
-    statusElement.textContent = "Communication to JabRef successful!";
-  } else {
-    statusElement.setAttribute("class", "alert-error");
-    statusElement.textContent = `Unexpected response: ${response.message}`;
-  }
-}
 
 async function connectToJabRef(port) {
   const base = `http://localhost:${port}/`;
@@ -68,14 +24,25 @@ async function connectToJabRef(port) {
 
 function checkConnections({ httpPort }) {
   let status = document.getElementById("connectionStatusNative");
-  status.textContent = "Testing connection...";
-  sendNativeValidation()
+  browser.runtime
+    .sendNativeMessage("org.jabref.jabref", {
+      status: "validate",
+    })
     .then((response) => {
-      renderNativeStatus(status, response);
+      if (response.message === "jarNotFound") {
+        status.setAttribute("class", "alert-error");
+        status.textContent = "Unable to locate JabRef at:<br>" + response.path;
+      } else if (response.message === "jarFound") {
+        status.setAttribute("class", "alert-positive");
+        status.textContent = "Communication to JabRef successful!";
+      } else {
+        status.setAttribute("class", "alert-error");
+        status.innerHTML = "Unexpected response:<br>" + response.message;
+      }
     })
     .catch((error) => {
       status.setAttribute("class", "alert-error");
-      status.textContent = formatError(error);
+      status.textContent = error.message;
     });
 
   let httpStatus = document.getElementById("connectionStatusHttp");
@@ -100,25 +67,6 @@ function checkConnections({ httpPort }) {
       } else {
         httpStatus.textContent = `Connection to port ${httpPort} failed for unknown reasons.`;
       }
-    }
-  });
-}
-
-function initDiagnostics() {
-  const testButton = document.getElementById("testNativeMessage");
-  const result = document.getElementById("nativeMessageResult");
-
-  testButton.addEventListener("click", async () => {
-    testButton.disabled = true;
-    result.textContent = "Running native messaging test...";
-
-    try {
-      const response = await sendNativeValidation();
-      result.textContent = JSON.stringify(response, null, 2);
-    } catch (error) {
-      result.textContent = formatError(error);
-    } finally {
-      testButton.disabled = false;
     }
   });
 }
@@ -178,7 +126,6 @@ function saveOptions() {
 async function init() {
   const options = await restoreOptions();
   checkConnections(options);
-  initDiagnostics();
 
   document.getElementById("exportBiblatex").addEventListener("change", () => saveOptions());
   document.getElementById("exportBibtex").addEventListener("change", () => saveOptions());
