@@ -33,11 +33,7 @@ export default defineWxtModule({
 
     wxt.hook("build:done", async () => {
       const root = wxt.config.root;
-      const safariBundleDir = path.join(
-        root,
-        ".output",
-        `safari-mv${wxt.config.manifestVersion}`,
-      );
+      const safariBundleDir = path.join(root, ".output", `safari-mv${wxt.config.manifestVersion}`);
       const stagedSafariBundleDir = path.join(
         root,
         "dist",
