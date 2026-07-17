@@ -69,7 +69,7 @@ jobs:
         uses: ./.github/actions/setup-browser-extension
 
       - name: Build Safari app
-        run: make safari
+        run: pnpm safari:build-app
 
       - name: Archive Safari app
         run: |
@@ -237,7 +237,7 @@ jobs:
 
       - name: Build Safari app
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
-        run: make safari
+        run: pnpm safari:build-app
 
       - name: Upload Safari to App Store Connect
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}

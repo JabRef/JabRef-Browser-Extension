@@ -16,7 +16,7 @@ ARCHIVE_PATH="$SAFARI_DIR/$APP_NAME.zip"
 FINAL_ZIP="$SAFARI_DIR/jabref-browser-extension-safari.zip"
 
 if [ ! -d "$APP_PATH" ]; then
-    echo "Error: App bundle not found at $APP_PATH. Run 'make safari' and sign it first."
+    echo "Error: App bundle not found at $APP_PATH. Run 'pnpm safari:build-app' and sign it first."
     exit 1
 fi
 

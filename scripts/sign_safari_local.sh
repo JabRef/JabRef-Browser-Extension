@@ -13,7 +13,7 @@ APP_NAME="JabRef Browser Extension"
 APP_PATH="$SAFARI_DIR/$APP_NAME.app"
 
 if [ ! -d "$APP_PATH" ]; then
-    echo "Error: App bundle not found at $APP_PATH. Run 'make safari' first."
+    echo "Error: App bundle not found at $APP_PATH. Run 'pnpm safari:build-app' first."
     exit 1
 fi
 

@@ -27,6 +27,7 @@ Safari builds are available for local development via WXT:
 For the Apple packaging step:
 
 - `pnpm safari:xcode` builds the Safari target and generates the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode)
+- `pnpm safari:build-app` builds the Safari target, generates the Xcode project, and produces `dist/safari/JabRef Browser Extension.app`
 - `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"` signs the generated app
 - `pnpm notarize:safari-local PROFILE="profile-name"` notarizes and zips the signed app
 
@@ -34,7 +35,7 @@ WXT builds the extension bundle, and `wxt-module-safari-xcode` converts that bun
 
 To test the Safari build locally:
 
-1. Run `pnpm safari:xcode`
+1. Run `pnpm safari:build-app`
 2. Open `dist/safari/JabRef Browser Extension.xcodeproj`
 3. Run the `JabRef Browser Extension` scheme in Xcode
 4. Enable the extension in Safari Settings
@@ -45,7 +46,7 @@ Safari CI is split into two parts:
 
 1. `Tests` workflow:
    - `safari-build` runs on `macos-latest`
-   - it executes `make safari`
+   - it executes `pnpm safari:build-app`
    - this validates the WXT build, Xcode packaging, and Safari app bundle path on pull requests and on `main`
 2. `release` workflow:
    - `package` builds Safari, uploads the unsigned Safari app artifact, and on release pushes also signs and notarizes a direct-distribution zip

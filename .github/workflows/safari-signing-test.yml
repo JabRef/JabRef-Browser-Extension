@@ -27,7 +27,7 @@ jobs:
         uses: ./.github/actions/setup-browser-extension
 
       - name: Build Safari project
-        run: make safari
+        run: pnpm safari:build-app
 
       - name: Set unique build number
         shell: bash

@@ -35,4 +35,4 @@ jobs:
 
       - name: Build Safari app
         if: ${{ matrix.target == 'safari-build' }}
-        run: make safari
+        run: pnpm safari:build-app
