@@ -3,7 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-  modules: ["wxt-module-safari-xcode"],
+  modules: [
+    "./modules/jabref-safari-prepare.module.ts",
+    "wxt-module-safari-xcode",
+    "./modules/jabref-safari-xcode.module.ts",
+  ],
   // Place source files in the `src` directory
   // https://wxt.dev/guide/essentials/project-structure.html#adding-a-src-directory
   srcDir: "src",

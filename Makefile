@@ -11,10 +11,7 @@ safari:
 	rm -rf "$(DIST)"
 	rm -rf ".output"
 	mkdir -p "$(DIST)"
-	pnpm build:safari
-	mkdir -p "$(SAFARI_DIR)"
-	node scripts/prepare_safari_bundle.mjs
-	node scripts/patch_safari_project.mjs
+	pnpm safari:xcode
 	xcodebuild -project "$(SAFARI_PROJECT)" \
 		-scheme "JabRef Browser Extension" \
 		-configuration Release \
