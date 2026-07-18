@@ -28,7 +28,6 @@
     "dev:safari": "wxt -b safari",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
-    "build:safari": "wxt build -b safari",
     "safari:xcode": "wxt build -b safari",
     "safari:build-app": "rm -rf dist .output && mkdir -p dist && pnpm safari:xcode && xcodebuild -project \"dist/safari/JabRef Browser Extension.xcodeproj\" -scheme \"JabRef Browser Extension\" -configuration Release -derivedDataPath \"dist/safari/build\" CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build && ditto \"dist/safari/build/Build/Products/Release/JabRef Browser Extension.app\" \"dist/safari/JabRef Browser Extension.app\"",
     "sign:safari-local": "bash ./scripts/sign_safari_local.sh \"$IDENTITY\"",
