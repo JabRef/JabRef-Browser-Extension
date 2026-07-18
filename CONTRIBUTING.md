@@ -66,7 +66,7 @@ Safari CI currently has two jobs:
 1. `.github/workflows/test.yml`
    - `safari-build`
    - runs on `macos-latest`
-   - executes `make safari`
+   - executes `pnpm safari:build-app`
 2. `.github/workflows/release.yml`
    - `safari-package`
    - builds and uploads the unsigned Safari app artifact

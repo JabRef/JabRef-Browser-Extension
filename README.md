@@ -21,12 +21,11 @@ Sometimes, a manual installation is necessary (e.g. if you use the portable vers
 
 Safari builds are available for local development via WXT:
 
-- `pnpm build:safari` builds the Safari target into `.output/safari-mv3/`
 - `pnpm dev:safari` builds the Safari development target
+- `pnpm safari:xcode` builds the Safari target and generates the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode)
 
 For the Apple packaging step:
 
-- `pnpm safari:xcode` builds the Safari target and generates the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode)
 - `pnpm safari:build-app` builds the Safari target, generates the Xcode project, and produces `dist/safari/JabRef Browser Extension.app`
 - `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"` signs the generated app
 - `pnpm notarize:safari-local PROFILE="profile-name"` notarizes and zips the signed app
