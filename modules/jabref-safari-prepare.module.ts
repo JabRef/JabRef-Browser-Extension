@@ -12,7 +12,11 @@ export default defineWxtModule({
     wxt.hook("build:done", async () => {
       const root = wxt.config.root;
       const safariBundleDir = path.join(root, ".output", `safari-mv${wxt.config.manifestVersion}`);
-      const stagedSafariBundleDir = path.join(root, "dist", `safari-mv${wxt.config.manifestVersion}`);
+      const stagedSafariBundleDir = path.join(
+        root,
+        "dist",
+        `safari-mv${wxt.config.manifestVersion}`,
+      );
       const manifestPath = path.join(safariBundleDir, "manifest.json");
       const backgroundHtmlPath = path.join(safariBundleDir, "background.html");
 

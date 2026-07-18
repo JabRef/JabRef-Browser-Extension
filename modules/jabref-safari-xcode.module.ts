@@ -9,7 +9,11 @@ export default defineWxtModule({
       return;
     }
 
-    const sourceSwiftPath = path.join(wxt.config.root, "scripts", "SafariWebExtensionHandler.swift");
+    const sourceSwiftPath = path.join(
+      wxt.config.root,
+      "scripts",
+      "SafariWebExtensionHandler.swift",
+    );
     const targetSwiftPath = path.join(
       wxt.config.root,
       "dist",
