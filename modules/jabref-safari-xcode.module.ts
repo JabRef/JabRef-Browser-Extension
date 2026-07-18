@@ -9,17 +9,15 @@ export default defineWxtModule({
       return;
     }
 
-    wxt.hook("build:done", async () => {
-      const root = wxt.config.root;
-      const projectDir = path.join(root, "dist", "safari");
-      const targetSwiftPath = path.join(
-        projectDir,
-        "JabRef Browser Extension Extension",
-        "SafariWebExtensionHandler.swift",
-      );
-      const sourceSwiftPath = path.join(root, "scripts", "SafariWebExtensionHandler.swift");
+    const sourceSwiftPath = path.join(wxt.config.root, "scripts", "SafariWebExtensionHandler.swift");
+    const targetSwiftPath = path.join(
+      wxt.config.root,
+      "dist",
+      "safari",
+      "JabRef Browser Extension Extension",
+      "SafariWebExtensionHandler.swift",
+    );
 
-      await fs.copyFile(sourceSwiftPath, targetSwiftPath);
-    });
+    wxt.hook("build:done", () => fs.copyFile(sourceSwiftPath, targetSwiftPath));
   },
 });

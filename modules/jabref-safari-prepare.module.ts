@@ -4,44 +4,19 @@ import { defineWxtModule } from "wxt/modules";
 
 export default defineWxtModule({
   name: "jabref-safari-prepare",
-  async setup(wxt) {
+  setup(wxt) {
     if (wxt.config.browser !== "safari") {
       return;
     }
 
-    const configuredSafariOutputPath =
-      wxt.config.safariXcode?.outputPath ??
-      `.output/${wxt.config.safariXcode?.projectName ?? wxt.config.manifest.name ?? "safari-xcode"}`;
-    const configuredSafariOutputDir = path.join(wxt.config.root, configuredSafariOutputPath);
-    await fs.rm(configuredSafariOutputDir, {
-      recursive: true,
-      force: true,
-    });
-    await fs.mkdir(path.dirname(configuredSafariOutputDir), {
-      recursive: true,
-    });
-
-    const stagedSafariBundleDir = path.join(
-      wxt.config.root,
-      "dist",
-      `safari-mv${wxt.config.manifestVersion}`,
-    );
-    await fs.rm(stagedSafariBundleDir, {
-      recursive: true,
-      force: true,
-    });
-
     wxt.hook("build:done", async () => {
       const root = wxt.config.root;
       const safariBundleDir = path.join(root, ".output", `safari-mv${wxt.config.manifestVersion}`);
-      const stagedSafariBundleDir = path.join(
-        root,
-        "dist",
-        `safari-mv${wxt.config.manifestVersion}`,
-      );
+      const stagedSafariBundleDir = path.join(root, "dist", `safari-mv${wxt.config.manifestVersion}`);
       const manifestPath = path.join(safariBundleDir, "manifest.json");
       const backgroundHtmlPath = path.join(safariBundleDir, "background.html");
 
+      // Safari requires a background page and rejects these Chromium/Firefox-only entries.
       const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
 
       delete manifest.key;
@@ -71,6 +46,7 @@ export default defineWxtModule({
 
       await fs.writeFile(backgroundHtmlPath, backgroundHtml);
       await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+      await fs.rm(stagedSafariBundleDir, { recursive: true, force: true });
       await fs.cp(safariBundleDir, stagedSafariBundleDir, {
         recursive: true,
       });

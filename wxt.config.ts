@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   modules: [
+    // Hooks run in module order: prepare the bundle, generate the project, then patch it.
     "./modules/jabref-safari-prepare.module.ts",
     "wxt-module-safari-xcode",
     "./modules/jabref-safari-xcode.module.ts",
