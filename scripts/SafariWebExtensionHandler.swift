@@ -6,6 +6,39 @@ private let profileKeyFallback = "profile"
 private let messageKeyFallback = "message"
 private let responseKeyFallback = "message"
 private let nativeBridgeLogTag = "JBE_NATIVE_BRIDGE"
+private let nativeBridgeRequestTimeout: TimeInterval = 30
+
+/// Completes a Safari extension request exactly once.
+///
+/// JabRef work and the timeout run on different dispatch queues. They can finish at nearly the
+/// same time, so the lock ensures that only the first result is returned to Safari.
+private final class RequestCompleter {
+    private let context: NSExtensionContext
+    private let responseKey: String
+    private let lock = NSLock()
+    private var didComplete = false
+
+    init(context: NSExtensionContext, responseKey: String) {
+        self.context = context
+        self.responseKey = responseKey
+    }
+
+    @discardableResult
+    func complete(with payload: [String: Any]) -> Bool {
+        lock.lock()
+        guard !didComplete else {
+            lock.unlock()
+            return false
+        }
+        didComplete = true
+        lock.unlock()
+
+        let response = NSExtensionItem()
+        response.userInfo = [responseKey: payload]
+        context.completeRequest(returningItems: [response], completionHandler: nil)
+        return true
+    }
+}
 
 private enum JabRefBridgeError: LocalizedError {
     case jabRefNotFound([String])
@@ -30,8 +63,11 @@ private enum JabRefBridgeError: LocalizedError {
     }
 }
 
+/// Converts a native-message payload into a JabRef command-line invocation and response payload.
 private struct JabRefBridge {
     func handle(message: Any, profileIdentifier: UUID?) -> [String: Any] {
+        let requestId = (message as? [String: Any])?["requestId"] as? String ?? "none"
+
         do {
             guard let payload = message as? [String: Any] else {
                 os_log(
@@ -44,7 +80,6 @@ private struct JabRefBridge {
                 throw JabRefBridgeError.invalidPayload
             }
 
-            let requestId = (payload["requestId"] as? String) ?? "none"
             let payloadKeys = payload.keys.sorted().joined(separator: ",")
             os_log(
                 "%{public}@ BEGIN requestId=%{public}@ profile=%{public}@ keys=%{public}@",
@@ -78,17 +113,18 @@ private struct JabRefBridge {
                 "requestId": requestId,
             ]
         } catch let error as JabRefBridgeError {
-            return errorResponse(for: error)
+            return errorResponse(for: error, requestId: requestId)
         } catch {
             return [
                 "message": "error",
                 "output": error.localizedDescription,
                 "stacktrace": String(describing: error),
+                "requestId": requestId,
             ]
         }
     }
 
-    private func errorResponse(for error: JabRefBridgeError) -> [String: Any] {
+    private func errorResponse(for error: JabRefBridgeError, requestId: String) -> [String: Any] {
         switch error {
         case .jabRefNotFound(let attemptedPaths):
             os_log(
@@ -103,19 +139,21 @@ private struct JabRefBridge {
                 "path": attemptedPaths.first ?? "",
                 "output": error.localizedDescription,
                 "stacktrace": attemptedPaths.joined(separator: "\n"),
+                "requestId": requestId,
             ]
         case .processFailed(_, let output):
             os_log(
-                "%{public}@ PROCESS_FAILED output=%{public}@",
+                "%{public}@ PROCESS_FAILED outputBytes=%{public}ld",
                 log: .default,
                 type: .error,
                 nativeBridgeLogTag,
-                output,
+                output.lengthOfBytes(using: .utf8),
             )
             return [
                 "message": "error",
                 "output": output,
                 "stacktrace": error.localizedDescription,
+                "requestId": requestId,
             ]
         case .processLaunchFailed(let reason):
             os_log(
@@ -129,6 +167,7 @@ private struct JabRefBridge {
                 "message": "error",
                 "output": reason,
                 "stacktrace": reason,
+                "requestId": requestId,
             ]
         default:
             os_log(
@@ -142,6 +181,7 @@ private struct JabRefBridge {
                 "message": "error",
                 "output": error.localizedDescription,
                 "stacktrace": String(describing: error),
+                "requestId": requestId,
             ]
         }
     }
@@ -170,13 +210,19 @@ private struct JabRefBridge {
     }
 
     private func runJabRef(at executableURL: URL, arguments: [String]) throws -> String {
+        let operation = arguments.first ?? "none"
+        let payloadBytes = arguments.dropFirst().reduce(0) {
+            $0 + $1.lengthOfBytes(using: .utf8)
+        }
         os_log(
-            "%{public}@ RUN path=%{public}@ args=%{public}@",
+            "%{public}@ RUN path=%{public}@ operation=%{public}@ argumentCount=%{public}ld payloadBytes=%{public}ld",
             log: .default,
             type: .default,
             nativeBridgeLogTag,
             executableURL.path,
-            arguments.joined(separator: " "),
+            operation,
+            arguments.count,
+            payloadBytes,
         )
         let process = Process()
         process.executableURL = executableURL
@@ -193,10 +239,26 @@ private struct JabRefBridge {
             throw JabRefBridgeError.processLaunchFailed(error.localizedDescription)
         }
 
-        process.waitUntilExit()
+        // Drain both pipes while JabRef runs. Waiting for termination before reading can deadlock
+        // if JabRef fills an operating-system pipe buffer with output.
+        let outputReadGroup = DispatchGroup()
+        var outputData = Data()
+        var errorData = Data()
 
-        let outputData = stdout.fileHandleForReading.readDataToEndOfFile()
-        let errorData = stderr.fileHandleForReading.readDataToEndOfFile()
+        outputReadGroup.enter()
+        DispatchQueue.global(qos: .utility).async {
+            outputData = stdout.fileHandleForReading.readDataToEndOfFile()
+            outputReadGroup.leave()
+        }
+
+        outputReadGroup.enter()
+        DispatchQueue.global(qos: .utility).async {
+            errorData = stderr.fileHandleForReading.readDataToEndOfFile()
+            outputReadGroup.leave()
+        }
+
+        process.waitUntilExit()
+        outputReadGroup.wait()
         let output = String(data: outputData + errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         guard process.terminationStatus == 0 else {
@@ -215,8 +277,22 @@ private struct JabRefBridge {
     }
 }
 
+/// Bridges Safari Web Extension native messages to the local JabRef application.
+///
+/// Safari calls `beginRequest` after JavaScript invokes `browser.runtime.sendNativeMessage`.
+/// The incoming message is stored in an `NSExtensionItem` user-info dictionary; this handler
+/// places its response in a matching extension item and completes the provided context.
+///
+/// Import requests start JabRef with the received BibTeX. JabRef forwards the command to an
+/// already-running instance when its remote operation support is enabled. Launching JabRef runs
+/// off the request callback so Safari stays responsive; a timeout returns an error if no response
+/// is available in time.
 class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     private let bridge = JabRefBridge()
+    private let bridgeQueue = DispatchQueue(
+        label: "org.jabref.browser-extension.native-bridge",
+        qos: .userInitiated,
+    )
 
     func beginRequest(with context: NSExtensionContext) {
         os_log("%{public}@ BEGIN_REQUEST", log: .default, type: .default, nativeBridgeLogTag)
@@ -247,15 +323,33 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             return
         }
 
-        let responsePayload = bridge.handle(message: message, profileIdentifier: profileIdentifier)
-        let response = NSExtensionItem()
+        let responseKey: String
         if #available(iOS 15.0, macOS 11.0, *) {
-            response.userInfo = [SFExtensionMessageKey: responsePayload]
+            responseKey = SFExtensionMessageKey
         } else {
-            response.userInfo = [responseKeyFallback: responsePayload]
+            responseKey = responseKeyFallback
         }
 
-        os_log("%{public}@ COMPLETE_REQUEST", log: .default, type: .default, nativeBridgeLogTag)
-        context.completeRequest(returningItems: [response], completionHandler: nil)
+        let requestId = (message as? [String: Any])?["requestId"] as? String ?? "none"
+        let completer = RequestCompleter(context: context, responseKey: responseKey)
+        let bridge = bridge
+
+        bridgeQueue.async {
+            let responsePayload = bridge.handle(message: message, profileIdentifier: profileIdentifier)
+            if completer.complete(with: responsePayload) {
+                os_log("%{public}@ COMPLETE_REQUEST requestId=%{public}@", log: .default, type: .default, nativeBridgeLogTag, requestId)
+            }
+        }
+
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + nativeBridgeRequestTimeout) {
+            if completer.complete(with: [
+                "message": "error",
+                "output": "Timed out waiting for JabRef.",
+                "stacktrace": "Native bridge timed out after \(Int(nativeBridgeRequestTimeout)) seconds.",
+                "requestId": requestId,
+            ]) {
+                os_log("%{public}@ REQUEST_TIMED_OUT requestId=%{public}@", log: .default, type: .error, nativeBridgeLogTag, requestId)
+            }
+        }
     }
 }
