@@ -7,12 +7,27 @@ Preparation:
 1. Install [Node.js](https://nodejs.org) (e.g., `choco install nodejs`) and [pnpm](https://pnpm.io) (e.g., `npm install -g pnpm`).
 2. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
 3. Checkout the repository.
-4. Install development dependencies via `pnpm install`.
-5. Start browser with the add-on activated:
+4. Initialize the git submodules via `git submodule update --init --recursive`.
+5. Install development dependencies via `pnpm install`.
+6. Start browser with the add-on activated:
    Firefox: `pnpm dev:firefox`
    Chrome: `pnpm dev:chrome`
    Opera: `pnpm dev:opera`
    Edge: `pnpm dev:edge`
+   Safari: `pnpm safari:xcode` (macOS with Xcode required)
+
+Safari local packaging flow:
+
+1. Build and generate the Xcode project:
+   `pnpm safari:xcode`
+2. Open:
+   `dist/safari/JabRef Browser Extension.xcodeproj`
+3. Run the `JabRef Browser Extension` scheme in Xcode
+4. Enable the extension in Safari Settings
+5. Optional signing:
+   `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"`
+6. Optional notarization:
+   `pnpm notarize:safari-local PROFILE="profile-name"`
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
@@ -43,3 +58,30 @@ The following commands are used to update the dependencies of the project; as we
   - https://developer.apple.com/app-store-connect/
 - Remove the `key` field in `wxt.config.ts` and build again. Then upload to:
   - https://partner.microsoft.com/en-us/dashboard/microsoftedge/2045cdc1-808f-43c4-8091-43e2dcaff53d/packages
+
+## Safari CI and Notarization
+
+Safari CI currently has two jobs:
+
+1. `.github/workflows/test.yml`
+   - `safari-build`
+   - runs on `macos-latest`
+   - executes `pnpm safari:build-app`
+2. `.github/workflows/release.yml`
+   - `safari-package`
+   - builds and uploads the unsigned Safari app artifact
+   - `safari-publish`
+   - publishes the Safari project to App Store Connect for actual releases
+
+GitHub Actions secrets required for Safari publishing:
+
+- `APPLE_TEAM_ID`
+- `APPLE_CERTIFICATE_BASE64`
+- `APPLE_CERTIFICATE_PASSWORD`
+- `SAFARI_APP_SIGNING_IDENTITY`
+- `SAFARI_INSTALLER_SIGNING_IDENTITY`
+- `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`
+- `APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64`
+- `APPLE_API_KEY`
+- `APPLE_API_KEY_ID`
+- `APPLE_API_ISSUER`

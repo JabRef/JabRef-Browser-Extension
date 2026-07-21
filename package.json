@@ -25,19 +25,27 @@
     "dev:chrome": "wxt -b chrome",
     "dev:opera": "wxt -b opera",
     "dev:edge": "wxt -b edge",
+    "dev:safari": "wxt -b safari",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
+    "safari:xcode": "wxt build -b safari",
+    "safari:build-app": "rm -rf dist .output && mkdir -p dist && pnpm safari:xcode && xcodebuild -project \"dist/safari/JabRef Browser Extension.xcodeproj\" -scheme \"JabRef Browser Extension\" -configuration Release -derivedDataPath \"dist/safari/build\" CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build && ditto \"dist/safari/build/Build/Products/Release/JabRef Browser Extension.app\" \"dist/safari/JabRef Browser Extension.app\"",
+    "sign:safari-local": "bash ./scripts/sign_safari_local.sh \"$IDENTITY\"",
+    "notarize:safari-local": "bash ./scripts/notarize_safari_local.sh \"$PROFILE\"",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
+    "zip:safari": "wxt zip -b safari",
     "compile": "vue-tsc --noEmit",
     "lint": "pnpm lint:oxlint && pnpm lint:oxfmt",
-    "lint:oxlint": "oxlint",
+    "lint:oxlint": "oxlint --ignore-pattern 'sources/**' --ignore-pattern 'translators/zotero/**'",
     "lint:oxfmt": "oxfmt --check",
     "test": "vitest run",
     "test:legacy": "node test.js arXiv.org.js",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "esbuild": "^0.28.1",
+    "spawn-sync": "^2.0.0",
     "vue": "3.5.35"
   },
   "devDependencies": {
@@ -49,9 +57,10 @@
     "oxlint": "1.68.0",
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",
-    "vitest": "4.1.8",
+    "vitest": "4.1.9",
     "vue-tsc": "3.3.3",
-    "wxt": "0.20.26"
+    "wxt": "0.20.26",
+    "wxt-module-safari-xcode": "0.2.2"
   },
   "packageManager": "pnpm@10.34.1"
 }

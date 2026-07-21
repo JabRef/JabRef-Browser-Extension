@@ -1,6 +1,6 @@
 # JabRef Browser Extension
 
-> [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabref/?src=external-github) - [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - [Edge](https://microsoftedge.microsoft.com/addons/detail/pgkajmkfgbehiomipedjhoddkejohfna) - [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
+> [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabref/?src=external-github) - [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - [Edge](https://microsoftedge.microsoft.com/addons/detail/pgkajmkfgbehiomipedjhoddkejohfna) - [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - Safari (build from source)
 
 Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/).
 It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.
@@ -15,9 +15,67 @@ _Please post any issues or suggestions [here on GitHub](https://github.com/JabRe
 
 Normally, you simply install the extension from the browser store and are ready to go.
 
-> [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabref/?src=external-github) - [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - [Edge](https://microsoftedge.microsoft.com/addons/detail/pgkajmkfgbehiomipedjhoddkejohfna) - [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh)
+> [Firefox](https://addons.mozilla.org/en-US/firefox/addon/jabref/?src=external-github) - [Chrome](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - [Edge](https://microsoftedge.microsoft.com/addons/detail/pgkajmkfgbehiomipedjhoddkejohfna) - [Vivaldi](https://chrome.google.com/webstore/detail/jabref-browser-extension/bifehkofibaamoeaopjglfkddgkijdlh) - Safari (build from source)
 
 Sometimes, a manual installation is necessary (e.g. if you use the portable version of JabRef). In this case, please follow the steps described [in the user manual](https://docs.jabref.org/import-export/import/jabref-browser-extension).
+
+Safari builds are available for local development via WXT:
+
+- `pnpm dev:safari` builds the Safari development target
+- `pnpm safari:xcode` builds the Safari target and generates the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode)
+
+For the Apple packaging step:
+
+- `pnpm safari:build-app` builds the Safari target, generates the Xcode project, and produces `dist/safari/JabRef Browser Extension.app`
+- `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"` signs the generated app
+- `pnpm notarize:safari-local PROFILE="profile-name"` notarizes and zips the signed app
+
+WXT builds the extension bundle, and `wxt-module-safari-xcode` converts that bundle into the Xcode project and macOS app structure Apple expects.
+
+To test the Safari build locally:
+
+1. Run `pnpm safari:build-app`
+2. Open `dist/safari/JabRef Browser Extension.xcodeproj`
+3. Run the `JabRef Browser Extension` scheme in Xcode
+4. Enable the extension in Safari Settings
+
+The generated macOS app bundle is placed at `dist/safari/JabRef Browser Extension.app`.
+
+Safari CI is split into two parts:
+
+1. `Tests` workflow:
+   - `safari-build` runs on `macos-latest`
+   - it executes `pnpm safari:build-app`
+   - this validates the WXT build, Xcode packaging, and Safari app bundle path on pull requests and on `main`
+2. `release` workflow:
+   - `package` builds Safari, uploads the unsigned Safari app artifact, and on release pushes also signs and notarizes a direct-distribution zip
+   - `publish (safari)` rebuilds the Xcode project on `macos-26` and publishes it to App Store Connect with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action)
+3. `Safari Signing Test` workflow:
+   - manual `workflow_dispatch` workflow with a `run_safari_signing_test` checkbox
+   - it builds the Safari project and runs the App Store signing/publish step without touching the release workflow
+
+The Safari publish job expects these GitHub Actions secrets:
+
+- `APPLE_TEAM_ID`: Apple Developer team ID
+- `APPLE_CERTIFICATE_BASE64`: base64-encoded `.p12` certificate containing the App Store signing identities
+- `APPLE_CERTIFICATE_PASSWORD`: password for that `.p12`
+- `SAFARI_APP_SIGNING_IDENTITY`: full app signing identity exactly as shown by `security find-identity -v -p basic`, for example `3rd Party Mac Developer Application: JabRef e.V. (TEAMID)`
+- `SAFARI_INSTALLER_SIGNING_IDENTITY`: full installer signing identity exactly as shown by `security find-identity -v -p basic`, for example `3rd Party Mac Developer Installer: JabRef e.V. (TEAMID)`
+- `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the app bundle ID
+- `APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the extension bundle ID
+- `APPLE_API_KEY`: base64-encoded App Store Connect API key (`.p8`)
+- `APPLE_API_KEY_ID`: App Store Connect API key ID
+- `APPLE_API_ISSUER`: App Store Connect API issuer ID
+
+The direct-distribution Safari artifact additionally expects:
+
+- `APPLE_DEVELOPER_ID_CERTIFICATE_BASE64`: base64-encoded `.p12` certificate containing the Developer ID Application identity
+- `APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD`: password for that `.p12`
+- `SAFARI_DEVELOPER_ID_SIGNING_IDENTITY`: full Developer ID signing identity exactly as shown by `security find-identity -v -p basic`, for example `Developer ID Application: JabRef e.V. (TEAMID)`
+
+The newer Apple Developer portal may label these certificates as `Apple Distribution`, `Mac App Distribution`, or `Mac Installer Distribution`, but the secret values used by `codesign` and `productbuild` must match the installed Keychain identity strings exactly.
+
+The local `pnpm sign:safari-local` and `pnpm notarize:safari-local` commands still exist for manual Developer ID packaging outside the App Store flow.
 
 ## Usage
 
