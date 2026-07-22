@@ -17,7 +17,7 @@ importers:
         version: 4.3.0(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))
       '@wxt-dev/module-vue':
         specifier: 1.0.3
-        version: 1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.35(typescript@6.0.3))(wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0))
+        version: 1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.35(typescript@6.0.3))(wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0))(jiti@2.6.1)(rollup@4.59.0)(supports-color@7.2.0))
       globals:
         specifier: 17.6.0
         version: 17.6.0
@@ -44,7 +44,7 @@ importers:
         version: 3.3.3(typescript@6.0.3)
       wxt:
         specifier: 0.20.26
-        version: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
+        version: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0))(jiti@2.6.1)(rollup@4.59.0)(supports-color@7.2.0)
 
 packages:
 
@@ -2957,13 +2957,13 @@ snapshots:
 
   '@devicefarmer/adbkit-monkey@1.2.1': {}
 
-  '@devicefarmer/adbkit@3.3.8':
+  '@devicefarmer/adbkit@3.3.8(supports-color@7.2.0)':
     dependencies:
       '@devicefarmer/adbkit-logcat': 2.1.3
       '@devicefarmer/adbkit-monkey': 1.2.1
       bluebird: 3.7.2
       commander: 9.5.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@7.2.0)
       node-forge: 1.4.0
       split: 1.0.1
     transitivePeerDependencies:
@@ -3063,19 +3063,19 @@ snapshots:
   '@esbuild/win32-x64@0.27.7':
     optional: true
 
-  '@eslint-community/eslint-utils@4.9.1(eslint@9.39.0(jiti@2.6.1))':
+  '@eslint-community/eslint-utils@4.9.1(eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0))':
     dependencies:
-      eslint: 9.39.0(jiti@2.6.1)
+      eslint: 9.39.0(jiti@2.6.1)(supports-color@7.2.0)
       eslint-visitor-keys: 3.4.3
     optional: true
 
   '@eslint-community/regexpp@4.12.2':
     optional: true
 
-  '@eslint/config-array@0.21.2':
+  '@eslint/config-array@0.21.2(supports-color@7.2.0)':
     dependencies:
       '@eslint/object-schema': 2.1.7
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       minimatch: 3.1.5
     transitivePeerDependencies:
       - supports-color
@@ -3091,10 +3091,10 @@ snapshots:
       '@types/json-schema': 7.0.15
     optional: true
 
-  '@eslint/eslintrc@3.3.5':
+  '@eslint/eslintrc@3.3.5(supports-color@7.2.0)':
     dependencies:
       ajv: 6.15.0
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       espree: 10.4.0
       globals: 14.0.0
       ignore: 5.3.2
@@ -3662,10 +3662,10 @@ snapshots:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
 
-  '@wxt-dev/module-vue@1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.35(typescript@6.0.3))(wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0))':
+  '@wxt-dev/module-vue@1.0.3(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.35(typescript@6.0.3))(wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0))(jiti@2.6.1)(rollup@4.59.0)(supports-color@7.2.0))':
     dependencies:
       '@vitejs/plugin-vue': 6.0.5(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1))(vue@3.5.35(typescript@6.0.3))
-      wxt: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0)
+      wxt: 0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0))(jiti@2.6.1)(rollup@4.59.0)(supports-color@7.2.0)
     transitivePeerDependencies:
       - vite
       - vue
@@ -3809,12 +3809,12 @@ snapshots:
     dependencies:
       readdirp: 5.0.0
 
-  chrome-launcher@1.2.0:
+  chrome-launcher@1.2.0(supports-color@7.2.0):
     dependencies:
       '@types/node': 25.6.0
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
-      lighthouse-logger: 2.0.2
+      lighthouse-logger: 2.0.2(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -3917,13 +3917,17 @@ snapshots:
 
   debounce@1.2.1: {}
 
-  debug@4.3.7:
+  debug@4.3.7(supports-color@7.2.0):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 7.2.0
 
-  debug@4.4.3:
+  debug@4.4.3(supports-color@7.2.0):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 7.2.0
 
   decimal.js@10.6.0: {}
 
@@ -4059,14 +4063,14 @@ snapshots:
   eslint-visitor-keys@4.2.1:
     optional: true
 
-  eslint@9.39.0(jiti@2.6.1):
+  eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0):
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.0(jiti@2.6.1))
+      '@eslint-community/eslint-utils': 4.9.1(eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0))
       '@eslint-community/regexpp': 4.12.2
-      '@eslint/config-array': 0.21.2
+      '@eslint/config-array': 0.21.2(supports-color@7.2.0)
       '@eslint/config-helpers': 0.4.2
       '@eslint/core': 0.17.0
-      '@eslint/eslintrc': 3.3.5
+      '@eslint/eslintrc': 3.3.5(supports-color@7.2.0)
       '@eslint/js': 9.39.0
       '@eslint/plugin-kit': 0.4.1
       '@humanfs/node': 0.16.8
@@ -4076,7 +4080,7 @@ snapshots:
       ajv: 6.15.0
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -4456,9 +4460,9 @@ snapshots:
     dependencies:
       immediate: 3.0.6
 
-  lighthouse-logger@2.0.2:
+  lighthouse-logger@2.0.2(supports-color@7.2.0):
     dependencies:
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@7.2.0)
       marky: 1.3.0
     transitivePeerDependencies:
       - supports-color
@@ -5312,11 +5316,11 @@ snapshots:
       glob-to-regexp: 0.4.1
       graceful-fs: 4.2.11
 
-  web-ext-run@0.2.4:
+  web-ext-run@0.2.4(supports-color@7.2.0):
     dependencies:
       '@babel/runtime': 7.28.2
-      '@devicefarmer/adbkit': 3.3.8
-      chrome-launcher: 1.2.0
+      '@devicefarmer/adbkit': 3.3.8(supports-color@7.2.0)
+      chrome-launcher: 1.2.0(supports-color@7.2.0)
       debounce: 1.2.1
       es6-error: 4.1.1
       firefox-profile: 4.7.0
@@ -5401,7 +5405,7 @@ snapshots:
       is-wsl: 3.1.1
       powershell-utils: 0.1.0
 
-  wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.59.0):
+  wxt@0.20.26(@types/node@25.6.0)(eslint@9.39.0(jiti@2.6.1)(supports-color@7.2.0))(jiti@2.6.1)(rollup@4.59.0)(supports-color@7.2.0):
     dependencies:
       '@1natsu/wait-element': 4.2.0
       '@aklinker1/rollup-plugin-visualizer': 5.12.0(rollup@4.59.0)
@@ -5444,9 +5448,9 @@ snapshots:
       unimport: 6.2.0
       vite: 8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)
       vite-node: 6.0.0(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)
-      web-ext-run: 0.2.4
+      web-ext-run: 0.2.4(supports-color@7.2.0)
     optionalDependencies:
-      eslint: 9.39.0(jiti@2.6.1)
+      eslint: 9.39.0(jiti@2.6.1)(supports-color@7.2.0)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
