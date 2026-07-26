@@ -19,6 +19,17 @@ Normally, you simply install the extension from the browser store and are ready 
 
 Sometimes, a manual installation is necessary (e.g. if you use the portable version of JabRef). In this case, please follow the steps described [in the user manual](https://docs.jabref.org/import-export/import/jabref-browser-extension).
 
+### Troubleshooting native messaging on macOS Chrome
+
+If Chrome reports `Specified native messaging host not found.`, its registered JabRef host manifest may refer to an old location for `jabrefHost.py`. Reinstall the manifest bundled with the currently installed JabRef application:
+
+```sh
+sudo cp "/Applications/JabRef.app/Contents/Resources/native-messaging-host/chromium/org.jabref.jabref.json" \
+  "/Library/Google/Chrome/NativeMessagingHosts/org.jabref.jabref.json"
+```
+
+Quit Chrome completely and reopen it afterwards. This assumes JabRef is installed in `/Applications`; adjust the first path if it is installed elsewhere.
+
 ## Usage
 
 After the installation, you should be able to import bibliographic references into JabRef directly from your browser.
