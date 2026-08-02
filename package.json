@@ -49,7 +49,7 @@
     "oxlint": "1.76.0",
     "tailwindcss": "4.3.0",
     "typescript": "7.0.2",
-    "vitest": "4.1.8",
+    "vitest": "4.1.10",
     "vue-tsc": "3.3.3",
     "wxt": "0.21.2"
   },
