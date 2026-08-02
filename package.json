@@ -48,7 +48,7 @@
     "oxfmt": "0.53.0",
     "oxlint": "1.68.0",
     "tailwindcss": "4.3.0",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vitest": "4.1.8",
     "vue-tsc": "3.3.3",
     "wxt": "0.21.2"
