@@ -46,7 +46,7 @@
     "globals": "17.6.0",
     "jsdom": "30.0.1",
     "oxfmt": "0.53.0",
-    "oxlint": "1.68.0",
+    "oxlint": "1.76.0",
     "tailwindcss": "4.3.0",
     "typescript": "7.0.2",
     "vitest": "4.1.8",
