@@ -44,7 +44,7 @@
     "@tailwindcss/vite": "4.3.0",
     "@wxt-dev/module-vue": "1.0.3",
     "globals": "17.6.0",
-    "jsdom": "29.1.1",
+    "jsdom": "30.0.1",
     "oxfmt": "0.53.0",
     "oxlint": "1.68.0",
     "tailwindcss": "4.3.0",
