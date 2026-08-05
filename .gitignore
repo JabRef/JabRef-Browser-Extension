@@ -5,6 +5,9 @@ node_modules
 # Ignore polyfill and fetch it with npm install
 browser-polyfill.min.js
 
+# We currently don't maintain any IDEA-specific configuration
+.idea
+
 # Created by https://www.gitignore.io/api/linux,macos,windows
 # Edit at https://www.gitignore.io/?templates=linux,macos,windows
 
