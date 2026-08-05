@@ -10,24 +10,29 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Test (${{ matrix.target }})
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: test
+            runs-on: ubuntu-latest
+          - target: safari-build
+            runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24.19.0
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install
+      - name: Setup build environment
+        uses: ./.github/actions/setup-browser-extension
 
       - name: Run tests
+        if: ${{ matrix.target == 'test' }}
         run: pnpm test
+
+      - name: Build Safari app
+        if: ${{ matrix.target == 'safari-build' }}
+        run: pnpm safari:build-app
