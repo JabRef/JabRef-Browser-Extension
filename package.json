@@ -43,7 +43,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "4.3.0",
     "@wxt-dev/module-vue": "1.0.3",
-    "globals": "17.8.0",
+    "globals": "17.9.0",
     "jsdom": "30.0.1",
     "oxfmt": "0.53.0",
     "oxlint": "1.76.0",
