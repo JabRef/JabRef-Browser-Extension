@@ -7,8 +7,9 @@ Preparation:
 1. Install [Node.js](https://nodejs.org) (e.g., `choco install nodejs`) and [pnpm](https://pnpm.io) (e.g., `npm install -g pnpm`).
 2. [Fork the repository](https://help.github.com/articles/fork-a-repo/).
 3. Checkout the repository.
-4. Install development dependencies via `pnpm install`.
-5. Start browser with the add-on activated:
+4. Call `git submodule update --init` to ensure all submodules are checked out, too.
+5. Install development dependencies via `pnpm install`.
+6. Start browser with the add-on activated:
    Firefox: `pnpm dev:firefox`
    Chrome: `pnpm dev:chrome`
    Opera: `pnpm dev:opera`
