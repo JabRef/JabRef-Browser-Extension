@@ -46,21 +46,21 @@
   "dependencies": {
     "esbuild": "^0.28.1",
     "spawn-sync": "^2.0.0",
-    "vue": "3.5.35"
+    "vue": "3.5.40"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.0",
     "@wxt-dev/module-vue": "1.0.3",
-    "globals": "17.6.0",
-    "jsdom": "29.1.1",
+    "globals": "17.8.0",
+    "jsdom": "30.0.1",
     "oxfmt": "0.53.0",
-    "oxlint": "1.68.0",
+    "oxlint": "1.76.0",
     "tailwindcss": "4.3.0",
-    "typescript": "6.0.3",
-    "vitest": "4.1.9",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10",
     "vue-tsc": "3.3.3",
-    "wxt": "0.21.2",
+    "wxt": "0.21.3",
     "wxt-module-safari-xcode": "0.2.2"
   },
-  "packageManager": "pnpm@10.34.1"
+  "packageManager": "pnpm@10.34.5"
 }
