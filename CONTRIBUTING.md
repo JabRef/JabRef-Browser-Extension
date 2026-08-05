@@ -14,6 +14,17 @@ Preparation:
    Opera: `pnpm dev:opera`
    Edge: `pnpm dev:edge`
 
+### Native messaging in local Chrome development
+
+The development build uses the stable Chrome extension ID, so the JabRef native-host manifest already authorizes it. On macOS, if Chrome reports `Specified native messaging host not found.`, refresh the system manifest from the installed JabRef application:
+
+```sh
+sudo cp "/Applications/JabRef.app/Contents/Resources/native-messaging-host/chromium/org.jabref.jabref.json" \
+  "/Library/Google/Chrome/NativeMessagingHosts/org.jabref.jabref.json"
+```
+
+Restart Chrome after updating the manifest. If JabRef is not installed in `/Applications`, update the source path accordingly.
+
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
 1. Create your feature branch: `git checkout -b my-new-feature`
