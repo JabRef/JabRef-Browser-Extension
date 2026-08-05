@@ -41,13 +41,13 @@
     "vue": "3.5.40"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.3.0",
+    "@tailwindcss/vite": "4.3.3",
     "@wxt-dev/module-vue": "1.0.3",
     "globals": "17.9.0",
     "jsdom": "30.0.1",
     "oxfmt": "0.53.0",
     "oxlint": "1.76.0",
-    "tailwindcss": "4.3.0",
+    "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "vitest": "4.1.10",
     "vue-tsc": "3.3.3",
