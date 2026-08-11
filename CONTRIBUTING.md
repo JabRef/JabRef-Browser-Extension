@@ -14,20 +14,21 @@ Preparation:
    Chrome: `pnpm dev:chrome`
    Opera: `pnpm dev:opera`
    Edge: `pnpm dev:edge`
-   Safari: `pnpm safari:xcode` (macOS with Xcode required)
+   Safari: `pnpm build:safari` (macOS with Xcode required)
 
-Safari local packaging flow:
+Safari builds are available for local development via WXT (macOS with Xcode required):
 
-1. Build and generate the Xcode project:
-   `pnpm safari:xcode`
-2. Open:
+1. Run `pnpm dev:safari` to build the Safari development target.
+2. Run `pnpm build:safari` to generate the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode).
+3. Open:
    `dist/safari/JabRef Browser Extension.xcodeproj`
-3. Run the `JabRef Browser Extension` scheme in Xcode
-4. Enable the extension in Safari Settings
-5. Optional signing:
-   `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"`
-6. Optional notarization:
-   `pnpm notarize:safari-local PROFILE="profile-name"`
+4. Run the `JabRef Browser Extension` scheme in Xcode.
+5. Enable the extension in Safari Settings.
+
+For local Apple packaging, run `pnpm safari:build-app` to produce `dist/safari/JabRef Browser Extension.app`. WXT builds the extension bundle, and `wxt-module-safari-xcode` converts it into the Xcode project and macOS app structure Apple expects. Optional signing and notarization commands are:
+
+1. `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"`
+2. `pnpm notarize:safari-local PROFILE="profile-name"`
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
@@ -61,27 +62,29 @@ The following commands are used to update the dependencies of the project; as we
 
 ## Safari CI and Notarization
 
-Safari CI currently has two jobs:
+Safari CI uses three workflows:
 
-1. `.github/workflows/test.yml`
-   - `safari-build`
-   - runs on `macos-latest`
-   - executes `pnpm safari:build-app`
-2. `.github/workflows/release.yml`
-   - `safari-package`
-   - builds and uploads the unsigned Safari app artifact
-   - `safari-publish`
-   - publishes the Safari project to App Store Connect for actual releases
+1. `Tests` (`.github/workflows/test.yml`) runs `pnpm safari:build-app` on `macos-latest`. It validates the WXT build, Xcode packaging, and Safari app bundle path on pull requests, `main`, and merge-queue builds.
+2. `release` (`.github/workflows/release.yml`) builds Safari, uploads the unsigned app artifact, and on release pushes signs and notarizes a direct-distribution zip. Its `publish (safari)` job rebuilds the Xcode project on `macos-26` and publishes it to App Store Connect with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action).
+3. `Safari Signing Test` (`.github/workflows/safari-signing-test.yml`) is a manual workflow that builds the Safari project and runs the App Store signing/publish step without affecting a release.
 
-GitHub Actions secrets required for Safari publishing:
+The Safari publish job requires these GitHub Actions secrets:
 
-- `APPLE_TEAM_ID`
-- `APPLE_CERTIFICATE_BASE64`
-- `APPLE_CERTIFICATE_PASSWORD`
-- `SAFARI_APP_SIGNING_IDENTITY`
-- `SAFARI_INSTALLER_SIGNING_IDENTITY`
-- `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`
-- `APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64`
-- `APPLE_API_KEY`
-- `APPLE_API_KEY_ID`
-- `APPLE_API_ISSUER`
+- `APPLE_TEAM_ID`: Apple Developer team ID
+- `APPLE_CERTIFICATE_BASE64`: base64-encoded `.p12` certificate containing the App Store signing identities
+- `APPLE_CERTIFICATE_PASSWORD`: password for that `.p12`
+- `SAFARI_APP_SIGNING_IDENTITY`: full app signing identity, for example `3rd Party Mac Developer Application: JabRef e.V. (TEAMID)`
+- `SAFARI_INSTALLER_SIGNING_IDENTITY`: full installer signing identity, for example `3rd Party Mac Developer Installer: JabRef e.V. (TEAMID)`
+- `APPLE_MACOS_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the app bundle ID
+- `APPLE_MACOS_EXTENSION_PROVISIONING_PROFILE_BASE64`: base64-encoded macOS App Store provisioning profile for the extension bundle ID
+- `APPLE_API_KEY`: base64-encoded App Store Connect API key (`.p8`)
+- `APPLE_API_KEY_ID`: App Store Connect API key ID
+- `APPLE_API_ISSUER`: App Store Connect API issuer ID
+
+The direct-distribution Safari artifact additionally requires:
+
+- `APPLE_DEVELOPER_ID_CERTIFICATE_BASE64`: base64-encoded `.p12` certificate containing the Developer ID Application identity
+- `APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD`: password for that `.p12`
+- `SAFARI_DEVELOPER_ID_SIGNING_IDENTITY`: full Developer ID signing identity, for example `Developer ID Application: JabRef e.V. (TEAMID)`
+
+The Apple Developer portal may label these certificates as `Apple Distribution`, `Mac App Distribution`, or `Mac Installer Distribution`, but the values used by `codesign` and `productbuild` must match the installed Keychain identity strings exactly.
