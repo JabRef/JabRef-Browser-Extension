@@ -1,14 +1,16 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
 
+const safariModule = (file: string) => new URL(`./safari/modules/${file}`, import.meta.url).href;
+
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   modules: [
-    // Keep these modules outside WXT's automatically discovered `modules/` directory so
-    // their order around the Xcode module is explicit: prepare, convert, then patch.
-    "./safari/modules/prepare.ts",
+    // `modulesDir` auto-discovery runs after configured modules. File URLs keep this
+    // required order explicit: prepare, generate Xcode project, then patch it.
+    safariModule("prepare.ts"),
     "wxt-module-safari-xcode",
-    "./safari/modules/xcode.ts",
+    safariModule("xcode.ts"),
   ],
   // Place source files in the `src` directory
   // https://wxt.dev/guide/essentials/project-structure.html#adding-a-src-directory
