@@ -212,6 +212,8 @@ jobs:
 
       - name: Download signed Safari distribution artifact
         if: ${{ matrix.target == 'safari-distribution' && github.event_name != 'pull_request' }}
+        # This is the notarized direct-distribution zip produced by `notarize-safari`.
+        # The separate `safari` matrix job rebuilds the Xcode project for App Store Connect.
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v5.0.0
         with:
           name: safari-signed-distribution

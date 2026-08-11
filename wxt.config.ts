@@ -1,18 +1,16 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
 
-// wxt 0.21 resolves `modules` entries with Node's import.meta.resolve, which
-// ignores the importer argument, so a relative path lands inside wxt itself.
-// Absolute file URLs resolve the same in every version.
-const localModule = (file: string) => new URL(`./modules/${file}`, import.meta.url).href;
+const safariModule = (file: string) => new URL(`./safari/modules/${file}`, import.meta.url).href;
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   modules: [
-    // Hooks run in module order: prepare the bundle, generate the project, then patch it.
-    localModule("jabref-safari-prepare.module.ts"),
+    // Keep these modules outside WXT's automatically discovered `modules/` directory so
+    // their order around the Xcode module is explicit: prepare, convert, then patch.
+    safariModule("prepare.ts"),
     "wxt-module-safari-xcode",
-    localModule("jabref-safari-xcode.module.ts"),
+    safariModule("xcode.ts"),
   ],
   // Place source files in the `src` directory
   // https://wxt.dev/guide/essentials/project-structure.html#adding-a-src-directory

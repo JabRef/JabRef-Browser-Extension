@@ -1,5 +1,7 @@
 name: Safari Signing Test
 
+# Run manually to verify App Store signing and submission credentials without creating a release.
+
 on:
   workflow_dispatch:
     inputs:

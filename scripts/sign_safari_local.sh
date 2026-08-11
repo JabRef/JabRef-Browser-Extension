@@ -30,17 +30,17 @@ EXTENSION_PATH=$(find "$APP_PATH" -name "*.appex" | head -n 1)
 if [ -n "$EXTENSION_PATH" ]; then
     EXTENSION_EXE=$(find "$EXTENSION_PATH" -path "*/Contents/MacOS/*" -type f | head -n 1)
     if [ -n "$EXTENSION_EXE" ]; then
-        codesign --force --options runtime --entitlements "scripts/JabRef Browser Extension Extension.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$EXTENSION_EXE"
+        codesign --force --options runtime --entitlements "safari/entitlements/extension.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$EXTENSION_EXE"
     fi
-    codesign --force --options runtime --entitlements "scripts/JabRef Browser Extension Extension.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$EXTENSION_PATH"
+    codesign --force --options runtime --entitlements "safari/entitlements/extension.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$EXTENSION_PATH"
 fi
 
 MAIN_EXE="$APP_PATH/Contents/MacOS/$APP_NAME"
 if [ -f "$MAIN_EXE" ]; then
-    codesign --force --options runtime --entitlements "scripts/JabRef Browser Extension.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$MAIN_EXE"
+    codesign --force --options runtime --entitlements "safari/entitlements/app.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$MAIN_EXE"
 fi
 
-codesign --force --options runtime --entitlements "scripts/JabRef Browser Extension.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$APP_PATH"
+codesign --force --options runtime --entitlements "safari/entitlements/app.entitlements" --sign "$IDENTITY" --timestamp --verbose=4 "$APP_PATH"
 
 if ! codesign -vvv --deep --strict "$APP_PATH"; then
     echo "Deep verification failed, retrying without --deep..."
