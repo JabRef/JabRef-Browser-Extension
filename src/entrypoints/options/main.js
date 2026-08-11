@@ -104,21 +104,21 @@ function checkConnections({ httpPort }) {
   });
 }
 
-function initDiagnostics() {
-  const testButton = document.getElementById("testNativeMessage");
-  const result = document.getElementById("nativeMessageResult");
+function initializeNativeMessagingDiagnosticButton() {
+  const diagnosticButton = document.getElementById("testNativeMessage");
+  const diagnosticResult = document.getElementById("nativeMessageResult");
 
-  testButton.addEventListener("click", async () => {
-    testButton.disabled = true;
-    result.textContent = "Running native messaging test...";
+  diagnosticButton.addEventListener("click", async () => {
+    diagnosticButton.disabled = true;
+    diagnosticResult.textContent = "Running native messaging diagnostic...";
 
     try {
       const response = await sendNativeValidation();
-      result.textContent = JSON.stringify(response, null, 2);
+      diagnosticResult.textContent = JSON.stringify(response, null, 2);
     } catch (error) {
-      result.textContent = formatError(error);
+      diagnosticResult.textContent = formatError(error);
     } finally {
-      testButton.disabled = false;
+      diagnosticButton.disabled = false;
     }
   });
 }
@@ -178,7 +178,7 @@ function saveOptions() {
 async function init() {
   const options = await restoreOptions();
   checkConnections(options);
-  initDiagnostics();
+  initializeNativeMessagingDiagnosticButton();
 
   document.getElementById("exportBiblatex").addEventListener("change", () => saveOptions());
   document.getElementById("exportBibtex").addEventListener("change", () => saveOptions());
