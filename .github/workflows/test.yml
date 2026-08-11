@@ -10,8 +10,19 @@ on:
 
 jobs:
   test:
-    name: Unit tests
-    runs-on: ubuntu-latest
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Unit tests
+            target: unit-tests
+            runs-on: ubuntu-latest
+          # release.yml does not run for merge_group events.
+          - name: Safari build
+            target: safari-build
+            runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -22,4 +33,9 @@ jobs:
         uses: ./.github/actions/setup-browser-extension
 
       - name: Run tests
+        if: ${{ matrix.target == 'unit-tests' }}
         run: pnpm test
+
+      - name: Build Safari app
+        if: ${{ matrix.target == 'safari-build' }}
+        run: pnpm safari:build-app
