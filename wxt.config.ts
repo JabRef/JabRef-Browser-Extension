@@ -1,6 +1,8 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
 
+// WXT resolves relative module IDs from its own package, not this configuration file.
+// Convert the local module path to a file URL so it remains rooted in this project.
 const safariModule = (file: string) => new URL(`./safari/modules/${file}`, import.meta.url).href;
 
 // See https://wxt.dev/api/config.html

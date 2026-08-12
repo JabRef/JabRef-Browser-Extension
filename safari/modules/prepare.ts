@@ -12,6 +12,8 @@ export default defineWxtModule({
     wxt.hook("build:done", async () => {
       const root = wxt.config.root;
       const safariBundleDir = path.join(root, ".output", `safari-mv${wxt.config.manifestVersion}`);
+      // safari-web-extension-converter generates an Xcode project that references this
+      // sibling resource directory, so the built bundle must be staged there as well.
       const stagedSafariBundleDir = path.join(
         root,
         "dist",
