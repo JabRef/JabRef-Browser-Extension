@@ -25,10 +25,16 @@
     "dev:chrome": "wxt -b chrome",
     "dev:opera": "wxt -b opera",
     "dev:edge": "wxt -b edge",
+    "dev:safari": "wxt -b safari",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
+    "build:safari": "rm -rf dist/safari .output/safari-mv3 && wxt build -b safari",
+    "safari:build-app": "rm -rf dist .output && mkdir -p dist && pnpm build:safari && xcodebuild -project \"dist/safari/JabRef Browser Extension.xcodeproj\" -scheme \"JabRef Browser Extension\" -configuration Release -derivedDataPath \"dist/safari/build\" CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build && ditto \"dist/safari/build/Build/Products/Release/JabRef Browser Extension.app\" \"dist/safari/JabRef Browser Extension.app\"",
+    "sign:safari-local": "bash ./scripts/sign_safari_local.sh \"$IDENTITY\"",
+    "notarize:safari-local": "bash ./scripts/notarize_safari_local.sh \"$PROFILE\"",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
+    "zip:safari": "wxt zip -b safari",
     "compile": "vue-tsc --noEmit",
     "lint": "pnpm lint:oxlint && pnpm lint:oxfmt",
     "lint:oxlint": "oxlint",
@@ -51,7 +57,8 @@
     "typescript": "7.0.2",
     "vitest": "4.1.10",
     "vue-tsc": "3.3.9",
-    "wxt": "0.21.3"
+    "wxt": "0.21.3",
+    "wxt-module-safari-xcode": "0.2.2"
   },
   "packageManager": "pnpm@10.34.5"
 }
