@@ -223,7 +223,7 @@ export default defineBackground({
       await browser.runtime.sendMessage({ popupClose: "close" });
     }
 
-    function saveAsWebpage(tab) {
+    async function saveAsWebpage(tab) {
       var title = tab.title;
       var url = tab.url;
       var date = new Date().toISOString();
@@ -234,10 +234,10 @@ export default defineBackground({
 		url = {${url}},\
 		urlDate={${date}},\
 		}`;
-      sendBibTexToJabRef(bibtexString);
+      await sendBibTexToJabRef(bibtexString);
     }
 
-    function savePdf(tab) {
+    async function savePdf(tab) {
       var title = tab.title.replace(".pdf", "");
       var url = tab.url;
       var urlEscaped = tab.url.replace(":", "\\:");
@@ -250,7 +250,7 @@ export default defineBackground({
 		url = {${url}},\
 		urlDate={${date}},\
 		}`;
-      sendBibTexToJabRef(bibtexString);
+      await sendBibTexToJabRef(bibtexString);
     }
 
     /*
@@ -317,11 +317,19 @@ export default defineBackground({
     async function onPopupOpened(tab, info) {
       if (!info.translatorsInfo.length) throw new Error("No translator paths provided");
 
-      await browser.tabs.sendMessage(tab.id, {
+      const message = {
         type: "runTranslators",
         url: tab.url,
         translatorsInfo: info.translatorsInfo,
-      });
+      };
+
+      // Chrome runs translators in the offscreen document. Firefox runs them in
+      // the tab's content script.
+      if (browser.offscreen) {
+        await browser.runtime.sendMessage(message);
+      } else {
+        await browser.tabs.sendMessage(tab.id, message);
+      }
     }
 
     async function getConversionMode() {
@@ -388,13 +396,13 @@ export default defineBackground({
 
           if (info && info.isPDF) {
             console.log("JabRef: Export PDF in tab %o", JSON.parse(JSON.stringify(tab)));
-            savePdf(tab);
+            await savePdf(tab);
           } else if (!info.translatorsInfo) {
             console.log(
               "JabRef: No translators, simple saving %o",
               JSON.parse(JSON.stringify(tab)),
             );
-            saveAsWebpage(tab);
+            await saveAsWebpage(tab);
           } else {
             console.log("JabRef: Start translation for tab %o", JSON.parse(JSON.stringify(tab)));
             await onPopupOpened(tab, info);
