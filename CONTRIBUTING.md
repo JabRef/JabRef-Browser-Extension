@@ -25,11 +25,6 @@ Safari builds are available for local development via WXT (macOS with Xcode requ
 4. Run the `JabRef Browser Extension` scheme in Xcode.
 5. Enable the extension in Safari Settings.
 
-Before releasing Safari changes, manually verify a cold JabRef launch: quit JabRef, use the
-Safari extension to import a BibTeX entry, and confirm that JabRef starts without stealing focus
-from Safari and receives the entry. Repeat with JabRef's remote listener disabled or configured
-to a non-default port; native messaging must still hand the entry to JabRef.
-
 For local Apple packaging, run `pnpm build:safari` to produce `dist/safari/JabRef Browser Extension.app`. WXT builds the extension bundle, and `wxt-module-safari-xcode` converts it into the Xcode project and macOS app structure Apple expects. Optional Developer ID signing and notarization commands are:
 
 1. `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"`
