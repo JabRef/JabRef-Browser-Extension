@@ -4,7 +4,8 @@ set -e
 
 PROFILE="$1"
 if [ -z "$PROFILE" ]; then
-    echo "Usage: $0 \"notarytool-profile-name\""
+    echo "Usage: pnpm notarize:safari-local \"notarytool-profile-name\""
+    echo "   or: PROFILE=\"notarytool-profile-name\" pnpm notarize:safari-local"
     echo "Create a profile with: xcrun notarytool store-credentials \"profile-name\" --apple-id \"your@apple.id\" --team-id \"TEAMID\" --password \"app-specific-password\""
     exit 1
 fi
@@ -16,7 +17,7 @@ ARCHIVE_PATH="$SAFARI_DIR/$APP_NAME.zip"
 FINAL_ZIP="$SAFARI_DIR/jabref-browser-extension-safari.zip"
 
 if [ ! -d "$APP_PATH" ]; then
-    echo "Error: App bundle not found at $APP_PATH. Run 'pnpm safari:build-app' and sign it first."
+    echo "Error: App bundle not found at $APP_PATH. Run 'pnpm build:safari' and sign it first."
     exit 1
 fi
 

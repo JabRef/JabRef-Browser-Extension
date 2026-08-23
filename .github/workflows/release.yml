@@ -68,8 +68,8 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-browser-extension
 
-      - name: Build Safari app
-        run: pnpm safari:build-app
+      - name: Build and verify Safari app
+        uses: ./.github/actions/build-safari-app
 
       - name: Archive Safari app
         run: |
@@ -237,9 +237,9 @@ jobs:
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
 
-      - name: Build Safari app
+      - name: Build and verify Safari app
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
-        run: pnpm safari:build-app
+        uses: ./.github/actions/build-safari-app
 
       - name: Upload Safari to App Store Connect
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}

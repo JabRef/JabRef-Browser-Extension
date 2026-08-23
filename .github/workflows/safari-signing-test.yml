@@ -28,8 +28,8 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-browser-extension
 
-      - name: Build Safari project
-        run: pnpm safari:build-app
+      - name: Build and verify Safari app
+        uses: ./.github/actions/build-safari-app
 
       - name: Set unique build number
         shell: bash

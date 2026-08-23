@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SafariServices
 import os.log
@@ -7,6 +8,8 @@ private let messageKeyFallback = "message"
 private let responseKeyFallback = "message"
 private let nativeBridgeLogTag = "JBE_NATIVE_BRIDGE"
 private let nativeBridgeRequestTimeout: TimeInterval = 30
+private let nativeBridgeCompletionBuffer: TimeInterval = 1
+private let minimumImportTime: TimeInterval = 10
 
 /// Completes a Safari extension request exactly once.
 ///
@@ -63,9 +66,34 @@ private enum JabRefBridgeError: LocalizedError {
     }
 }
 
+/// The native-message request has a fixed deadline. Every blocking operation shares this deadline
+/// so the bridge never starts a command after Safari can no longer receive its result.
+private struct RequestDeadline {
+    let date: Date
+
+    init(timeout: TimeInterval) {
+        date = Date().addingTimeInterval(timeout)
+    }
+
+    func requireTimeRemaining(for operation: String, minimum: TimeInterval = 0) throws {
+        guard date.timeIntervalSinceNow > minimum else {
+            throw JabRefBridgeError.processLaunchFailed("Timed out before \(operation).")
+        }
+    }
+
+    func dispatchDeadline(limitedTo maximum: TimeInterval) -> DispatchTime {
+        .now() + min(maximum, max(0, date.timeIntervalSinceNow))
+    }
+}
+
+private struct JabRefInstallation {
+    let appURL: URL
+    let executableURL: URL
+}
+
 /// Converts a native-message payload into a JabRef command-line invocation and response payload.
 private struct JabRefBridge {
-    func handle(message: Any, profileIdentifier: UUID?) -> [String: Any] {
+    func handle(message: Any, profileIdentifier: UUID?, deadline: RequestDeadline) -> [String: Any] {
         let requestId = (message as? [String: Any])?["requestId"] as? String ?? "none"
 
         do {
@@ -92,8 +120,12 @@ private struct JabRefBridge {
             )
 
             if let status = payload["status"] as? String, status == "validate" {
-                let jabRefURL = try findJabRef()
-                let output = try runJabRef(at: jabRefURL, arguments: ["--version"])
+                let jabRef = try findJabRef()
+                let output = try runJabRef(
+                    at: jabRef.executableURL,
+                    arguments: ["--version"],
+                    deadline: deadline,
+                )
                 return [
                     "message": "jarFound",
                     "output": output,
@@ -105,8 +137,17 @@ private struct JabRefBridge {
                 throw JabRefBridgeError.invalidBibTeXPayload
             }
 
-            let jabRefURL = try findJabRef()
-            let output = try runJabRef(at: jabRefURL, arguments: ["--importBibtex", bibtex])
+            let jabRef = try findJabRef()
+            try ensureJabRefIsLaunched(jabRef, deadline: deadline)
+            // JabRef owns the remote-listener setting in its UI. Do not require a fixed listener
+            // port here: the command-line handoff works even when that listener is disabled or
+            // configured to another port.
+            try deadline.requireTimeRemaining(for: "starting the import", minimum: minimumImportTime)
+            let output = try runJabRef(
+                at: jabRef.executableURL,
+                arguments: ["--importBibtex", bibtex],
+                deadline: deadline,
+            )
             return [
                 "message": "ok",
                 "output": output,
@@ -186,30 +227,96 @@ private struct JabRefBridge {
         }
     }
 
-    private func findJabRef() throws -> URL {
+    private func findJabRef() throws -> JabRefInstallation {
         let fileManager = FileManager.default
         let candidates = [
-            "/Applications/JabRef.app/Contents/MacOS/JabRef",
-            NSHomeDirectory() + "/Applications/JabRef.app/Contents/MacOS/JabRef",
+            URL(fileURLWithPath: "/Applications/JabRef.app"),
+            URL(fileURLWithPath: NSHomeDirectory() + "/Applications/JabRef.app"),
         ]
 
-        for candidate in candidates {
-            if fileManager.isExecutableFile(atPath: candidate) {
+        for appURL in candidates {
+            let executableURL = appURL.appendingPathComponent("Contents/MacOS/JabRef")
+            if fileManager.isExecutableFile(atPath: executableURL.path) {
                 os_log(
                     "%{public}@ FOUND_JABREF path=%{public}@",
                     log: .default,
                     type: .default,
                     nativeBridgeLogTag,
-                    candidate,
+                    executableURL.path,
                 )
-                return URL(fileURLWithPath: candidate)
+                return JabRefInstallation(appURL: appURL, executableURL: executableURL)
             }
         }
 
-        throw JabRefBridgeError.jabRefNotFound(candidates)
+        throw JabRefBridgeError.jabRefNotFound(candidates.map {
+            $0.appendingPathComponent("Contents/MacOS/JabRef").path
+        })
     }
 
-    private func runJabRef(at executableURL: URL, arguments: [String]) throws -> String {
+    private func ensureJabRefIsLaunched(
+        _ jabRef: JabRefInstallation,
+        deadline: RequestDeadline,
+    ) throws {
+        guard #available(macOS 10.15, *) else {
+            throw JabRefBridgeError.processLaunchFailed(
+                "Starting JabRef requires macOS 10.15 or later."
+            )
+        }
+
+        if NSWorkspace.shared.runningApplications.contains(where: {
+            $0.bundleURL?.standardizedFileURL == jabRef.appURL.standardizedFileURL
+        }) {
+            os_log(
+                "%{public}@ JABREF_ALREADY_RUNNING app=%{public}@",
+                log: .default,
+                type: .default,
+                nativeBridgeLogTag,
+                jabRef.appURL.path,
+            )
+            return
+        }
+
+        try deadline.requireTimeRemaining(for: "starting JabRef", minimum: minimumImportTime)
+
+        let launchSemaphore = DispatchSemaphore(value: 0)
+        var launchError: Error?
+        var launchedApplication: NSRunningApplication?
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = false
+
+        os_log(
+            "%{public}@ LAUNCH_JABREF app=%{public}@",
+            log: .default,
+            type: .default,
+            nativeBridgeLogTag,
+            jabRef.appURL.path,
+        )
+        NSWorkspace.shared.openApplication(at: jabRef.appURL, configuration: configuration) { application, error in
+            launchedApplication = application
+            launchError = error
+            launchSemaphore.signal()
+        }
+
+        guard launchSemaphore.wait(timeout: deadline.dispatchDeadline(limitedTo: minimumImportTime)) == .success else {
+            throw JabRefBridgeError.processLaunchFailed("Timed out starting JabRef.")
+        }
+        if let launchError {
+            throw JabRefBridgeError.processLaunchFailed(launchError.localizedDescription)
+        }
+
+        guard launchedApplication != nil else {
+            throw JabRefBridgeError.processLaunchFailed(
+                "Launch Services did not return a running JabRef application."
+            )
+        }
+    }
+
+    private func runJabRef(
+        at executableURL: URL,
+        arguments: [String],
+        deadline: RequestDeadline,
+    ) throws -> String {
+        try deadline.requireTimeRemaining(for: "starting JabRef")
         let operation = arguments.first ?? "none"
         let payloadBytes = arguments.dropFirst().reduce(0) {
             $0 + $1.lengthOfBytes(using: .utf8)
@@ -232,6 +339,8 @@ private struct JabRefBridge {
         let stderr = Pipe()
         process.standardOutput = stdout
         process.standardError = stderr
+        let terminationSemaphore = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in terminationSemaphore.signal() }
 
         do {
             try process.run()
@@ -257,7 +366,10 @@ private struct JabRefBridge {
             outputReadGroup.leave()
         }
 
-        process.waitUntilExit()
+        guard terminationSemaphore.wait(timeout: deadline.dispatchDeadline(limitedTo: nativeBridgeRequestTimeout)) == .success else {
+            process.terminate()
+            throw JabRefBridgeError.processLaunchFailed("Timed out importing into JabRef.")
+        }
         outputReadGroup.wait()
         let output = String(data: outputData + errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
@@ -283,10 +395,9 @@ private struct JabRefBridge {
 /// The incoming message is stored in an `NSExtensionItem` user-info dictionary; this handler
 /// places its response in a matching extension item and completes the provided context.
 ///
-/// Import requests start JabRef with the received BibTeX. JabRef forwards the command to an
-/// already-running instance when its remote operation support is enabled. Launching JabRef runs
-/// off the request callback so Safari stays responsive; a timeout returns an error if no response
-/// is available in time.
+/// Import requests start JabRef independently through Launch Services when necessary, then hand
+/// the received BibTeX to its already-running instance. Bridge work runs off the request callback
+/// so Safari stays responsive; a timeout returns an error if no response is available in time.
 class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     private let bridge = JabRefBridge()
     private let bridgeQueue = DispatchQueue(
@@ -334,8 +445,16 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         let completer = RequestCompleter(context: context, responseKey: responseKey)
         let bridge = bridge
 
+        let deadline = RequestDeadline(
+            timeout: nativeBridgeRequestTimeout - nativeBridgeCompletionBuffer,
+        )
+
         bridgeQueue.async {
-            let responsePayload = bridge.handle(message: message, profileIdentifier: profileIdentifier)
+            let responsePayload = bridge.handle(
+                message: message,
+                profileIdentifier: profileIdentifier,
+                deadline: deadline,
+            )
             if completer.complete(with: responsePayload) {
                 os_log("%{public}@ COMPLETE_REQUEST requestId=%{public}@", log: .default, type: .default, nativeBridgeLogTag, requestId)
             }

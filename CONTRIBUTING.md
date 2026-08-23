@@ -19,16 +19,23 @@ Preparation:
 Safari builds are available for local development via WXT (macOS with Xcode required):
 
 1. Run `pnpm dev:safari` to build the Safari development target.
-2. Run `pnpm build:safari` to generate the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode).
+2. Run `pnpm prepare:safari` to generate the Xcode project in `dist/safari/` through [`wxt-module-safari-xcode`](https://github.com/rxliuli/wxt-module-safari-xcode).
 3. Open:
    `dist/safari/JabRef Browser Extension.xcodeproj`
 4. Run the `JabRef Browser Extension` scheme in Xcode.
 5. Enable the extension in Safari Settings.
 
-For local Apple packaging, run `pnpm safari:build-app` to produce `dist/safari/JabRef Browser Extension.app`. WXT builds the extension bundle, and `wxt-module-safari-xcode` converts it into the Xcode project and macOS app structure Apple expects. Optional signing and notarization commands are:
+Before releasing Safari changes, manually verify a cold JabRef launch: quit JabRef, use the
+Safari extension to import a BibTeX entry, and confirm that JabRef starts without stealing focus
+from Safari and receives the entry. Repeat with JabRef's remote listener disabled or configured
+to a non-default port; native messaging must still hand the entry to JabRef.
+
+For local Apple packaging, run `pnpm build:safari` to produce `dist/safari/JabRef Browser Extension.app`. WXT builds the extension bundle, and `wxt-module-safari-xcode` converts it into the Xcode project and macOS app structure Apple expects. Optional Developer ID signing and notarization commands are:
 
 1. `pnpm sign:safari-local IDENTITY="Developer ID Application: Your Name (TEAMID)"`
 2. `pnpm notarize:safari-local PROFILE="profile-name"`
+
+For direct distribution, the containing app remains unsandboxed so its native-message handler can launch a separately installed JabRef app. The embedded Safari extension is sandboxed, as required by PlugInKit. The App Store artifact follows a separate, sandboxed signing path.
 
 Now just follow the typical steps to [contribute code](https://guides.github.com/activities/contributing-to-open-source/#contributing):
 
@@ -60,12 +67,12 @@ The following commands are used to update the dependencies of the project; as we
 - Remove the `key` field in `wxt.config.ts` and build again. Then upload to:
   - https://partner.microsoft.com/en-us/dashboard/microsoftedge/2045cdc1-808f-43c4-8091-43e2dcaff53d/packages
 
-## Safari CI and Notarization
+## Safari builds, CI, and distribution
 
-Safari CI uses three workflows:
+Safari build and release work is split across three workflows:
 
-1. `Tests` (`.github/workflows/test.yml`) runs `pnpm safari:build-app` on `macos-latest`. It validates the WXT build, Xcode packaging, and Safari app bundle path on pull requests, `main`, and merge-queue builds.
-2. `release` (`.github/workflows/release.yml`) builds Safari, uploads the unsigned app artifact, and on release pushes signs and notarizes a direct-distribution zip. Its `publish (safari)` job rebuilds the Xcode project on `macos-26` and publishes it to App Store Connect with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action).
+1. `Tests` (`.github/workflows/test.yml`) runs the unit tests on pull requests, `main`, and manual runs.
+2. `release` (`.github/workflows/release.yml`) runs `pnpm build:safari` in its `Package Safari` job for pull requests and releases. On release, it creates a Developer ID–signed, notarized direct-distribution zip without App Sandbox. Its `publish (safari)` job independently rebuilds the Xcode project on `macos-26` and publishes the sandboxed App Store artifact with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action).
 3. `Safari Signing Test` (`.github/workflows/safari-signing-test.yml`) is a manual workflow that builds the Safari project and runs the App Store signing/publish step without affecting a release.
 
 The Safari publish job requires these GitHub Actions secrets:
