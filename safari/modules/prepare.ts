@@ -22,17 +22,11 @@ export default defineWxtModule({
       const manifestPath = path.join(safariBundleDir, "manifest.json");
       const backgroundHtmlPath = path.join(safariBundleDir, "background.html");
 
-      // Safari requires a background page and rejects these Chromium/Firefox-only entries.
+      // Safari requires a background page. WXT also emits an empty content_scripts entry that
+      // Safari rejects; the corresponding browser-specific fields are omitted in wxt.config.ts.
       const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
 
-      delete manifest.key;
-      delete manifest.browser_specific_settings;
       delete manifest.content_scripts;
-      if (Array.isArray(manifest.permissions)) {
-        manifest.permissions = manifest.permissions.filter(
-          (permission: string) => permission !== "offscreen",
-        );
-      }
 
       manifest.background = {
         page: "background.html",
