@@ -75,7 +75,9 @@ export default defineConfig({
         "nativeMessaging",
         "downloads",
         "webRequest",
-        "declarativeNetRequest",
+        ...(browser === "safari"
+          ? ["declarativeNetRequestWithHostAccess"]
+          : ["declarativeNetRequest"]),
         ...(isChromiumBrowser ? ["offscreen"] : []),
       ],
       web_accessible_resources: [
