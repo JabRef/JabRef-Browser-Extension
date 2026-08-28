@@ -64,12 +64,6 @@ The following commands are used to update the dependencies of the project; as we
 
 ## Safari builds, CI, and distribution
 
-Safari build and release work is split across three workflows:
-
-1. `Tests` (`.github/workflows/test.yml`) runs the unit tests on pull requests, `main`, and manual runs.
-2. `release` (`.github/workflows/release.yml`) runs `pnpm build:safari` in its `Package Safari` job for pull requests and releases. On release, it creates a Developer ID–signed, notarized direct-distribution zip without App Sandbox. Its `publish (safari)` job independently rebuilds the Xcode project on `macos-26` and publishes the sandboxed App Store artifact with [`rxliuli/safari-webext-publish-action`](https://github.com/rxliuli/safari-webext-publish-action).
-3. `Safari Signing Test` (`.github/workflows/safari-signing-test.yml`) is a manual workflow that builds the Safari project and runs the App Store signing/publish step without affecting a release.
-
 The Safari publish job requires these GitHub Actions secrets:
 
 - `APPLE_TEAM_ID`: Apple Developer team ID
