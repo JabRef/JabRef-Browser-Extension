@@ -210,6 +210,12 @@ jobs:
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
         uses: ./.github/actions/setup-browser-extension
 
+      # This is shared with the direct-distribution build. The publishing action below
+      # performs the only App-Store archive, signing, packaging, and upload.
+      - name: Prepare and verify Safari project
+        if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
+        uses: ./.github/actions/prepare-safari-project
+
       - name: Download signed Safari distribution artifact
         if: ${{ matrix.target == 'safari-distribution' && github.event_name != 'pull_request' }}
         # This is the notarized direct-distribution zip produced by `notarize-safari`.
@@ -236,10 +242,6 @@ jobs:
           FIREFOX_EXTENSION_ID: "@jabfox"
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
-
-      - name: Build and verify Safari app
-        if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}
-        uses: ./.github/actions/build-safari-app
 
       - name: Upload Safari to App Store Connect
         if: ${{ matrix.target == 'safari' && github.event_name != 'pull_request' }}

@@ -1,21 +1,18 @@
 name: Build Safari App
-description: Build the Safari app and verify its generated native bridge and extension entitlements.
+description: Prepare the Safari project and build an unsigned app for direct distribution.
 
 runs:
   using: composite
   steps:
+    - name: Prepare and verify Safari project
+      uses: ./.github/actions/prepare-safari-project
+
     - name: Build Safari app
       shell: bash
-      run: pnpm build:safari
+      run: pnpm build:safari-app
 
-    - name: Verify generated Safari bridge and extension entitlements
+    - name: Verify unsigned Safari app
       shell: bash
       run: |
         test -d 'dist/safari/JabRef Browser Extension.app'
         test -d 'dist/safari/JabRef Browser Extension.app/Contents/PlugIns/JabRef Browser Extension Extension.appex'
-        cmp scripts/SafariWebExtensionHandler.swift \
-          'dist/safari/JabRef Browser Extension Extension/SafariWebExtensionHandler.swift'
-        /usr/libexec/PlistBuddy -c 'Print :com.apple.security.app-sandbox' \
-          safari/entitlements/extension.entitlements | grep -qx true
-        /usr/libexec/PlistBuddy -c 'Print :com.apple.security.network.client' \
-          safari/entitlements/extension.entitlements | grep -qx true

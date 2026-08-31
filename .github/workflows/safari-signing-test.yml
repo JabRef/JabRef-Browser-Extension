@@ -28,8 +28,10 @@ jobs:
       - name: Setup build environment
         uses: ./.github/actions/setup-browser-extension
 
-      - name: Build and verify Safari app
-        uses: ./.github/actions/build-safari-app
+      # The publishing action builds, signs, and archives the app. Only generate the
+      # shared WXT/Xcode project here so that work is not duplicated.
+      - name: Prepare and verify Safari project
+        uses: ./.github/actions/prepare-safari-project
 
       - name: Set unique build number
         shell: bash
