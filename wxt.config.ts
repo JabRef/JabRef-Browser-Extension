@@ -34,6 +34,10 @@ export default defineConfig({
     return {
       ...(browser === "firefox"
         ? {
+            developer: {
+              name: "JabRef",
+              url: "https://www.jabref.org/",
+            },
             browser_specific_settings: {
               gecko: {
                 id: "@jabfox",
