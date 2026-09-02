@@ -51,7 +51,7 @@
     "typescript": "7.0.2",
     "vitest": "4.1.11",
     "vue-tsc": "3.3.11",
-    "wxt": "0.21.3"
+    "wxt": "0.21.4"
   },
   "packageManager": "pnpm@10.34.5"
 }
