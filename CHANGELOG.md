@@ -1,5 +1,65 @@
 # Changelog
 
+## [3.2.3](https://github.com/JabRef/JabRef-Browser-Extension/compare/v3.2.2...v3.2.3) (2026-09-05)
+
+### 🐛 Bug Fixes
+
+- Chrome native messaging ([#700](https://github.com/JabRef/JabRef-Browser-Extension/issues/700)) ([a241431](https://github.com/JabRef/JabRef-Browser-Extension/commit/a241431bbab40517756409d21e8f7d9ee1518753))
+- limit Chrome-only permissions to non-Firefox browsers ([#696](https://github.com/JabRef/JabRef-Browser-Extension/issues/696)) ([4d1880c](https://github.com/JabRef/JabRef-Browser-Extension/commit/4d1880c2d6e1e345c6628888f01289188014caa1))
+
+### 📚 Documentation
+
+- add git submodule hint ([#697](https://github.com/JabRef/JabRef-Browser-Extension/issues/697)) ([10e6b78](https://github.com/JabRef/JabRef-Browser-Extension/commit/10e6b7898e0d1359247b59e500eb43520566bee4))
+
+### 🧹 Miscellaneous
+
+- add .idea to .gitignore ([#698](https://github.com/JabRef/JabRef-Browser-Extension/issues/698)) ([b87141a](https://github.com/JabRef/JabRef-Browser-Extension/commit/b87141a672cddb0dc52dbee1e8dbf7e3a3810236))
+- **deps:** lock file maintenance ([#702](https://github.com/JabRef/JabRef-Browser-Extension/issues/702)) ([0084490](https://github.com/JabRef/JabRef-Browser-Extension/commit/00844907605282f4dc4bc78998830cb0ba461336))
+- **deps:** lock file maintenance ([#722](https://github.com/JabRef/JabRef-Browser-Extension/issues/722)) ([e529b69](https://github.com/JabRef/JabRef-Browser-Extension/commit/e529b69b31cb172ab57c5ec85dfb530006a76b3c))
+- **deps:** update dependency globals to v17.11.0 ([#727](https://github.com/JabRef/JabRef-Browser-Extension/issues/727)) ([9c7625b](https://github.com/JabRef/JabRef-Browser-Extension/commit/9c7625bfe152477e405415bdf0cbbfb2a6f52e19))
+- **deps:** update dependency globals to v17.12.0 ([#731](https://github.com/JabRef/JabRef-Browser-Extension/issues/731)) ([816a8d2](https://github.com/JabRef/JabRef-Browser-Extension/commit/816a8d24165ccc05748585f0109d0f31acb4a596))
+- **deps:** update dependency globals to v17.8.0 ([#708](https://github.com/JabRef/JabRef-Browser-Extension/issues/708)) ([8168ebd](https://github.com/JabRef/JabRef-Browser-Extension/commit/8168ebd5c855b08268e50c83738011294188cf43))
+- **deps:** update dependency globals to v17.9.0 ([#719](https://github.com/JabRef/JabRef-Browser-Extension/issues/719)) ([3e92393](https://github.com/JabRef/JabRef-Browser-Extension/commit/3e92393b901398d0812d41b583b40de287c4a634))
+- **deps:** update dependency jsdom to v30 ([#713](https://github.com/JabRef/JabRef-Browser-Extension/issues/713)) ([42a21af](https://github.com/JabRef/JabRef-Browser-Extension/commit/42a21af9ba70d519e06d0765133cc6165c651849))
+- **deps:** update dependency node to v24.19.0 ([#718](https://github.com/JabRef/JabRef-Browser-Extension/issues/718)) ([588f716](https://github.com/JabRef/JabRef-Browser-Extension/commit/588f71696d0a0e5db822f375dc0183399d77ff5b))
+- **deps:** update dependency node to v24.20.0 ([#728](https://github.com/JabRef/JabRef-Browser-Extension/issues/728)) ([8f97a25](https://github.com/JabRef/JabRef-Browser-Extension/commit/8f97a25ec57035d31082442a98f1b0a065ef3be0))
+- **deps:** update dependency oxfmt to v0.52.0 ([#669](https://github.com/JabRef/JabRef-Browser-Extension/issues/669)) ([0f637bb](https://github.com/JabRef/JabRef-Browser-Extension/commit/0f637bb063a6e25a853090799c0d0a92539e15e1))
+- **deps:** update dependency oxfmt to v0.53.0 ([#678](https://github.com/JabRef/JabRef-Browser-Extension/issues/678)) ([8890017](https://github.com/JabRef/JabRef-Browser-Extension/commit/8890017ec5dadefea0682050e9950d21b78ec713))
+- **deps:** update dependency oxfmt to v0.61.0 ([#709](https://github.com/JabRef/JabRef-Browser-Extension/issues/709)) ([42da0ab](https://github.com/JabRef/JabRef-Browser-Extension/commit/42da0ab2ef0ba25b316fcfcdb24d12b7bd7f267a))
+- **deps:** update dependency oxfmt to v0.65.0 ([#729](https://github.com/JabRef/JabRef-Browser-Extension/issues/729)) ([72f0de9](https://github.com/JabRef/JabRef-Browser-Extension/commit/72f0de947a23be1936d13dd22aaac9f9ecfc9a92))
+- **deps:** update dependency oxfmt to v0.66.0 ([#732](https://github.com/JabRef/JabRef-Browser-Extension/issues/732)) ([bea7172](https://github.com/JabRef/JabRef-Browser-Extension/commit/bea7172b405af52f2c74b0155804f8fcc55dbb57))
+- **deps:** update dependency oxlint to v1.67.0 ([#670](https://github.com/JabRef/JabRef-Browser-Extension/issues/670)) ([418a8f6](https://github.com/JabRef/JabRef-Browser-Extension/commit/418a8f62675756ed217b5a5df47fef38c72ad021))
+- **deps:** update dependency oxlint to v1.76.0 ([#710](https://github.com/JabRef/JabRef-Browser-Extension/issues/710)) ([f7f17d1](https://github.com/JabRef/JabRef-Browser-Extension/commit/f7f17d12c74953b3e1a18e55eb5cf3867b8c47a1))
+- **deps:** update dependency oxlint to v1.80.0 ([#730](https://github.com/JabRef/JabRef-Browser-Extension/issues/730)) ([c465afa](https://github.com/JabRef/JabRef-Browser-Extension/commit/c465afa2a27559dd589e244e6732a9da519dcf8c))
+- **deps:** update dependency oxlint to v1.81.0 ([#733](https://github.com/JabRef/JabRef-Browser-Extension/issues/733)) ([0d19e14](https://github.com/JabRef/JabRef-Browser-Extension/commit/0d19e149ea1acfba81d368b6d6aa95c44d18eb0b))
+- **deps:** update dependency typescript to v7 ([#714](https://github.com/JabRef/JabRef-Browser-Extension/issues/714)) ([301f925](https://github.com/JabRef/JabRef-Browser-Extension/commit/301f925bce16903d5fa9dfced2d81ea66ae66c75))
+- **deps:** update dependency vitest to v4.1.10 ([#703](https://github.com/JabRef/JabRef-Browser-Extension/issues/703)) ([b58bbd2](https://github.com/JabRef/JabRef-Browser-Extension/commit/b58bbd2fab253da095a6d6a0823526983510b82c))
+- **deps:** update dependency vitest to v4.1.11 ([#723](https://github.com/JabRef/JabRef-Browser-Extension/issues/723)) ([4f11a09](https://github.com/JabRef/JabRef-Browser-Extension/commit/4f11a0920ee17b3179dd75b89475230a460c1b30))
+- **deps:** update dependency vitest to v4.1.7 ([#665](https://github.com/JabRef/JabRef-Browser-Extension/issues/665)) ([aa25c56](https://github.com/JabRef/JabRef-Browser-Extension/commit/aa25c56d4adb70b8fb6c9c9f6dc4a376ec887034))
+- **deps:** update dependency vue to v3.5.35 ([#666](https://github.com/JabRef/JabRef-Browser-Extension/issues/666)) ([7d796b5](https://github.com/JabRef/JabRef-Browser-Extension/commit/7d796b50700c26a05285dda515f3180f223e3a38))
+- **deps:** update dependency vue to v3.5.40 ([#704](https://github.com/JabRef/JabRef-Browser-Extension/issues/704)) ([535e768](https://github.com/JabRef/JabRef-Browser-Extension/commit/535e7686cfb8de8640ba3230742e2471a194da54))
+- **deps:** update dependency vue to v3.5.42 ([#724](https://github.com/JabRef/JabRef-Browser-Extension/issues/724)) ([24e79af](https://github.com/JabRef/JabRef-Browser-Extension/commit/24e79afb5ed6ad4eee594af93d083726f75d8be9))
+- **deps:** update dependency vue-tsc to v3.3.11 ([#725](https://github.com/JabRef/JabRef-Browser-Extension/issues/725)) ([9416506](https://github.com/JabRef/JabRef-Browser-Extension/commit/9416506c54530ee5a66cb2bb04cd1a5bdea2f74f))
+- **deps:** update dependency vue-tsc to v3.3.3 ([#671](https://github.com/JabRef/JabRef-Browser-Extension/issues/671)) ([3f23dae](https://github.com/JabRef/JabRef-Browser-Extension/commit/3f23daec73f8fb8ac22d893b82befb115ff8899c))
+- **deps:** update dependency vue-tsc to v3.3.8 ([#705](https://github.com/JabRef/JabRef-Browser-Extension/issues/705)) ([87ac9d9](https://github.com/JabRef/JabRef-Browser-Extension/commit/87ac9d9752d33cb8e6f11712cd361c2ff89d3fa3))
+- **deps:** update dependency wxt to v0.20.26 ([#668](https://github.com/JabRef/JabRef-Browser-Extension/issues/668)) ([e62e311](https://github.com/JabRef/JabRef-Browser-Extension/commit/e62e311a73611be5dc79df582a2ee7e2f30f2c8e))
+- **deps:** update dependency wxt to v0.21.2 ([#711](https://github.com/JabRef/JabRef-Browser-Extension/issues/711)) ([fc3888f](https://github.com/JabRef/JabRef-Browser-Extension/commit/fc3888faee1ed2f833854b7ba1907b9614c2aae3))
+- **deps:** update dependency wxt to v0.21.3 ([#717](https://github.com/JabRef/JabRef-Browser-Extension/issues/717)) ([8dfee9e](https://github.com/JabRef/JabRef-Browser-Extension/commit/8dfee9e2e87715f7f439578a0daa27ad8be79b8b))
+- **deps:** update dependency wxt to v0.21.4 ([#726](https://github.com/JabRef/JabRef-Browser-Extension/issues/726)) ([903d575](https://github.com/JabRef/JabRef-Browser-Extension/commit/903d57528d67b53dd16a4d5ae73a89c94be82ba3))
+- **deps:** update github-actions ([#672](https://github.com/JabRef/JabRef-Browser-Extension/issues/672)) ([b775fba](https://github.com/JabRef/JabRef-Browser-Extension/commit/b775fba426e521ca4a2cfb6544e18bd2bcf7166f))
+- **deps:** update github-actions ([#712](https://github.com/JabRef/JabRef-Browser-Extension/issues/712)) ([60c8964](https://github.com/JabRef/JabRef-Browser-Extension/commit/60c89640747dad50da0303d4d4ee010637a3b20e))
+- **deps:** update github-actions to v6.0.3 ([#674](https://github.com/JabRef/JabRef-Browser-Extension/issues/674)) ([9e7a3e6](https://github.com/JabRef/JabRef-Browser-Extension/commit/9e7a3e6c1b4a768a16190e04317f9a7174d0d8a0))
+- **deps:** update github-actions to v7 ([#715](https://github.com/JabRef/JabRef-Browser-Extension/issues/715)) ([03214e0](https://github.com/JabRef/JabRef-Browser-Extension/commit/03214e0dbd5566898494b4d51dc57ad0e769614e))
+- **deps:** update oxlint monorepo to v1.68.0 ([#679](https://github.com/JabRef/JabRef-Browser-Extension/issues/679)) ([a1d75c9](https://github.com/JabRef/JabRef-Browser-Extension/commit/a1d75c94dbd8fef808839f674cba05a3603dd740))
+- **deps:** update pnpm to v10.34.1 ([#673](https://github.com/JabRef/JabRef-Browser-Extension/issues/673)) ([4f164dc](https://github.com/JabRef/JabRef-Browser-Extension/commit/4f164dcfabac0d5946c4058a6e10daf5274b80eb))
+- **deps:** update pnpm to v10.34.5 ([#706](https://github.com/JabRef/JabRef-Browser-Extension/issues/706)) ([b6a5df8](https://github.com/JabRef/JabRef-Browser-Extension/commit/b6a5df8b9df6f28a5f2b2d57dd4df65c61665391))
+- **deps:** update pnpm to v11 ([#676](https://github.com/JabRef/JabRef-Browser-Extension/issues/676)) ([3558d91](https://github.com/JabRef/JabRef-Browser-Extension/commit/3558d91712db8132c9ad4046e55626835d512196))
+- **deps:** update pnpm/action-setup action to v6.0.10 ([#716](https://github.com/JabRef/JabRef-Browser-Extension/issues/716)) ([4aac993](https://github.com/JabRef/JabRef-Browser-Extension/commit/4aac9936977b1023b5df80afacbeabf294c400f3))
+- **deps:** update pnpm/action-setup action to v6.1.0 ([#734](https://github.com/JabRef/JabRef-Browser-Extension/issues/734)) ([3a88f98](https://github.com/JabRef/JabRef-Browser-Extension/commit/3a88f989f268ab0f910ea91b74c40a8e202a818d))
+- **deps:** update tailwindcss monorepo to v4.3.0 ([#675](https://github.com/JabRef/JabRef-Browser-Extension/issues/675)) ([f828417](https://github.com/JabRef/JabRef-Browser-Extension/commit/f828417719044ca40b33d92dcdabb49aa1b861f2))
+- **deps:** update tailwindcss monorepo to v4.3.3 ([#707](https://github.com/JabRef/JabRef-Browser-Extension/issues/707)) ([f069b2c](https://github.com/JabRef/JabRef-Browser-Extension/commit/f069b2ca5a53eb804a9f5e5eec7f78026b642922))
+- **deps:** update vitest monorepo to v4.1.8 ([#677](https://github.com/JabRef/JabRef-Browser-Extension/issues/677)) ([b09733b](https://github.com/JabRef/JabRef-Browser-Extension/commit/b09733be5692a26a92505aff6ec22fac9f38647e))
+
 ## [3.2.2](https://github.com/JabRef/JabRef-Browser-Extension/compare/v3.2.1...v3.2.2) (2026-05-04)
 
 ### 🧹 Miscellaneous
