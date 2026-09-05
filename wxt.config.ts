@@ -1,67 +1,97 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
 
+// WXT resolves relative module IDs from its own package, not this configuration file.
+// Convert the local module path to a file URL so it remains rooted in this project.
+const safariModule = (file: string) => new URL(`./safari/modules/${file}`, import.meta.url).href;
+const chromiumBrowsers = ["chrome", "edge", "opera"];
+
 // See https://wxt.dev/api/config.html
 export default defineConfig({
+  modules: [
+    // `modulesDir` auto-discovery runs after configured modules. File URLs keep this
+    // required order explicit: prepare, generate Xcode project, then patch it.
+    safariModule("prepare.ts"),
+    "wxt-module-safari-xcode",
+    safariModule("xcode.ts"),
+  ],
   // Place source files in the `src` directory
   // https://wxt.dev/guide/essentials/project-structure.html#adding-a-src-directory
   srcDir: "src",
-  targetBrowsers: ["chrome", "firefox", "opera", "edge"],
+  targetBrowsers: ["chrome", "firefox", "opera", "edge", "safari"],
   manifestVersion: 3,
-  manifest: ({ browser }) => ({
-    browser_specific_settings: {
-      gecko: {
-        id: "@jabfox",
-        data_collection_permissions: {
-          required: ["none"],
+  safariXcode: {
+    projectName: "JabRef Browser Extension",
+    appCategory: "public.app-category.productivity",
+    bundleIdentifier: "org.jabref.JabRef-Browser-Extension",
+    outputPath: "dist/safari",
+    projectType: "macos",
+    openProject: false,
+  },
+  manifest: ({ browser }) => {
+    const isChromiumBrowser = chromiumBrowsers.includes(browser);
+
+    return {
+      ...(browser === "firefox"
+        ? {
+            developer: {
+              name: "JabRef",
+              url: "https://www.jabref.org/",
+            },
+            browser_specific_settings: {
+              gecko: {
+                id: "@jabfox",
+                data_collection_permissions: {
+                  required: ["none"],
+                },
+              },
+            },
+          }
+        : {}),
+      commands: {
+        _execute_action: {
+          suggested_key: {
+            default: "Alt+Shift+J",
+          },
         },
       },
-    },
-    commands: {
-      _execute_page_action: {
-        suggested_key: {
-          default: "Alt+Shift+J",
+      description:
+        "The JabRef browser extension imports new bibliographic information directly from the browser into JabRef.",
+      homepage_url: "http://www.jabref.org/",
+      host_permissions: ["<all_urls>"],
+      icons: {
+        "16": "/JabRef-icon-16.png",
+        "48": "/JabRef-icon-48.png",
+        "96": "/JabRef-icon-96.png",
+        "128": "/JabRef-icon-128.png",
+      },
+      ...(isChromiumBrowser
+        ? {
+            key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAimiMLZZCsf+p92UUzQRWYljtoUk0a9AuN+D3TJTFcm1BEDXKIDVmWG20S4yLQyYs8kWao3eTSdYykgsZLPtay1pFKtoM4csGB6sEOO+h25Nv/AU7pN5yH5PqcTIGkuH6AsQQQTPS1Y+vDfz+548oVXzK033l6ernhKRj4dngueZyQX89U38zkorq0/PPWfE8ppPzXiWo1Pn5C5scgzaHSfavIkbBpWuiJw6moSoYw4UxzmU6FmzjM/c8Ags/QPU/8M3BeC1eigStifBDkuIIDQtMtiTXEgCqHjIacB3uB7SJKL+0wsoREqoz3cX7uNLnB+DKu+s0OZKVah8gkliBLQIDAQAB",
+          }
+        : {}),
+      name: "JabRef Browser Extension",
+      permissions: [
+        "scripting",
+        "activeTab",
+        "tabs",
+        "storage",
+        "nativeMessaging",
+        "downloads",
+        "webRequest",
+        ...(browser === "safari"
+          ? ["declarativeNetRequestWithHostAccess"]
+          : ["declarativeNetRequest"]),
+        ...(isChromiumBrowser ? ["offscreen"] : []),
+      ],
+      web_accessible_resources: [
+        {
+          matches: ["<all_urls>"],
+          resources: ["sandbox.js", "translators/*.js"],
         },
-      },
-    },
-    description:
-      "The JabRef browser extension imports new bibliographic information directly from the browser into JabRef.",
-    developer: {
-      name: "JabRef",
-      url: "http://www.jabref.org/",
-    },
-    homepage_url: "http://www.jabref.org/",
-    host_permissions: ["<all_urls>"],
-    icons: {
-      "16": "/JabRef-icon-16.png",
-      "48": "/JabRef-icon-48.png",
-      "96": "/JabRef-icon-96.png",
-      "128": "/JabRef-icon-128.png",
-    },
-    ...(browser !== "firefox"
-      ? {
-          key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAimiMLZZCsf+p92UUzQRWYljtoUk0a9AuN+D3TJTFcm1BEDXKIDVmWG20S4yLQyYs8kWao3eTSdYykgsZLPtay1pFKtoM4csGB6sEOO+h25Nv/AU7pN5yH5PqcTIGkuH6AsQQQTPS1Y+vDfz+548oVXzK033l6ernhKRj4dngueZyQX89U38zkorq0/PPWfE8ppPzXiWo1Pn5C5scgzaHSfavIkbBpWuiJw6moSoYw4UxzmU6FmzjM/c8Ags/QPU/8M3BeC1eigStifBDkuIIDQtMtiTXEgCqHjIacB3uB7SJKL+0wsoREqoz3cX7uNLnB+DKu+s0OZKVah8gkliBLQIDAQAB",
-        }
-      : {}),
-    name: "JabRef Browser Extension",
-    permissions: [
-      "scripting",
-      "activeTab",
-      "tabs",
-      "storage",
-      "nativeMessaging",
-      "downloads",
-      "webRequest",
-      "declarativeNetRequest",
-      ...(browser !== "firefox" ? ["offscreen"] : []),
-    ],
-    web_accessible_resources: [
-      {
-        matches: ["<all_urls>"],
-        resources: ["sandbox.js", "translators/*.js"],
-      },
-    ],
-  }),
+      ],
+    };
+  },
   webExt: {
     openDevtools: true,
     startUrls: [
