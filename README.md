@@ -31,7 +31,7 @@ Just visit a publisher site or some other website containing bibliographic infor
 Once the JabRef browser extension has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
 
 <p align="center">
-  <img src="screenshots/extension-popup.png" alt="The imported entry in JabRef" width="700">
+  <img src="screenshots/extension-popup.png" alt="The extension popup window" width="700">
 </p>
 
 <p align="center">
