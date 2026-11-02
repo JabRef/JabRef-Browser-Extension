@@ -23,7 +23,20 @@ Sometimes, a manual installation is necessary (e.g. if you use the portable vers
 
 After the installation, you should be able to import bibliographic references into JabRef directly from your browser.
 Just visit a publisher site or some other website containing bibliographic information (for example, [the arXiv](http://arxiv.org/list/gr-qc/pastweek?skip=0&show=5)) and click the JabRef symbol in the Firefox search bar (or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>).
+
+<p align="center">
+  <img src="screenshots/toolbar-icon.png" alt="JabRef icon in the browser toolbar">
+</p>
+
 Once the JabRef browser extension has extracted the references and downloaded the associated PDF's, the import window of JabRef opens.
+
+<p align="center">
+  <img src="screenshots/extension-popup.png" alt="The extension popup window" width="700">
+</p>
+
+<p align="center">
+  <img src="screenshots/jabref-import.png" alt="The imported entry in JabRef" width="900">
+</p>
 
 You might want to configure JabRef so that new entries are always imported in an already opened instance of JabRef.
 For this, activate "Remote operation" under the Network tab in the JabRef Preferences.

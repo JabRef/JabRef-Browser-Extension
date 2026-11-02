@@ -1,6 +1,6 @@
 {
   "name": "jabrefbrowserextension",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "description": "Browser extension for users of the bibliographic reference manager [JabRef](https://www.jabref.org/). It automatically identifies and extracts bibliographic information on websites and sends them to JabRef with one click.",
   "keywords": [
     "JabRef",
@@ -45,21 +45,21 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "vue": "3.5.42"
+    "vue": "3.5.44"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
     "@wxt-dev/module-vue": "1.0.3",
-    "globals": "17.12.0",
-    "jsdom": "30.0.1",
-    "oxfmt": "0.66.0",
-    "oxlint": "1.81.0",
+    "globals": "17.13.0",
+    "jsdom": "30.1.3",
+    "oxfmt": "0.75.0",
+    "oxlint": "1.86.0",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "vitest": "4.1.11",
-    "vue-tsc": "3.3.11",
-    "wxt": "0.21.4",
+    "vitest": "5.0.5",
+    "vue-tsc": "3.3.14",
+    "wxt": "0.21.5",
     "wxt-module-safari-xcode": "0.2.2"
   },
-  "packageManager": "pnpm@11.25.0"
+  "packageManager": "pnpm@12.8.2"
 }
