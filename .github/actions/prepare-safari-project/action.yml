@@ -1,0 +1,20 @@
+name: Prepare Safari Project
+description: Generate and verify the Safari Xcode project shared by both distribution channels.
+
+runs:
+  using: composite
+  steps:
+    - name: Generate Safari Xcode project
+      shell: bash
+      run: pnpm prepare:safari
+
+    - name: Verify generated Safari bridge and extension entitlements
+      shell: bash
+      run: |
+        test -d 'dist/safari/JabRef Browser Extension.xcodeproj'
+        cmp scripts/SafariWebExtensionHandler.swift \
+          'dist/safari/JabRef Browser Extension Extension/SafariWebExtensionHandler.swift'
+        /usr/libexec/PlistBuddy -c 'Print :com.apple.security.app-sandbox' \
+          safari/entitlements/extension.entitlements | grep -qx true
+        /usr/libexec/PlistBuddy -c 'Print :com.apple.security.network.client' \
+          safari/entitlements/extension.entitlements | grep -qx true

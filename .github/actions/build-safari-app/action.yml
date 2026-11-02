@@ -1,0 +1,18 @@
+name: Build Safari App
+description: Prepare the Safari project and build an unsigned app for direct distribution.
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare and verify Safari project
+      uses: ./.github/actions/prepare-safari-project
+
+    - name: Build Safari app
+      shell: bash
+      run: pnpm build:safari-app
+
+    - name: Verify unsigned Safari app
+      shell: bash
+      run: |
+        test -d 'dist/safari/JabRef Browser Extension.app'
+        test -d 'dist/safari/JabRef Browser Extension.app/Contents/PlugIns/JabRef Browser Extension Extension.appex'
