@@ -53,5 +53,5 @@
     "vue-tsc": "3.3.14",
     "wxt": "0.21.5"
   },
-  "packageManager": "pnpm@12.8.2"
+  "packageManager": "pnpm@12.16.1"
 }
