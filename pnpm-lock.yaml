@@ -177,8 +177,8 @@ importers:
         specifier: 1.0.3
         version: 1.0.3(vite@8.3.5(jiti@2.7.0))(vue@3.5.44(typescript@7.0.2))(wxt@0.21.5(rolldown@1.2.16)(typescript@7.0.2)(vite@8.3.5(jiti@2.7.0)))
       globals:
-        specifier: 17.13.0
-        version: 17.13.0
+        specifier: 17.14.0
+        version: 17.14.0
       jsdom:
         specifier: 30.1.3
         version: 30.1.3
@@ -1196,8 +1196,8 @@ packages:
     resolution: {integrity: sha512-r+mvuDjrjMpsdw46Kmeydb8bdHm7wOKw8wNBtTndkjbPjgAp5oUJUxRE76wZFknxIPokfWvep2qSXK37aXE6zg==}
     hasBin: true
 
-  globals@17.13.0:
-    resolution: {integrity: sha512-RwMTC61u7hrG3ZJMkZQOK4JLJrKS8QtoTii63EmWvFXHqycY9FObBJQCbsLxSO8kjKhWE5kV1GC+Vb1g3RI0Zg==}
+  globals@17.14.0:
+    resolution: {integrity: sha512-UtdkTVyAJePQv0J2M9Xe4L0ruNSDV314XiIJsADI2Zf40bcdAonE/D/OhAU8AT99oij9mhLByb+NvA3QWZYgCg==}
     engines: {node: '>=18'}
 
   graceful-fs@4.2.11:
@@ -2595,7 +2595,7 @@ snapshots:
 
   giget@3.3.1: {}
 
-  globals@17.13.0: {}
+  globals@17.14.0: {}
 
   graceful-fs@4.2.11: {}
 
