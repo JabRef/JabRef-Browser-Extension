@@ -47,7 +47,22 @@ class SandboxManager {
           const callArgs = passTranslateAsFirstArgument
             ? [passTranslateAsFirstArgument, ...args]
             : [...args];
-          return fn.apply(object, callArgs);
+          const result = fn.apply(object, callArgs);
+          if (key === "loadTranslator" && passTranslateAsFirstArgument) {
+            const setHandler = result.setHandler;
+            result.setHandler = (event, handler) =>
+              setHandler.call(result, event, (...callbackArgs) => {
+                const { getSandbox, setSandbox } = this._sharedSandboxModule;
+                const previous = getSandbox();
+                setSandbox(this.sandbox);
+                try {
+                  return handler(...callbackArgs);
+                } finally {
+                  if (previous) setSandbox(previous);
+                }
+              });
+          }
+          return result;
         };
 
         this.importObject(
@@ -77,7 +92,8 @@ class SandboxManager {
 
   async importTranslatorByPath(path, functions = []) {
     const url = this._resolvePath(path);
-    const { setSandbox } = await getSharedSandboxModule();
+    this._sharedSandboxModule = await getSharedSandboxModule();
+    const { setSandbox } = this._sharedSandboxModule;
 
     let cached = this._moduleCache.get(url);
     if (!cached) {
