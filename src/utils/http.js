@@ -521,6 +521,34 @@ Zotero.HTTP = new (function () {
     return true;
   };
 
+  this.processDocuments = async function (urls, processor, options = {}) {
+    const results = [];
+    for (const url of typeof urls === "string" ? [urls] : urls) {
+      const response = await Zotero.HTTP.request("GET", url, {
+        ...options,
+        responseType: "text",
+      });
+      const contentType = response.getResponseHeader("Content-Type") || "text/html";
+      const mimeType = Zotero.HTTP.determineDOMParserContentType(contentType);
+      const doc = new DOMParser().parseFromString(response.responseText, mimeType);
+      const docURL = response.responseURL || url;
+
+      if (mimeType === "text/html") {
+        let base = doc.querySelector("base[href]");
+        if (base) {
+          base.href = new URL(base.getAttribute("href"), docURL).href;
+        } else {
+          base = doc.createElement("base");
+          base.href = docURL;
+          doc.head.prepend(base);
+        }
+      }
+
+      results.push(await processor(Zotero.HTTP.wrapDocument(doc, docURL)));
+    }
+    return results;
+  };
+
   /**
    * Adds a ES6 Proxied location attribute
    * @param doc

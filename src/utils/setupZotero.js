@@ -9,6 +9,7 @@ import "../../sources/zotero-utilities/utilities.js";
 import "../../sources/zotero-utilities/utilities_item.js";
 import "../../sources/zotero-utilities/schema.js";
 import { ZOTERO_TYPE_SCHEMA } from "../../sources/zotero-utilities/resource/zoteroTypeSchemaData.js";
+import { csl } from "../../sources/zotero-utilities/resource/schema/global/schema.json";
 import "../../sources/zotero-utilities/cachedTypes.js";
 import "../../sources/zotero-translate/src/utilities_translate.js";
 import "../../sources/zotero-translate/src/http.js";
@@ -17,6 +18,7 @@ import "./webRequestIntercept.js";
 import dateFormats from "../../sources/zotero-utilities/resource/dateFormats.json";
 
 Zotero.setTypeSchema(ZOTERO_TYPE_SCHEMA);
+Zotero.Schema.init({ csl });
 if (browser.webRequest) {
   // webRequest is not available some contexts, so check before initializing
   Zotero.WebRequestIntercept.init();
